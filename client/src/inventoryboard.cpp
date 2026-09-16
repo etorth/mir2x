@@ -267,7 +267,7 @@ void InventoryBoard::drawDefault(Widget::ROIMap m) const
     const auto startOffY = m.y - m.ro->y;
 
     const auto startRow = getStartRow();
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
     const auto cursorOnIndex = getPackBinIndex(mousePX - startOffX, mousePY - startOffY);
     for(int i = 0; i < std::ssize(myHeroPtr->getInvPack().getPackBinList()); ++i){
         const auto fillColor = [i, cursorOnIndex, this]() -> uint32_t
@@ -446,7 +446,7 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
             }
         case SDL_EVENT_MOUSE_WHEEL:
             {
-                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, m.x + m_invGridX0, m.y + m_invGridY0, SYS_INVGRIDGW * SYS_INVGRIDPW, SYS_INVGRIDGH * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
                     if(rowCount > SYS_INVGRIDGH){
@@ -532,7 +532,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;
 

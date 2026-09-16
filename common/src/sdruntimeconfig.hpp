@@ -135,9 +135,6 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFF,      (), bool,  true )
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFFVALUE, (), float, 0.50f)
 
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALE,      (), bool,  true )
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALERATIO, (), float, 1.00f)
-
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_FULLSCREEN, (), bool, false)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , (), bool, false)
 
@@ -188,6 +185,7 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/
     /**/ using _RSVD_helper_type_RTCFG_WINDOWSIZE_t = std::pair<int, int>;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSIZE, (), _RSVD_helper_type_RTCFG_WINDOWSIZE_t, std::make_pair(800, 600))
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALERATIO, (), float, 1.00f)
     /**/
     /**/ // 0: accept any friend request
     /**/ // 1: reject any friend request

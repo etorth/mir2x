@@ -46,7 +46,7 @@ QuickAccessGrid::QuickAccessGrid(
 
           .drawFunc = [this](int drawDstX, int drawDstY)
           {
-              if(Widget::ROIMap{.x{drawDstX}, .y{drawDstY}, .ro{roi()}}.in(SDLDeviceHelper::getMousePLoc())){
+              if(Widget::ROIMap{.x{drawDstX}, .y{drawDstY}, .ro{roi()}}.in(g_sdlDevice->getMousePLoc())){
                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64), drawDstX, drawDstY, w(), h());
                }
           },

@@ -182,7 +182,7 @@ bool ItemListBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
 
 std::optional<size_t> ItemListBoard::getPageGrid(int startX, int startY) const
 {
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
 
     const int onBoardPX = mousePX - startX;
     const int onBoardPY = mousePY - startY;
@@ -217,7 +217,7 @@ void ItemListBoard::drawGridHoverLayout(size_t index) const
 
     const int margin = 20;
     const int maxWidth = 200;
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
 
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), maxWidth) + margin * 2, hoverTextBoard.h() + margin * 2);
     hoverTextBoard.draw({.x=mousePX + margin, .y=mousePY + margin});
@@ -283,7 +283,7 @@ void ItemListBoard::drawDefault(Widget::ROIMap m) const
             const bool gridSelected = m_selectedPageGrid.has_value() && (m_selectedPageGrid.value() == i);
             const bool cursorOn = [rightBoxX, rightBoxY, remapXDiff, remapYDiff, this]() -> bool
             {
-                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                 return mathf::pointInRectangle<int>(mousePX, mousePY, remapXDiff + rightBoxX, remapYDiff + rightBoxY, m_boxW, m_boxH);
             }();
 

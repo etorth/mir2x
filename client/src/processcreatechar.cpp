@@ -164,7 +164,7 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
             }
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 {
-                    const auto [px, py] = SDLDeviceHelper::getMousePLoc();
+                    const auto [px, py] = g_sdlDevice->getMousePLoc();
                     if(mathf::pointInRectangle(px, py, 200, 290, 90, 260)){
                         m_activeGender = true;
                     }

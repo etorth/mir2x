@@ -52,7 +52,7 @@ void DirectTradeItemList::drawDefault(Widget::ROIMap m) const
 
     const int startOffX = m.x - m.ro->x;
     const int startOffY = m.y - m.ro->y;
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
 
     m_hoveredIndex = getPackBinIndex(mousePX - startOffX, mousePY - startOffY);
     const size_t firstRow = startRow();

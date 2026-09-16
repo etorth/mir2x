@@ -116,18 +116,8 @@ namespace SDLDeviceHelper
             /* dtor */ ~EnableRenderTarget();
     };
 
-    struct SDLEventPLoc final
-    {
-        const int x = 0;
-        const int y = 0;
-    };
-
     char getKeyChar(const SDL_Event &, bool);
-
-    SDLEventPLoc getMousePLoc();
-    std::tuple<int, int, Uint32> getMouseState();
-
-    std::optional<SDLEventPLoc> getEventPLoc(const SDL_Event &);
+    std::optional<std::tuple<int, int>> getEventPLoc(const SDL_Event &);
 
     std::tuple<int, int> getTextureSize  (const SDL_Texture *);
     int                  getTextureWidth (const SDL_Texture *, std::optional<int> = std::nullopt);
@@ -442,6 +432,25 @@ class SDLDevice final
            SDL_SetWindowResizable(m_window.get(), resizable);
        }
 
+       void setWindowScaleRatio(float ratio)
+       {
+           fflassert(ratio > 0);
+           const auto [winW, winH] = getWindowSize();
+
+           if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), winW * ratio, winH * ratio, SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+               throw fflpanic("SDL_SetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
+           }
+       }
+
+    public:
+       SDL_Event &scaleEvent(SDL_Event &event)
+       {
+           if(!SDL_ConvertEventToRenderCoordinates(m_renderer.get(), &event)){
+               throw fflpanic("SDL_ConvertEventToRenderCoordinates({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
+           }
+           return event;
+       }
+
     public:
        SDL_Texture *getCover(int, int); // diameter = 2 * r - 1, r >= 1
 
@@ -450,6 +459,10 @@ class SDLDevice final
 
     public:
        void setWindowSize(int, int);
+
+    public:
+       std::tuple<int, int> getMousePLoc();
+       std::tuple<int, int, Uint32> getMouseState();
 
     public:
        void stopBGM();

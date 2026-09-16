@@ -279,7 +279,7 @@ void MyHeroStateBoard::drawDefault(Widget::ROIMap m) const
         }
     }
 
-    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
     for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
         if(mathf::pointInRectangle(mouseX, mouseY, m.x + m_gridList[i].x, m.y + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
             if(i >= WLG_W_BEGIN && i < WLG_W_END){
@@ -424,7 +424,7 @@ void MyHeroStateBoard::drawItemHoverText(int wltype) const
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;
 

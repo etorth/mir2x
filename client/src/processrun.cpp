@@ -227,7 +227,7 @@ uint64_t ProcessRun::getFocusUID(int focusType, bool allowMyHero) const
     switch(focusType){
         case FOCUS_MOUSE:
             {
-                const auto [mouseWinPX, mouseWinPY] = SDLDeviceHelper::getMousePLoc();
+                const auto [mouseWinPX, mouseWinPY] = g_sdlDevice->getMousePLoc();
                 const auto mousePX = mouseWinPX + m_viewX;
                 const auto mousePY = mouseWinPY + m_viewY;
 
@@ -522,7 +522,7 @@ void ProcessRun::draw() const
         if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
             if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X01000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                const auto [ptrX, ptrY] = SDLDeviceHelper::getMousePLoc();
+                const auto [ptrX, ptrY] = g_sdlDevice->getMousePLoc();
                 g_sdlDevice->drawTexture(texPtr, ptrX - texW / 2, ptrY - texH / 2);
             }
         }
@@ -533,7 +533,7 @@ void ProcessRun::draw() const
             {
                 const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
                 if(auto flagTex = g_progUseDB->retrieve(0X00000210 + teamFlagIndex)){
-                    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+                    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
                     g_sdlDevice->drawTexture(flagTex, DIR_NONE, mouseX, mouseY);
                 }
                 break;
@@ -781,6 +781,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 break;
             }
     }
+}
+
+std::tuple<int, int> ProcessRun::getMouseGLoc() const
+{
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    return fromPLoc2Grid(mousePX, mousePY);
 }
 
 void ProcessRun::preloadMapBin(uint64_t newMapUID)
@@ -2100,7 +2106,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
             const int drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - texW / 2;
             const int drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - texH / 2;
 
-            const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+            const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
             const int mouseGridX = (mouseX + m_viewX) / SYS_MAPGRIDXP;
             const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
 
@@ -2275,7 +2281,7 @@ void ProcessRun::drawMouseLocation() const
 {
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
 
-    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
     const auto locPixel = str_printf(u8"Pixel: %d, %d", mouseX, mouseY);
     const auto locGrid  = str_printf(u8"Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 

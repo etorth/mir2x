@@ -601,7 +601,7 @@ void DirectTradeBoard::drawItemHoverText(const SDItem &item) const
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
     const int textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const int textBoxH = hoverTextBoard.h() + 20;
 

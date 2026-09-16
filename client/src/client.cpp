@@ -45,9 +45,9 @@ Client::~Client()
 void Client::processEvent()
 {
     if(m_currentProcess){
-        SDL_Event stEvent;
-        while(SDL_PollEvent(&stEvent)){
-            m_currentProcess->processEvent(stEvent);
+        SDL_Event event;
+        while(SDL_PollEvent(&event)){
+            m_currentProcess->processEvent(g_sdlDevice->scaleEvent(event));
             switchProcess();
         }
     }

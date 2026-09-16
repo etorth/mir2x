@@ -47,7 +47,7 @@ SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarDir argDir,
 
           .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
           {
-              if(Widget::ROIMap{.x=drawDstX, .y=drawDstY, .ro{roi()}}.in(SDLDeviceHelper::getMousePLoc())){
+              if(Widget::ROIMap{.x=drawDstX, .y=drawDstY, .ro{roi()}}.in(g_sdlDevice->getMousePLoc())){
                   g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, w(), h());
                   g_sdlDevice->drawRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, w(), h());
               }

@@ -120,6 +120,39 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           },
       }}
 
+    , m_pageSystem_scale
+      {{
+          .label
+          {
+              .text = u8"缩放比例",
+              .w = 40,
+          },
+
+          .title
+          {
+              .text = u8"???",
+              .w = 80,
+              .h = 24,
+          },
+
+          .menuFixed = 80,
+          .itemList
+          {
+              {{new LabelBoard{{.label = u8"0.20", .attrs{.data = 0.20f}}}, true}},
+              {{new LabelBoard{{.label = u8"0.50", .attrs{.data = 0.50f}}}, true}},
+              {{new LabelBoard{{.label = u8"1.00", .attrs{.data = 1.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"2.00", .attrs{.data = 2.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"5.00", .attrs{.data = 5.00f}}}, true}},
+          },
+
+          .onClick = [this](Widget *widget)
+          {
+              SDRuntimeConfig_setConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig, std::any_cast<float>(widget->data()));
+              applyScaleConfig();
+              reportRuntimeConfig<RTCFG_SCALERATIO>();
+          },
+      }}
+
     , m_pageSystem_ime
       {{
           .label
@@ -147,26 +180,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
               updateIME(std::any_cast<int>(widget->data()), true);
           },
       }}
-
-    , m_pageSystem_pixelScaleSlider
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-
-          u8"缩放比例",
-          60,
-
-          1,
-          80,
-
-          [this](float val)
-          {
-              SDRuntimeConfig_setConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig, val);
-              applyScaleConfig();
-              reportRuntimeConfig<RTCFG_SCALERATIO>();
-          },
-      }
 
     , m_pageSystem_musicSlider
       {
@@ -228,35 +241,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                       .childList
                       {
                           {&m_pageSystem_resolution, DIR_UPLEFT, 0,  0, false},
-                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 30, false},
+                          {&m_pageSystem_scale     , DIR_UPLEFT, 0, 30, false},
+                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 60, false},
 
-                          {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0,  75, true},
-                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS>(); }}}, DIR_UPLEFT, 0, 100, true},
-
-                          {new CheckLabel
-                          {{
-                              .label{.text=u8"像素缩放"},
-                              .getter = [this]
-                              {
-                                  return SDRuntimeConfig_getConfig<RTCFG_SCALE>(m_sdRuntimeConfig);
-                              },
-
-                              .setter = [this](bool value)
-                              {
-                                  SDRuntimeConfig_setConfig<RTCFG_SCALE>(m_sdRuntimeConfig, value);
-                              },
-
-                              .onChange = [this](bool value)
-                              {
-                                  applyScaleConfig();
-                                  reportRuntimeConfig<RTCFG_SCALE>();
-                                  m_pageSystem_pixelScaleSlider.setActive(value);
-                              },
-
-                          }},
-                          DIR_UPLEFT, 0, 140, true},
-
-                          {&m_pageSystem_pixelScaleSlider, DIR_UPLEFT, 0, 165, false},
+                          {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0, 105, true},
+                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS>(); }}}, DIR_UPLEFT, 0, 130, true},
 
                           {new CheckLabel
                           {{
@@ -282,9 +271,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_musicSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0, 200, true},
+                          DIR_UPLEFT, 0, 165, true},
 
-                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 225, false},
+                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 190, false},
 
                           {new CheckLabel
                           {{
@@ -310,9 +299,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0, 260, true},
+                          DIR_UPLEFT, 0, 225, true},
 
-                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 285, false},
+                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 250, false},
                       },
                   }},
                   true,
@@ -708,6 +697,7 @@ void RuntimeConfigBoard::applyAudioConfig()
 
 void RuntimeConfigBoard::applyScaleConfig()
 {
+    g_sdlDevice->setWindowScaleRatio(SDRuntimeConfig_getConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig));
 }
 
 void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)

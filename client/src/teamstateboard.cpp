@@ -216,7 +216,7 @@ void TeamStateBoard::drawDefault(Widget::ROIMap m) const
         header.draw({.dir=DIR_NONE, .x{remapXDiff + w() / 2}, .y{remapYDiff + 57}});
     }
 
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
 
     std::string nameText;
     XMLTypeset line
@@ -329,7 +329,7 @@ bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
             }
         case SDL_EVENT_MOUSE_WHEEL:
             {
-                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, remapXDiff + m_uidRegionX, remapYDiff + m_uidRegionY, m_uidRegionW, lineHeight() * lineShowCount())){
                     if(lineCount() <= lineShowCount()){
                         m_startIndex[m_showCandidateList] = 0;

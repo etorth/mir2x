@@ -544,7 +544,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         {SDItem::XML_PRICECOLOR, (goldPrice > 100) ? std::string("red") : std::string("green")},
     }).c_str()));
 
-    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.draw({.x=mousePX + 10, .y=mousePY + 10});
 }
@@ -604,7 +604,7 @@ void PurchaseBoard::drawExt1(Widget::ROIMap m) const
             }};
             drawAsChild(&price, DIR_UPLEFT, rightBoxX, rightBoxY, m);
 
-            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+            const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
             const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
             const bool cursorOn = [rightBoxX, rightBoxY, mousePX, mousePY, remapX, remapY, this]() -> bool
             {

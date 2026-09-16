@@ -457,7 +457,7 @@ void MiniMapBoard::drawCanvas(int drawDstX, int drawDstY)
     }
 
     if(Widget::ROIMap m{.x{drawDstX}, .y{drawDstY}, .ro{m_canvas.roi()}}; m.crop(m_mapImage.roi(&m_canvas))){
-        if(const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc(); m.in(mousePX, mousePY)){
+        if(const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc(); m.in(mousePX, mousePY)){
 
             const auto [onMapGX, onMapGY] = onMapGLoc_from_onCanvasPLoc({mousePX - drawDstX, mousePY - drawDstY});
             const auto bgColor = (m_processRun->canMove(true, 0, onMapGX, onMapGY) ? colorf::BLACK : colorf::RED) + colorf::A_SHF(200);

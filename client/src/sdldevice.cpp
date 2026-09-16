@@ -251,39 +251,12 @@ char SDLDeviceHelper::getKeyChar(const SDL_Event &event, bool checkShiftKey)
     return '\0';
 }
 
-SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
-{
-    float mousePX = -1.0f;
-    float mousePY = -1.0f;
-    SDL_GetMouseState(&mousePX, &mousePY);
-
-    return
-    {
-        to_d(mousePX),
-        to_d(mousePY),
-    };
-}
-
-std::tuple<int, int, Uint32> SDLDeviceHelper::getMouseState()
-{
-    float mousePX = -1.0f;
-    float mousePY = -1.0f;
-    SDL_MouseButtonFlags mouseState = SDL_GetMouseState(&mousePX, &mousePY);
-
-    return
-    {
-        to_d(mousePX),
-        to_d(mousePY),
-        static_cast<Uint32>(mouseState),
-    };
-}
-
-std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
+std::optional<std::tuple<int, int>> SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
 {
     switch(event.type){
         case SDL_EVENT_MOUSE_MOTION:
             {
-                return SDLDeviceHelper::SDLEventPLoc
+                return std::tuple<int, int>
                 {
                     to_d(event.motion.x),
                     to_d(event.motion.y),
@@ -292,7 +265,7 @@ std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const
         case SDL_EVENT_MOUSE_BUTTON_UP:
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                return SDLDeviceHelper::SDLEventPLoc
+                return std::tuple<int, int>
                 {
                     to_d(event.button.x),
                     to_d(event.button.y),
@@ -300,7 +273,7 @@ std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const
             }
         case SDL_EVENT_MOUSE_WHEEL:
             {
-                return SDLDeviceHelper::SDLEventPLoc
+                return std::tuple<int, int>
                 {
                     to_d(event.wheel.mouse_x),
                     to_d(event.wheel.mouse_y),
@@ -1256,6 +1229,42 @@ void SDLDevice::setWindowSize(int w, int h)
 
     SDL_SetWindowSize(m_window.get(), w, h);
 }
+
+std::tuple<int, int> SDLDevice::getMousePLoc()
+{
+    float mousePX = -1.0f;
+    float mousePY = -1.0f;
+    SDL_GetMouseState(&mousePX, &mousePY);
+
+    if(!SDL_RenderCoordinatesFromWindow(m_renderer.get(), mousePX, mousePY, &mousePX, &mousePY)){
+        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer.get()), mousePX, mousePY, SDL_GetError());
+    }
+
+    return
+    {
+        to_d(mousePX),
+        to_d(mousePY),
+    };
+}
+
+std::tuple<int, int, Uint32> SDLDevice::getMouseState()
+{
+    float mousePX = -1.0f;
+    float mousePY = -1.0f;
+    SDL_MouseButtonFlags mouseState = SDL_GetMouseState(&mousePX, &mousePY);
+
+    if(!SDL_RenderCoordinatesFromWindow(m_renderer.get(), mousePX, mousePY, &mousePX, &mousePY)){
+        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer.get()), mousePX, mousePY, SDL_GetError());
+    }
+
+    return
+    {
+        to_d(mousePX),
+        to_d(mousePY),
+        static_cast<Uint32>(mouseState),
+    };
+}
+
 
 void SDLDevice::stopBGM()
 {

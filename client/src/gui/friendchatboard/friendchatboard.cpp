@@ -132,7 +132,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       return {true, colorf::RGBA(231, 231, 189, 96)};
                   }
 
-                  const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                  const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
 
                   const auto eventDX = mousePX - drawDstX;
                   const auto eventDY = mousePY - drawDstY;

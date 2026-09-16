@@ -193,11 +193,7 @@ class ProcessRun: public Process
             return {m_viewX, m_viewY};
         }
 
-        std::tuple<int, int> getMouseGLoc() const
-        {
-            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-            return fromPLoc2Grid(mousePX, mousePY);
-        }
+        std::tuple<int, int> getMouseGLoc() const;
 
     public:
         bool onMap(uint64_t argMapUID, int nX, int nY) const
