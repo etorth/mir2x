@@ -106,7 +106,7 @@ local function enterTrial(uid)
                 {
                     '这里所有的怪物都被处理了嘛<t wrap="0">···</t>',
                     '能力还不错<t wrap="0">···</t>',
-                    '                    请在外面观看<t wrap="0">···</t>',
+                    '请在外面观看<t wrap="0">···</t>',
                 },
                 dialog.link('npc_leave_trial', '关闭', {close = true}))
             end,
