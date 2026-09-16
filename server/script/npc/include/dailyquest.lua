@@ -145,33 +145,53 @@ local rewardList <const> =
     {kind = 'item', item = '回城卷',       count = 1, description = '<t color="RED">1张回城卷</t>'      },
 }
 
+local impatientTalk <const> =
+{
+    '怎么又是你，还没办好吗<t wrap="0">···</t>',
+    '这事不是说过了吗<t wrap="0">···</t>',
+    '你还没找到人？动作快点<t wrap="0">···</t>',
+    '你又来问？我都说过了<t wrap="0">···</t>',
+}
+
+local function addImpatientTalk(impatient, dialogTable)
+    if impatient then
+        table.insert(dialogTable, 1, impatientTalk[math.random(1, #impatientTalk)])
+    end
+    return dialogTable
+end
+
 local dialogTemplateList <const> =
 {
     function(target, again)
-        return
+        return addImpatientTalk(again,
         {
-            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('这次事情去找一下在<t color="RED">%s</t>的%s<t color="RED">%s</t>吧。', target.area, target.role, target.name),
             string.format('%s也许在%s。', target.name, target.location),
-        }
+        })
     end,
 
     function(target, again)
-        return
+        return addImpatientTalk(again,
         {
-            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('麻烦你去一趟<t color="RED">%s</t>，把消息带给%s<t color="RED">%s</t>。', target.area, target.role, target.name),
             string.format('你可以到%s找%s。', target.location, target.name),
-        }
+        })
     end,
 
     function(target, again)
-        return
+        return addImpatientTalk(again,
         {
-            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('今天的事情要请%s<t color="RED">%s</t>帮忙，你去<t color="RED">%s</t>找一下吧。', target.role, target.name, target.area),
             string.format('%s通常在%s。', target.name, target.location),
-        }
+        })
+    end,
+
+    function(target)
+        return addImpatientTalk(again,
+        {
+            string.format('要请%s<t color="RED">%s</t>帮忙，你去<t color="RED">%s</t>找一下吧。', target.role, target.name, target.area),
+            string.format('%s通常在%s。', target.name, target.location),
+        })
     end,
 }
 
