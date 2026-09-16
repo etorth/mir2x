@@ -186,7 +186,7 @@ local dialogTemplateList <const> =
         })
     end,
 
-    function(target)
+    function(target, again)
         return addImpatientTalk(again,
         {
             string.format('要请%s<t color="RED">%s</t>帮忙，你去<t color="RED">%s</t>找一下吧。', target.role, target.name, target.area),
@@ -234,9 +234,9 @@ local function registerTargetResponse(playerUID, targetIndex)
         local playerUID, targetIndex, QUEST_NAME, MAX_DAILY_ROUNDS, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, rewardList = ...
 
         local dialog = require('include.dialog')
-        local questPath = {SYS_EPUID, questName}
+        local questPath = {SYS_EPUID, QUEST_NAME}
 
-        setUIDQuestHandler(playerUID, questName,
+        setUIDQuestHandler(playerUID, QUEST_NAME,
         {
             [SYS_LABEL] = '送达消息',
             [SYS_ENTER] = function(uid, args)
@@ -263,7 +263,7 @@ local function registerTargetResponse(playerUID, targetIndex)
                     return true, completedCount + 1
                 ]=])
 
-                deleteUIDQuestHandler(uid, questName)
+                deleteUIDQuestHandler(uid, QUEST_NAME)
                 if not completed then
                     dialog.post(uid, questPath, '这件事情已经处理过了。',
                     dialog.link(SYS_EXIT, '结束'))
@@ -271,7 +271,7 @@ local function registerTargetResponse(playerUID, targetIndex)
                 end
 
                 local rewardIndex = math.random(1, #rewardList)
-                local reward = rewards[rewardIndex]
+                local reward = rewardList[rewardIndex]
 
                 if reward.kind == 'exp' then
                     server.player.addExp(uid, reward.count)
@@ -316,6 +316,10 @@ function dq.setQuest(uid, args)
         -- so if player forgot the target name or location, they have come back and ask again
         again = true
     end
+
+    -- always register the target NPC's response handler
+    -- when the server restarted, the target NPC's in-memory handler was lost while the db-persisted active target survived
+    registerTargetResponse(uid, targetIndex)
 
     dialog.post(uid, dialogTemplateList[math.random(1, #dialogTemplateList)](targetNPCList[targetIndex], again),
     dialog.link(SYS_EXIT, '结束', {close = true}))
