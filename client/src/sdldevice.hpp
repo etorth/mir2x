@@ -427,38 +427,16 @@ class SDLDevice final
        }
 
     public:
-       void setWindowResizable(bool resizable)
-       {
-           SDL_SetWindowResizable(m_window.get(), resizable);
-       }
-
-       void setWindowScaleRatio(float ratio)
-       {
-           fflassert(ratio > 0);
-           const auto [winW, winH] = getWindowSize();
-
-           if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), winW * ratio, winH * ratio, SDL_LOGICAL_PRESENTATION_LETTERBOX)){
-               throw fflpanic("SDL_SetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
-           }
-       }
-
-    public:
-       SDL_Event &scaleEvent(SDL_Event &event)
-       {
-           if(!SDL_ConvertEventToRenderCoordinates(m_renderer.get(), &event)){
-               throw fflpanic("SDL_ConvertEventToRenderCoordinates({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
-           }
-           return event;
-       }
+       void setWindowSize(int, int);
+       void setWindowResizable(bool);
+       void setWindowScaleRatio(float);
+       SDL_Event &scaleEvent(SDL_Event &);
 
     public:
        SDL_Texture *getCover(int, int); // diameter = 2 * r - 1, r >= 1
 
     public:
        void drawString(uint32_t, int, int, const char *);
-
-    public:
-       void setWindowSize(int, int);
 
     public:
        std::tuple<int, int> getMousePLoc();

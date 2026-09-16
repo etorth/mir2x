@@ -30,8 +30,12 @@ inline auto to_u8    (auto x){ return static_cast<           uint8_t>(x); }
 inline auto to_u16   (auto x){ return static_cast<          uint16_t>(x); }
 inline auto to_u32   (auto x){ return static_cast<          uint32_t>(x); }
 inline auto to_u64   (auto x){ return static_cast<          uint64_t>(x); }
-inline auto to_cvptr (auto x){ return static_cast<      const void *>(x); }
 inline auto to_luaInt(auto x){ return static_cast<       lua_Integer>(x); }
+
+template<typename P> [[nodiscard]] auto to_cvptr(const P &p)
+{
+    return static_cast<const void *>(std::to_address(p));
+}
 
 template<typename T, typename F> static T check_cast(F from)
 {

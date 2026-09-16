@@ -514,12 +514,12 @@ void SDLDevice::toggleWindowFullscreen()
 
     if(winFlag & SDL_WINDOW_FULLSCREEN){
         if(!SDL_SetWindowFullscreen(m_window.get(), false)){
-            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window.get()), SDL_GetError());
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
     else{
         if(!SDL_SetWindowFullscreen(m_window.get(), true)){
-            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window.get()), SDL_GetError());
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
 }
@@ -729,7 +729,7 @@ void SDLDevice::drawTextureEx(
         const SDL_FPoint center {to_f(centerDstOffX), to_f(centerDstOffY)};
         const double angle = 1.00 * (rotateDegree % 360);
         if(!SDL_RenderTextureRotated(m_renderer.get(), texPtr, &src, &dst, angle, &center, flip)){
-            throw fflpanic("SDL_RenderTextureRotated({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
+            throw fflpanic("SDL_RenderTextureRotated({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
         }
 
         if(g_clientArgParser->debugDrawTexture){
@@ -1227,7 +1227,34 @@ void SDLDevice::setWindowSize(int w, int h)
     fflassert(w >= 400, w, h);
     fflassert(h >= 400, w, h);
 
-    SDL_SetWindowSize(m_window.get(), w, h);
+    if(!SDL_SetWindowSize(m_window.get(), w, h)){
+        throw fflpanic("SDL_SetWindowSize({:p}, {}, {}) failed: {}", to_cvptr(m_window), w, h, SDL_GetError());
+    }
+}
+
+void SDLDevice::setWindowResizable(bool resizable)
+{
+    if(!SDL_SetWindowResizable(m_window.get(), resizable)){
+        throw fflpanic("SDL_SetWindowResizable({:p}, {}) failed: {}", to_cvptr(m_window), resizable, SDL_GetError());
+    }
+}
+
+void SDLDevice::setWindowScaleRatio(float ratio)
+{
+    fflassert(ratio > 0);
+    const auto [winW, winH] = getWindowSize();
+
+    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+        throw fflpanic("SDL_SetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+    }
+}
+
+SDL_Event &SDLDevice::scaleEvent(SDL_Event &event)
+{
+    if(!SDL_ConvertEventToRenderCoordinates(m_renderer.get(), &event)){
+        throw fflpanic("SDL_ConvertEventToRenderCoordinates({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+    }
+    return event;
 }
 
 std::tuple<int, int> SDLDevice::getMousePLoc()
@@ -1237,7 +1264,7 @@ std::tuple<int, int> SDLDevice::getMousePLoc()
     SDL_GetMouseState(&mousePX, &mousePY);
 
     if(!SDL_RenderCoordinatesFromWindow(m_renderer.get(), mousePX, mousePY, &mousePX, &mousePY)){
-        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer.get()), mousePX, mousePY, SDL_GetError());
+        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer), mousePX, mousePY, SDL_GetError());
     }
 
     return
@@ -1254,7 +1281,7 @@ std::tuple<int, int, Uint32> SDLDevice::getMouseState()
     SDL_MouseButtonFlags mouseState = SDL_GetMouseState(&mousePX, &mousePY);
 
     if(!SDL_RenderCoordinatesFromWindow(m_renderer.get(), mousePX, mousePY, &mousePX, &mousePY)){
-        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer.get()), mousePX, mousePY, SDL_GetError());
+        throw fflpanic("SDL_RenderCoordinatesFromWindow({:p}, {}, {}) failed: {}", to_cvptr(m_renderer), mousePX, mousePY, SDL_GetError());
     }
 
     return
