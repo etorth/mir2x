@@ -106,12 +106,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              {{new LabelBoard{{.label = u8"800×600" , .attrs{.data = std::pair<int, int>( 800, 600)}}}, true}},
-              {{new LabelBoard{{.label = u8"960×600" , .attrs{.data = std::pair<int, int>( 960, 600)}}}, true}},
-              {{new LabelBoard{{.label = u8"1024×768", .attrs{.data = std::pair<int, int>(1024, 768)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×720", .attrs{.data = std::pair<int, int>(1280, 720)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×768", .attrs{.data = std::pair<int, int>(1280, 768)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×800", .attrs{.data = std::pair<int, int>(1280, 800)}}}, true}},
+              {{new LabelBoard{{.label = u8"800×600  ", .attrs{.data = std::pair<int, int>( 800, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"960×600  ", .attrs{.data = std::pair<int, int>( 960, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"1024×768 ", .attrs{.data = std::pair<int, int>(1024, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×720 ", .attrs{.data = std::pair<int, int>(1280, 720)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×768 ", .attrs{.data = std::pair<int, int>(1280, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×800 ", .attrs{.data = std::pair<int, int>(1280, 800)}}}, true}},
           },
 
           .onClick = [this](Widget *widget)
@@ -135,14 +135,13 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
               .h = 24,
           },
 
-          .menuFixed = 80,
           .itemList
           {
-              {{new LabelBoard{{.label = u8"0.20", .attrs{.data = 0.20f}}}, true}},
-              {{new LabelBoard{{.label = u8"0.50", .attrs{.data = 0.50f}}}, true}},
-              {{new LabelBoard{{.label = u8"1.00", .attrs{.data = 1.00f}}}, true}},
-              {{new LabelBoard{{.label = u8"2.00", .attrs{.data = 2.00f}}}, true}},
-              {{new LabelBoard{{.label = u8"5.00", .attrs{.data = 5.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"0.20     ", .attrs{.data = 0.20f}}}, true}},
+              {{new LabelBoard{{.label = u8"0.50     ", .attrs{.data = 0.50f}}}, true}},
+              {{new LabelBoard{{.label = u8"1.00     ", .attrs{.data = 1.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"2.00     ", .attrs{.data = 2.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"5.00     ", .attrs{.data = 5.00f}}}, true}},
           },
 
           .onClick = [this](Widget *widget)
