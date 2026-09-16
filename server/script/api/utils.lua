@@ -13,8 +13,8 @@ function utils.findServiceCore()
 end
 
 function utils.findNPChar(mapName, npcName)
-    assertType(mapname, 'string')
-    assertType(npcname, 'string')
+    assertType(mapName, 'string')
+    assertType(npcName, 'string')
 
     local mapUID = assertType(loadBaseMap(mapName), 'integer', 'nil')
 

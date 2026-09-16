@@ -120,7 +120,7 @@ template<UIDType uidType> static uint64_t _build_UID_helper(bool allowZeroId, ui
     fflassert(id < (1uz << idBitWidth), id, idBitWidth);
     fflassert(peerIndex < (1uz << peerIndexBitWidth), peerIndex, peerIndexBitWidth);
 
-    const auto seqID = seqIDOpt.value_or([id, startOff]() -> uint32_t // seq uses 32 bits at most
+    const auto seqID = seqIDOpt.has_value() ? seqIDOpt.value() : [id, startOff]() -> uint32_t // seq uses 32 bits at most
     {
         static std::mutex s_seqLock;
         static std::unordered_map<uint32_t, uint32_t> s_seqMap;
@@ -133,7 +133,7 @@ template<UIDType uidType> static uint64_t _build_UID_helper(bool allowZeroId, ui
                 return ++(p->second);
             }
         }
-    }());
+    }();
 
     fflassert(seqID < (1uz << seqBitWidth), seqID, seqBitWidth);
     return
