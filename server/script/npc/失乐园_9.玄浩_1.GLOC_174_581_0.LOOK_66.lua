@@ -5,7 +5,7 @@ bookseller.setBookseller
 {
     greet =
     {
-        '欢迎光临！您需要武功秘籍吗?',
+        '欢迎光临！您需要武功秘籍吗？',
     },
 
     redName = '我不想和你这种人打交道。',

@@ -222,7 +222,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- checkmagic 刺杀剑术
             if server.player.hasMagic(uid, magicName) then
-                dialog.post(uid, questPath, '你不是已经掌握该武功吗？请到其它的地方搞恶做剧。我可没有那么好的性格。',
+                dialog.post(uid, questPath, '你不是已经掌握该武功吗？请到其它的地方搞恶作剧。我可没有那么好的性格。',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -247,7 +247,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_lore1 = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '和先天就有特别出色能力的魔法师和多才多能并受到尊敬的道士相比，被任何任选择的一介小兵的我们，当然看起来既不特别、也不华丽。因此人们把战士叫做只有块头和力量的傻瓜。',
+                '和先天就有特别出色能力的魔法师和多才多能并受到尊敬的道士相比，作为被任何人任意差遣的一介小兵的我们，当然看起来既不特别、也不华丽。因此人们把战士叫做只有块头和力量的傻瓜。',
                 '为了消除这种偏见，很多前辈们创造了杰出的武功并不断地发展。这中间有超越了人们想象力可以称为艺术的武功。刺杀剑术就是这些武功中的一个。',
             },
             dialog.link('npc_lore2', '真的吗？如果那样，为什么该武功没有被人知晓？'))

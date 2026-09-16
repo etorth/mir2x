@@ -54,7 +54,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             {
                 dialog.link('npc_test_script', '测试脚本'),
                 dialog.link('npc_test_deliver_iterms', '测试邮寄'),
-                dialog.link('npc_test_switch_map', '测试地图切换', {close = true, args = '{\'比奇县_0\',390,400}'}),
+                dialog.link('npc_test_switch_map', '测试地图切换', {close = true, args = [=[{'比奇县_0',390,400}]=]}),
                 dialog.link('npc_test_random_move', '狂奔', {close = true}),
                 getNPCMapLocXML("event", {id="npc_test_switch_map", close="1"}),
                 dialog.link(SYS_EXIT, '退出'),

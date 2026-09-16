@@ -146,7 +146,7 @@ function jeweler.setJeweler(spec)
                     -- This reachable branch uses inline text, not the clean but unused include.
                     dialog.post(uid, {'世尊手镯（暗黑）在这里了，请收好。'})
                 else
-                    dialog.post(uid, {string.format('得到%s(%s)。', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
+                    dialog.post(uid, {string.format('得到%s（%s）。', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
                 end
             end
         end
@@ -162,7 +162,7 @@ function jeweler.setJeweler(spec)
             },
             {
                 dialog.link('npc_rust_restore', '支付100万金币，将生锈的饰品恢复原貌。'),
-                dialog.link('npc_rust_help', '讯问元素道具。'),
+                dialog.link('npc_rust_help', '询问元素道具。'),
                 dialog.link(SYS_EXIT, '关闭。'),
             })
         end

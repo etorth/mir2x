@@ -8,7 +8,7 @@ apothecary.setApothecary
         '欢迎光临，这里出售一些简单的药品。',
     },
 
-    redName = '我不愿意和你这样的坏人进行交易。。',
+    redName = '我不愿意和你这样的坏人进行交易<t wrap="0">···</t>',
 
     goods =
     {

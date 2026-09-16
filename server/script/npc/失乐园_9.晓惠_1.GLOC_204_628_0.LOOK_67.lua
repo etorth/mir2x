@@ -5,10 +5,10 @@ outfitter.setOutfitter
 {
     greet =
     {
-        '欢迎光临！您需要什么吗?',
+        '欢迎光临！您需要什么吗？',
     },
 
-    redName = '我不和你这种人打交道。。',
+    redName = '我不和你这种人打交道<t wrap="0">···</t>',
 
     goods =
     {

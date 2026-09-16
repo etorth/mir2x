@@ -10,14 +10,14 @@ local dialog = require('include.dialog')
 local greet =
 {
     '你知道组合许多不同的材料制作物品的乐趣吗？哈哈哈！',
-    '你收集材料过来的话我给你制作吧。我想让大家知道我的喜悦。。哈哈',
+    '你收集材料过来的话我给你制作吧。我想让大家知道我的喜悦<t wrap="0">···</t>哈哈',
 }
 
 setEventHandler
 {
     [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
-            dialog.post(uid, '不良的朋友啊。。马上在我面前消失。。',
+            dialog.post(uid, '不良的朋友啊<t wrap="0">···</t>马上在我面前消失<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
             return
         end

@@ -96,7 +96,7 @@ local function enterTrial(uid)
                     return
                 end
 
-                dialog.post(uid, questPath, '里面所有的骷髅都被处置哟。。好的，有能力。。请在外面看。。',
+                dialog.post(uid, questPath, '里面所有的骷髅都被处置哟<t wrap="0">···</t>好的，有能力<t wrap="0">···</t>请在外面看<t wrap="0">···</t>',
                 dialog.link('npc_leave_trial', '关闭', {close = true}))
             end,
 
@@ -172,7 +172,7 @@ local function teacherBehavior(uid, retry)
                 dialog.post(uid, questPath,
                 {
                     '用那种像铁块一样的剑进行实战搏杀，内力都将集中在剑尖儿。希望你可以活着回来，再见面！哈哈哈',
-                    '规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。',
+                    '规定时间是<t color="red">3分钟</t><t wrap="0">···</t>希望你在规定的时间之内可以成功。',
                 },
                 dialog.link('npc_go_trial', '下一步'))
             end,
@@ -186,8 +186,8 @@ local function teacherBehavior(uid, retry)
                 dialog.post(uid, questPath,
                 {
                     '什么攻杀铁剑丢了？因此不能学习剑术了，是吧。',
-                    '如果这样，请使用我的攻杀铁剑吧。。但是不能就这样给你了。',
-                    string.format('一把剑<t color="red">%d</t>两。。还买吗？', swordPrice),
+                    '如果这样，请使用我的攻杀铁剑吧<t wrap="0">···</t>但是不能就这样给你了。',
+                    string.format('一把剑<t color="red">%d</t>两<t wrap="0">···</t>还买吗？', swordPrice),
                 },
                 {
                     dialog.link('npc_buy_sword', '即使贵也要买。'),
@@ -196,7 +196,7 @@ local function teacherBehavior(uid, retry)
             end,
 
             npc_no_money = function(uid, args)
-                dialog.post(uid, questPath, '没有钱？如果是这样，请找到钱再来。。我等你。',
+                dialog.post(uid, questPath, '没有钱？如果是这样，请找到钱再来<t wrap="0">···</t>我等你。',
                 dialog.link(SYS_EXIT, '结束'))
             end,
 
@@ -207,7 +207,7 @@ local function teacherBehavior(uid, retry)
                     return
                 end
 
-                dialog.post(uid, questPath, '攻杀铁剑在这儿。。小心不要丢失了。。',
+                dialog.post(uid, questPath, '攻杀铁剑在这儿<t wrap="0">···</t>小心不要丢失了<t wrap="0">···</t>',
                 dialog.link(SYS_EXIT, '结束'))
 
                 uidRemoteCall(uid,
@@ -220,8 +220,8 @@ local function teacherBehavior(uid, retry)
             npc_retry_trial = function(uid, args)
                 dialog.post(uid, questPath,
                 {
-                    '嘿嘿。。还是有气派好。那么请将我送到训练场吧。希望你顽强战斗。。',
-                    '规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。',
+                    '嘿嘿<t wrap="0">···</t>还是有气派好。那么请将我送到训练场吧。希望你顽强战斗<t wrap="0">···</t>',
+                    '规定时间是<t color="red">3分钟</t><t wrap="0">···</t>希望你在规定的时间之内可以成功。',
                 },
                 dialog.link('npc_go_trial', '下一步'))
             end,
@@ -386,8 +386,8 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             dialog.post(uid, questPath,
             {
-                '几乎是从现在开始修炼武功的年轻人，我在你这个年纪的时候也经历了同样的问题。。',
-                '按照那种理由我要帮助你的训练。虽然有些困难。。。打算怎么办？',
+                '几乎是从现在开始修炼武功的年轻人，我在你这个年纪的时候也经历了同样的问题<t wrap="0">···</t>',
+                '按照那种理由我要帮助你的训练。虽然有些困难<t wrap="0">···</t>打算怎么办？',
             },
             {
                 dialog.link('npc_accept', '无论如何请传授方法。'),
@@ -427,7 +427,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             '即要经历剑和魂合一的阶段才行。' ..
             '只有通过这样的修炼，才能练成对敌的急所发出强力一击的厚实剑术。' ..
             '进入修炼之前，首先要装备此剑。' ..
-            '但一旦此剑被抓在手中，直到攻杀剑术修练厚实前，不能脱手，要铭记此点。',
+            '但一旦此剑被抓在手中，直到攻杀剑术修炼扎实之前，不能脱手，要铭记此点。',
             dialog.link(SYS_EXIT, '结束'))
 
             uidRemoteCall(uid,

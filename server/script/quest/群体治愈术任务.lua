@@ -461,8 +461,8 @@ setQuestFSMTable(
                     {
                         '求了!请求了!!',
                         '但是官吏们堵上了流向村子的水流，村子反而被隔离了。我们村子的人们得不到任何帮助，正在死去。',
-                        '我们无法在看人们就这样死去！如果得不到官吏的帮助，即使凭借我们的力量也要除掉蜈蚣们！！因此体格健壮的人们拿着镰刀和镐到蜈蚣所在的洞窟去了。',
-                        '但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮组我们<t color="red">处理那些坏？？</t>！这样衷肯地拜托你<t wrap="0">···</t>',
+                        '我们无法再看人们就这样死去！如果得不到官吏的帮助，即使凭借我们的力量也要除掉蜈蚣们！！因此体格健壮的人们拿着镰刀和镐到蜈蚣所在的洞窟去了。',
+                        '但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮助我们<t color="red">处理那些坏蜈蚣</t>！这样衷心地拜托你<t wrap="0">···</t>',
                     },
                     {
                         dialog.link('npc_accept', '知道了，我去那个洞窟看看。'),
@@ -617,7 +617,7 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete0
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '(不对，我为什么在这个地方？？？ )',
+                    dialog.post(uid, questPath, '(不对，我为什么在这个地方？)',
                     dialog.link('npc_look_around', '看看周围<t wrap="0">···</t>'))
                 end,
 
@@ -629,7 +629,7 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete2
                 npc_tell_story = function(uid, value)
-                    dialog.post(uid, questPath, '知道了。那个村子是<t color="red">百年之前由于传染病而消失了的村子</t>。自从作为那个村子乳汁的溪水被污染后，人们都生病而死。',
+                    dialog.post(uid, questPath, '知道了。那个村子是<t color="red">百年之前由于传染病而消失了的村子</t>。自从作为那个村子赖以生存的溪水被污染后，人们都生病而死。',
                     dialog.link('npc_they_were_alive', '真是无法相信的事情。我分别和那个地方的人们谈话了，他们都是活人。'))
                 end,
 
@@ -640,7 +640,7 @@ setQuestFSMTable(
                         '我以前没有讲过吗？世上的事情中无法说明道理的更多。你遇见的事情也是其中的一种。有可能由于对蜈蚣的憎恨和拯救村子的坚定意志使得<t color="red">那些人的灵魂</t>继续留在那个地方。',
                         '你看到的东西是他们的灵魂<t wrap="0">···</t>你没有感觉到他们不像活着的人吗？',
                     },
-                    dialog.link('npc_strong_will', '虽然没有感觉到他们生的很好看<t wrap="0">···</t>感觉到他们有很强的意志，无论如何不能认为是亡灵。'))
+                    dialog.link('npc_strong_will', '虽然没觉得他们像活人一样<t wrap="0">···</t>但感觉到他们有很强的意志，无论如何不能认为是亡灵。'))
                 end,
 
                 -- @mugong_massheal_complete4
@@ -696,7 +696,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '也没有办法。你也不是故意弄丢的，我再买一个<t wrap="0">···</t>',
-                        '接着，这是接受困难委托的<t color="red">谢礼？？</t>。',
+                        '接着，这是接受困难委托的<t color="red">谢礼</t>。',
                         '但是你身上的<t color="red">书籍</t>是什么？',
                     },
                     dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))

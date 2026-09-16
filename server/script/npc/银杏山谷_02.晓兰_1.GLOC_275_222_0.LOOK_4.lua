@@ -22,7 +22,7 @@ jeweler.setJeweler
 
     buyText =
     {
-        '你想买饰品?',
+        '你想买饰品？',
     },
 
     sellText =

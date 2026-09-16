@@ -49,7 +49,7 @@ function outfitter.setOutfitter(spec)
     if trade then
         table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialog.post(uid, spec.sellText or {'请把要卖的衣服(头盔)放到上面。'}, back)
+            dialog.post(uid, spec.sellText or {'请把要卖的衣服（头盔）放到上面。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)

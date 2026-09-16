@@ -117,7 +117,7 @@ function skillteacher.setTeacher(args)
         dialog.post(uid,
         {
             args.greet,
-            args.ask or '你找我有什么事情吗?',
+            args.ask or '你找我有什么事情吗？',
         },
         {
             dialog.link('npc_show_skills', '寻求武功指导'),
@@ -161,13 +161,13 @@ function skillteacher.setTeacher(args)
 
         handler[skillTag(book) .. '_commit'] = function(uid, value)
             if not server.player.hasItem(uid, book, 1) then
-                dialog.post(uid, string.format('请首先拿来%s秘籍。', book),
+                dialog.post(uid, string.format('请先把%s秘籍拿来。', book),
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if not server.player.removeGold(uid, price) then
-                dialog.post(uid, '世界上的事情没有免费的。修炼武功也是同样的。下次不要忘了带修炼费来。',
+                dialog.post(uid, '世上没有免费的事情。修炼武功也是一样。下次不要忘了带修炼费来。',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -176,17 +176,17 @@ function skillteacher.setTeacher(args)
 
             -- the fee is already gone, legacy kept it on a botched copy too
             if math.random(FAIL_ODDS) == 1 then
-                dialog.post(uid, '哦，非常抱歉！书太旧了，这是无论如何也无法看清楚。请找到保存状态好写的书！',
+                dialog.post(uid, '哦，非常抱歉！书太旧了，这字无论如何也看不清楚。请找一本保存状态好的书！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             dialog.post(uid,
-            '这里有秘诀，请拿着吧！' ..
+            '这里有秘籍，请拿着吧！' ..
             '江湖是很冷酷的地方。' ..
             '你千万要专心于一个领域。' ..
-            '如果不如此，不要说天下绝世武功，就是成为一名真正的人都很困难。' ..
-            '江湖呀。。',
+            '如果不这样，不要说练成天下绝世武功，就连成为一个真正的人都很困难。' ..
+            '江湖呀<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
 
             server.player.addItem(uid, manualName(book), 1)
@@ -194,7 +194,7 @@ function skillteacher.setTeacher(args)
     end
 
     handler['npc_hesitate'] = function(uid, value)
-        dialog.post(uid, '嗯。。你犹豫什么？千万记住要学的东西很多，年轻的岁月很短。',
+        dialog.post(uid, '嗯<t wrap="0">···</t>你犹豫什么？千万记住要学的东西很多，年轻的岁月很短。',
         dialog.link(SYS_EXIT, '结束'))
     end
 

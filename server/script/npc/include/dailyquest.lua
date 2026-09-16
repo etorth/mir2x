@@ -15,8 +15,8 @@ local _RSVD_NAME_questList = rotable(
     function(uid, value)
         dialog.post(uid,
         {
-            '想这次事情去找一下比奇城的<t color="RED">苏百花</t>吧。',
-            '苏百花许在比奇城<t color="RED">483，405</t>附近。',
+            '这次事情去找一下比奇城的<t color="RED">苏百花</t>吧。',
+            '苏百花也许在比奇城<t color="RED">483，405</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -45,7 +45,7 @@ local _RSVD_NAME_questList = rotable(
         dialog.post(uid,
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
-            '这次事情去找一下在<t color="RED">比奇城</t>的肉店的<t color="RED">肉店老板</t>吧。',
+            '这次事情去找一下在<t color="RED">比奇城</t>的<t color="RED">肉店老板</t>吧。',
             '肉店老板也许在比奇县<t color="RED">441，404</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
@@ -85,7 +85,7 @@ local _RSVD_NAME_questList = rotable(
         dialog.post(uid,
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
-            '这次事情去找一下在<t color="RED">比奇城</t>鞋子商<t color="RED">慧媛</t>吧。',
+            '这次事情去找一下在<t color="RED">比奇城</t>的鞋子商<t color="RED">慧媛</t>吧。',
             '慧媛也许在比奇县<t color="RED">478，407</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
@@ -106,7 +106,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">比奇城</t>的中药商<t color="RED">恩英</t>吧。',
-            '恩英老板也许在比奇县<t color="RED">486，414</t>附近。',
+            '恩英也许在比奇县<t color="RED">486，414</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -175,7 +175,7 @@ local _RSVD_NAME_questList = rotable(
         dialog.post(uid,
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
-            '这次事情去找一下在<t color="RED">比奇城</t>的？？<t color="RED">酒娘</t>吧。',
+            '这次事情去找一下在<t color="RED">比奇城</t>的<t color="RED">酒娘</t>吧。',
             '酒娘也许在比奇县<t color="RED">420，431</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
@@ -226,7 +226,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">边境城市</t>的材料商人<t color="RED">阿辉</t>吧。',
-            '阿勋也许在边境城市<t color="RED">431，307</t>附近。',
+            '阿辉也许在边境城市<t color="RED">431，307</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -635,7 +635,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">蛇谷城市</t>的<t color="RED">蛇谷老矿夫</t>吧。',
-            '阿福也许在毒蛇山谷<t color="RED">360，209</t>附近。',
+            '蛇谷老矿夫也许在毒蛇山谷<t color="RED">360，209</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -645,7 +645,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">蛇谷城市</t>的<t color="RED">蛇谷老太</t>吧。',
-            '阿福也许在毒蛇山谷<t color="RED">337，223</t>附近。',
+            '蛇谷老太也许在毒蛇山谷<t color="RED">337，223</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -725,7 +725,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">蛇谷城市</t>的<t color="RED">断乔先生</t>吧。',
-            '蛇谷老人也许在毒蛇山谷<t color="RED">347，193</t>附近。',
+            '断乔先生也许在毒蛇山谷<t color="RED">347，193</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,
@@ -954,7 +954,7 @@ local _RSVD_NAME_questList = rotable(
         dialog.post(uid,
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
-            '这次事情去找一下在<t color="RED">绿洲</t>的仓库<t color="RED">？绿洲仓库管家</t>吧。',
+            '这次事情去找一下在<t color="RED">绿洲</t>的仓库<t color="RED">绿洲仓库管家</t>吧。',
             '绿洲仓库管家也许在绿洲<t color="RED">433，72</t>附近的建筑物内。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
@@ -1065,7 +1065,7 @@ local _RSVD_NAME_questList = rotable(
         {
             '只说一遍，希望认真听好<t wrap="0">···</t>',
             '这次事情去找一下在<t color="RED">沙漠土城</t>的棉布店<t color="RED">喜儿</t>吧。',
-            '喜儿也许在沙漠土城<t color="RED">177，28</t>附近。',
+            '喜儿也许在沙漠土城<t color="RED">177，281</t>附近。',
         },
         dialog.link(SYS_EXIT, '结束', {close = false}))
     end,

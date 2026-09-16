@@ -31,7 +31,7 @@ outfitter.setOutfitter
 
     sellText =
     {
-        '这里的天气很热，但是冒然脱掉衣服有损健康。',
+        '这里的天气很热，但是贸然脱掉衣服有损健康。',
     },
 
     repairText =

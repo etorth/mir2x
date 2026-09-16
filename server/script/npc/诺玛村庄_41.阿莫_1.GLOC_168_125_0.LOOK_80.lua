@@ -8,7 +8,7 @@ apothecary.setApothecary
         '我这里卖的药品跟人类药店里卖的药没什么不同，放心买吧。',
     },
 
-    redName = '治愈你这种邪恶的人，上天都会惩罚我的!',
+    redName = '治愈你这种邪恶的人，连上天都会惩罚我的！',
     redNameExit = '关闭',
 
     label = '',

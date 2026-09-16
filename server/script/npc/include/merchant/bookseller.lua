@@ -53,7 +53,7 @@ bookseller.BOOK_HELP =
     {name = '火球术',     class = '魔法师', tag = 'NPC_Help_21', level = {7, 11, 16}},
 
     {name = '霹雳掌',     class = '魔法师', tag = 'NPC_Help_22', level = {8, 10, 12},
-        text = {'<t color="red">霹雳掌</t>1级修炼可在8等级, 2级修炼可在10等级, 3级修炼可在12等级开始。'}},
+        text = {'<t color="red">霹雳掌</t>1级修炼可在8等级， 2级修炼可在10等级， 3级修炼可在12等级开始。'}},
 
     {name = '治愈术',     class = '道士',   tag = 'NPC_Help_31', level = {7, 11, 16}},
     {name = '精神力战法', class = '道士',   tag = 'NPC_Help_32', level = {8, 10, 12}},

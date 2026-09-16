@@ -27,7 +27,7 @@ outfitter.setOutfitter
 
     sellText =
     {
-        '你要买什么？',
+        '你要卖什么？',
     },
 
     preRepairText =

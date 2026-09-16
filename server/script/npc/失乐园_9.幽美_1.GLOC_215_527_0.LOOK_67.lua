@@ -29,6 +29,6 @@ apothecary.setApothecary
 
     sellText =
     {
-        '您要出售什么药品?',
+        '您要出售什么药品？',
     },
 }

@@ -33,7 +33,7 @@ jeweler.setJeweler
 
     repairText =
     {
-        '你想修理饰品?',
+        '你想修理饰品？',
     },
 
     repairDone = '修得不错',

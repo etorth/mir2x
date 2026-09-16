@@ -304,7 +304,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_accept_favor = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法僵尸</t>偶而会有叫做<t color="red">灵珠</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。',
+                '不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法僵尸</t>偶尔会有叫做<t color="red">灵珠</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。',
                 '只要将这个珠子拿来，将传授武功给你。好了，请快去快回！',
             },
             dialog.link(SYS_EXIT, '结束'))

@@ -204,7 +204,7 @@ setQuestFSMTable(
                 npc_explain = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '如果想学习势毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵，蝎子的尾巴，食人树叶，食人树的果实，毒蜘蛛牙齿</t>。',
+                        '如果想学习施毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵，蝎子的尾巴，食人树叶，食人树的果实，毒蜘蛛牙齿</t>。',
                         '我将站在考场里面，把采取的毒粉交给我。然后再把你重新送到这里。',
                     },
                     {
@@ -276,7 +276,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
     -- the opening about poison being a kind of medicine, he gives it twice: once to open with
     -- and again as the whole of what he says if you turn him down
-    local intro = [=[知道施毒术。。。毒药实际上是药的一部分并不过分的事实吗？就像为了患者调制药材，毒药也是按照天时和地利使用不同调制方法的复杂东西。如果想学习使用毒药的施毒术，必然需要首先对<t color="red">毒药进行学习</t>。]=]
+    local intro = [=[知道施毒术<t wrap="0">···</t>毒药实际上是药的一部分并不过分的事实吗？就像为了患者调制药材，毒药也是按照天时和地利使用不同调制方法的复杂东西。如果想学习使用毒药的施毒术，必然需要首先对<t color="red">毒药进行学习</t>。]=]
 
     setQuestHandler(questName,
     {

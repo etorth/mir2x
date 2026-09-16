@@ -320,7 +320,7 @@ setQuestFSMTable(
                 -- @mugong_upfireball_give1, takew 焱火剑 1 — the loan comes back, and EA_BIND
                 -- means this is the one thing that can take it off
                 npc_take_book = function(uid, value)
-                    dialog.post(uid, questPath, '现在按照约定将剩余的部分传授给你。你修炼的过程中，我将在你<t color="red">大火球秘籍</t>内贴上详细地说明，请拿走该书用心地练习吧！',
+                    dialog.post(uid, questPath, '现在按照约定将剩余的部分传授给你。你修炼的过程中，我将在你<t color="red">大火球秘籍</t>内贴上详细的说明，请拿走该书用心地练习吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeWearItem(uid, WLG_WEAPON)

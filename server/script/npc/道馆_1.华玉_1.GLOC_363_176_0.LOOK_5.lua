@@ -22,7 +22,7 @@ apothecary.setApothecary
     buyText =
     {
         '需要什么东西？',
-        '这里有传送注文，你买几个吧。',
+        '这里有传送咒文，你买几个吧。',
     },
 
     sellText =

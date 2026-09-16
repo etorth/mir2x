@@ -29,17 +29,17 @@ jeweler.setJeweler
 
     buyText =
     {
-        '你想买饰品?',
+        '你想买饰品？',
     },
 
     sellText =
     {
-        '你想出售饰品?',
+        '你想出售饰品？',
     },
 
     repairText =
     {
-        '你想修理饰品?',
+        '你想修理饰品？',
     },
 
     repairDone = '修好了。',

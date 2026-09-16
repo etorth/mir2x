@@ -28,7 +28,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！',
-                        dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\'，429，120}', prefix = '从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在', suffix = '。'}),
+                        dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = [=[{'道馆_1',429,120}]=], prefix = '从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在', suffix = '。'}),
                     },
                     dialog.link(SYS_EXIT, '好的！'))
 
@@ -67,7 +67,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\'，429，120}', prefix = '出去后向右上方一直走就是武器库的入口。位置在', suffix = '，到阿潘道友后把道力护身符交给他。'}),
+                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = [=[{'道馆_1',429,120}]=], prefix = '出去后向右上方一直走就是武器库的入口。位置在', suffix = '，找到阿潘道友后把道力护身符交给他。'}),
                     dialog.link(SYS_EXIT, '好的！'))
                 end,
 
@@ -125,7 +125,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\'，394，169}', prefix = '大老板道友呆的杂货店在', suffix = '那儿。快回去看看吧！'}),
+                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = [=[{'道馆_1',394,169}]=], prefix = '大老板道友所在的杂货店在', suffix = '那儿。快回去看看吧！'}),
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
@@ -269,7 +269,7 @@ setQuestFSMTable(
                         '现在你需要摆脱道馆的周围，将视野放到更宽广的地方去才行。' ..
                         '从这里通过东南方的通路(516，580)到达比奇县后就可以到达首都比奇省。' ..
                         '那个地方是政治、经济、文化的中心地。' ..
-                        '想修炼成为道士，一定要了解人间苦暖才行，所正好贫道有一样东西要送到比奇省，这件事情就拜托给你吧！',
+                        '想修炼成为道士，一定要了解人间冷暖才行，所以正好贫道有一样东西要送到比奇省，这件事情就拜托给你吧！',
                         dialog.link('npc_accept_wang', '好的'))
                     end,
 
@@ -453,7 +453,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
             {
                 '所谓道士就是每天努力洗脱罪过，修身养性，救济人间的人。',
                 '我们遵从上仙药手的教诲，追求的是进入一个陌生之地潜心修炼以达到长生不老，得道成仙的目的。',
-                '另外，我们还会帮助与怪物战斗的武士，道士的治愈术和防御术对在与怪物战斗中的武士是非常有用的。',
+                '另外，我们还会帮助与怪物战斗的武士，道士的治愈术和防御术对与怪物战斗的武士非常有用。',
                 '主动直接与敌人交手违背了我们上仙药手的教诲。因此在战斗中我们主要采取防御保护的方式。',
             },
             dialog.link(SYS_ENTER, '返回'))
@@ -474,7 +474,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 dialog.post(uid, questPath,
                 {
                     '现在没有什么合适的任务交给施主做呀！',
-                    '请级别高一点，修练到6级以上再来吧！',
+                    '请先把级别提高一点，修炼到6级以上再来吧！',
                     '祝你好运噢！',
                 },
                 dialog.link(SYS_EXIT, '退出'))
@@ -482,7 +482,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 dialog.post(uid, questPath,
                 {
                     '这个，嗯，详细的情况请到收罗杂货的<t color="red">大老板</t>道友那儿打听吧。',
-                    dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\'，394，169}', prefix = '大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在', suffix = '，请参考一下吧！'}),
+                    dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = [=[{'道馆_1',394,169}]=], prefix = '大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在', suffix = '，请参考一下吧！'}),
                 },
                 {
                     dialog.link('npc_accept_quest', '好的！', {close = true}),

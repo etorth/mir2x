@@ -176,7 +176,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
         end,
 
         npc_accept = function(uid, args)
-            dialog.post(uid, questPath, '那就太谢谢了！那个客人白天时一般在酒摊儿附近喝的烂醉！',
+            dialog.post(uid, questPath, '那就太谢谢了！那个客人白天时一般在酒摊儿附近喝得烂醉！',
             dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})

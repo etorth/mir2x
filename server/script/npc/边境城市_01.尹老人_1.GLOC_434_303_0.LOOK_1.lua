@@ -25,7 +25,7 @@ apothecary.setApothecary
 
     buyText =
     {
-        '你想卖什么？',
+        '你想买什么？',
     },
 
     sellText =

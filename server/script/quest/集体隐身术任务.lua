@@ -85,7 +85,7 @@ setQuestFSMTable(
 
             -- @mugong_masshiding3, the description of the magic. he also gives it unprompted to
             -- anyone who has not heard the rumour, which is the ELSESAY of @mugong_masshiding0
-            local blurb = [=[集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同事动静的魔法</t>。]=]
+            local blurb = [=[集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同伴在内的动静</t>。]=]
 
             return
             {
@@ -109,7 +109,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '呀，知道那个故事吧。真是很焦急的事情。',
-                        '叫成致的人不是被判朋友的人，不知道是怎么回事儿。一定有不得已的缘由吧！',
+                        '叫成致的人不是背叛朋友的人，不知道是怎么回事儿。一定有不得已的缘由吧！',
                         '实际上我也认为此事有些诧异，你听说了有关成致的其它事情吗？',
                     },
                     {
@@ -389,7 +389,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
             dialog.post(uid, questPath,
             {
                 '对不起，更详细的内容我也不知道。',
-                '如果真的想知道，拜见<t color="red">清明子(道馆本馆，11:10)</t>如何？？',
+                '如果真的想知道，拜见<t color="red">清明子(道馆本馆，11:10)</t>如何？',
             },
             dialog.link(SYS_EXIT, '结束'))
 
@@ -442,7 +442,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '集体隐身术<t wrap="0">···</t>',
-                '集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同事动静的魔法</t>。',
+                '集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同伴在内的动静</t>。',
             },
             dialog.link(SYS_EXIT, '结束'))
         end,

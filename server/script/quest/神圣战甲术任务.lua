@@ -177,7 +177,7 @@ setQuestFSMTable(
                 [SYS_LABEL] = '交起爆石',
                 [SYS_ENTER] = function(uid, value)
                     if not server.player.hasItem(uid, '起爆石', 1) then
-                        postLostStone(uid, '你把起爆石给弄丢了？？没有起爆石我可无法让你修炼神圣战甲术<t wrap="0">···</t>')
+                        postLostStone(uid, '你把起爆石给弄丢了？没有起爆石我可无法让你修炼神圣战甲术<t wrap="0">···</t>')
                         return
                     end
 
@@ -192,7 +192,7 @@ setQuestFSMTable(
                 -- @mugong_Upac_test_next, take 起爆石, then next3 or next4 on gender
                 npc_take_book = function(uid, value)
                     if not server.player.hasItem(uid, '起爆石', 1) then
-                        postLostStone(uid, '你丢了<t color="red">起爆石</t>？？那我可没办法让你修炼神圣战甲术<t wrap="0">···</t>')
+                        postLostStone(uid, '你丢了<t color="red">起爆石</t>？那我可没办法让你修炼神圣战甲术<t wrap="0">···</t>')
                         return
                     end
 

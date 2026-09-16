@@ -78,7 +78,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '想学习治愈术的样子。练习武功的过程中将遇到各种困难，我将给你进行详细地说明。',
-                '那么，在给你武功秘籍之前，先对武功进行进行简单的说明吗？',
+                '那么，在给你武功秘籍之前，先对武功进行简单的说明吗？',
             },
             {
                 dialog.link('npc_lore', '拜托了！'),

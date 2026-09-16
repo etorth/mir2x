@@ -30,7 +30,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '还没有找到我们珍珍的药啊？',
-                        '天哪！珍珍啊……珍珍……',
+                        '天哪！珍珍啊<t wrap="0">···</t>珍珍<t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -65,7 +65,7 @@ setQuestFSMTable(
                     {
                         '的确如此！',
                         '如果是被其中一种咬了的话，我也不至于无法解毒啊！但是珍珍所中的毒诱发了一种我从来没见过的罕见症状。毒性非常之剧就连用最好的解毒药都一点效果也没有。',
-                        '唉……现在几乎所有可用的办法都用过了，唯一的一点希望就只剩最后的一种方法了！',
+                        '唉<t wrap="0">···</t>现在几乎所有可用的办法都用过了，唯一的一点希望就只剩最后的一种方法了！',
                     },
                     dialog.link('npc_ask_last_hope', '是什么呢？'))
                 end,
@@ -83,7 +83,7 @@ setQuestFSMTable(
                 npc_hunt_snake = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '那当然了……我现在也一直在找……可是还没能找到！',
+                        '那当然了<t wrap="0">···</t>我现在也一直在找<t wrap="0">···</t>可是还没能找到！',
                         '你也帮我一起找找吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -139,10 +139,10 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '还没有找到我们珍珍的药啊？',
-                        '天哪！珍珍啊……珍珍……',
+                        '天哪！珍珍啊<t wrap="0">···</t>珍珍<t wrap="0">···</t>',
                     },
                     {
-                        dialog.link('npc_tell_doctor', '金中医说只有千年毒蛇的胆汁才行……'),
+                        dialog.link('npc_tell_doctor', '金中医说只有千年毒蛇的胆汁才行<t wrap="0">···</t>'),
                         dialog.link(SYS_EXIT, '结束'),
                     })
                 end,
@@ -207,7 +207,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '啊！你说给我们的珍珍把药找来了？',
-                        '金中医说服了这个就能救回珍珍的命？呜呜，真是太感谢你了！我一辈子都不会忘了你这个年轻人的恩情的！我会日夜为你这个年轻人祈祷祝你好运的！',
+                        '金中医说，服了这个就能救回珍珍的命？呜呜，真是太感谢你了！我一辈子都不会忘了你这个年轻人的恩情的！我会日夜为你这个年轻人祈祷，祝你好运的！',
                     },
                     dialog.link('npc_hand_gall', '还是赶快去让珍珍服下这药吧！'))
                 end,
@@ -221,8 +221,8 @@ setQuestFSMTable(
 
                     dialog.post(uid, questPath,
                     {
-                        '好的！真是太感谢了……',
-                        '这个镯子是我的一点儿心意……',
+                        '好的！真是太感谢了<t wrap="0">···</t>',
+                        '这个镯子是我的一点儿心意<t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -249,7 +249,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '哇！原来真的有这种传说中的千年毒蛇啊！',
-                        '啊！现在还不是说这个的时候……赶快去把这个蛇胆给珍珍的奶奶送去吧！',
+                        '啊！现在还不是说这个的时候<t wrap="0">···</t>赶快去把这个蛇胆给珍珍的奶奶送去吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -302,12 +302,12 @@ uidRemoteCall(getNPCharUID('毒蛇山谷_2', '蛇谷老太_1'), getUID(), getQue
             dialog.post(uid, questPath,
             {
                 '不久前我孙女儿被蛇给咬了。',
-                '可是不知道是被什么蛇给咬了，什么解毒药都不好使啊！虽然现在找了非常贵的药草使病状不再恶化，但不知道还能维持多久……',
+                '可是不知道是被什么蛇给咬了，什么解毒药都不好使啊！虽然现在找了非常贵的药草使病状不再恶化，但不知道还能维持多久<t wrap="0">···</t>',
                 '一定要帮老人家我的小孙女儿找来药啊！',
             },
             {
                 dialog.link('npc_accept_quest', '好的！'),
-                dialog.link('npc_refuse_quest', '我现在还有别的事儿……'),
+                dialog.link('npc_refuse_quest', '我现在还有别的事儿<t wrap="0">···</t>'),
             })
         end,
 
@@ -315,7 +315,7 @@ uidRemoteCall(getNPCharUID('毒蛇山谷_2', '蛇谷老太_1'), getUID(), getQue
             dialog.post(uid, questPath,
             {
                 '谢谢你能帮助我啊！',
-                '真的非常感谢……',
+                '真的非常感谢<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
 
@@ -326,7 +326,7 @@ uidRemoteCall(getNPCharUID('毒蛇山谷_2', '蛇谷老太_1'), getUID(), getQue
             dialog.post(uid, questPath,
             {
                 '你说不行啊？',
-                '这可怎么办啊……',
+                '这可怎么办啊<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
         end,
