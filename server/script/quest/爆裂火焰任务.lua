@@ -255,7 +255,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- @mugong_fireware_next1, checkmagic 爆裂火焰
             if server.player.hasMagic(uid, magicName) then
-                dialog.post(uid, questPath, '                你不是已经修炼了该武功吗<t wrap="0">···</t>请找寻其它的武功吧！',
+                dialog.post(uid, questPath, '你不是已经修炼了该武功吗<t wrap="0">···</t>请找寻其它的武功吧！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end

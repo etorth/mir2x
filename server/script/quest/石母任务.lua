@@ -188,7 +188,7 @@ setQuestFSMTable(
                 end,
 
                 npc_ask_for_purchase_kid_statue = function(uid, args)
-                    dialog.post(uid, questPath, '                    那个有点困难<t wrap="0">···</t>这东西很少见，我不想卖。',
+                    dialog.post(uid, questPath, '那个有点困难<t wrap="0">···</t>这东西很少见，我不想卖。',
                     dialog.link('npc_ask_for_kid_statue_price', '那我也要买'))
                 end,
 

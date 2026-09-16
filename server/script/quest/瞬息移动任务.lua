@@ -363,7 +363,7 @@ local function setupTeacher(uid)
             npc_ask_hint = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '                    嗯<t wrap="0">···</t>好的<t wrap="0">···</t>',
+                    '嗯<t wrap="0">···</t>好的<t wrap="0">···</t>',
                     '你要选择的<t color="red">正确通路</t>有<t color="red">3条</t><t wrap="0">···</t>我给你讲解其中的一种。',
                 },
                 dialog.link('npc_hint', '下一步'))
@@ -509,7 +509,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '训练是非常辛苦的。那还要学习瞬息移动吗？',
             },
             {
-                dialog.link('npc_ask_teach', '                当然要试试<t wrap="0">···</t>'),
+                dialog.link('npc_ask_teach', '当然要试试<t wrap="0">···</t>'),
                 dialog.link('npc_not_yet', '好像有些勉强。'),
             })
         end,
