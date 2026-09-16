@@ -144,7 +144,7 @@ function jeweler.setJeweler(spec)
                     postNoMaterial(uid)
                 elseif restored == 9 and element.name == '暗黑' then
                     -- This reachable branch uses inline text, not the clean but unused include.
-                    dialog.post(uid, {'世尊手镯（暗黑）捞咯扁乐嚼聪促。'})
+                    dialog.post(uid, {'世尊手镯（暗黑）在这里了，请收好。'})
                 else
                     dialog.post(uid, {string.format('得到%s(%s)。', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
                 end
