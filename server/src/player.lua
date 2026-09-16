@@ -25,7 +25,14 @@ function dbRemoveFlag(flag)
 end
 
 function postString(msg, ...)
-    postRawString(msg:format(...))
+    local fullMsg = msg:format(...)
+    local fullPar = '<par>' .. fullMsg .. '</par>'
+
+    if validPar(fullPar) then
+        postParString(fullPar)
+    else
+        postRawString(fullMsg)
+    end
 end
 
 function randomMove()

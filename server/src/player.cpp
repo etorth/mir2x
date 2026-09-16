@@ -136,6 +136,11 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->postNetMessage(SM_TEXT, msg);
     });
 
+    bindFunction("postParString", [this](std::string xmlString)
+    {
+        getPlayer()->postNetMessage(SM_PARTEXT, xmlString);
+    });
+
     bindFunction("secureItem", [this](uint32_t itemID, uint32_t seqID)
     {
         getPlayer()->secureItem(itemID, seqID);

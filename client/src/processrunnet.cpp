@@ -672,6 +672,11 @@ void ProcessRun::on_SM_TEXT(const uint8_t *buf, size_t bufSize)
     addCBLog(CBLOG_SYS, u8"%s", std::string(buf, buf + bufSize).c_str());
 }
 
+void ProcessRun::on_SM_PARTEXT(const uint8_t *buf, size_t bufSize)
+{
+    addCBParLog(u8"%s", std::string(buf, buf + bufSize).c_str());
+}
+
 void ProcessRun::on_SM_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)
 {
     auto sdUIDWLD = cerealf::deserialize<SDUIDWLDesp>(buf, bufSize);

@@ -217,6 +217,7 @@ class ProcessRun: public Process
         _support_sm(SM_BUFFIDLIST);
         _support_sm(SM_MISS);
         _support_sm(SM_TEXT);
+        _support_sm(SM_PARTEXT);
         _support_sm(SM_PING);
         _support_sm(SM_GOLD);
         _support_sm(SM_INVOPCOST);

@@ -1,9 +1,44 @@
 #include <utility>
+#include <cstring>
 #include <algorithm>
+#include <utf8.h>
 #include "totype.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "fflerror.hpp"
+
+bool xmlf::validXML(const char *xml)
+{
+    fflassert(str_haschar(xml));
+    fflassert(utf8::is_valid(xml, xml + std::strlen(xml)));
+
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    return xmlDoc.Parse(xml) == tinyxml2::XML_SUCCESS;
+}
+
+bool xmlf::validPar(const char *par)
+{
+    fflassert(str_haschar(par));
+    fflassert(utf8::is_valid(par, par + std::strlen(par)));
+
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    if(xmlDoc.Parse(par) != tinyxml2::XML_SUCCESS){
+        return false;
+    }
+
+    auto root = xmlDoc.RootElement();
+    if(!root){
+        return false;
+    }
+
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(to_sv(root->Value()) == cstr){
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool xmlf::checkNodeName(const tinyxml2::XMLNode *node, const char *value, bool exact)
 {

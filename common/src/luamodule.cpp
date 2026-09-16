@@ -1,7 +1,6 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
-#include "luaf.hpp"
 #include "log.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
@@ -14,6 +13,7 @@
 #include "fileptr.hpp"
 #include "cerealf.hpp"
 #include "luaf.hpp"
+#include "xmlf.hpp"
 
 LuaModule::LuaModule()
     : m_luaState()
@@ -485,6 +485,16 @@ LuaModule::LuaModule()
             result.push_back(alphabet[std::rand() % alphabet.length()]);
         }
         return result;
+    });
+
+    bindFunction("validXML", [this](const std::string &s)
+    {
+        return xmlf::validXML(s.c_str());
+    });
+
+    bindFunction("validPar", [this](const std::string &s)
+    {
+        return xmlf::validPar(s.c_str());
     });
 
     bindFunction("strAny", [this](sol::object obj) -> std::string

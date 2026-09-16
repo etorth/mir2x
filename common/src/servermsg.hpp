@@ -59,6 +59,7 @@ enum SMType: uint8_t
     SM_STRIKEGRID,
     SM_SELLITEMLIST,
     SM_TEXT,
+    SM_PARTEXT,
     SM_PLAYERNAME,
     SM_BUILDVERSION,
     SM_INVENTORY,
@@ -504,6 +505,7 @@ namespace
         _RSVD_register_servermsg(SM_STRIKEGRID,             1, sizeof(SMStrikeGrid)            );
         _RSVD_register_servermsg(SM_SELLITEMLIST,           3                                  );
         _RSVD_register_servermsg(SM_TEXT,                   3                                  );
+        _RSVD_register_servermsg(SM_PARTEXT,                3                                  );
         _RSVD_register_servermsg(SM_PLAYERNAME,             3                                  );
         _RSVD_register_servermsg(SM_BUILDVERSION,           1, sizeof(SMBuildVersion)          );
         _RSVD_register_servermsg(SM_INVENTORY,              3                                  );
