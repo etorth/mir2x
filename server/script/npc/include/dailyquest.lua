@@ -301,7 +301,7 @@ function dq.setQuest(uid, args)
     local targetIndex, completedCount = getQuestProgress(uid)
     if completedCount >= MAX_DAILY_ROUNDS then
         dialog.post(uid, string.format('你今天已经完成<t color="RED">%d</t>次任务，明天再来吧。', MAX_DAILY_ROUNDS),
-        dialog.link(SYS_EXIT, '结束', {close = false}))
+        dialog.link(SYS_EXIT, '结束', {close = true}))
         return
     end
 
