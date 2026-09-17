@@ -507,17 +507,29 @@ void SDLDevice::setWindowIcon()
     }
 }
 
-void SDLDevice::toggleWindowFullscreen()
+bool SDLDevice::getWindowFullscreen()
 {
     fflassert(m_window);
-    const auto winFlag = SDL_GetWindowFlags(m_window.get());
+    return SDL_GetWindowFlags(m_window.get()) & SDL_WINDOW_FULLSCREEN;
+}
 
-    if(winFlag & SDL_WINDOW_FULLSCREEN){
+void SDLDevice::flipWindowFullscreen(std::optional<bool> fullscreen)
+{
+    fflassert(m_window);
+    if(getWindowFullscreen()){
+        if(fullscreen.has_value() && fullscreen.value()){
+            return;
+        }
+
         if(!SDL_SetWindowFullscreen(m_window.get(), false)){
             throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
     else{
+        if(fullscreen.has_value() && !fullscreen.value()){
+            return;
+        }
+
         if(!SDL_SetWindowFullscreen(m_window.get(), true)){
             throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }

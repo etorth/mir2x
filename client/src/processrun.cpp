@@ -753,7 +753,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case 'f':
                                         {
-                                            g_sdlDevice->toggleWindowFullscreen();
+                                            dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->flipFullscreen();
                                             break;
                                         }
                                     case 'h':

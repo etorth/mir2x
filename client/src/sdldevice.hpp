@@ -220,7 +220,10 @@ class SDLDevice final
 
     public:
        void setWindowIcon();
-       void toggleWindowFullscreen();
+
+    public:
+       bool getWindowFullscreen();
+       void flipWindowFullscreen(std::optional<bool> = std::nullopt);
 
     public:
        void drawTexture(SDL_Texture *, dir8_t, int, int);

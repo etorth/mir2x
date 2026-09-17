@@ -81,6 +81,7 @@ class RuntimeConfigBoard: public Widget
             doReportRuntimeConfig(INDEX, SDRuntimeConfigAccessor<INDEX>::keyString(std::forward<Args>(args)...));
         }
 
+        void applyFullScreenConfig();
         void applyAudioConfig();
         void applyScaleConfig();
 
@@ -109,4 +110,7 @@ class RuntimeConfigBoard: public Widget
         void updateWindowSize(std::pair<int, int>, bool);
         void updateScale(std::optional<float>, bool);
         void updateIME(int, bool);
+
+    public:
+        void flipFullscreen();
 };

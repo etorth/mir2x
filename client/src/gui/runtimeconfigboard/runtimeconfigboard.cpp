@@ -245,8 +245,54 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {&m_pageSystem_scale     , DIR_UPLEFT, 0, 30, false},
                           {&m_pageSystem_ime       , DIR_UPLEFT, 0, 60, false},
 
-                          {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0, 105, true},
-                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS   >(); }}}, DIR_UPLEFT, 0, 130, true},
+                          {new CheckLabel
+                          {{
+                              .label
+                              {
+                                  .text=u8"全屏显示",
+                              },
+
+                              .getter=[this]
+                              {
+                                  return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig);
+                              },
+
+                              .setter=[this](bool value)
+                              {
+                                  SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value);
+                              },
+
+                              .onChange=[this](bool)
+                              {
+                                  applyFullScreenConfig();
+                                  reportRuntimeConfig<RTCFG_FULLSCREEN>();
+                              },
+                          }},
+                          DIR_UPLEFT, 0, 105, true},
+
+                          {new CheckLabel
+                          {{
+                              .label
+                              {
+                                  .text=u8"显示FPS",
+                              },
+
+                              .getter=[this]
+                              {
+                                  return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS>(m_sdRuntimeConfig);
+                              },
+
+                              .setter=[this](bool value)
+                              {
+                                  SDRuntimeConfig_setConfig<RTCFG_SHOWFPS>(m_sdRuntimeConfig, value);
+                              },
+
+                              .onChange=[this](bool)
+                              {
+                                  reportRuntimeConfig<RTCFG_SHOWFPS>();
+                              },
+                          }},
+                          DIR_UPLEFT, 0, 130, true},
 
                           {new CheckLabel
                           {{
@@ -689,6 +735,11 @@ void RuntimeConfigBoard::setRankingList(const SDRankingList &rankingList)
     }
 }
 
+void RuntimeConfigBoard::applyFullScreenConfig()
+{
+    g_sdlDevice->flipWindowFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
+}
+
 void RuntimeConfigBoard::applyAudioConfig()
 {
     const float  bgmGain = SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig) : 0.0f;
@@ -813,4 +864,10 @@ void RuntimeConfigBoard::updateIME(int ime, bool saveConfig)
         SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, ime);
         reportRuntimeConfig<RTCFG_IME>();
     }
+}
+
+void RuntimeConfigBoard::flipFullscreen()
+{
+    g_sdlDevice->flipWindowFullscreen();
+    SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, g_sdlDevice->getWindowFullscreen());
 }
