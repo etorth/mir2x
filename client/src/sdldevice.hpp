@@ -397,7 +397,7 @@ class SDLDevice final
 
        void setWindowSize(int, int);
        void setWindowResizable(bool);
-       void setWindowScaleRatio(float);
+       void setWindowScaleRatio(std::optional<float>);
        SDL_Event &scaleEvent(SDL_Event &);
 
     public:

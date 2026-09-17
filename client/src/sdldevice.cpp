@@ -1281,14 +1281,20 @@ void SDLDevice::setWindowResizable(bool resizable)
     }
 }
 
-void SDLDevice::setWindowScaleRatio(float ratio)
+void SDLDevice::setWindowScaleRatio(std::optional<float> ratio)
 {
-    fflassert(ratio > 0);
-    const auto [winW, winH] = getWindowSize();
+    if(ratio.has_value()){
+        fflassert(ratio.value() >= 0.0f, ratio);
+    }
 
-    // if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
-    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_STRETCH)){
-        throw fflpanic("SDL_SetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+    const auto [winW, winH] = getWindowSize();
+    if(ratio.has_value()){
+        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio.value()), to_dround(winH / ratio.value()), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+        }
+    }
+    else{
+        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), winW, winH, SDL_LOGICAL_PRESENTATION_DISABLED)){
+        }
     }
 }
 

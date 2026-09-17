@@ -137,18 +137,20 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              {{new LabelBoard{{.label = u8"0.20     ", .attrs{.data = 0.20f}}}, true}},
-              {{new LabelBoard{{.label = u8"0.50     ", .attrs{.data = 0.50f}}}, true}},
-              {{new LabelBoard{{.label = u8"1.00     ", .attrs{.data = 1.00f}}}, true}},
-              {{new LabelBoard{{.label = u8"2.00     ", .attrs{.data = 2.00f}}}, true}},
-              {{new LabelBoard{{.label = u8"5.00     ", .attrs{.data = 5.00f}}}, true}},
+              {{new LabelBoard{{.label = u8"禁用     ", .attrs{.data = std::optional<float>(     )}}}, true}},
+              {{new LabelBoard{{.label = u8"0.50     ", .attrs{.data = std::optional<float>(0.50f)}}}, true}},
+              {{new LabelBoard{{.label = u8"0.75     ", .attrs{.data = std::optional<float>(0.75f)}}}, true}},
+              {{new LabelBoard{{.label = u8"1.00     ", .attrs{.data = std::optional<float>(1.00f)}}}, true}},
+              {{new LabelBoard{{.label = u8"1.25     ", .attrs{.data = std::optional<float>(1.25f)}}}, true}},
+              {{new LabelBoard{{.label = u8"1.50     ", .attrs{.data = std::optional<float>(1.50f)}}}, true}},
+              {{new LabelBoard{{.label = u8"2.00     ", .attrs{.data = std::optional<float>(2.00f)}}}, true}},
           },
 
           .onClick = [this](Widget *widget)
           {
-              SDRuntimeConfig_setConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig, std::any_cast<float>(widget->data()));
+              SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, std::any_cast<std::optional<float>>(widget->data()));
               applyScaleConfig();
-              reportRuntimeConfig<RTCFG_SCALERATIO>();
+              reportRuntimeConfig<RTCFG_WINDOWSCALE>();
           },
       }}
 
@@ -241,34 +243,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                       {
                           {&m_pageSystem_resolution, DIR_UPLEFT, 0,  0, false},
                           {&m_pageSystem_scale     , DIR_UPLEFT, 0, 30, false},
-                          {new CheckLabel
-                          {{
-                              .label
-                              {
-                                  .text=u8"禁用",
-                              },
-
-                              .getter=[this]
-                              {
-                                  return SDRuntimeConfig_getConfig<RTCFG_SCALE>(m_sdRuntimeConfig);
-                              },
-
-                              .setter=[this](bool value)
-                              {
-                                  SDRuntimeConfig_setConfig<RTCFG_SCALE>(m_sdRuntimeConfig, value);
-                              },
-
-                              .onChange=[this](bool)
-                              {
-                                  applyScaleConfig();
-                                  reportRuntimeConfig<RTCFG_SCALE>();
-                              },
-                          }},
-
-                          DIR_LEFT, [this]{ return m_pageSystem_scale.dx() + m_pageSystem_scale.w()           + 10; },
-                                    [this]{ return m_pageSystem_scale.dy() + m_pageSystem_scale.fixedSize().h /  2; }, true},
-
-                          {&m_pageSystem_ime, DIR_UPLEFT, 0, 60, false},
+                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 60, false},
 
                           {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0, 105, true},
                           {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS   >(); }}}, DIR_UPLEFT, 0, 130, true},
@@ -602,6 +577,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
     );
 
     updateWindowSize(g_sdlDevice->getRendererSize(), false);
+    updateScale(1.0f, false);
     updateIME(IME_DISABLE, false);
 
     // 1.0f -> SDL_MIX_MAXVOLUME
@@ -698,6 +674,7 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
 
     applyAudioConfig();
+    applyScaleConfig();
 
     updateWindowSize(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), false);
     updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
@@ -723,7 +700,7 @@ void RuntimeConfigBoard::applyAudioConfig()
 
 void RuntimeConfigBoard::applyScaleConfig()
 {
-    g_sdlDevice->setWindowScaleRatio(SDRuntimeConfig_getConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig));
+    g_sdlDevice->setWindowScaleRatio(SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
 }
 
 void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)
@@ -796,6 +773,24 @@ void RuntimeConfigBoard::updateWindowSize(std::pair<int, int> size, bool saveCon
     if(saveConfig){
         SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, size);
         reportRuntimeConfig<RTCFG_WINDOWSIZE>();
+    }
+}
+
+void RuntimeConfigBoard::updateScale(std::optional<float> ratio, bool saveConfig)
+{
+    if(ratio.has_value()){
+        fflassert(ratio.value() >= 0.0f, ratio);
+    }
+
+    std::u8string scaleText = u8"禁用";
+    if(ratio.has_value()){
+        scaleText = str_printf(u8"%.2f", ratio.value());
+    }
+
+    m_pageSystem_scale.getTitle()->setText(scaleText.c_str());
+
+    if(saveConfig){
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, ratio);
     }
 }
 
