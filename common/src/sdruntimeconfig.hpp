@@ -129,6 +129,9 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ //
     /**/ // don't put any other code except the macro defines and type aligns
 
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALE,      (), bool,  false)
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALERATIO, (), float, 1.00f)
+
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_BGM,      (), bool,  true )
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_BGMVALUE, (), float, 0.50f)
 
@@ -185,7 +188,6 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/
     /**/ using _RSVD_helper_type_RTCFG_WINDOWSIZE_t = std::pair<int, int>;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSIZE, (), _RSVD_helper_type_RTCFG_WINDOWSIZE_t, std::make_pair(800, 600))
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALERATIO, (), float, 1.00f)
     /**/
     /**/ // 0: accept any friend request
     /**/ // 1: reject any friend request

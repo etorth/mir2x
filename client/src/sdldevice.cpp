@@ -658,9 +658,9 @@ void SDLDevice::createMainWindow()
         // SDL3 dropped SDL_WINDOW_FULLSCREEN_DESKTOP; fullscreen mode is now
         // configured via SDL_SetWindowFullscreenMode after window creation.
         switch(g_clientArgParser->screenMode){
-            case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
-            case  2: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
-            default: return SDL_WINDOW_RESIZABLE;
+            case  1: return SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
+            case  2: return SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
+            default: return SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
         }
     }();
 
@@ -1222,6 +1222,48 @@ void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
     }
 }
 
+std::tuple<int, int> SDLDevice::getWindowSize()
+{
+    int w = -1;
+    int h = -1;
+
+    if(!SDL_GetWindowSizeInPixels(m_window.get(), &w, &h)){
+        throw fflpanic("SDL_GetWindowSize({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
+    }
+    return {w, h};
+}
+
+int SDLDevice::getWindowWidth()
+{
+    return std::get<0>(getWindowSize());
+}
+
+int SDLDevice::getWindowHeight()
+{
+    return std::get<1>(getWindowSize());
+}
+
+std::tuple<int, int> SDLDevice::getRendererSize()
+{
+    int w = -1;
+    int h = -1;
+
+    if(!SDL_GetCurrentRenderOutputSize(m_renderer.get(), &w, &h)){
+        throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
+    }
+    return {w, h};
+}
+
+int SDLDevice::getRendererWidth()
+{
+    return std::get<0>(getRendererSize());
+}
+
+int SDLDevice::getRendererHeight()
+{
+    return std::get<1>(getRendererSize());
+}
+
 void SDLDevice::setWindowSize(int w, int h)
 {
     fflassert(w >= 400, w, h);
@@ -1244,7 +1286,8 @@ void SDLDevice::setWindowScaleRatio(float ratio)
     fflassert(ratio > 0);
     const auto [winW, winH] = getWindowSize();
 
-    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+    // if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio), to_dround(winH / ratio), SDL_LOGICAL_PRESENTATION_STRETCH)){
         throw fflpanic("SDL_SetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
     }
 }

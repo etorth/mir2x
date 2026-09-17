@@ -354,46 +354,6 @@ class SDLDevice final
            return surfPtr ? SDL_CreateTextureFromSurface(m_renderer.get(), surfPtr) : nullptr;
        }
 
-       std::tuple<int, int> getWindowSize()
-       {
-           int w = -1;
-           int h = -1;
-
-           SDL_GetWindowSize(m_window.get(), &w, &h);
-           return {w, h};
-       }
-
-       int getWindowWidth()
-       {
-           return std::get<0>(getWindowSize());
-       }
-
-       int getWindowHeight()
-       {
-           return std::get<1>(getWindowSize());
-       }
-
-       std::pair<int, int> getRendererSize()
-       {
-           int w = -1;
-           int h = -1;
-
-           if(!SDL_GetCurrentRenderOutputSize(m_renderer.get(), &w, &h)){
-               throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
-           }
-           return {w, h};
-       }
-
-       int getRendererWidth()
-       {
-           return getRendererSize().first;
-       }
-
-       int getRendererHeight()
-       {
-           return getRendererSize().second;
-       }
-
     public:
        TTF_Font *createTTF(const void *, size_t, uint8_t);
 
@@ -427,6 +387,14 @@ class SDLDevice final
        }
 
     public:
+       std::tuple<int, int> getWindowSize();
+       std::tuple<int, int> getRendererSize();
+
+       int getWindowWidth();
+       int getWindowHeight();
+       int getRendererWidth();
+       int getRendererHeight();
+
        void setWindowSize(int, int);
        void setWindowResizable(bool);
        void setWindowScaleRatio(float);

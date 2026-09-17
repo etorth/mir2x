@@ -124,7 +124,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
       {{
           .label
           {
-              .text = u8"缩放比例",
+              .text = u8"缩放比",
               .w = 40,
           },
 
@@ -241,10 +241,37 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                       {
                           {&m_pageSystem_resolution, DIR_UPLEFT, 0,  0, false},
                           {&m_pageSystem_scale     , DIR_UPLEFT, 0, 30, false},
-                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 60, false},
+                          {new CheckLabel
+                          {{
+                              .label
+                              {
+                                  .text=u8"禁用",
+                              },
+
+                              .getter=[this]
+                              {
+                                  return SDRuntimeConfig_getConfig<RTCFG_SCALE>(m_sdRuntimeConfig);
+                              },
+
+                              .setter=[this](bool value)
+                              {
+                                  SDRuntimeConfig_setConfig<RTCFG_SCALE>(m_sdRuntimeConfig, value);
+                              },
+
+                              .onChange=[this](bool)
+                              {
+                                  applyScaleConfig();
+                                  reportRuntimeConfig<RTCFG_SCALE>();
+                              },
+                          }},
+
+                          DIR_LEFT, [this]{ return m_pageSystem_scale.dx() + m_pageSystem_scale.w()           + 10; },
+                                    [this]{ return m_pageSystem_scale.dy() + m_pageSystem_scale.fixedSize().h /  2; }, true},
+
+                          {&m_pageSystem_ime, DIR_UPLEFT, 0, 60, false},
 
                           {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0, 105, true},
-                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS>(); }}}, DIR_UPLEFT, 0, 130, true},
+                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS   >(); }}}, DIR_UPLEFT, 0, 130, true},
 
                           {new CheckLabel
                           {{
