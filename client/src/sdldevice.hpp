@@ -122,6 +122,9 @@ namespace SDLDeviceHelper
     std::tuple<int, int> getTextureSize  (const SDL_Texture *);
     int                  getTextureWidth (const SDL_Texture *, std::optional<int> = std::nullopt);
     int                  getTextureHeight(const SDL_Texture *, std::optional<int> = std::nullopt);
+
+    std::tuple<int, int> fromWindowPixelSize  (std::tuple<int, int>, std::optional<float>);
+    std::tuple<int, int> fromWindowLogicalSize(std::tuple<int, int>, std::optional<float>);
 }
 
 class SDLDevice;
@@ -400,7 +403,8 @@ class SDLDevice final
 
        void setWindowSize(int, int);
        void setWindowResizable(bool);
-       void setWindowScaleRatio(std::optional<float>);
+
+       void scaleWindow(std::optional<std::tuple<int, int, float>>);
        SDL_Event &scaleEvent(SDL_Event &);
 
     public:

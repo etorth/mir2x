@@ -318,6 +318,38 @@ int SDLDeviceHelper::getTextureHeight(const SDL_Texture *texture, std::optional<
     }
 }
 
+std::tuple<int, int> SDLDeviceHelper::fromWindowPixelSize(std::tuple<int, int> size, std::optional<float> scale)
+{
+    fflassert(std::get<0>(size) > 0, size, scale);
+    fflassert(std::get<1>(size) > 0, size, scale);
+
+    if(scale.has_value()){
+        fflassert(scale.value() > 0);
+    }
+
+    return
+    {
+        to_dround(std::get<0>(size) / scale.value_or(1.0f)),
+        to_dround(std::get<1>(size) / scale.value_or(1.0f)),
+    };
+}
+
+std::tuple<int, int> SDLDeviceHelper::fromWindowLogicalSize(std::tuple<int, int> size, std::optional<float> scale)
+{
+    fflassert(std::get<0>(size) > 0, size, scale);
+    fflassert(std::get<1>(size) > 0, size, scale);
+
+    if(scale.has_value()){
+        fflassert(scale.value() > 0);
+    }
+
+    return
+    {
+        to_dround(std::get<0>(size) * scale.value_or(1.0f)),
+        to_dround(std::get<1>(size) * scale.value_or(1.0f)),
+    };
+}
+
 SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, MIX_Track *track)
     : m_sdlDevice(sdlDevice)
     , m_track(track)
@@ -1261,7 +1293,7 @@ std::tuple<int, int> SDLDevice::getRendererSize()
     int h = -1;
 
     if(!SDL_GetCurrentRenderOutputSize(m_renderer.get(), &w, &h)){
-        throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
+        throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
     }
     return {w, h};
 }
@@ -1293,19 +1325,22 @@ void SDLDevice::setWindowResizable(bool resizable)
     }
 }
 
-void SDLDevice::setWindowScaleRatio(std::optional<float> ratio)
+void SDLDevice::scaleWindow(std::optional<std::tuple<int, int, float>> scale)
 {
-    if(ratio.has_value()){
-        fflassert(ratio.value() >= 0.0f, ratio);
-    }
+    if(scale.has_value()){
+        const auto [logicalWidth, logicalHeight, scaleFactor] = scale.value();
+        fflassert(logicalWidth  > 0, scale);
+        fflassert(logicalHeight > 0, scale);
 
-    const auto [winW, winH] = getWindowSize();
-    if(ratio.has_value()){
-        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), to_dround(winW / ratio.value()), to_dround(winH / ratio.value()), SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+        setWindowSize(logicalWidth * scaleFactor, logicalHeight * scaleFactor);
+        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), logicalWidth, logicalHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+            throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, {}, {}, SDL_LOGICAL_PRESENTATION_LETTERBOX) failed: {}", to_cvptr(m_renderer), logicalWidth, logicalHeight, SDL_GetError());
         }
     }
     else{
+        const auto [winW, winH] = getWindowSize();
         if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), winW, winH, SDL_LOGICAL_PRESENTATION_DISABLED)){
+            throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, {}, {}, SDL_LOGICAL_PRESENTATION_DISABLED) failed: {}", to_cvptr(m_renderer), winW, winH, SDL_GetError());
         }
     }
 }

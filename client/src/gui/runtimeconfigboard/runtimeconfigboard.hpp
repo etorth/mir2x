@@ -107,10 +107,11 @@ class RuntimeConfigBoard: public Widget
         }
 
     public:
-        void updateWindowSize(std::pair<int, int>, bool);
-        void updateScale(std::optional<float>, bool);
-        void updateIME(int, bool);
+        // SDRuntimeConfig is updated on trigger time, not on event handling
+        // take fullscreen as example: fullscreen flips update SDRuntimeConfig immediately
+        // window events (SDLEVENT_WINDOW_ENTER/LEAVE_FULLSCREEN) only trigger Widget::afterResize() for GUI updates
 
-    public:
+        void updateWindowSize(std::tuple<int, int>, bool);
+        void updateIME(int, bool);
         void flipFullscreen();
 };

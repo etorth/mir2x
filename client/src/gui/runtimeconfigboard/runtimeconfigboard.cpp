@@ -106,17 +106,25 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              {{new LabelBoard{{.label = u8"800×600  ", .attrs{.data = std::pair<int, int>( 800, 600)}}}, true}},
-              {{new LabelBoard{{.label = u8"960×600  ", .attrs{.data = std::pair<int, int>( 960, 600)}}}, true}},
-              {{new LabelBoard{{.label = u8"1024×768 ", .attrs{.data = std::pair<int, int>(1024, 768)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×720 ", .attrs{.data = std::pair<int, int>(1280, 720)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×768 ", .attrs{.data = std::pair<int, int>(1280, 768)}}}, true}},
-              {{new LabelBoard{{.label = u8"1280×800 ", .attrs{.data = std::pair<int, int>(1280, 800)}}}, true}},
+              {{new LabelBoard{{.label = u8"800×600  ", .attrs{.data = std::tuple<int, int>( 800, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"960×600  ", .attrs{.data = std::tuple<int, int>( 960, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"1024×768 ", .attrs{.data = std::tuple<int, int>(1024, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×720 ", .attrs{.data = std::tuple<int, int>(1280, 720)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×768 ", .attrs{.data = std::tuple<int, int>(1280, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×800 ", .attrs{.data = std::tuple<int, int>(1280, 800)}}}, true}},
           },
 
           .onClick = [this](Widget *widget)
           {
-              updateWindowSize(std::any_cast<std::pair<int, int>>(widget->data()), true);
+              const auto size  = std::any_cast<std::tuple<int, int>>(widget->data());
+              const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+
+              if(scale.has_value()){
+                  updateWindowSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale.value()), true);
+              }
+              else{
+                  updateWindowSize(size, true);
+              }
           },
       }}
 
@@ -623,7 +631,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
     );
 
     updateWindowSize(g_sdlDevice->getRendererSize(), false);
-    updateScale(1.0f, false);
     updateIME(IME_DISABLE, false);
 
     // 1.0f -> SDL_MIX_MAXVOLUME
@@ -722,7 +729,10 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     applyAudioConfig();
     applyScaleConfig();
 
-    updateWindowSize(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), false);
+    const auto size  = SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE >(m_sdRuntimeConfig);
+    const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+
+    updateWindowSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale), false);
     updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
 }
 
@@ -751,7 +761,14 @@ void RuntimeConfigBoard::applyAudioConfig()
 
 void RuntimeConfigBoard::applyScaleConfig()
 {
-    g_sdlDevice->setWindowScaleRatio(SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
+    if(const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig); scale.has_value()){
+        g_sdlDevice->scaleWindow(std::tuple_cat(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), std::make_tuple(scale.value())));
+        m_pageSystem_scale.getTitle()->setText(str_printf(u8"%.2f", scale.value()).c_str());
+    }
+    else{
+        g_sdlDevice->scaleWindow(std::nullopt);
+        m_pageSystem_scale.getTitle()->setText(str_printf(u8"%s", u8"禁用").c_str());
+    }
 }
 
 void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)
@@ -813,35 +830,35 @@ void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool en
     reportRuntimeConfig<RTCFG_DROPITEMRULE>(itemID);
 }
 
-void RuntimeConfigBoard::updateWindowSize(std::pair<int, int> size, bool saveConfig)
+void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveConfig)
 {
-    fflassert(size.first  >= 0, size);
-    fflassert(size.second >= 0, size);
+    auto pixelW = std::get<0>(size);
+    auto pixelH = std::get<1>(size);
 
-    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", size.first, size.second).c_str());
-    g_sdlDevice->setWindowSize(size.first, size.second);
+    fflassert(pixelW > 0, size);
+    fflassert(pixelH > 0, size);
 
+    const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+
+    int logicalW = pixelW;
+    int logicalH = pixelH;
+
+    if(scale.has_value()){
+        std::tie(logicalW, logicalH) = SDLDeviceHelper::fromWindowPixelSize({pixelW, pixelH}, scale.value());
+    }
+
+    if(scale.has_value()){
+        g_sdlDevice->scaleWindow(std::make_tuple(logicalW, logicalH, scale.value()));
+    }
+    else{
+        g_sdlDevice->scaleWindow(std::nullopt);
+        g_sdlDevice->setWindowSize(pixelW, pixelH);
+    }
+
+    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", logicalW, logicalH).c_str());
     if(saveConfig){
-        SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, size);
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, std::make_tuple(logicalW, logicalH));
         reportRuntimeConfig<RTCFG_WINDOWSIZE>();
-    }
-}
-
-void RuntimeConfigBoard::updateScale(std::optional<float> ratio, bool saveConfig)
-{
-    if(ratio.has_value()){
-        fflassert(ratio.value() >= 0.0f, ratio);
-    }
-
-    std::u8string scaleText = u8"禁用";
-    if(ratio.has_value()){
-        scaleText = str_printf(u8"%.2f", ratio.value());
-    }
-
-    m_pageSystem_scale.getTitle()->setText(scaleText.c_str());
-
-    if(saveConfig){
-        SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, ratio);
     }
 }
 

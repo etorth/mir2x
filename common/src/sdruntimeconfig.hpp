@@ -183,10 +183,10 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_自动喝蓝, (), bool, true)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_保持满蓝, (), bool, true)
     /**/
-    /**/ using _RSVD_helper_type_RTCFG_WINDOWSIZE_t = std::pair<int, int>;
+    /**/ using _RSVD_helper_type_RTCFG_WINDOWSIZE_t = std::tuple<int, int>;
     /**/ using _RSVD_helper_type_RTCFG_WINDOWSCALE_t = std::optional<float>;
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSIZE , (), _RSVD_helper_type_RTCFG_WINDOWSIZE_t , std::make_pair(800, 600))
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSCALE, (), _RSVD_helper_type_RTCFG_WINDOWSCALE_t, std::make_optional(1.0f))
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSIZE , (), _RSVD_helper_type_RTCFG_WINDOWSIZE_t , std::make_tuple(800, 600))
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSCALE, (), _RSVD_helper_type_RTCFG_WINDOWSCALE_t, std::nullopt)
     /**/
     /**/ // 0: accept any friend request
     /**/ // 1: reject any friend request
