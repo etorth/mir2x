@@ -729,8 +729,8 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     applyAudioConfig();
     applyScaleConfig();
 
-    const auto size  = SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE >(m_sdRuntimeConfig);
-    const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+    const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
+    const auto size  = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
 
     updateWindowSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale), false);
     updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
@@ -762,7 +762,7 @@ void RuntimeConfigBoard::applyAudioConfig()
 void RuntimeConfigBoard::applyScaleConfig()
 {
     if(const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig); scale.has_value()){
-        g_sdlDevice->scaleWindow(std::tuple_cat(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), std::make_tuple(scale.value())));
+        g_sdlDevice->scaleWindow(std::tuple_cat(SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig), std::make_tuple(scale.value())));
         m_pageSystem_scale.getTitle()->setText(str_printf(u8"%.2f", scale.value()).c_str());
     }
     else{
@@ -857,8 +857,8 @@ void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveCo
 
     m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", logicalW, logicalH).c_str());
     if(saveConfig){
-        SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, std::make_tuple(logicalW, logicalH));
-        reportRuntimeConfig<RTCFG_WINDOWSIZE>();
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, std::make_tuple(logicalW, logicalH));
+        reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
     }
 }
 
