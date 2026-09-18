@@ -410,6 +410,7 @@ class SDLDevice final
        int getWindowLogicalHeight();
 
        void scaleWindow(std::tuple<int, int>, std::optional<float>);
+       void scaleFullscreen(std::optional<std::tuple<int, int>>);
        SDL_Event &scaleEvent(SDL_Event &);
 
     public:

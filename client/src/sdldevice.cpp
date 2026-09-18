@@ -1326,8 +1326,29 @@ void SDLDevice::setWindowResizable(bool resizable)
     }
 }
 
+void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
+{
+    // fflassert(getWindowFullscreen());
+
+    int logicalW = 0;
+    int logicalH = 0;
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+
+    if(size.has_value()){
+        logicalW = std::get<0>(size.value());
+        logicalH = std::get<1>(size.value());
+        mode     = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+    }
+
+    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), logicalW, logicalH, mode)){
+        throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, {}, {}, {}) failed: {}", to_cvptr(m_renderer), logicalW, logicalH, to_d(mode), SDL_GetError());
+    }
+}
+
 void SDLDevice::scaleWindow(std::tuple<int, int> size, std::optional<float> scale)
 {
+    // fflassert(!getWindowFullscreen());
+
     const auto [pixelWidth, pixelHeight] = SDLDeviceHelper::fromWindowLogicalSize(size, scale);
     fflassert(pixelWidth  > 0, size, scale);
     fflassert(pixelHeight > 0, size, scale);
