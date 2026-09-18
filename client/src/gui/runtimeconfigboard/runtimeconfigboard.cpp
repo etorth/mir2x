@@ -145,7 +145,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              // support minimal ratio 0.75, because SDLDevice::WINDOW_MIN_W / SDLDevice::WINDOW_INIT_W is 0.75
+              // support minimal ratio 0.75, because SDLDevice::WINDOW_MIN_LOGICAL_W / SDLDevice::WINDOW_INIT_W is 0.75
               // less than this the SDL_SetWindowSize() call will be ignored
 
               // can support even smaller ratio but not quite useful
@@ -846,8 +846,8 @@ void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveCo
     // manually clamp the width and height to prevent violating the size limits
     // this function shall not process any GUI geometry logic, see comments in ProcessRun::processEvent()
 
-    auto pixelW = std::max<int>(std::get<0>(size), SDLDevice::WINDOW_MIN_W);
-    auto pixelH = std::max<int>(std::get<1>(size), SDLDevice::WINDOW_MIN_H);
+    auto pixelW = std::max<int>(std::get<0>(size), SDLDevice::WINDOW_MIN_LOGICAL_W);
+    auto pixelH = std::max<int>(std::get<1>(size), SDLDevice::WINDOW_MIN_LOGICAL_H);
 
     fflassert(pixelW > 0, size);
     fflassert(pixelH > 0, size);
@@ -868,6 +868,11 @@ void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveCo
         SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, std::make_tuple(logicalW, logicalH));
         reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
     }
+}
+
+std::tuple<int, int> RuntimeConfigBoard::getMinWindowPixelSize() const
+{
+    return SDLDeviceHelper::fromWindowLogicalSize({SDLDevice::WINDOW_MIN_LOGICAL_W, SDLDevice::WINDOW_MIN_LOGICAL_H}, SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
 }
 
 void RuntimeConfigBoard::updateIME(int ime, bool saveConfig)

@@ -172,8 +172,8 @@ class SDLDevice final
         constexpr static int WINDOW_INIT_W = 800;
         constexpr static int WINDOW_INIT_H = 600;
 
-        constexpr static int WINDOW_MIN_W = 600; // .75 ratio
-        constexpr static int WINDOW_MIN_H = 450; //
+        constexpr static int WINDOW_MIN_LOGICAL_W = 600; // .75 ratio
+        constexpr static int WINDOW_MIN_LOGICAL_H = 450; //
 
     private:
         friend class SDLSoundEffectChannel;

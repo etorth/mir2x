@@ -576,12 +576,11 @@ void ProcessRun::processEvent(const SDL_Event &event)
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         case SDL_EVENT_WINDOW_RESIZED:
             {
-                if(const auto [winW, winH] = g_sdlDevice->getWindowSize(); (winW < SDLDevice::WINDOW_MIN_W) || (winH < SDLDevice::WINDOW_MIN_H)){
-                    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->updateWindowSize(
-                    {
-                        std::max<int>(winW, SDLDevice::WINDOW_MIN_W),
-                        std::max<int>(winH, SDLDevice::WINDOW_MIN_H),
-                    }, true);
+                const auto [pixelW, pixelH] = g_sdlDevice->getWindowSize();
+                const auto [minPixelW, minPixelH] = dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->getMinWindowPixelSize();
+
+                if(pixelW < minPixelW || pixelH < minPixelH){
+                    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->updateWindowSize({std::max<int>(pixelW, minPixelW), std::max<int>(pixelH, minPixelH)}, true);
                     return;
                 }
                 break;

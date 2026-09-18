@@ -709,7 +709,7 @@ void SDLDevice::createMainWindow()
     m_window.reset(SDL_CreateWindow("MIR2X-V0.1", WINDOW_INIT_W, WINDOW_INIT_H, winFlag));
     fflassert(m_window);
 
-    SDL_SetWindowMinimumSize(m_window.get(), WINDOW_MIN_W, WINDOW_MIN_H);
+    SDL_SetWindowMinimumSize(m_window.get(), WINDOW_MIN_LOGICAL_W, WINDOW_MIN_LOGICAL_H);
     m_renderer.reset(SDL_CreateRenderer(m_window.get(), nullptr));
 
     if(!m_renderer){

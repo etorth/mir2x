@@ -112,6 +112,8 @@ class RuntimeConfigBoard: public Widget
         // window events (SDLEVENT_WINDOW_ENTER/LEAVE_FULLSCREEN) only trigger Widget::afterResize() for GUI updates
 
         void updateWindowSize(std::tuple<int, int>, bool);
+        std::tuple<int, int> getMinWindowPixelSize() const;
+
         void updateIME(int, bool);
         void flipFullscreen();
 };
