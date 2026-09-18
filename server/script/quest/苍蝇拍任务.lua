@@ -155,6 +155,8 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '牛毛', 1)
+                    server.player.removeItem(uid, '竹棍', 1)
                     server.player.addItem(uid, getItemID('苍蝇拍'), 1)
                     server.quest.setState(questUID, {uid=uid, state='quest_get_fly_swatter'})
                 end,
