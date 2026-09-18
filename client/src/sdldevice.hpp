@@ -168,6 +168,13 @@ class SDLSoundEffectChannel // controller of sound effect and the track playing 
 
 class SDLDevice final
 {
+    public:
+        constexpr static int WINDOW_INIT_W = 800;
+        constexpr static int WINDOW_INIT_H = 600;
+
+        constexpr static int WINDOW_MIN_W = 600; // .75 ratio
+        constexpr static int WINDOW_MIN_H = 450; //
+
     private:
         friend class SDLSoundEffectChannel;
 
@@ -205,11 +212,10 @@ class SDLDevice final
        std::vector<MIX_Track *> m_tracks;          // all sound-effect tracks, owned here
 
     private:
-       // Single lock guarding BOTH m_freeTrackList and m_trackStateList.
-       // recycleSoundEffectTrack (audio thread) inserts into m_freeTrackList;
-       // ~SDLSoundEffectChannel / halt() / playSoundEffect mutate both maps
-       // from the caller thread (main thread today, but shared_ptr semantics
-       // mean the dtor could run from any thread if refs escape).
+       // single lock guarding BOTH m_freeTrackList and m_trackStateList
+       // recycleSoundEffectTrack (audio thread) inserts into m_freeTrackList
+       // ~SDLSoundEffectChannel / halt() / playSoundEffect mutate both maps from the caller thread
+       // currently only main thread today, but shared_ptr semantics mean the dtor could run from any thread if refs escape
        std::mutex m_trackLock;
        std::unordered_set<MIX_Track *> m_freeTrackList;
        std::unordered_map<MIX_Track *, SoundChannelHookState> m_trackStateList;

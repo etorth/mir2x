@@ -567,6 +567,31 @@ void ProcessRun::draw() const
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
+    // gui system requires a minimum size to prevent internal assertion failures
+    // if the size is too small, reset it here and return immediately without processing of gui system
+
+    switch(event.type){
+        case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+        case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        case SDL_EVENT_WINDOW_RESIZED:
+            {
+                if(const auto [winW, winH] = g_sdlDevice->getWindowSize(); (winW < SDLDevice::WINDOW_MIN_W) || (winH < SDLDevice::WINDOW_MIN_H)){
+                    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->updateWindowSize(
+                    {
+                        std::max<int>(winW, SDLDevice::WINDOW_MIN_W),
+                        std::max<int>(winH, SDLDevice::WINDOW_MIN_H),
+                    }, true);
+                    return;
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
     const bool tookEvent = m_guiManager.processEventRoot(event, true, {});
     m_guiManager.purge();
 

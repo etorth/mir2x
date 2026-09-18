@@ -145,8 +145,13 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
+              // support minimal ratio 0.75, because SDLDevice::WINDOW_MIN_W / SDLDevice::WINDOW_INIT_W is 0.75
+              // less than this the SDL_SetWindowSize() call will be ignored
+
+              // can support even smaller ratio but not quite useful
+              // and too small windows size can trigger assertions for geometry calculation
+
               {{new LabelBoard{{.label = u8"禁用     ", .attrs{.data = std::optional<float>(     )}}}, true}},
-              {{new LabelBoard{{.label = u8"0.50     ", .attrs{.data = std::optional<float>(0.50f)}}}, true}},
               {{new LabelBoard{{.label = u8"0.75     ", .attrs{.data = std::optional<float>(0.75f)}}}, true}},
               {{new LabelBoard{{.label = u8"1.00     ", .attrs{.data = std::optional<float>(1.00f)}}}, true}},
               {{new LabelBoard{{.label = u8"1.25     ", .attrs{.data = std::optional<float>(1.25f)}}}, true}},
@@ -835,8 +840,14 @@ void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool en
 
 void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveConfig)
 {
-    auto pixelW = std::get<0>(size);
-    auto pixelH = std::get<1>(size);
+    // update the window size first by enforcing the minimum dimensions
+    // while SDL_SetWindowSize() respects SDL_SetWindowMinimumSize(), manual border dragging bypasses it
+    //
+    // manually clamp the width and height to prevent violating the size limits
+    // this function shall not process any GUI geometry logic, see comments in ProcessRun::processEvent()
+
+    auto pixelW = std::max<int>(std::get<0>(size), SDLDevice::WINDOW_MIN_W);
+    auto pixelH = std::max<int>(std::get<1>(size), SDLDevice::WINDOW_MIN_H);
 
     fflassert(pixelW > 0, size);
     fflassert(pixelH > 0, size);
