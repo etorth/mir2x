@@ -393,6 +393,8 @@ class SDLDevice final
        }
 
     public:
+       void setWindowResizable(bool);
+
        std::tuple<int, int> getWindowSize();
        std::tuple<int, int> getWindowLogicalSize();
 
@@ -401,10 +403,7 @@ class SDLDevice final
        int getWindowLogicalWidth();
        int getWindowLogicalHeight();
 
-       void setWindowSize(int, int);
-       void setWindowResizable(bool);
-
-       void scaleWindow(std::optional<std::tuple<int, int, float>>);
+       void scaleWindow(std::tuple<int, int>, std::optional<float>);
        SDL_Event &scaleEvent(SDL_Event &);
 
     public:

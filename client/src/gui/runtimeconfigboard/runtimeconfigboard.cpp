@@ -761,12 +761,15 @@ void RuntimeConfigBoard::applyAudioConfig()
 
 void RuntimeConfigBoard::applyScaleConfig()
 {
-    if(const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig); scale.has_value()){
-        g_sdlDevice->scaleWindow(std::tuple_cat(SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig), std::make_tuple(scale.value())));
+    const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
+    const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
+
+    g_sdlDevice->scaleWindow(resolution, scale);
+
+    if(scale.has_value()){
         m_pageSystem_scale.getTitle()->setText(str_printf(u8"%.2f", scale.value()).c_str());
     }
     else{
-        g_sdlDevice->scaleWindow(std::nullopt);
         m_pageSystem_scale.getTitle()->setText(str_printf(u8"%s", u8"禁用").c_str());
     }
 }
@@ -847,15 +850,9 @@ void RuntimeConfigBoard::updateWindowSize(std::tuple<int, int> size, bool saveCo
         std::tie(logicalW, logicalH) = SDLDeviceHelper::fromWindowPixelSize({pixelW, pixelH}, scale.value());
     }
 
-    if(scale.has_value()){
-        g_sdlDevice->scaleWindow(std::make_tuple(logicalW, logicalH, scale.value()));
-    }
-    else{
-        g_sdlDevice->scaleWindow(std::nullopt);
-        g_sdlDevice->setWindowSize(pixelW, pixelH);
-    }
-
+    g_sdlDevice->scaleWindow({logicalW, logicalH}, scale);
     m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", logicalW, logicalH).c_str());
+
     if(saveConfig){
         SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, std::make_tuple(logicalW, logicalH));
         reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
