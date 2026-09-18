@@ -77,7 +77,7 @@ InitView::InitView(uint8_t fontSize)
         #embed "ivbutton.png"
     };
 
-    g_sdlDevice->createInitViewWindow();
+    g_sdlDevice->createInitViewWindow(388, 160); // board size: 388x160
 
     m_boardTexture  = g_sdlDevice->loadPNGTexture(std::data( boardData), std::size( boardData));
     m_buttonTexture = g_sdlDevice->loadPNGTexture(std::data(buttonData), std::size(buttonData));

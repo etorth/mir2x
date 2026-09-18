@@ -651,19 +651,17 @@ TTF_Font *SDLDevice::createTTF(const void *data, size_t size, uint8_t fontPtSize
     return nullptr;
 }
 
-void SDLDevice::createInitViewWindow()
+void SDLDevice::createInitViewWindow(int windowW, int windowH)
 {
-    // Reset renderer before window (renderer references the window)
+    fflassert(windowW > 0, windowW, windowH);
+    fflassert(windowH > 0, windowW, windowH);
+
     m_renderer.reset();
     m_window.reset();
 
-    int windowW = 800;
-    int windowH = 600;
-    {
-        if(const auto *desktop = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay())){
-            windowW = std::min<int>(windowW, desktop->w);
-            windowH = std::min<int>(windowH, desktop->h);
-        }
+    if(const auto *desktop = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay())){
+        windowW = std::min<int>(windowW, desktop->w);
+        windowH = std::min<int>(windowH, desktop->h);
     }
 
     m_window.reset(SDL_CreateWindow("MIR2X-V0.1-LOADING", windowW, windowH, SDL_WINDOW_BORDERLESS));

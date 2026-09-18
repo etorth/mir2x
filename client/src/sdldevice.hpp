@@ -365,7 +365,7 @@ class SDLDevice final
 
     public:
        void createMainWindow();
-       void createInitViewWindow();
+       void createInitViewWindow(int, int);
 
     public:
        void  enableSystemIME(uint64_t);
