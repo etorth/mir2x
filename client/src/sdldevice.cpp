@@ -1287,31 +1287,44 @@ int SDLDevice::getWindowHeight()
     return std::get<1>(getWindowSize());
 }
 
-std::tuple<int, int> SDLDevice::getRendererSize()
+std::tuple<int, int> SDLDevice::getWindowLogicalSize()
 {
-    int w = -1;
-    int h = -1;
 
-    if(!SDL_GetCurrentRenderOutputSize(m_renderer.get(), &w, &h)){
-        throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+    int logicalW = 0;
+    int logicalH = 0;
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+
+    if(!SDL_GetRenderLogicalPresentation(m_renderer.get(), &logicalW, &logicalH, &mode)){
+        throw fflpanic("SDL_GetRenderLogicalPresentation({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
     }
-    return {w, h};
+
+    if(mode != SDL_LOGICAL_PRESENTATION_DISABLED){
+        return {logicalW, logicalH};
+    }
+
+    int winLogicalW = -1;
+    int winLogicalH = -1;
+    if(!SDL_GetRenderOutputSize(m_renderer.get(), &winLogicalW, &winLogicalH)){
+        throw fflpanic("SDL_GetRendererOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+    }
+
+    return {winLogicalW, winLogicalH};
 }
 
-int SDLDevice::getRendererWidth()
+int SDLDevice::getWindowLogicalWidth()
 {
-    return std::get<0>(getRendererSize());
+    return std::get<0>(getWindowLogicalSize());
 }
 
-int SDLDevice::getRendererHeight()
+int SDLDevice::getWindowLogicalHeight()
 {
-    return std::get<1>(getRendererSize());
+    return std::get<1>(getWindowLogicalSize());
 }
 
 void SDLDevice::setWindowSize(int w, int h)
 {
-    fflassert(w >= 400, w, h);
-    fflassert(h >= 400, w, h);
+    fflassert(w > 0, w, h);
+    fflassert(h > 0, w, h);
 
     if(!SDL_SetWindowSize(m_window.get(), w, h)){
         throw fflpanic("SDL_SetWindowSize({:p}, {}, {}) failed: {}", to_cvptr(m_window), w, h, SDL_GetError());

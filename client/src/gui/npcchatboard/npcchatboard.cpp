@@ -184,7 +184,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
 
     m_chatBoard.clear();
 
-    const int screenWidth = g_sdlDevice->getRendererWidth();
+    const int screenWidth = g_sdlDevice->getWindowLogicalWidth();
     const int  boardWidth = std::max<int>(screenWidth / 3, 300);
 
     if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){

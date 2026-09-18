@@ -616,7 +616,7 @@ void ProcessRun::on_SM_STARTINVOP(const uint8_t *buf, size_t size)
     auto invBoardPtr = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
 
     invBoardPtr->setShow(true);
-    invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
+    invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getWindowLogicalWidth() - 1, 0);
     invBoardPtr->startInvOp(cerealf::deserialize<SDStartInvOp>(buf, size));
 }
 
@@ -948,7 +948,7 @@ void ProcessRun::on_SM_SHOWSECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
 
     auto invBoardPtr = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
     invBoardPtr->setShow(true);
-    invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
+    invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getWindowLogicalWidth() - 1, 0);
 }
 
 void ProcessRun::on_SM_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)

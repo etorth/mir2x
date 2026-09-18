@@ -343,10 +343,10 @@ bool DirectTradeBoard::processEventDefault(const SDL_Event &event, bool valid, W
                 if(m_dragging && (event.motion.state & SDL_BUTTON_LMASK)){
                     const int remapX = m.x - m.ro->x;
                     const int remapY = m.y - m.ro->y;
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                    const auto [winLogicalW, winLogicalH] = g_sdlDevice->getWindowLogicalSize();
 
-                    const int newX = std::clamp(remapX + to_d(event.motion.xrel), 0, rendererW - w());
-                    const int newY = std::clamp(remapY + to_d(event.motion.yrel), 0, rendererH - h());
+                    const int newX = std::clamp(remapX + to_d(event.motion.xrel), 0, winLogicalW - w());
+                    const int newY = std::clamp(remapY + to_d(event.motion.yrel), 0, winLogicalH - h());
                     moveBy(newX - remapX, newY - remapY);
                     return consumeFocus(true);
                 }
@@ -605,8 +605,8 @@ void DirectTradeBoard::drawItemHoverText(const SDItem &item) const
     const int textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const int textBoxH = hoverTextBoard.h() + 20;
 
-    const int drawBoardPX = mathf::bound<int>(mousePX, 0, g_sdlDevice->getRendererWidth () - textBoxW);
-    const int drawBoardPY = mathf::bound<int>(mousePY, 0, g_sdlDevice->getRendererHeight() - textBoxH);
+    const int drawBoardPX = mathf::bound<int>(mousePX, 0, g_sdlDevice->getWindowLogicalWidth () - textBoxW);
+    const int drawBoardPY = mathf::bound<int>(mousePY, 0, g_sdlDevice->getWindowLogicalHeight() - textBoxH);
 
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);
     g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);

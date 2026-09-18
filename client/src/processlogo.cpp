@@ -46,8 +46,8 @@ void ProcessLogo::draw() const
         const auto c = to_u8(to_dround(255 * colorRatio()));
         const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::RGBA(c, c, c, 0XFF));
 
-        const auto winW = g_sdlDevice->getRendererWidth();
-        const auto winH = g_sdlDevice->getRendererHeight();
+        const auto winW = g_sdlDevice->getWindowLogicalWidth();
+        const auto winH = g_sdlDevice->getWindowLogicalHeight();
         g_sdlDevice->drawTexture(texPtr, 0, 0, 0, 0, winW, winH);
     }
 }

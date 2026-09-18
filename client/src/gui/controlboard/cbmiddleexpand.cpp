@@ -198,10 +198,10 @@ CBMiddleExpand::CBMiddleExpand(
     {
         if(const auto cb = hasParent<ControlBoard>(); !cb->m_minimize && cb->m_expand){
             if(cb->m_maximize){
-                return g_sdlDevice->getRendererHeight();
+                return g_sdlDevice->getWindowLogicalHeight();
             }
             else{
-                return std::min<int>(400, g_sdlDevice->getRendererHeight());
+                return std::min<int>(400, g_sdlDevice->getWindowLogicalHeight());
             }
         }
         return 0;

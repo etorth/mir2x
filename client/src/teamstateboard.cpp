@@ -346,9 +346,9 @@ bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
         case SDL_EVENT_MOUSE_MOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                    const int maxX = rendererW - w();
-                    const int maxY = rendererH - h();
+                    const auto [winLogicalW, winLogicalH] = g_sdlDevice->getWindowLogicalSize();
+                    const int maxX = winLogicalW - w();
+                    const int maxY = winLogicalH - h();
 
                     const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + to_d(event.motion.xrel)));
                     const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + to_d(event.motion.yrel)));

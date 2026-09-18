@@ -100,10 +100,10 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
 
 void ProcessRun::scrollMap()
 {
-    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+    const auto [winLogicalW, winLogicalH] = g_sdlDevice->getWindowLogicalSize();
 
-    const auto showWindowW = rendererW;
-    const auto showWindowH = rendererH - dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->shiftHeight();
+    const auto showWindowW = winLogicalW;
+    const auto showWindowH = winLogicalH - dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->shiftHeight();
 
     const int nViewX = getMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
     const int nViewY = getMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
@@ -286,8 +286,8 @@ void ProcessRun::draw() const
     SDLDeviceHelper::RenderNewFrame newFrame;
     const int x0 = mathf::bound<int>(-SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP,                                    0, m_mir2xMapData.w());
     const int y0 = mathf::bound<int>(-SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP,                                    0, m_mir2xMapData.h());
-    const int x1 = mathf::bound<int>(+SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP, 0, m_mir2xMapData.w());
-    const int y1 = mathf::bound<int>(+SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP, 0, m_mir2xMapData.h());
+    const int x1 = mathf::bound<int>(+SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getWindowLogicalWidth() ) / SYS_MAPGRIDXP, 0, m_mir2xMapData.w());
+    const int y1 = mathf::bound<int>(+SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getWindowLogicalHeight()) / SYS_MAPGRIDYP, 0, m_mir2xMapData.h());
 
     drawTile(x0, y0, x1, y1);
 
@@ -425,16 +425,16 @@ void ProcessRun::draw() const
         const int gridX0 = m_viewX / SYS_MAPGRIDXP;
         const int gridY0 = m_viewY / SYS_MAPGRIDYP;
 
-        const int gridX1 = (m_viewX + g_sdlDevice->getRendererWidth ()) / SYS_MAPGRIDXP;
-        const int gridY1 = (m_viewY + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP;
+        const int gridX1 = (m_viewX + g_sdlDevice->getWindowLogicalWidth ()) / SYS_MAPGRIDXP;
+        const int gridY1 = (m_viewY + g_sdlDevice->getWindowLogicalHeight()) / SYS_MAPGRIDYP;
 
         SDLDeviceHelper::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
-            g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
+            g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getWindowLogicalHeight());
         }
 
         for(int y = gridY0; y <= gridY1; ++y){
-            g_sdlDevice->drawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
+            g_sdlDevice->drawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getWindowLogicalWidth(), y * SYS_MAPGRIDYP - m_viewY);
         }
     }
 
@@ -484,7 +484,7 @@ void ProcessRun::draw() const
     if(getMyHero()->getSDBuffIDListOpt().has_value()){
         constexpr int buffIconDrawW = 30;
         constexpr int buffIconDrawH = 30;
-        int buffIconOffX = g_sdlDevice->getRendererWidth() - buffIconDrawW;
+        int buffIconOffX = g_sdlDevice->getWindowLogicalWidth() - buffIconDrawW;
 
         if(auto boardPtr = getWidget("MiniMapBoard"); boardPtr->show()){
             buffIconOffX -= boardPtr->w();
@@ -510,7 +510,7 @@ void ProcessRun::draw() const
 
     // draw underlay at the bottom
     // there is one pixel transparent rectangle
-    const auto [winW, winH] = g_sdlDevice->getRendererSize();
+    const auto [winW, winH] = g_sdlDevice->getWindowLogicalSize();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 0), 0, winH - 4, winW, 4);
 
     if(getMyHero()->dead().value_or(false)){
@@ -549,7 +549,7 @@ void ProcessRun::draw() const
         const int w = std::max<int>(g_notifyBoard->w() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
-        const int y = g_sdlDevice->getRendererHeight() - h - 133;
+        const int y = g_sdlDevice->getWindowLogicalHeight() - h - 133;
 
         g_sdlDevice->fillRectangle(colorf::GREEN + colorf::A_SHF(180), x, y, w, h);
         g_sdlDevice->drawRectangle(colorf::BLUE  + colorf::A_SHF(255), x, y, w, h);
@@ -1654,10 +1654,10 @@ void ProcessRun::centerMyHero()
 
     const auto fnSetOff = [this, nX, nY, nDirection, currFrame, frameCount](int stepLen)
     {
-        const auto [rendererWidth, rendererHeight] = g_sdlDevice->getRendererSize();
+        const auto [winLogicalWidth, winLogicalHeight] = g_sdlDevice->getWindowLogicalSize();
 
-        const auto showWindowW = rendererWidth;
-        const auto showWindowH = rendererHeight - dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->shiftHeight();
+        const auto showWindowW = winLogicalWidth;
+        const auto showWindowH = winLogicalHeight - dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->shiftHeight();
 
         switch(stepLen){
             case 0:
@@ -2297,7 +2297,7 @@ void ProcessRun::drawFPS() const
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
     LabelBoard fpsBoard{{.label = to_u8rawstr(fpsStr).c_str(), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
 
-    const int winWidth = g_sdlDevice->getRendererWidth();
+    const int winWidth = g_sdlDevice->getWindowLogicalWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
 
     g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(200), fpsBoard.dx() - 1, fpsBoard.dy(), fpsBoard.w() + 1, fpsBoard.h());

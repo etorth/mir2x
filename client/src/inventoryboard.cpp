@@ -362,9 +362,9 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                     const auto remapXDiff = m.x - m.ro->x;
                     const auto remapYDiff = m.y - m.ro->y;
 
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                    const int maxX = rendererW - w();
-                    const int maxY = rendererH - h();
+                    const auto [winLogicalW, winLogicalH] = g_sdlDevice->getWindowLogicalSize();
+                    const int maxX = winLogicalW - w();
+                    const int maxY = winLogicalH - h();
 
                     const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + to_d(event.motion.xrel)));
                     const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + to_d(event.motion.yrel)));
@@ -536,8 +536,8 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;
 
-    const auto drawBoardPX = mathf::bound<int>(mousePX, 0, g_sdlDevice->getRendererWidth () - textBoxW);
-    const auto drawBoardPY = mathf::bound<int>(mousePY, 0, g_sdlDevice->getRendererHeight() - textBoxH);
+    const auto drawBoardPX = mathf::bound<int>(mousePX, 0, g_sdlDevice->getWindowLogicalWidth () - textBoxW);
+    const auto drawBoardPY = mathf::bound<int>(mousePY, 0, g_sdlDevice->getWindowLogicalHeight() - textBoxH);
 
     g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);
     g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);

@@ -12,8 +12,8 @@ extern ClientArgParser *g_clientArgParser;
 GUIManager::GUIManager(ProcessRun *argProc)
     : Widget
       {{
-          .w = []{ return g_sdlDevice->getRendererWidth();  },
-          .h = []{ return g_sdlDevice->getRendererHeight(); },
+          .w = []{ return g_sdlDevice->getWindowLogicalWidth();  },
+          .h = []{ return g_sdlDevice->getWindowLogicalHeight(); },
       }}
 
     , m_processRun(argProc)
@@ -32,8 +32,8 @@ GUIManager::GUIManager(ProcessRun *argProc)
 
     , m_friendChatBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 250,
-          g_sdlDevice->getRendererHeight() / 2 - 250,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 250,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 250,
           argProc,
           this,
       }
@@ -41,24 +41,24 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_horseBoard
       {
           DIR_UPLEFT,
-          g_sdlDevice->getRendererWidth()  / 2 - 128,
-          g_sdlDevice->getRendererHeight() / 2 - 161,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 128,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 161,
           argProc,
           this,
       }
 
     , m_skillBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 180,
-          g_sdlDevice->getRendererHeight() / 2 - 224,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 180,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 224,
           argProc,
           this,
       }
 
     , m_guildBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 297,
-          g_sdlDevice->getRendererHeight() / 2 - 222,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 297,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 222,
           argProc,
           this,
       }
@@ -83,8 +83,8 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_directTradeBoard
       {{
           .dir = DIR_NONE,
-          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
-          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
+          .x = []{ return g_sdlDevice->getWindowLogicalWidth () / 2; },
+          .y = []{ return g_sdlDevice->getWindowLogicalHeight() / 2; },
           .runProc = argProc,
           .parent{this},
       }}
@@ -102,16 +102,16 @@ GUIManager::GUIManager(ProcessRun *argProc)
 
     , m_teamStateBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 129,
-          g_sdlDevice->getRendererHeight() / 2 - 122,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 129,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 122,
           argProc,
           this,
       }
 
     , m_inventoryBoard
       {{
-          .x = g_sdlDevice->getRendererWidth()  / 2 - 141,
-          .y = g_sdlDevice->getRendererHeight() / 2 - 233,
+          .x = g_sdlDevice->getWindowLogicalWidth()  / 2 - 141,
+          .y = g_sdlDevice->getWindowLogicalHeight() / 2 - 233,
 
           .runProc = argProc,
           .parent{this},
@@ -120,8 +120,8 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_questStateBoard
       {
           DIR_UPLEFT,
-          g_sdlDevice->getRendererWidth()  / 2 - 145,
-          g_sdlDevice->getRendererHeight() / 2 - 223,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 145,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 223,
           argProc,
           this,
       }
@@ -130,15 +130,15 @@ GUIManager::GUIManager(ProcessRun *argProc)
       {
           DIR_UPLEFT,
           0,
-          g_sdlDevice->getRendererHeight() - m_controlBoard.h() - 48,
+          g_sdlDevice->getWindowLogicalHeight() - m_controlBoard.h() - 48,
           argProc,
           this,
       }
 
     , m_myHeroStateBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 164,
-          g_sdlDevice->getRendererHeight() / 2 - 233,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 164,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 233,
           argProc,
           this,
       }
@@ -146,16 +146,16 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_inputStringBoard
       {
           DIR_UPLEFT,
-          g_sdlDevice->getRendererWidth()  / 2 - 179,
-          g_sdlDevice->getRendererHeight() / 2 - 134,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 179,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 134,
           false,
           this,
       }
 
     , m_runtimeConfigBoard
       {
-          g_sdlDevice->getRendererWidth()  / 2 - 255,
-          g_sdlDevice->getRendererHeight() / 2 - 234,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 255,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 234,
 
           600,
           480,
@@ -337,7 +337,7 @@ Widget *GUIManager::getWidget(const std::string_view &name)
 void GUIManager::afterResizeDefault()
 {
     m_controlBoard.afterResize();
-    m_runtimeConfigBoard.updateWindowSize({w(), h()}, true);
+    m_runtimeConfigBoard.updateWindowSize(g_sdlDevice->getWindowSize(), true);
 
     const auto fnSetWidgetPLoc = [this](Widget *widgetPtr)
     {

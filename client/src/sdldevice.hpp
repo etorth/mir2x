@@ -394,12 +394,12 @@ class SDLDevice final
 
     public:
        std::tuple<int, int> getWindowSize();
-       std::tuple<int, int> getRendererSize();
+       std::tuple<int, int> getWindowLogicalSize();
 
        int getWindowWidth();
        int getWindowHeight();
-       int getRendererWidth();
-       int getRendererHeight();
+       int getWindowLogicalWidth();
+       int getWindowLogicalHeight();
 
        void setWindowSize(int, int);
        void setWindowResizable(bool);

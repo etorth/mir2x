@@ -21,8 +21,8 @@ AuctionRegisterBoard::AuctionRegisterBoard(ProcessRun *argProc, Widget *argParen
     : Widget
       {{
           .dir = DIR_NONE,
-          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
-          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
+          .x = []{ return g_sdlDevice->getWindowLogicalWidth () / 2; },
+          .y = []{ return g_sdlDevice->getWindowLogicalHeight() / 2; },
           .w = std::nullopt,
           .h = std::nullopt,
           .parent{argParent, argAutoDelete},
@@ -200,10 +200,10 @@ bool AuctionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
                 if(m_dragging && (event.motion.state & SDL_BUTTON_LMASK)){
                     const int remapX = m.x - m.ro->x;
                     const int remapY = m.y - m.ro->y;
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                    const auto [winLogicalW, winLogicalH] = g_sdlDevice->getWindowLogicalSize();
 
-                    const int newX = std::clamp(remapX + to_d(event.motion.xrel), 0, rendererW - w());
-                    const int newY = std::clamp(remapY + to_d(event.motion.yrel), 0, rendererH - h());
+                    const int newX = std::clamp(remapX + to_d(event.motion.xrel), 0, winLogicalW - w());
+                    const int newY = std::clamp(remapY + to_d(event.motion.yrel), 0, winLogicalH - h());
                     moveBy(newX - remapX, newY - remapY);
                     return consumeFocus(true);
                 }

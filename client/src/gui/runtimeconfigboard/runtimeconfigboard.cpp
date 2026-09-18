@@ -630,7 +630,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
-    updateWindowSize(g_sdlDevice->getRendererSize(), false);
+    updateWindowSize(g_sdlDevice->getWindowLogicalSize(), false);
     updateIME(IME_DISABLE, false);
 
     // 1.0f -> SDL_MIX_MAXVOLUME
@@ -698,7 +698,7 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
                         moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), par->roi());
                     }
                     else{
-                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getWindowLogicalSize()));
                     }
                     return consumeFocus(true);
                 }

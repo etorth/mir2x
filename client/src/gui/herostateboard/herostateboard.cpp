@@ -25,8 +25,8 @@ HeroStateBoard::HeroStateBoard(HeroStateBoard::InitArgs args)
     : Widget
       {{
           .dir = DIR_NONE,
-          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
-          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
+          .x = []{ return g_sdlDevice->getWindowLogicalWidth () / 2; },
+          .y = []{ return g_sdlDevice->getWindowLogicalHeight() / 2; },
           .parent = std::move(args.parent),
       }}
     , m_gridList([this]()
@@ -275,7 +275,7 @@ bool HeroStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                         moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), par->roi());
                     }
                     else{
-                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getWindowLogicalSize()));
                     }
                     return consumeFocus(true);
                 }

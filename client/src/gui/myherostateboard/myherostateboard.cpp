@@ -361,7 +361,7 @@ bool MyHeroStateBoard::processEventDefault(const SDL_Event &event, bool valid, W
                         moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), par->roi());
                     }
                     else{
-                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getWindowLogicalSize()));
                     }
                     return consumeFocus(true);
                 }

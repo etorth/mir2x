@@ -21,25 +21,25 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
           .x = [this]
           {
               if(m_extended){
-                  return g_sdlDevice->getRendererWidth() / 2;
+                  return g_sdlDevice->getWindowLogicalWidth() / 2;
               }
               else{
-                  return g_sdlDevice->getRendererWidth() - 1;
+                  return g_sdlDevice->getWindowLogicalWidth() - 1;
               }
           },
 
           .y = [this]
           {
               if(m_extended){
-                  return g_sdlDevice->getRendererHeight() / 2;
+                  return g_sdlDevice->getWindowLogicalHeight() / 2;
               }
               else{
                   return 0;
               }
           },
 
-          .w = [this]{ return m_extended ? to_dround(g_sdlDevice->getRendererWidth () * 0.8) : 200; },
-          .h = [this]{ return m_extended ? to_dround(g_sdlDevice->getRendererHeight() * 0.5) : 200; },
+          .w = [this]{ return m_extended ? to_dround(g_sdlDevice->getWindowLogicalWidth () * 0.8) : 200; },
+          .h = [this]{ return m_extended ? to_dround(g_sdlDevice->getWindowLogicalHeight() * 0.5) : 200; },
 
           .parent = std::move(args.parent),
       }}
