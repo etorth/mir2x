@@ -276,7 +276,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_BGMVALUE>(m_sdRuntimeConfig, val);
               reportRuntimeConfig<RTCFG_BGMVALUE>();
-              applyConfig_audio();
+              applyAudioConfig();
           },
       }
 
@@ -296,7 +296,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig, val);
               reportRuntimeConfig<RTCFG_SEFFVALUE>();
-              applyConfig_audio();
+              applyAudioConfig();
           },
       }
 
@@ -385,7 +385,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
-                                  applyConfig_audio();
+                                  applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_BGM>();
                                   m_pageSystem_musicSlider.setActive(value);
                               },
@@ -413,7 +413,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
-                                  applyConfig_audio();
+                                  applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_SEFF>();
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
@@ -785,14 +785,14 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
 
-    applyConfig_audio();
-    applyConfig_scale();
+    applyAudioConfig();
 
-    const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
-    const auto size  = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
-
-    updateWindowPixelSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale));
     g_sdlDevice->flipFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
+
+    const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
+    const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
+
+    updateWindowGeometry(SDLDeviceHelper::fromWindowLogicalSize(resolution, scale));
 }
 
 void RuntimeConfigBoard::setRankingList(const SDRankingList &rankingList)
@@ -804,21 +804,13 @@ void RuntimeConfigBoard::setRankingList(const SDRankingList &rankingList)
     }
 }
 
-void RuntimeConfigBoard::applyConfig_audio()
+void RuntimeConfigBoard::applyAudioConfig()
 {
     const float  bgmGain = SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig) : 0.0f;
     const float seffGain = SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig) : 0.0f;
 
     g_sdlDevice->setBGMVolume(bgmGain);
     g_sdlDevice->setSoundEffectVolume(seffGain);
-}
-
-void RuntimeConfigBoard::applyConfig_scale()
-{
-    const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
-    const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
-
-    g_sdlDevice->scaleWindow(resolution, scale);
 }
 
 void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)
@@ -880,18 +872,25 @@ void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool en
     reportRuntimeConfig<RTCFG_DROPITEMRULE>(itemID);
 }
 
-void RuntimeConfigBoard::updateWindowPixelSize(std::tuple<int, int> pixelSize)
+void RuntimeConfigBoard::updateWindowGeometry(std::optional<std::tuple<int, int>> pixelSize)
 {
     const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+    if(scale.has_value()){
+        fflassert(scale.value() > 0, scale);
+    }
+
     const auto minPixelSize = SDLDeviceHelper::fromWindowLogicalSize({SDLDevice::WINDOW_MIN_LOGICAL_W, SDLDevice::WINDOW_MIN_LOGICAL_H}, scale);
+    const auto [pixelW, pixelH] = pixelSize.value_or(g_sdlDevice->getWindowSize());
 
-    auto pixelW = std::get<0>(pixelSize);
-    auto pixelH = std::get<1>(pixelSize);
+    fflassert(pixelW >= std::get<0>(minPixelSize), pixelW, pixelH, minPixelSize);
+    fflassert(pixelH >= std::get<1>(minPixelSize), pixelW, pixelH, minPixelSize);
 
-    fflassert(pixelW >= std::get<0>(minPixelSize), pixelSize, minPixelSize);
-    fflassert(pixelH >= std::get<1>(minPixelSize), pixelSize, minPixelSize);
-
-    g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize(pixelSize, scale), scale);
+    if(g_sdlDevice->getFullscreen()){
+        g_sdlDevice->scaleFullscreen(scale);
+    }
+    else{
+        g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize({pixelW, pixelH}, scale), scale);
+    }
 }
 
 void RuntimeConfigBoard::onWindowChanged()
@@ -902,14 +901,14 @@ void RuntimeConfigBoard::onWindowChanged()
     // SDL_SetRenderLogicalPresentation() is sync, calling it immediately updates the logical size of the window
     // it won't schedule event, so save WINDOWSCALE at the calling site
 
-    const auto pixelSize = g_sdlDevice->getWindowSize();
-    const auto logicalSize = g_sdlDevice->getWindowLogicalSize();
-
-    updateWindowPixelSize(pixelSize);
-
-    SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, logicalSize);
-    reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
+    // switch to fullscreen won't change scale
+    // only change resolution based on scale and window size
 
     SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, g_sdlDevice->getFullscreen());
     reportRuntimeConfig<RTCFG_FULLSCREEN>();
+
+    updateWindowGeometry(std::nullopt);
+
+    SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, g_sdlDevice->getWindowLogicalSize());
+    reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
 }

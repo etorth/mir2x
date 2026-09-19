@@ -82,13 +82,8 @@ class RuntimeConfigBoard: public Widget
         }
 
     private:
-        //    onChange_xxx : SDL/GUI events    -> m_sdRuntimeConfig
-        // applyConfig_xxx : m_sdRuntimeConfig -> SDL/GUI events
-
-        void updateWindowPixelSize(std::tuple<int, int>);
-
-        void applyConfig_audio();
-        void applyConfig_scale();
+        void applyAudioConfig();
+        void updateWindowGeometry(std::optional<std::tuple<int, int>>);
 
     public:
         uint32_t dropItemRule(uint32_t) const;
