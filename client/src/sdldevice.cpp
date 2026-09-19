@@ -1336,22 +1336,26 @@ void SDLDevice::setWindowResizable(bool resizable)
     }
 }
 
-void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
+void SDLDevice::scaleFullscreen(std::optional<float> scale)
 {
+    if(scale.has_value()){
+        fflassert(scale.value() > 0.0f, scale);
+    }
     // fflassert(getFullscreen());
 
-    int logicalW = 0;
-    int logicalH = 0;
-    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+    if(scale.has_value()){
+        const auto pixelSize = getWindowSize();
+        const auto logicalW = to_dround(std::get<0>(pixelSize) / scale.value());
+        const auto logicalH = to_dround(std::get<1>(pixelSize) / scale.value());
 
-    if(size.has_value()){
-        logicalW = std::get<0>(size.value());
-        logicalH = std::get<1>(size.value());
-        mode     = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), logicalW, logicalH, SDL_LOGICAL_PRESENTATION_LETTERBOX)){
+            throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, {}, {}, SDL_LOGICAL_PRESENTATION_LETTERBOX) failed: {}", to_cvptr(m_renderer), logicalW, logicalH, SDL_GetError());
+        }
     }
-
-    if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), logicalW, logicalH, mode)){
-        throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, {}, {}, {}) failed: {}", to_cvptr(m_renderer), logicalW, logicalH, to_d(mode), SDL_GetError());
+    else{
+        if(!SDL_SetRenderLogicalPresentation(m_renderer.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED)){
+            throw fflpanic("SDL_SetRenderLogicalPresentation({:p}, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+        }
     }
 }
 

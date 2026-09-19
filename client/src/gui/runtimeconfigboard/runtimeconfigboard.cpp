@@ -120,10 +120,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   return; // button should be deactivated
               }
 
-              const auto size  = std::any_cast<std::tuple<int, int>>(widget->data());
-              const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
-
-              updateWindowPixelSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale));
+              onChange_resolution(std::any_cast<std::tuple<int, int>>(widget->data()));
+              // const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
+              //
+              // updateWindowPixelSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale));
           },
       }}
 
@@ -840,6 +840,31 @@ void RuntimeConfigBoard::updateWindowPixelSize(std::tuple<int, int> pixelSize)
     fflassert(pixelH >= std::get<1>(minPixelSize), pixelSize, minPixelSize);
 
     g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize(pixelSize, scale), scale);
+}
+
+void RuntimeConfigBoard::onChange_resolution(std::tuple<int, int> logicalSize)
+{
+    const auto logicalW = std::get<0>(logicalSize);
+    const auto logicalH = std::get<1>(logicalSize);
+
+    fflassert(logicalW >= SDLDevice::WINDOW_MIN_LOGICAL_W, logicalSize);
+    fflassert(logicalH >= SDLDevice::WINDOW_MIN_LOGICAL_H, logicalSize);
+
+    if(g_sdlDevice->getFullscreen()){
+        return;
+    }
+
+    g_sdlDevice->scaleWindow(logicalSize, SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
+}
+
+void RuntimeConfigBoard::onChange_scale(std::optional<float> scale)
+{
+    if(g_sdlDevice->getFullscreen()){
+        g_sdlDevice->scaleFullscreen(scale);
+    }
+    else{
+        g_sdlDevice->scaleWindow(g_sdlDevice->getWindowLogicalSize(), scale);
+    }
 }
 
 void RuntimeConfigBoard::applyConfig_ime()

@@ -82,10 +82,12 @@ class RuntimeConfigBoard: public Widget
         }
 
     private:
-        // updateConfig_xxx : SDL events        -> m_sdRuntimeConfig
-        //  applyConfig_xxx : m_sdRuntimeConfig -> SDL events
+        //    onChange_xxx : SDL/GUI events    -> m_sdRuntimeConfig
+        // applyConfig_xxx : m_sdRuntimeConfig -> SDL/GUI events
 
         void updateWindowPixelSize(std::tuple<int, int>);
+        void onChange_resolution(std::tuple<int, int>);
+        void onChange_scale(std::optional<float>);
         void updateIME(int, bool);
 
         void applyConfig_ime  ();
