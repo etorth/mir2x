@@ -231,8 +231,8 @@ class SDLDevice final
        void setWindowIcon();
 
     public:
-       bool getWindowFullscreen();
-       void flipWindowFullscreen(std::optional<bool> = std::nullopt);
+       bool getFullscreen();
+       void flipFullscreen(std::optional<bool> = std::nullopt);
 
     public:
        void drawTexture(SDL_Texture *, dir8_t, int, int);
@@ -399,6 +399,7 @@ class SDLDevice final
        }
 
     public:
+       void setWindowSize(std::tuple<int, int>);
        void setWindowResizable(bool);
 
        std::tuple<int, int> getWindowSize();

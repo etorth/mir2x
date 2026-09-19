@@ -576,11 +576,16 @@ void ProcessRun::processEvent(const SDL_Event &event)
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         case SDL_EVENT_WINDOW_RESIZED:
             {
+                const auto rtcfgBoard = dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"));
+                const auto windowScale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(rtcfgBoard->getConfig());
+
                 const auto [pixelW, pixelH] = g_sdlDevice->getWindowSize();
-                const auto [minPixelW, minPixelH] = dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->getMinWindowPixelSize();
+                const auto [minPixelW, minPixelH] = SDLDeviceHelper::fromWindowLogicalSize({SDLDevice::WINDOW_MIN_LOGICAL_W, SDLDevice::WINDOW_MIN_LOGICAL_H}, windowScale);
 
                 if(pixelW < minPixelW || pixelH < minPixelH){
-                    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->updateWindowSize({std::max<int>(pixelW, minPixelW), std::max<int>(pixelH, minPixelH)}, true);
+                    // this schedules another window size change event
+                    // then will not shortcut the event and it goes through so RuntimeConfigBoard can update windows size by it
+                    g_sdlDevice->setWindowSize({std::max<int>(pixelW, minPixelW), std::max<int>(pixelH, minPixelH)});
                     return;
                 }
                 break;
@@ -777,7 +782,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case 'f':
                                         {
-                                            dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->flipFullscreen();
+                                            g_sdlDevice->flipFullscreen();
                                             break;
                                         }
                                     case 'h':

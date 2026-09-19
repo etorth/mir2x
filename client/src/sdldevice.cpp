@@ -539,16 +539,16 @@ void SDLDevice::setWindowIcon()
     }
 }
 
-bool SDLDevice::getWindowFullscreen()
+bool SDLDevice::getFullscreen()
 {
     fflassert(m_window);
     return SDL_GetWindowFlags(m_window.get()) & SDL_WINDOW_FULLSCREEN;
 }
 
-void SDLDevice::flipWindowFullscreen(std::optional<bool> fullscreen)
+void SDLDevice::flipFullscreen(std::optional<bool> fullscreen)
 {
     fflassert(m_window);
-    if(getWindowFullscreen()){
+    if(getFullscreen()){
         if(fullscreen.has_value() && fullscreen.value()){
             return;
         }
@@ -1319,6 +1319,16 @@ int SDLDevice::getWindowLogicalHeight()
     return std::get<1>(getWindowLogicalSize());
 }
 
+void SDLDevice::setWindowSize(std::tuple<int, int> size)
+{
+    fflassert(std::get<0>(size) > 0, size);
+    fflassert(std::get<1>(size) > 0, size);
+
+    if(!SDL_SetWindowSize(m_window.get(), std::get<0>(size), std::get<1>(size))){
+        throw fflpanic("SDL_SetWindowSize({:p}, {}, {}) failed: {}", to_cvptr(m_window), std::get<0>(size), std::get<1>(size), SDL_GetError());
+    }
+}
+
 void SDLDevice::setWindowResizable(bool resizable)
 {
     if(!SDL_SetWindowResizable(m_window.get(), resizable)){
@@ -1328,7 +1338,7 @@ void SDLDevice::setWindowResizable(bool resizable)
 
 void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
 {
-    // fflassert(getWindowFullscreen());
+    fflassert(getFullscreen());
 
     int logicalW = 0;
     int logicalH = 0;
@@ -1347,7 +1357,7 @@ void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
 
 void SDLDevice::scaleWindow(std::tuple<int, int> size, std::optional<float> scale)
 {
-    // fflassert(!getWindowFullscreen());
+    fflassert(!getFullscreen());
 
     const auto [pixelWidth, pixelHeight] = SDLDeviceHelper::fromWindowLogicalSize(size, scale);
     fflassert(pixelWidth  > 0, size, scale);
