@@ -106,7 +106,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   {{
                       .textFunc = []
                       {
-                          if(g_sdlDevice->getFullscreen()){
+                          if(g_sdlDevice->getWindowFullscreen()){
                               return std::string("全屏");
                           }
 
@@ -134,7 +134,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              if(g_sdlDevice->getFullscreen()){
+              if(g_sdlDevice->getWindowFullscreen()){
                   return; // button should be deactivated
               }
 
@@ -205,7 +205,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
               SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, scale);
               reportRuntimeConfig<RTCFG_WINDOWSCALE>();
 
-              if(g_sdlDevice->getFullscreen()){
+              if(g_sdlDevice->getWindowFullscreen()){
                   g_sdlDevice->scaleFullscreen(scale);
               }
               else{
@@ -332,12 +332,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .getter=[]
                               {
-                                  return g_sdlDevice->getFullscreen();
+                                  return g_sdlDevice->getWindowFullscreen();
                               },
 
                               .setter=[this](bool value)
                               {
-                                  g_sdlDevice->flipFullscreen(value);
+                                  g_sdlDevice->flipWindowFullscreen(value);
                               },
                           }},
                           DIR_UPLEFT, 0, 105, true},
@@ -692,7 +692,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
-    m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getFullscreen(); });
+    m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getWindowFullscreen(); });
 
     m_pageSystem_musicSlider      .setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig); });
     m_pageSystem_soundEffectSlider.setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig); });
@@ -785,7 +785,7 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 
     applyAudioConfig();
 
-    g_sdlDevice->flipFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
+    g_sdlDevice->flipWindowFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
 
     const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
     const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
@@ -883,7 +883,7 @@ void RuntimeConfigBoard::updateWindowGeometry(std::optional<std::tuple<int, int>
     fflassert(pixelW >= std::get<0>(minPixelSize), pixelW, pixelH, minPixelSize);
     fflassert(pixelH >= std::get<1>(minPixelSize), pixelW, pixelH, minPixelSize);
 
-    if(g_sdlDevice->getFullscreen()){
+    if(g_sdlDevice->getWindowFullscreen()){
         g_sdlDevice->scaleFullscreen(scale);
     }
     else{
@@ -902,7 +902,7 @@ void RuntimeConfigBoard::onWindowChanged()
     // switch to fullscreen won't change scale
     // only change resolution based on scale and window size
 
-    SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, g_sdlDevice->getFullscreen());
+    SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, g_sdlDevice->getWindowFullscreen());
     reportRuntimeConfig<RTCFG_FULLSCREEN>();
 
     updateWindowGeometry(std::nullopt);

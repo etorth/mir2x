@@ -571,10 +571,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
     // if the size is too small, reset it here and return immediately without processing of gui system
 
     switch(event.type){
+        case SDL_EVENT_WINDOW_RESTORED:
+        case SDL_EVENT_WINDOW_MAXIMIZED:
         case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
         case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
-        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         case SDL_EVENT_WINDOW_RESIZED:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             {
                 const auto rtcfgBoard = dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"));
                 const auto windowScale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(rtcfgBoard->getConfig());
@@ -782,7 +784,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case 'f':
                                         {
-                                            g_sdlDevice->flipFullscreen();
+                                            g_sdlDevice->flipWindowFullscreen();
                                             break;
                                         }
                                     case 'h':
