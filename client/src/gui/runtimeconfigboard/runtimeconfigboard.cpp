@@ -99,7 +99,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"800×600", // default = 800x600
+              .text = u8"???",
               .w = 80,
               .h = 24,
           },
@@ -137,7 +137,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"禁用", // default = std::nullopt
+              .text = u8"???",
               .w = 80,
               .h = 24,
           },
@@ -161,8 +161,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           .onClick = [this](Widget *widget)
           {
               SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, std::any_cast<std::optional<float>>(widget->data()));
-              applyScaleConfig();
               reportRuntimeConfig<RTCFG_WINDOWSCALE>();
+              applyConfig_scale();
           },
       }}
 
@@ -176,7 +176,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"禁用", // default = IME_DISABLE
+              .text = u8"???",
               .w = 120,
               .h = 24,
           },
@@ -190,7 +190,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              updateIME(std::any_cast<int>(widget->data()), true);
+              SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, static_cast<IMEType>(std::any_cast<int>(widget->data())));
+              reportRuntimeConfig<RTCFG_IME>();
+              applyConfig_scale();
           },
       }}
 
@@ -210,7 +212,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_BGMVALUE>(m_sdRuntimeConfig, val);
               reportRuntimeConfig<RTCFG_BGMVALUE>();
-              applyAudioConfig();
+              applyConfig_audio();
           },
       }
 
@@ -230,7 +232,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig, val);
               reportRuntimeConfig<RTCFG_SEFFVALUE>();
-              applyAudioConfig();
+              applyConfig_audio();
           },
       }
 
@@ -325,7 +327,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
-                                  applyAudioConfig();
+                                  applyConfig_audio();
                                   reportRuntimeConfig<RTCFG_BGM>();
                                   m_pageSystem_musicSlider.setActive(value);
                               },
@@ -353,7 +355,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
-                                  applyAudioConfig();
+                                  applyConfig_audio();
                                   reportRuntimeConfig<RTCFG_SEFF>();
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
@@ -634,19 +636,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
-    // updateWindowPixelSize(g_sdlDevice->getWindowLogicalSize(), false);
-    // updateIME(IME_DISABLE, false);
+    setConfig({}); // setup to default value
 
-    // 1.0f -> SDL_MIX_MAXVOLUME
-    // SDL_mixer initial sound/music volume is SDL_MIX_MAXVOLUME
-
-    m_pageSystem_musicSlider      .getSlider()->setValue(0.0, false);
-    m_pageSystem_soundEffectSlider.getSlider()->setValue(0.0, false);
-
-    m_pageSystem.setShow(true);
-    m_pageSocial.setShow(false);
+    m_pageSystem    .setShow(true );
+    m_pageSocial    .setShow(false);
     m_pageGameConfig.setShow(false);
-    m_pageRanking.setShow(false);
+    m_pageRanking   .setShow(false);
 
     setShow(false);
 }
@@ -730,15 +725,14 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
 
-    applyAudioConfig();
-    applyScaleConfig();
+    applyConfig_ime  ();
+    applyConfig_audio();
+    applyConfig_scale();
 
     const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
     const auto size  = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
 
     updateWindowPixelSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale));
-    updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
-
     g_sdlDevice->flipFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
 }
 
@@ -751,7 +745,7 @@ void RuntimeConfigBoard::setRankingList(const SDRankingList &rankingList)
     }
 }
 
-void RuntimeConfigBoard::applyAudioConfig()
+void RuntimeConfigBoard::applyConfig_audio()
 {
     const float  bgmGain = SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig) : 0.0f;
     const float seffGain = SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig) : 0.0f;
@@ -760,7 +754,7 @@ void RuntimeConfigBoard::applyAudioConfig()
     g_sdlDevice->setSoundEffectVolume(seffGain);
 }
 
-void RuntimeConfigBoard::applyScaleConfig()
+void RuntimeConfigBoard::applyConfig_scale()
 {
     const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
     const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
@@ -848,25 +842,17 @@ void RuntimeConfigBoard::updateWindowPixelSize(std::tuple<int, int> pixelSize)
     g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize(pixelSize, scale), scale);
 }
 
-void RuntimeConfigBoard::updateIME(int ime, bool saveConfig)
+void RuntimeConfigBoard::applyConfig_ime()
 {
-    fflassert(ime >= IME_BEGIN, ime);
-    fflassert(ime <  IME_END  , ime);
-
-    m_pageSystem_ime.getTitle()->setText([ime] -> const char8_t *
+    m_pageSystem_ime.getTitle()->setText([this] -> const char8_t *
     {
-        switch(ime){
+        switch(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig)){
             case IME_DISABLE: return u8"禁用";
             case IME_EMBEDED: return u8"使用内置输入法";
             case IME_SYSTEM : return u8"使用系统输入法";
             default         : std::unreachable();
         }
     }());
-
-    if(saveConfig){
-        SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, ime);
-        reportRuntimeConfig<RTCFG_IME>();
-    }
 }
 
 void RuntimeConfigBoard::onWindowChanged()
@@ -877,7 +863,7 @@ void RuntimeConfigBoard::onWindowChanged()
     // SDL_SetRenderLogicalPresentation() is sync, calling it immediately updates the logical size of the window
     // it won't schedule event, so save WINDOWSCALE at the calling site
 
-    const auto   pixelSize = g_sdlDevice->getWindowSize();
+    const auto pixelSize = g_sdlDevice->getWindowSize();
     const auto logicalSize = g_sdlDevice->getWindowLogicalSize();
 
     updateWindowPixelSize(pixelSize);

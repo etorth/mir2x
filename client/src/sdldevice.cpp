@@ -1338,7 +1338,7 @@ void SDLDevice::setWindowResizable(bool resizable)
 
 void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
 {
-    fflassert(getFullscreen());
+    // fflassert(getFullscreen());
 
     int logicalW = 0;
     int logicalH = 0;
@@ -1357,7 +1357,7 @@ void SDLDevice::scaleFullscreen(std::optional<std::tuple<int, int>> size)
 
 void SDLDevice::scaleWindow(std::tuple<int, int> size, std::optional<float> scale)
 {
-    fflassert(!getFullscreen());
+    // fflassert(!getFullscreen());
 
     const auto [pixelWidth, pixelHeight] = SDLDeviceHelper::fromWindowLogicalSize(size, scale);
     fflassert(pixelWidth  > 0, size, scale);

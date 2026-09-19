@@ -82,11 +82,15 @@ class RuntimeConfigBoard: public Widget
         }
 
     private:
+        // updateConfig_xxx : SDL events        -> m_sdRuntimeConfig
+        //  applyConfig_xxx : m_sdRuntimeConfig -> SDL events
+
         void updateWindowPixelSize(std::tuple<int, int>);
         void updateIME(int, bool);
 
-        void applyAudioConfig();
-        void applyScaleConfig();
+        void applyConfig_ime  ();
+        void applyConfig_audio();
+        void applyConfig_scale();
 
     public:
         uint32_t dropItemRule(uint32_t) const;
