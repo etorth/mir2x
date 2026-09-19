@@ -383,11 +383,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   SDRuntimeConfig_setConfig<RTCFG_BGM>(m_sdRuntimeConfig, value);
                               },
 
-                              .onChange = [this](bool value)
+                              .onChange = [this](bool)
                               {
                                   applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_BGM>();
-                                  m_pageSystem_musicSlider.setActive(value);
                               },
                           }},
                           DIR_UPLEFT, 0, 165, true},
@@ -411,11 +410,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   SDRuntimeConfig_setConfig<RTCFG_SEFF>(m_sdRuntimeConfig, value);
                               },
 
-                              .onChange = [this](bool value)
+                              .onChange = [this](bool)
                               {
                                   applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_SEFF>();
-                                  m_pageSystem_soundEffectSlider.setActive(value);
                               },
                           }},
                           DIR_UPLEFT, 0, 225, true},
@@ -696,6 +694,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
     m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getFullscreen(); });
 
+    m_pageSystem_musicSlider      .setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig); });
+    m_pageSystem_soundEffectSlider.setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig); });
+
     setConfig({}); // setup to default value
 
     m_pageSystem    .setShow(true );
@@ -778,9 +779,6 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
 void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 {
     m_sdRuntimeConfig = config;
-
-    m_pageSystem_musicSlider      .setActive(SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig));
-    m_pageSystem_soundEffectSlider.setActive(SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig));
 
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
