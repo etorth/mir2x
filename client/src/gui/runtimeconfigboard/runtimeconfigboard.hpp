@@ -87,7 +87,6 @@ class RuntimeConfigBoard: public Widget
 
         void updateWindowPixelSize(std::tuple<int, int>);
 
-        void applyConfig_ime();
         void applyConfig_audio();
         void applyConfig_scale();
 

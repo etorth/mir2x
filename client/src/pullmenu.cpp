@@ -39,15 +39,15 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
           },
       }}
 
-    , m_title
+    , m_title{args.title.gfxWidget.widget ? args.title.gfxWidget.widget : new LabelBoard
       {{
           .label = args.title.text,
-      }}
+      }}}
 
     , m_titleBg
       {{
-          .w = [wo = std::move(args.title.w), this]{ return Widget::evalSizeOpt(wo, this, [this]{ return m_title.w() + TexInputBackground::borderSize(false).w; }); },
-          .h = [ho = std::move(args.title.h), this]{ return Widget::evalSizeOpt(ho, this, [this]{ return m_title.h() + TexInputBackground::borderSize(false).h; }); },
+          .w = [wo = std::move(args.title.w), this]{ return Widget::evalSizeOpt(wo, this, [this]{ return m_title->w() + TexInputBackground::borderSize(false).w; }); },
+          .h = [ho = std::move(args.title.h), this]{ return Widget::evalSizeOpt(ho, this, [this]{ return m_title->h() + TexInputBackground::borderSize(false).h; }); },
           .v = false,
       }}
 
@@ -122,7 +122,7 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
               .h = [this]{ return m_titleBg.getInputROI().h; },
           },
 
-          .gfxWidget{&m_title},
+          .gfxWidget{m_title, args.title.gfxWidget.widget ? args.title.gfxWidget.autoDelete : true},
           .subWidget{&m_menuBoard},
 
           .bgColor = colorf::GREY + colorf::A_SHF(64),

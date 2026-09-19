@@ -6,6 +6,7 @@
 #include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "textboard.hpp"
 #include "radioselector.hpp"
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
@@ -99,7 +100,24 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"???",
+              .gfxWidget
+              {
+                  .widget = new TextBoard
+                  {{
+                      .textFunc = []
+                      {
+                          if(g_sdlDevice->getFullscreen()){
+                              return std::string("全屏");
+                          }
+
+                          const auto [logicalW, logicalH] = g_sdlDevice->getWindowLogicalSize();
+                          return std::format("{}×{}", logicalW, logicalH);
+                      },
+                  }},
+
+                  .autoDelete = true,
+              },
+
               .w = 80,
               .h = 24,
           },
@@ -141,7 +159,22 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"???",
+              .gfxWidget
+              {
+                  .widget = new TextBoard
+                  {{
+                      .textFunc = [this]
+                      {
+                          if(const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig); scale.has_value()){
+                              return str_printf("%.2f", scale.value());
+                          }
+                          return std::string("禁用");
+                      },
+                  }},
+
+                  .autoDelete = true,
+              },
+
               .w = 80,
               .h = 24,
           },
@@ -191,7 +224,24 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .title
           {
-              .text = u8"???",
+              .gfxWidget
+              {
+                  .widget = new TextBoard
+                  {{
+                      .textFunc = [this] -> const char *
+                      {
+                          switch(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig)){
+                              case IME_DISABLE: return "禁用";
+                              case IME_EMBEDED: return "使用内置输入法";
+                              case IME_SYSTEM : return "使用系统输入法";
+                              default         : std::unreachable();
+                          }
+                      },
+                  }},
+
+                  .autoDelete = true,
+              },
+
               .w = 120,
               .h = 24,
           },
@@ -207,7 +257,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, static_cast<IMEType>(std::any_cast<int>(widget->data())));
               reportRuntimeConfig<RTCFG_IME>();
-              applyConfig_ime();
           },
       }}
 
@@ -736,7 +785,6 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
 
-    applyConfig_ime  ();
     applyConfig_audio();
     applyConfig_scale();
 
@@ -771,13 +819,6 @@ void RuntimeConfigBoard::applyConfig_scale()
     const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
 
     g_sdlDevice->scaleWindow(resolution, scale);
-
-    if(scale.has_value()){
-        m_pageSystem_scale.getTitle()->setText(str_printf(u8"%.2f", scale.value()).c_str());
-    }
-    else{
-        m_pageSystem_scale.getTitle()->setText(str_printf(u8"%s", u8"禁用").c_str());
-    }
 }
 
 void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)
@@ -853,19 +894,6 @@ void RuntimeConfigBoard::updateWindowPixelSize(std::tuple<int, int> pixelSize)
     g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize(pixelSize, scale), scale);
 }
 
-void RuntimeConfigBoard::applyConfig_ime()
-{
-    m_pageSystem_ime.getTitle()->setText([this] -> const char8_t *
-    {
-        switch(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig)){
-            case IME_DISABLE: return u8"禁用";
-            case IME_EMBEDED: return u8"使用内置输入法";
-            case IME_SYSTEM : return u8"使用系统输入法";
-            default         : std::unreachable();
-        }
-    }());
-}
-
 void RuntimeConfigBoard::onWindowChanged()
 {
     // SDL_SetWindowSize() and SDL_SetWindowFullscreen() are async, calling them does not guarantee the window size and fullscreen state are updated immediately
@@ -878,12 +906,6 @@ void RuntimeConfigBoard::onWindowChanged()
     const auto logicalSize = g_sdlDevice->getWindowLogicalSize();
 
     updateWindowPixelSize(pixelSize);
-    if(g_sdlDevice->getFullscreen()){
-        m_pageSystem_resolution.getTitle()->setText(u8"禁用");
-    }
-    else{
-        m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", std::get<0>(logicalSize), std::get<1>(logicalSize)).c_str());
-    }
 
     SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, logicalSize);
     reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();

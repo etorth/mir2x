@@ -20,6 +20,15 @@ class PullMenu: public Widget
             Widget::VarSizeOpt h = std::nullopt;
         };
 
+        struct TitleCropArgs final
+        {
+            Widget::WADPair gfxWidget {};
+            const char8_t *text = nullptr; // create LabelBoard if widget is not provided
+
+            Widget::VarSizeOpt w = std::nullopt;
+            Widget::VarSizeOpt h = std::nullopt;
+        };
+
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
@@ -28,7 +37,7 @@ class PullMenu: public Widget
             Widget::VarInt y = 0;
 
             PullMenu::LabelCropArgs label {};
-            PullMenu::LabelCropArgs title {};
+            PullMenu::TitleCropArgs title {};
 
             Widget::VarBool   showButton = false;
             Widget::VarSizeOpt menuFixed = std::nullopt; // menu item width, margin not included
@@ -44,7 +53,7 @@ class PullMenu: public Widget
         GfxCropBoard m_tipsCrop;
 
     private:
-        LabelBoard         m_title; // crop by MenuButton
+        Widget            *m_title; // crop by MenuButton
         TexInputBackground m_titleBg;
 
     private:
@@ -66,8 +75,8 @@ class PullMenu: public Widget
         PullMenu(PullMenu::InitArgs);
 
     public:
-        auto getTips (this auto && self) { return std::addressof(self.m_tips ); }
-        auto getTitle(this auto && self) { return std::addressof(self.m_title); }
+        auto getTips (this auto && self) { return std::addressof(self.m_tips); }
+        auto getTitle(this auto && self) { return self.m_title; }
 
     public:
         void setFocus(bool) override;
