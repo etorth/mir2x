@@ -233,6 +233,7 @@ class SDLDevice final
     public:
        bool getWindowMaximized();
        bool getWindowFullscreen();
+       void flipWindowMaximized(std::optional<bool> = std::nullopt);
        void flipWindowFullscreen(std::optional<bool> = std::nullopt);
 
     public:
@@ -412,6 +413,7 @@ class SDLDevice final
        int getWindowLogicalHeight();
 
        void scaleWindow(std::tuple<int, int>, std::optional<float>);
+       void scaleMaximized(std::optional<float>);
        void scaleFullscreen(std::optional<float>);
        SDL_Event &scaleEvent(SDL_Event &);
 

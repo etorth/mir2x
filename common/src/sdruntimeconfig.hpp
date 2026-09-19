@@ -135,8 +135,7 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFF,      (), bool,  true )
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFFVALUE, (), float, 0.50f)
 
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_FULLSCREEN, (), bool, false)
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , (), bool, false)
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS, (), bool, false)
 
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_IME       , (), int, static_cast<int>(IME_DISABLE))
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_ATTACKMODE, (), int, 0)
@@ -185,7 +184,9 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/
     /**/ using _RSVD_helper_type_RTCFG_WINDOWSCALE_t = std::optional<float>;
     /**/ using _RSVD_helper_type_RTCFG_WINDOWRESOLUTION_t = std::tuple<int, int>;
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSCALE      , (), _RSVD_helper_type_RTCFG_WINDOWSCALE_t     , std::nullopt)
+    /**/
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWMODE, (), int, static_cast<int>(WMT_WINDOWED))
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSCALE, (), _RSVD_helper_type_RTCFG_WINDOWSCALE_t, std::nullopt)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWRESOLUTION , (), _RSVD_helper_type_RTCFG_WINDOWRESOLUTION_t, std::make_tuple(800, 600))
     /**/
     /**/ // 0: accept any friend request

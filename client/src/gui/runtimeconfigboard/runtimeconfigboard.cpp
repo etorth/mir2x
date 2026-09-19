@@ -110,6 +110,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               return std::string("全屏");
                           }
 
+                          if(g_sdlDevice->getWindowMaximized()){
+                                return std::string("最大化");
+                          }
+
                           const auto [logicalW, logicalH] = g_sdlDevice->getWindowLogicalSize();
                           return std::format("{}×{}", logicalW, logicalH);
                       },
@@ -134,7 +138,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              if(g_sdlDevice->getWindowFullscreen()){
+              if(g_sdlDevice->getWindowFullscreen() || g_sdlDevice->getWindowMaximized()){
                   return; // button should be deactivated
               }
 
@@ -207,6 +211,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
               if(g_sdlDevice->getWindowFullscreen()){
                   g_sdlDevice->scaleFullscreen(scale);
+              }
+              else if(g_sdlDevice->getWindowMaximized()){
+                  g_sdlDevice->scaleMaximized(scale);
               }
               else{
                   g_sdlDevice->scaleWindow(g_sdlDevice->getWindowLogicalSize(), scale);
@@ -692,7 +699,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
-    m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getWindowFullscreen(); });
+    m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getWindowFullscreen() && !g_sdlDevice->getWindowMaximized(); });
 
     m_pageSystem_musicSlider      .setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig); });
     m_pageSystem_soundEffectSlider.setActive([this]{ return SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig); });
@@ -785,7 +792,16 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 
     applyAudioConfig();
 
-    g_sdlDevice->flipWindowFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
+    switch(SDRuntimeConfig_getConfig<RTCFG_WINDOWMODE>(m_sdRuntimeConfig)){
+        case WMT_FULLSCREEN: g_sdlDevice->flipWindowFullscreen(true); break;
+        case WMT_MAXIMIZED : g_sdlDevice->flipWindowMaximized (true); break;
+        default:
+            {
+                g_sdlDevice->flipWindowFullscreen(false);
+                g_sdlDevice->flipWindowMaximized (false);
+                break;
+            }
+    }
 
     const auto resolution = SDRuntimeConfig_getConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig);
     const auto scale      = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE     >(m_sdRuntimeConfig);
@@ -886,6 +902,9 @@ void RuntimeConfigBoard::updateWindowGeometry(std::optional<std::tuple<int, int>
     if(g_sdlDevice->getWindowFullscreen()){
         g_sdlDevice->scaleFullscreen(scale);
     }
+    else if(g_sdlDevice->getWindowMaximized()){
+        g_sdlDevice->scaleMaximized(scale);
+    }
     else{
         g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize({pixelW, pixelH}, scale), scale);
     }
@@ -902,9 +921,17 @@ void RuntimeConfigBoard::onWindowChanged()
     // switch to fullscreen won't change scale
     // only change resolution based on scale and window size
 
-    SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, g_sdlDevice->getWindowFullscreen());
-    reportRuntimeConfig<RTCFG_FULLSCREEN>();
+    if(g_sdlDevice->getWindowFullscreen()){
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWMODE>(m_sdRuntimeConfig, WMT_FULLSCREEN);
+    }
+    else if(g_sdlDevice->getWindowMaximized()){
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWMODE>(m_sdRuntimeConfig, WMT_MAXIMIZED);
+    }
+    else{
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWMODE>(m_sdRuntimeConfig, WMT_WINDOWED);
+    }
 
+    reportRuntimeConfig<RTCFG_WINDOWMODE>();
     updateWindowGeometry(std::nullopt);
 
     SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, g_sdlDevice->getWindowLogicalSize());

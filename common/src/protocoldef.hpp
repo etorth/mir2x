@@ -491,6 +491,16 @@ enum IMEType: int
     IME_END,
 };
 
+enum WindowModeType: int
+{
+    WMT_NONE  = 0,
+    WMT_BEGIN = 1,
+    WMT_WINDOWED = 1,
+    WMT_MAXIMIZED,
+    WMT_FULLSCREEN,
+    WMT_END,
+};
+
 enum DropItemRuleFlag: uint32_t
 {
     DIRF_HIGHLIGHT = 1U << 0,
