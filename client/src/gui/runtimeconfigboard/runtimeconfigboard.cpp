@@ -162,7 +162,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, std::any_cast<std::optional<float>>(widget->data()));
               reportRuntimeConfig<RTCFG_WINDOWSCALE>();
-              applyConfig_scale();
+              onChange_scale(SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
           },
       }}
 
@@ -192,7 +192,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           {
               SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, static_cast<IMEType>(std::any_cast<int>(widget->data())));
               reportRuntimeConfig<RTCFG_IME>();
-              applyConfig_scale();
+              applyConfig_ime();
           },
       }}
 
@@ -275,12 +275,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               {
                                   g_sdlDevice->flipFullscreen(value);
                               },
-                              //
-                              // .onChange=[this](bool)
-                              // {
-                              //     g_sdlDevice->flipFullscreen(SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig));
-                              //     reportRuntimeConfig<RTCFG_FULLSCREEN>();
-                              // },
                           }},
                           DIR_UPLEFT, 0, 105, true},
 

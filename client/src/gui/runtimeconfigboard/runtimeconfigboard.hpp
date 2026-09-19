@@ -88,7 +88,6 @@ class RuntimeConfigBoard: public Widget
         void updateWindowPixelSize(std::tuple<int, int>);
         void onChange_resolution(std::tuple<int, int>);
         void onChange_scale(std::optional<float>);
-        void updateIME(int, bool);
 
         void applyConfig_ime  ();
         void applyConfig_audio();
