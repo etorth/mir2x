@@ -86,10 +86,8 @@ class RuntimeConfigBoard: public Widget
         // applyConfig_xxx : m_sdRuntimeConfig -> SDL/GUI events
 
         void updateWindowPixelSize(std::tuple<int, int>);
-        void onChange_resolution(std::tuple<int, int>);
-        void onChange_scale(std::optional<float>);
 
-        void applyConfig_ime  ();
+        void applyConfig_ime();
         void applyConfig_audio();
         void applyConfig_scale();
 

@@ -120,10 +120,14 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   return; // button should be deactivated
               }
 
-              onChange_resolution(std::any_cast<std::tuple<int, int>>(widget->data()));
-              // const auto scale = SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig);
-              //
-              // updateWindowPixelSize(SDLDeviceHelper::fromWindowLogicalSize(size, scale));
+              const auto logicalSize = std::any_cast<std::tuple<int, int>>(widget->data());
+
+              fflassert(std::get<0>(logicalSize) >= SDLDevice::WINDOW_MIN_LOGICAL_W, logicalSize);
+              fflassert(std::get<1>(logicalSize) >= SDLDevice::WINDOW_MIN_LOGICAL_H, logicalSize);
+
+              // RTCFG_WINDOWRESOLUTION can be updated here, because SDL_SetRenderLogicalPresentation() is sync
+              // delay it to onWindowChanged(), because resolution change causes window resizing which triggers SDL_SetWindowSize()
+              g_sdlDevice->scaleWindow(logicalSize, SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
           },
       }}
 
@@ -160,9 +164,20 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, std::any_cast<std::optional<float>>(widget->data()));
+              const auto scale = std::any_cast<std::optional<float>>(widget->data());
+              if(scale.has_value()){
+                  fflassert(scale.value() > 0);
+              }
+
+              SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, scale);
               reportRuntimeConfig<RTCFG_WINDOWSCALE>();
-              onChange_scale(SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
+
+              if(g_sdlDevice->getFullscreen()){
+                  g_sdlDevice->scaleFullscreen(scale);
+              }
+              else{
+                  g_sdlDevice->scaleWindow(g_sdlDevice->getWindowLogicalSize(), scale);
+              }
           },
       }}
 
@@ -630,6 +645,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
+    m_pageSystem_resolution.setActive([]{ return !g_sdlDevice->getFullscreen(); });
+
     setConfig({}); // setup to default value
 
     m_pageSystem    .setShow(true );
@@ -836,31 +853,6 @@ void RuntimeConfigBoard::updateWindowPixelSize(std::tuple<int, int> pixelSize)
     g_sdlDevice->scaleWindow(SDLDeviceHelper::fromWindowPixelSize(pixelSize, scale), scale);
 }
 
-void RuntimeConfigBoard::onChange_resolution(std::tuple<int, int> logicalSize)
-{
-    const auto logicalW = std::get<0>(logicalSize);
-    const auto logicalH = std::get<1>(logicalSize);
-
-    fflassert(logicalW >= SDLDevice::WINDOW_MIN_LOGICAL_W, logicalSize);
-    fflassert(logicalH >= SDLDevice::WINDOW_MIN_LOGICAL_H, logicalSize);
-
-    if(g_sdlDevice->getFullscreen()){
-        return;
-    }
-
-    g_sdlDevice->scaleWindow(logicalSize, SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig));
-}
-
-void RuntimeConfigBoard::onChange_scale(std::optional<float> scale)
-{
-    if(g_sdlDevice->getFullscreen()){
-        g_sdlDevice->scaleFullscreen(scale);
-    }
-    else{
-        g_sdlDevice->scaleWindow(g_sdlDevice->getWindowLogicalSize(), scale);
-    }
-}
-
 void RuntimeConfigBoard::applyConfig_ime()
 {
     m_pageSystem_ime.getTitle()->setText([this] -> const char8_t *
@@ -886,7 +878,12 @@ void RuntimeConfigBoard::onWindowChanged()
     const auto logicalSize = g_sdlDevice->getWindowLogicalSize();
 
     updateWindowPixelSize(pixelSize);
-    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", std::get<0>(logicalSize), std::get<1>(logicalSize)).c_str());
+    if(g_sdlDevice->getFullscreen()){
+        m_pageSystem_resolution.getTitle()->setText(u8"禁用");
+    }
+    else{
+        m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", std::get<0>(logicalSize), std::get<1>(logicalSize)).c_str());
+    }
 
     SDRuntimeConfig_setConfig<RTCFG_WINDOWRESOLUTION>(m_sdRuntimeConfig, logicalSize);
     reportRuntimeConfig<RTCFG_WINDOWRESOLUTION>();
