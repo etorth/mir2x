@@ -2255,7 +2255,9 @@ void Player::damageDefendWearItem()
 // true does not promise damage > 0, the target may still soak all of it with armor
 corof::awaitable<bool> Player::canDamageTarget(uint64_t targetUID)
 {
-    fflassert(targetUID);
+    if(!targetUID){
+        co_return false;
+    }
 
     if(targetUID == UID()){
         co_return false;
