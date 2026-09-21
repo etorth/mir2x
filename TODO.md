@@ -1,6 +1,3 @@
-1. support co_await LuaCoroutineRunner::run("lua-code") in UID itself.
-currently only support to call to remote UID
-
 2. NPC to disappear, change shape, speak, monster/player shape NPCs
 
 3. Magic attack should report done to server when magic (like fireball, iceball) explodes, not when it is casted.
