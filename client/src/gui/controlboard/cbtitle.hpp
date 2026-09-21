@@ -6,17 +6,20 @@
 
 //                     |
 //                     v
-//       +-----+      ---
-//      /       \      21
-//  +--/  TITLE  \--+ ---
-//  | /           \ |  ^
-//  +---------------+  |
+//       +-----+      ---   |
+//      /       \      21   v
+//  +--/  TITLE  \--+ ---   -
+//  | /           \ |  ^    -
+//  +---------------+  |    ^
+//                          |
+//                          +-- UP_HEIGHT_EXTRA: for extra height to show when controlboard is minimized
 
 class ProcessRun;
 class CBTitle: public Widget
 {
     public:
         constexpr static int UP_HEIGHT = 21;
+        constexpr static int UP_HEIGHT_EXTRA = 3;
 
     private:
         ProcessRun *m_processRun;

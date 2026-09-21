@@ -196,7 +196,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
               {{new LabelBoard{{.label = u8"1.00     ", .attrs{.data = std::optional<float>(1.00f)}}}, true}},
               {{new LabelBoard{{.label = u8"1.25     ", .attrs{.data = std::optional<float>(1.25f)}}}, true}},
               {{new LabelBoard{{.label = u8"1.50     ", .attrs{.data = std::optional<float>(1.50f)}}}, true}},
+              {{new LabelBoard{{.label = u8"1.75     ", .attrs{.data = std::optional<float>(1.75f)}}}, true}},
               {{new LabelBoard{{.label = u8"2.00     ", .attrs{.data = std::optional<float>(2.00f)}}}, true}},
+              {{new LabelBoard{{.label = u8"2.50     ", .attrs{.data = std::optional<float>(2.50f)}}}, true}},
+              {{new LabelBoard{{.label = u8"3.00     ", .attrs{.data = std::optional<float>(3.00f)}}}, true}},
+              {{new LabelBoard{{.label = u8"3.50     ", .attrs{.data = std::optional<float>(3.50f)}}}, true}},
+              {{new LabelBoard{{.label = u8"4.00     ", .attrs{.data = std::optional<float>(4.00f)}}}, true}},
           },
 
           .onClick = [this](Widget *widget)

@@ -19,7 +19,7 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .h = [this]
           {
               if(m_minimize){
-                  return CBTitle::UP_HEIGHT + 10;
+                  return CBTitle::UP_HEIGHT + CBTitle::UP_HEIGHT_EXTRA;
               }
 
               else if(m_expand){
