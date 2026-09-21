@@ -401,6 +401,8 @@ class SDLDevice final
        }
 
     public:
+       std::optional<float> clampedScale(std::optional<float>);
+
        void setWindowSize(std::tuple<int, int>);
        void setWindowResizable(bool);
 

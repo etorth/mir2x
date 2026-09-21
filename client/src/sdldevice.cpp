@@ -1347,6 +1347,23 @@ int SDLDevice::getWindowLogicalHeight()
     return std::get<1>(getWindowLogicalSize());
 }
 
+std::optional<float> SDLDevice::clampedScale(std::optional<float> scale)
+{
+    if(scale.has_value()){
+        fflassert(scale.value() > 0);
+        if(getWindowFullscreen() || getWindowMaximized()){
+            const auto [pixelW, pixelH] = getWindowSize();
+            return std::min<float>(
+            {
+                scale.value(),
+                static_cast<float>(pixelW) / SDLDevice::WINDOW_MIN_LOGICAL_W,
+                static_cast<float>(pixelH) / SDLDevice::WINDOW_MIN_LOGICAL_H,
+            });
+        }
+    }
+    return scale;
+}
+
 void SDLDevice::setWindowSize(std::tuple<int, int> pixelSize)
 {
     fflassert(std::get<0>(pixelSize) > 0, pixelSize);

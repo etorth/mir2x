@@ -206,10 +206,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              const auto scale = std::any_cast<std::optional<float>>(widget->data());
-              if(scale.has_value()){
-                  fflassert(scale.value() > 0);
-              }
+              const auto scale = g_sdlDevice->clampedScale(std::any_cast<std::optional<float>>(widget->data()));
 
               SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, scale);
               reportRuntimeConfig<RTCFG_WINDOWSCALE>();
