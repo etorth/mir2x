@@ -219,8 +219,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         struct LuaEvalAwaitable
         {
             const bool ready;
-            std::vector<luaf::luaVar> *result;
-            std::coroutine_handle<>   *handle;
+            std::coroutine_handle<> *handle;
 
             bool await_ready() const noexcept
             {
@@ -232,10 +231,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 *handle = h;
             }
 
-            std::vector<luaf::luaVar> await_resume()
-            {
-                return std::move(*result);
-            }
+            void await_resume() const noexcept {}
         };
 
     protected:

@@ -530,25 +530,30 @@ bool ServerLuaCoroutineRunner::doSpawn(std::pair<uint64_t, uint64_t> kp, const s
 template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::evalImpl(uint64_t key, Args && ... args)
 {
     std::vector<luaf::luaVar> result {};
+    std::vector<std::string>  errors {};
     std::coroutine_handle<>   handle {};
 
-    const auto fnOnThreadDone = [&result, &handle, this](std::vector<std::string> error, std::vector<luaf::luaVar> varList)
+    const auto fnOnThreadDone = [&result, &errors, &handle](std::vector<std::string> argError, std::vector<luaf::luaVar> argVarList)
     {
-        if(!error.empty()){
-            fflassert(varList.empty(), error, varList);
+        if(!argError.empty()){
+            fflassert(argVarList.empty(), argError, argVarList);
         }
 
-        if(!error.empty()){
-            throw luaf::evalError(std::move(error));
-        }
-        else{
-            // if lua code execution can finish without suspend, then handle will not be set
-            // because doSpawn returns true -> LuaEvalAwaitable::await_ready(), so await_suspend() will not be called and nothing need to be resumed
+        // never throw exceptions here
+        // this callback may be invoked by resumeRunner() while resuming an unrelated actor/query-response async stack
+        // throwing outside evalImpl's coroutine surfaces the error in the wrong stack, permanently leaking this coroutine and its awaiter
+        //
+        // instead, we stash the error and always resume the suspended awaiting coroutine
+        // evalImpl will safely throw the luaf::evalError itself after co_await
 
-            result = std::move(varList);
-            if(handle){
-                handle.resume();
-            }
+        errors = std::move(argError);
+        result = std::move(argVarList);
+
+        // if lua code execution can finish without suspend, then handle will not be set
+        // because doSpawn returns true -> LuaEvalAwaitable::await_ready(), so await_suspend() will not be called and nothing need to be resumed
+
+        if(handle){
+            handle.resume();
         }
     };
 
@@ -556,16 +561,16 @@ template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLua
     const auto done = doSpawn({key, m_seqID++}, std::forward<Args>(args)..., [&fnOnThreadDone, closed, key, this](const sol::protected_function_result &pfr)
     {
         *closed = false;
-        std::vector<std::string> error;
+        std::vector<std::string> errors;
 
-        if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
-            fnOnThreadDone(std::move(error), luaf::pfrBuildLuaVarList(pfr));
+        if(pfrCheck(pfr, [&errors](const std::string &s){ errors.push_back(s); })){
+            fnOnThreadDone(std::move(errors), luaf::pfrBuildLuaVarList(pfr));
         }
         else{
-            if(error.empty()){
-                error.push_back(std::format("unknown error for runner: key {}", key));
+            if(errors.empty()){
+                errors.push_back(std::format("unknown error for runner: key {}", key));
             }
-            fnOnThreadDone(std::move(error), {});
+            fnOnThreadDone(std::move(errors), {});
         }
     },
 
@@ -576,12 +581,16 @@ template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLua
         }
     });
 
-    co_return co_await LuaEvalAwaitable
+    co_await LuaEvalAwaitable
     {
-        .ready = done,
-        .result = std::addressof(result),
+        .ready = done, // eval done without suspension
         .handle = std::addressof(handle),
     };
+
+    if(!errors.empty()){
+        throw luaf::evalError(std::move(errors));
+    }
+    co_return result;
 }
 
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code, luaf::luaVar args)
@@ -731,27 +740,39 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     const auto kp = runnerPtr->keyPair();
     const auto onDoneFunc = std::move(runnerPtr->onDone);
 
-    if(onDoneFunc){
-        onDoneFunc(pfr);
-    }
-    else{
-        std::vector<std::string> error;
-        if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
-            if(pfr.return_count() > 0){
-                g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
-            }
+    // onDoneFunc is not expected to throw
+    // but if it does, close(kp) below must still run to avoid leaking the LuaThreadHandle entry
+
+    std::exception_ptr onDoneExcept;
+    try{
+        if(onDoneFunc){
+            onDoneFunc(pfr);
         }
         else{
-            if(error.empty()){
-                error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+            std::vector<std::string> error;
+            if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+                if(pfr.return_count() > 0){
+                    g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
+                }
             }
+            else{
+                if(error.empty()){
+                    error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+                }
 
-            for(const auto &line: error){
-                g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                for(const auto &line: error){
+                    g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                }
             }
         }
+    }
+    catch(...){
+        onDoneExcept = std::current_exception();
     }
 
     close(kp);
+    if(onDoneExcept){
+        std::rethrow_exception(onDoneExcept);
+    }
     return true; // return true when thread is done
 }
