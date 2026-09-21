@@ -487,6 +487,103 @@ void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
     }
 }
 
+bool ServerLuaCoroutineRunner::doSpawn(std::pair<uint64_t, uint64_t> kp, const std::string &code, luaf::luaVar args, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
+{
+    fflassert(kp.first, kp);
+    fflassert(str_haschar(code));
+
+    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(kp.first), std::forward_as_tuple(*this, kp.first, kp.second, std::move(onDone), std::move(onClose)));
+    return resumeRunner(std::addressof(p->second), std::make_pair(str_printf(
+        R"###( do                                                          )###""\n"
+        R"###(     _RSVD_NAME_startTime = getNanoTstamp()                  )###""\n"
+        R"###(     local _RSVD_NAME_autoClear<close> = autoClearTLSTable() )###""\n"
+        R"###(     do                                                      )###""\n"
+        R"###(        %s                                                   )###""\n"
+        R"###(     end                                                     )###""\n"
+        R"###( end                                                         )###""\n", code.c_str()), std::move(args)));
+
+    // don't use p after resumeRunner()
+    // because resumeRunner() may erase p from m_runnerList
+}
+
+bool ServerLuaCoroutineRunner::doSpawn(std::pair<uint64_t, uint64_t> kp, const sol::function &func, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
+{
+    fflassert(kp.first, kp);
+    fflassert(func);
+
+    // give the plain function the same scoped tls cleanup the string overload builds into its chunk
+    // the wrapper runs in the coroutine, so its <close> fires as soon as the coroutine returns or throws
+
+    const sol::function wrapper = getState()["_RSVD_NAME_luaCoroutineRunner_funcMain"];
+    fflassert(wrapper);
+
+    const sol::function wrappedFunc = wrapper(func);
+    fflassert(wrappedFunc);
+
+    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(kp.first), std::forward_as_tuple(*this, kp.first, kp.second, wrappedFunc, std::move(onDone), std::move(onClose)));
+    return resumeRunner(std::addressof(p->second));
+
+    // don't use p after resumeRunner()
+    // because resumeRunner() may erase p from m_runnerList
+}
+
+template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::evalImpl(uint64_t key, Args && ... args)
+{
+    std::vector<luaf::luaVar> result {};
+    std::coroutine_handle<>   handle {};
+
+    const auto fnOnThreadDone = [&result, &handle, this](std::vector<std::string> error, std::vector<luaf::luaVar> varList)
+    {
+        if(!error.empty()){
+            fflassert(varList.empty(), error, varList);
+        }
+
+        if(!error.empty()){
+            throw luaf::evalError(std::move(error));
+        }
+        else{
+            // if lua code execution can finish without suspend, then handle will not be set
+            // because doSpawn returns true -> LuaEvalAwaitable::await_ready(), so await_suspend() will not be called and nothing need to be resumed
+
+            result = std::move(varList);
+            if(handle){
+                handle.resume();
+            }
+        }
+    };
+
+    const auto closed = std::make_shared<bool>(true);
+    const auto done = doSpawn({key, m_seqID++}, std::forward<Args>(args)..., [&fnOnThreadDone, closed, key, this](const sol::protected_function_result &pfr)
+    {
+        *closed = false;
+        std::vector<std::string> error;
+
+        if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+            fnOnThreadDone(std::move(error), luaf::pfrBuildLuaVarList(pfr));
+        }
+        else{
+            if(error.empty()){
+                error.push_back(std::format("unknown error for runner: key {}", key));
+            }
+            fnOnThreadDone(std::move(error), {});
+        }
+    },
+
+    [&fnOnThreadDone, closed, this]()
+    {
+        if(*closed){
+            fnOnThreadDone({}, {luaf::luaVar(SYS_EXECCLOSE)});
+        }
+    });
+
+    co_return co_await LuaEvalAwaitable
+    {
+        .ready = done,
+        .result = std::addressof(result),
+        .handle = std::addressof(handle),
+    };
+}
+
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code, luaf::luaVar args)
 {
     fflassert(key);
@@ -570,46 +667,29 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std:
 
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, luaf::luaVar args, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
 {
-    fflassert(key);
-    fflassert(str_haschar(code));
-
     const auto currSeqID = m_seqID++;
-    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(*this, key, currSeqID, std::move(onDone), std::move(onClose)));
-
-    resumeRunner(std::addressof(p->second), std::make_pair(str_printf(
-        R"###( do                                                          )###""\n"
-        R"###(     _RSVD_NAME_startTime = getNanoTstamp()                  )###""\n"
-        R"###(     local _RSVD_NAME_autoClear<close> = autoClearTLSTable() )###""\n"
-        R"###(     do                                                      )###""\n"
-        R"###(        %s                                                   )###""\n"
-        R"###(     end                                                     )###""\n"
-        R"###( end                                                         )###""\n", code.c_str()), std::move(args)));
-
-    return {key, currSeqID}; // don't use p resumeRunner() can invalidate p
+    doSpawn({key, currSeqID}, code, std::move(args), std::move(onDone), std::move(onClose));
+    return {key, currSeqID};
 }
 
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, const sol::function &func, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
 {
-    fflassert(key);
-    fflassert(func);
-
-    // give the plain function the same scoped tls cleanup the string overload builds into its chunk
-    // the wrapper runs in the coroutine, so its <close> fires as soon as the coroutine returns or throws
-
-    const sol::function wrapper = getState()["_RSVD_NAME_luaCoroutineRunner_funcMain"];
-    fflassert(wrapper);
-
-    const sol::function wrappedFunc = wrapper(func);
-    fflassert(wrappedFunc);
-
     const auto currSeqID = m_seqID++;
-    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(*this, key, currSeqID, wrappedFunc, std::move(onDone), std::move(onClose)));
-
-    resumeRunner(std::addressof(p->second));
-    return {key, currSeqID}; // don't use p resumeRunner() can invalidate p
+    doSpawn({key, currSeqID}, func, std::move(onDone), std::move(onClose));
+    return {key, currSeqID};
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::pair<std::string, luaf::luaVar>> codeOpt)
+corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::eval(uint64_t key, const std::string &code, luaf::luaVar args)
+{
+    return evalImpl(key, code, std::move(args));
+}
+
+corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::eval(uint64_t key, const sol::function &func)
+{
+    return evalImpl(key, func);
+}
+
+bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::pair<std::string, luaf::luaVar>> codeOpt)
 {
     // resume current runnerPtr
     // this function can invalidate runnerPtr if it's done
@@ -642,7 +722,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     }();
 
     if(runnerPtr->callback){
-        return;
+        return false;
     }
 
     // backup key and comletion handler
@@ -673,4 +753,5 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     }
 
     close(kp);
+    return true; // return true when thread is done
 }

@@ -216,6 +216,28 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
         };
 
+        struct LuaEvalAwaitable
+        {
+            const bool ready;
+            std::vector<luaf::luaVar> *result;
+            std::coroutine_handle<>   *handle;
+
+            bool await_ready() const noexcept
+            {
+                return ready;
+            }
+
+            void await_suspend(std::coroutine_handle<> h)
+            {
+                *handle = h;
+            }
+
+            std::vector<luaf::luaVar> await_resume()
+            {
+                return std::move(*result);
+            }
+        };
+
     protected:
         ActorPod * const m_actorPod;
 
@@ -228,6 +250,13 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     public:
         ServerLuaCoroutineRunner(ActorPod *);
+
+    private:
+        bool doSpawn(std::pair<uint64_t, uint64_t>, const std::string   &, luaf::luaVar, std::function<void(const sol::protected_function_result &)>, std::function<void()>);
+        bool doSpawn(std::pair<uint64_t, uint64_t>, const sol::function &,               std::function<void(const sol::protected_function_result &)>, std::function<void()>);
+
+    private:
+        template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> evalImpl(uint64_t, Args && ...);
 
     public:
         // start a thread to run lua code
@@ -251,6 +280,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         std::pair<uint64_t, uint64_t> spawn(uint64_t,                                const sol::function &,                    std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 
     public:
+        corof::awaitable<std::vector<luaf::luaVar>> eval(uint64_t, const std::string   &, luaf::luaVar = {});
+        corof::awaitable<std::vector<luaf::luaVar>> eval(uint64_t, const sol::function &                   );
+
+    public:
         std::vector<uint64_t> getSeqID(uint64_t, std::vector<uint64_t> * = nullptr) const;
 
     public:
@@ -269,7 +302,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     private:
-        void resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
+        bool resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
 
     private:
         static std::string concatCode(const std::string &code)

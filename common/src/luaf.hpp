@@ -29,6 +29,31 @@
 
 namespace luaf
 {
+    class evalError: public std::exception
+    {
+        private:
+            std::vector<std::string> m_errs;
+
+        public:
+            evalError(std::vector<std::string> errs)
+                : m_errs(std::move(errs))
+            {}
+
+        public:
+            const char *what() const noexcept override
+            {
+                return "luaf::evalError";
+            }
+
+            const auto &error() const
+            {
+                return m_errs;
+            }
+    };
+}
+
+namespace luaf
+{
     struct luaNil
     {
         char placeholder = 0;
