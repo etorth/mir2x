@@ -96,15 +96,19 @@ class RuntimeConfigBoard: public Widget
         //全体 -> 和平
         int cycleAttackMode();
 
-    public:
-        void setConfig(const SDRuntimeConfig &);
-        void setRankingList(const SDRankingList &);
+
+    private:
+        void fixConfig(bool);
 
     public:
+        void setConfig(const SDRuntimeConfig &);
         const SDRuntimeConfig &getConfig() const
         {
             return m_sdRuntimeConfig;
         }
+
+    public:
+        void setRankingList(const SDRankingList &);
 
     public:
         void onWindowChanged();

@@ -114,7 +114,7 @@ CheckBox::CheckBox(CheckBox::InitArgs args)
               // |----6---+|
               // +----3----+
 
-              const auto  solidColor = Widget::evalU32(m_color, this);
+              const auto  solidColor = active() ? Widget::evalU32(m_color, this) : colorf::GREY_A255;
               const auto shadowColor = colorf::maskRGB(solidColor) + colorf::A_SHF(colorf::A(solidColor) / 2);
 
               g_sdlDevice->drawLine( solidColor, drawDstX +       0, drawDstY +       0, drawDstX + w() - 1, drawDstY +       0); // 1

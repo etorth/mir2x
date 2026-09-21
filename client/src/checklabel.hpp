@@ -52,7 +52,8 @@ class CheckLabel: public Widget
             CheckLabel::BoolSetter  setter   = nullptr;
             CheckLabel::TriggerFunc onChange = nullptr;
 
-            Widget::WADPair parent {};
+            Widget::InstAttrs attrs {};
+            Widget::WADPair  parent {};
         };
 
     private:

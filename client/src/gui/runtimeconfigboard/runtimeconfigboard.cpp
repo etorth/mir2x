@@ -6,6 +6,7 @@
 #include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "clientargparser.hpp"
 #include "textboard.hpp"
 #include "radioselector.hpp"
 #include "soundeffectdb.hpp"
@@ -17,6 +18,7 @@
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, ProcessRun *proc, Widget *argParent, bool argAutoDelete)
     : Widget
@@ -397,6 +399,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_BGM>();
                               },
+
+                              .attrs
+                              {
+                                  .active = []{ return !g_clientArgParser->disableAudio; },
+                              },
                           }},
                           DIR_UPLEFT, 0, 165, true},
 
@@ -423,6 +430,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               {
                                   applyAudioConfig();
                                   reportRuntimeConfig<RTCFG_SEFF>();
+                              },
+
+                              .attrs
+                              {
+                                  .active = []{ return !g_clientArgParser->disableAudio; },
                               },
                           }},
                           DIR_UPLEFT, 0, 225, true},
@@ -785,9 +797,36 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
     }
 }
 
+void RuntimeConfigBoard::fixConfig(bool save)
+{
+    if(g_clientArgParser->disableAudio){
+        SDRuntimeConfig_setConfig<RTCFG_BGM >(m_sdRuntimeConfig, false);
+        SDRuntimeConfig_setConfig<RTCFG_SEFF>(m_sdRuntimeConfig, false);
+
+        if(save){
+            reportRuntimeConfig<RTCFG_BGM >();
+            reportRuntimeConfig<RTCFG_SEFF>();
+        }
+    }
+
+    switch(SDRuntimeConfig_getConfig<RTCFG_WINDOWMODE>(m_sdRuntimeConfig)){
+        case WMT_FULLSCREEN: break;
+        case WMT_MAXIMIZED : break;
+        default:
+            {
+                SDRuntimeConfig_setConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig, g_sdlDevice->clampedScale(SDRuntimeConfig_getConfig<RTCFG_WINDOWSCALE>(m_sdRuntimeConfig)));
+                if(save){
+                    reportRuntimeConfig<RTCFG_WINDOWSCALE>();
+                }
+                break;
+            }
+    }
+}
+
 void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 {
     m_sdRuntimeConfig = config;
+    fixConfig(false); // only save if user explicitly update
 
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);

@@ -10,6 +10,10 @@ CheckLabel::CheckLabel(CheckLabel::InitArgs args)
           .x = std::move(args.x),
           .y = std::move(args.y),
 
+          .attrs
+          {
+              .inst = std::move(args.attrs),
+          },
           .parent = std::move(args.parent),
       }}
 
