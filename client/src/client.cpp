@@ -47,6 +47,11 @@ void Client::processEvent()
     if(m_currentProcess){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
+            if(g_clientArgParser->debugSDLEvent){
+                char buf[256];
+                SDL_GetEventDescription(&event, buf, sizeof(buf));
+                g_mir2xLog->addLog(LOGTYPE_INFO, "[%s] %s", str_localtime().c_str(), buf);
+            }
             m_currentProcess->processEvent(g_sdlDevice->scaleEvent(event));
             switchProcess();
         }

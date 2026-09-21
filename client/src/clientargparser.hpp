@@ -31,6 +31,7 @@ struct ClientArgParser
     const bool debugDrawInputLine;      // "--debug-draw-input-line"
     const bool debugMyHeroStateBoard;   // "--debug-myhero-state-board"
     const bool debugSlider;             // "--debug-slider"
+    const bool debugSDLEvent;           // "--debug-sdl-event"
     const bool debugClickEvent;         // "--debug-click-event"
     const int  screenMode;              // "--screen-mode"
 
@@ -67,6 +68,7 @@ struct ClientArgParser
         , debugDrawInputLine   (argf::parseInteger<bool>(parseString(parser, "--debug-draw-input-line",    argf::OPT, true), "debug-draw-input-line",    argf::checkPass<bool>, false, true).first)
         , debugMyHeroStateBoard(argf::parseInteger<bool>(parseString(parser, "--debug-myhero-state-board", argf::OPT, true), "debug-myhero-state-board", argf::checkPass<bool>, false, true).first)
         , debugSlider          (argf::parseInteger<bool>(parseString(parser, "--debug-slider",             argf::OPT, true), "debug-slider",             argf::checkPass<bool>, false, true).first)
+        , debugSDLEvent        (argf::parseInteger<bool>(parseString(parser, "--debug-sdl-event",          argf::OPT, true), "debug-sdl-event",          argf::checkPass<bool>, false, true).first)
         , debugClickEvent      (argf::parseInteger<bool>(parseString(parser, "--debug-click-event",        argf::OPT, true), "debug-click-event",        argf::checkPass<bool>, false, true).first)
         , screenMode           (argf::parseInteger<int> (parseString(parser, "--screen-mode",              argf::OPT      ), "screen-mode",              checkScreenMode,           0,    0).first)
 
