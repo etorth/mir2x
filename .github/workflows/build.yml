@@ -193,7 +193,7 @@ jobs:
 
   native-macos:
     name: Native macOS (ARM64, Apple Clang)
-    runs-on: macos-15
+    runs-on: macos-26
     defaults:
       run:
         shell: bash
@@ -206,9 +206,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: native-macos-15-arm64-appleclang-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**', 'cmake/Mir2xVcpkgChainload.cmake') }}
+          key: native-macos-26-arm64-appleclang-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**', 'cmake/Mir2xVcpkgChainload.cmake') }}
           restore-keys: |
-            native-macos-15-arm64-appleclang-vcpkg-
+            native-macos-26-arm64-appleclang-vcpkg-
 
       - name: Install build tools
         run: |
