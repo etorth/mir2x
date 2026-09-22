@@ -192,7 +192,7 @@ jobs:
           compression-level: 0
 
   native-macos:
-    name: Native macOS (ARM64, GCC 16)
+    name: Native macOS (ARM64, Apple Clang)
     runs-on: macos-15
     defaults:
       run:
@@ -206,9 +206,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: native-macos-15-arm64-gcc16-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**', 'cmake/Mir2xVcpkg*.cmake', 'cmake/triplets/**') }}
+          key: native-macos-15-arm64-appleclang-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**', 'cmake/Mir2xVcpkgChainload.cmake') }}
           restore-keys: |
-            native-macos-15-arm64-gcc16-vcpkg-
+            native-macos-15-arm64-appleclang-vcpkg-
 
       - name: Install build tools
         run: |
@@ -220,7 +220,6 @@ jobs:
             automake \
             cmake \
             gawk \
-            gcc@16 \
             gettext \
             libtool \
             ninja \
@@ -232,24 +231,18 @@ jobs:
         env:
           CMAKE_GENERATOR: Ninja
           MACOSX_DEPLOYMENT_TARGET: "15.0"
-          VCPKG_DEFAULT_TRIPLET: arm64-osx-gcc16
-          VCPKG_DEFAULT_HOST_TRIPLET: arm64-osx-gcc16
-          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/cmake/triplets
+          VCPKG_DEFAULT_TRIPLET: arm64-osx
+          VCPKG_DEFAULT_HOST_TRIPLET: arm64-osx
           VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite
         run: |
           set -euo pipefail
-          gcc_prefix="$(brew --prefix gcc@16)"
-          export CC="$gcc_prefix/bin/gcc-16"
-          export CXX="$gcc_prefix/bin/g++-16"
+          CC="$(xcrun --sdk macosx --find clang)"
+          CXX="$(xcrun --sdk macosx --find clang++)"
           SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
-          export SDKROOT
+          export CC CXX SDKROOT
 
           "$CC" --version
           "$CXX" --version
-          if [ "$("$CC" -dumpversion)" != "16" ] || [ "$("$CXX" -dumpversion)" != "16" ]; then
-            echo "::error::The macOS build requires gcc-16 and g++-16."
-            exit 1
-          fi
 
           mkdir -p "$RUNNER_TEMP/vcpkg-binary-cache"
           python3 ./build.py \
@@ -258,8 +251,8 @@ jobs:
             --cxx-compiler "$CXX" \
             --parallel 3
 
-          if ! grep -q '^set(CMAKE_CXX_COMPILER_ID "GNU")$' "$RUNNER_TEMP/b_mir2x_macos/build"/CMakeFiles/*/CMakeCXXCompiler.cmake; then
-            echo "::error::mir2x must be compiled with GCC, not Apple Clang."
+          if ! grep -q '^set(CMAKE_CXX_COMPILER_ID "AppleClang")$' "$RUNNER_TEMP/b_mir2x_macos/build"/CMakeFiles/*/CMakeCXXCompiler.cmake; then
+            echo "::error::mir2x must be compiled with Apple Clang on macOS."
             exit 1
           fi
 

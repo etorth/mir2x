@@ -73,7 +73,6 @@ if(MSVC)
     target_compile_definitions(mir2x_project_options INTERFACE _HAS_STD_BYTE=0)
 else()
     target_compile_options(mir2x_project_options INTERFACE
-        -fcoroutines
         -fno-strict-aliasing
         -Wall
         -Wfatal-errors

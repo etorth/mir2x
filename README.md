@@ -29,7 +29,7 @@ Pushes to the `release` branch publish a rolling `latest` GitHub release contain
 - [mir2x-windows-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-windows-latest-build.zip)
 - [mir2x-macos-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-macos-latest-build.zip)
 
-The macOS binaries require macOS 15 or newer and Homebrew's `gcc@16` runtime libraries.
+The macOS binaries require macOS 15 or newer.
 
 The full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
 
@@ -118,11 +118,11 @@ Install Xcode Command Line Tools and [Homebrew](https://brew.sh/), then install 
 ```sh
 xcode-select --install
 brew install \
-    autoconf autoconf-archive automake cmake gawk gcc@16 \
+    autoconf autoconf-archive automake cmake gawk \
     gettext libtool ninja pkgconf python
 ```
 
-mir2x uses `gcc-16`/`g++-16`, not Apple Clang. The macOS vcpkg triplet permits Apple Clang only for FLTK, GLib, and SDL3, whose native macOS backends require Objective-C/Objective-C++ support. Other dependencies use GCC.
+On macOS, mir2x and all vcpkg dependencies use Apple `clang`/`clang++` from the active Xcode toolchain and the standard `arm64-osx` triplet. This keeps the C++ standard library consistent across the project and its dependencies; Homebrew GCC is not required.
 
 ```sh
 git clone https://github.com/etorth/mir2x.git
@@ -131,14 +131,15 @@ export PATH="$(brew --prefix gettext)/bin:$PATH"
 export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 export MACOSX_DEPLOYMENT_TARGET=15.0
 export CMAKE_GENERATOR=Ninja
-export VCPKG_OVERLAY_TRIPLETS=/path/to/mir2x/cmake/triplets
 python3 /path/to/mir2x/build.py \
-    --triplet=arm64-osx-gcc16 \
-    --host-triplet=arm64-osx-gcc16 \
-    --c-compiler="$(brew --prefix gcc@16)/bin/gcc-16" \
-    --cxx-compiler="$(brew --prefix gcc@16)/bin/g++-16" \
+    --triplet=arm64-osx \
+    --host-triplet=arm64-osx \
+    --c-compiler="$(xcrun --sdk macosx --find clang)" \
+    --cxx-compiler="$(xcrun --sdk macosx --find clang++)" \
     --parallel=3
 ```
+
+Use a new build directory or `--fresh` when switching an existing macOS build from GCC to Apple Clang.
 
 #### Helper script options
 
@@ -152,7 +153,7 @@ Install-time client/server resource packing always runs. If `--res-path` is omit
 
 Other useful options:
 
-- `--c-compiler=<cc> --cxx-compiler=<cxx>` selects a compiler for vcpkg ports and mir2x targets (enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally), except for the native macOS dependency overrides described above.
+- `--c-compiler=<cc> --cxx-compiler=<cxx>` selects a compiler for both vcpkg ports and mir2x targets (enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally).
 - `--parallel=<N>` controls build parallelism.
 - `--verbose` shows detailed CMake/vcpkg command output.
 ### First time run
