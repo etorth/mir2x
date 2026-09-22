@@ -5,3 +5,5 @@
 4. the interactive broken wall in 困魔咒空间
 
 5. Map grid trigger better understanding
+
+6. Monster/Magic configurable and editable interface
