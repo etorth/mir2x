@@ -23,10 +23,13 @@ mir2x is an experimental project that verifies actor-model based parallelism for
 
 ### Prebuilt binaries
 
-Each push to the repository publishes a rolling `latest` GitHub release containing Linux and Windows MinGW UCRT64 install trees:
+Pushes to the `release` branch publish a rolling `latest` GitHub release containing Linux, Windows MinGW UCRT64, and macOS (Apple Silicon) install trees:
 
 - [mir2x-linux-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-linux-latest-build.zip)
 - [mir2x-windows-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-windows-latest-build.zip)
+- [mir2x-macos-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-macos-latest-build.zip)
+
+The macOS binaries require macOS 15 or newer and Homebrew's `gcc@16` runtime libraries.
 
 The full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
 
@@ -56,7 +59,7 @@ An IME for SDL fullscreen mode:
 
 ### Building from source
 
-mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux and 64-bit MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
+mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux, 64-bit MSYS2 UCRT64/MinGW, and Apple Silicon macOS. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
 
 #### Linux (Ubuntu 26.04)
@@ -108,6 +111,35 @@ make b_mir2x && cd b_mir2x
 python3 /path/to/mir2x/build.py --build-dir=/path/to/b_mir2x --parallel=10
 ```
 
+#### macOS 15+ (Apple Silicon)
+
+Install Xcode Command Line Tools and [Homebrew](https://brew.sh/), then install the build tools:
+
+```sh
+xcode-select --install
+brew install \
+    autoconf autoconf-archive automake cmake gawk gcc@16 \
+    gettext libtool ninja pkgconf python
+```
+
+mir2x uses `gcc-16`/`g++-16`, not Apple Clang. The macOS vcpkg triplet permits Apple Clang only for FLTK, GLib, and SDL3, whose native macOS backends require Objective-C/Objective-C++ support. Other dependencies use GCC.
+
+```sh
+git clone https://github.com/etorth/mir2x.git
+mkdir b_mir2x && cd b_mir2x
+export PATH="$(brew --prefix gettext)/bin:$PATH"
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+export MACOSX_DEPLOYMENT_TARGET=15.0
+export CMAKE_GENERATOR=Ninja
+export VCPKG_OVERLAY_TRIPLETS=/path/to/mir2x/cmake/triplets
+python3 /path/to/mir2x/build.py \
+    --triplet=arm64-osx-gcc16 \
+    --host-triplet=arm64-osx-gcc16 \
+    --c-compiler="$(brew --prefix gcc@16)/bin/gcc-16" \
+    --cxx-compiler="$(brew --prefix gcc@16)/bin/g++-16" \
+    --parallel=3
+```
+
 #### Helper script options
 
 Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files, `vcpkg_installed`, and the default resource clone. Use `--fresh` only when you want a real clean build: it deletes `<build-dir>/build`, including `vcpkg_installed` and `<build-dir>/build/assets/mir2x_res`, so vcpkg dependencies are reinstalled/rebuilt and default resources are cloned again.
@@ -120,7 +152,7 @@ Install-time client/server resource packing always runs. If `--res-path` is omit
 
 Other useful options:
 
-- `--c-compiler=<cc> --cxx-compiler=<cxx>` selects a compiler for both vcpkg ports and mir2x targets (enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally).
+- `--c-compiler=<cc> --cxx-compiler=<cxx>` selects a compiler for vcpkg ports and mir2x targets (enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally), except for the native macOS dependency overrides described above.
 - `--parallel=<N>` controls build parallelism.
 - `--verbose` shows detailed CMake/vcpkg command output.
 ### First time run

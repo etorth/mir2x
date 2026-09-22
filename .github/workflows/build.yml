@@ -191,16 +191,126 @@ jobs:
           retention-days: 1
           compression-level: 0
 
+  native-macos:
+    name: Native macOS (ARM64, GCC 16)
+    runs-on: macos-15
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: native-macos-15-arm64-gcc16-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**', 'cmake/Mir2xVcpkg*.cmake', 'cmake/triplets/**') }}
+          restore-keys: |
+            native-macos-15-arm64-gcc16-vcpkg-
+
+      - name: Install build tools
+        run: |
+          set -euo pipefail
+          brew update
+          brew install \
+            autoconf \
+            autoconf-archive \
+            automake \
+            cmake \
+            gawk \
+            gcc@16 \
+            gettext \
+            libtool \
+            ninja \
+            pkgconf \
+            python
+          echo "$(brew --prefix gettext)/bin" >> "$GITHUB_PATH"
+
+      - name: Build and install
+        env:
+          CMAKE_GENERATOR: Ninja
+          MACOSX_DEPLOYMENT_TARGET: "15.0"
+          VCPKG_DEFAULT_TRIPLET: arm64-osx-gcc16
+          VCPKG_DEFAULT_HOST_TRIPLET: arm64-osx-gcc16
+          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/cmake/triplets
+          VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite
+        run: |
+          set -euo pipefail
+          gcc_prefix="$(brew --prefix gcc@16)"
+          export CC="$gcc_prefix/bin/gcc-16"
+          export CXX="$gcc_prefix/bin/g++-16"
+          SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+          export SDKROOT
+
+          "$CC" --version
+          "$CXX" --version
+          if [ "$("$CC" -dumpversion)" != "16" ] || [ "$("$CXX" -dumpversion)" != "16" ]; then
+            echo "::error::The macOS build requires gcc-16 and g++-16."
+            exit 1
+          fi
+
+          mkdir -p "$RUNNER_TEMP/vcpkg-binary-cache"
+          python3 ./build.py \
+            --build-dir "$RUNNER_TEMP/b_mir2x_macos" \
+            --c-compiler "$CC" \
+            --cxx-compiler "$CXX" \
+            --parallel 3
+
+          if ! grep -q '^set(CMAKE_CXX_COMPILER_ID "GNU")$' "$RUNNER_TEMP/b_mir2x_macos/build"/CMakeFiles/*/CMakeCXXCompiler.cmake; then
+            echo "::error::mir2x must be compiled with GCC, not Apple Clang."
+            exit 1
+          fi
+
+      - name: Verify macOS linkage
+        run: |
+          set -euo pipefail
+
+          install_dir="$RUNNER_TEMP/b_mir2x_macos/install"
+          found_executable=false
+          while IFS= read -r -d '' exe; do
+            if ! file -b "$exe" | grep -q 'Mach-O.*executable'; then
+              continue
+            fi
+
+            found_executable=true
+            echo "== otool $exe =="
+            otool -L "$exe"
+          done < <(find "$install_dir" -type f -perm -111 -print0)
+
+          if [ "$found_executable" = false ]; then
+            echo "::error::No installed Mach-O executables found."
+            exit 1
+          fi
+
+      - name: Package macOS install tree
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/b_mir2x_macos/install"
+          zip -r -y "$RUNNER_TEMP/mir2x-macos-latest-build.zip" .
+
+      - name: Upload macOS install tree
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir2x-macos-install
+          path: ${{ runner.temp }}/mir2x-macos-latest-build.zip
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
   # only the release branch publishes
   #
-  # every branch still gets compiled by the two jobs above, so a broken commit shows up on the
+  # every branch still gets compiled by the three jobs above, so a broken commit shows up on the
   # branch that broke it. this job is what replaces the `latest` tag and notifies watchers, and
   # it only runs for a push to `release` — merge main into release when there is enough to
   # download, and that is the one thing that produces a release
   release-latest:
     name: Publish latest release
     runs-on: ubuntu-26.04
-    needs: [native-linux, mingw-ucrt64]
+    needs: [native-linux, mingw-ucrt64, native-macos]
     if: >-
       github.event_name != 'pull_request'
       && github.ref == 'refs/heads/release'
@@ -223,6 +333,12 @@ jobs:
         with:
           name: mir2x-windows-install
           path: dist/windows
+
+      - name: Download macOS install tree
+        uses: actions/download-artifact@v4
+        with:
+          name: mir2x-macos-install
+          path: dist
 
       - name: Install packaging tools
         run: |
@@ -247,6 +363,7 @@ jobs:
           gh release create latest \
             dist/mir2x-linux-latest-build.zip \
             dist/mir2x-windows-latest-build.zip \
+            dist/mir2x-macos-latest-build.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Latest build" \
