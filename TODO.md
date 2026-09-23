@@ -7,3 +7,5 @@
 5. Map grid trigger better understanding
 
 6. Monster/Magic configurable and editable interface
+
+7. follow UID magic should vanish when tracking
