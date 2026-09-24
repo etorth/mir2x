@@ -245,14 +245,15 @@ function setQuestState(fargs)
 
         local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
         if gridTriggers then
+            local mapNameSet = {}
             for _, v in pairs(gridTriggers) do
-                if type(v[2]) == 'table' then
-                    clearMapUIDGridTrigger(v[1], v[2], uid)
-                else
-                    clearMapUIDGridTrigger(v[1], v[2], v[3], uid)
-                end
+                mapNameSet[v[1]] = true
+            end
+            for mapName in pairs(mapNameSet) do
+                _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
             end
         end
+        dbSetQuestField(uid, 'fld_gridtriggers', nil)
         _RSVD_NAME_dbSetQuestStateDone(uid)
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
@@ -614,11 +615,11 @@ function setupMapUIDGridTrigger(mapName, ...)
     local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
     args[args.n + 1] =
     [[
-        local playerUID, rectList, code = ...
-        addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
+        local playerUID, questName, rectList, code = ...
+        addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
     ]]
 
-    local triggerId = assertType(uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
+    local triggerId = assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
     local storageKey = nil
     local storageValue = nil
 
@@ -652,11 +653,11 @@ function setupInstanceUIDGridTrigger(mapUID, ...)
     local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
     args[args.n + 1] =
     [[
-        local playerUID, rectList, code = ...
-        addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
+        local playerUID, questName, rectList, code = ...
+        addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
     ]]
 
-    return assertType(uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
+    return assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
 end
 
 -- take one grid or a rect list of a map over for everyone on it, not just one player
@@ -701,68 +702,37 @@ function setupMapGridTrigger(mapName, ...)
     return assertType(uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
 end
 
-function clearMapGridTrigger(mapName, x, y)
+function clearMapGridTrigger(mapName, triggerId)
     assertType(mapName, 'string')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
+    assertType(triggerId, 'integer')
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        uidRemoteCall(mapUID, x, y, [[ deleteGridTriggerAt(...) ]])
+        uidRemoteCall(mapUID, triggerId, [[ deleteGridTrigger(...) ]])
     end
 end
 
-function clearMapUIDGridTrigger(mapName, ...)
+function clearMapUIDGridTrigger(mapName, triggerId)
     assertType(mapName, 'string')
-
-    local args = table.pack(...)
-    local rectList = nil
-    local x        = nil
-    local y        = nil
-    local uid      = nil
-
-    if type(args[1]) == 'table' and args.n == 2 then
-        rectList, uid = table.unpack(args, 1, 2)
-
-    elseif math.type(args[1]) == 'integer' and args.n == 3 then
-        x, y, uid = table.unpack(args, 1, 3)
-
-    else
-        fatalPrintf('Invalid arguments to clearMapUIDGridTrigger()')
-    end
-
-    if rectList then
-        assertType(rectList, 'table')
-    else
-        assertType(x, 'integer')
-        assertType(y, 'integer')
-    end
-    assertType(uid, 'integer')
-    assert(uid > 0)
+    assertType(triggerId, 'integer')
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        if rectList then
-            uidRemoteCall(mapUID, uid, rectList, [[
-                local uid, rectList = ...
-                local gridTriggerId = getUIDGridTriggerID(uid, rectList)
-                if gridTriggerId then
-                    deleteUIDGridTrigger(gridTriggerId)
-                end
-            ]])
-        else
-            uidRemoteCall(mapUID, uid, x, y, [[
-                local uid, x, y = ...
-                local gridTriggerId = getUIDGridTriggerID(uid, x, y)
-                if gridTriggerId then
-                    deleteUIDGridTrigger(gridTriggerId)
-                end
-            ]])
-        end
+        uidRemoteCall(mapUID, triggerId, [[ deleteUIDGridTrigger(...) ]])
     end
+end
 
-    local storageKey = rectList and strAny({mapName, rectList}) or strAny({mapName, x, y})
-    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', storageKey, nil)
+-- remove every SYS_EPUID grid trigger this player has for the current quest, on the given
+-- map, in one remote call, no rect matching needed. used by setQuestState() when the quest
+-- reaches SYS_DONE
+function _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
+    assertType(mapName, 'string')
+    assertType(uid, 'integer')
+
+    local mapUID = loadBaseMap(mapName)
+    if mapUID then
+        uidRemoteCall(mapUID, uid, getQuestName(), [[ _RSVD_NAME_clearQuestUIDGridTrigger(...) ]])
+    end
 end
 
 function runNPCEventHandler(npcUID, playerUID, eventPath, event, value)
