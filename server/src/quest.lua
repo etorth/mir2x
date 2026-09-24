@@ -645,11 +645,16 @@ function setupInstanceUIDGridTrigger(mapUID, ...)
     assertType(mapUID, 'integer')
 
     local config = parseUIDGridTriggerArgs('setupInstanceUIDGridTrigger', ...)
-    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
-    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %s, load(%s)(...)) ]], config.uid, rectCode, asInitString(config.code))
+    local rectList = config.rectList or {{config.x, config.y, 1, 1}}
 
-    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
+    args[args.n + 1] =
+    [[
+        local playerUID, rectList, code = ...
+        addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
+    ]]
+
+    uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1))
 end
 
 -- take one grid or a rect list of a map over for everyone on it, not just one player
