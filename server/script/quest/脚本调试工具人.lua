@@ -117,7 +117,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             uidRemoteCall(loadBaseMap('道馆_1'), uid, questName,
             [=[
                 local playerUID, questName = ...
-                addUIDGridTrigger(playerUID, 400, 121, function(uid, x, y)
+                addUIDGridTrigger(playerUID, questName, 400, 121, function(uid, x, y)
                     server.player.postString(uid, '任务【%s】：我来到了%d:%d！', questName, x, y)
                     return false
                 end)

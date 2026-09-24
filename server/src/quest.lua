@@ -617,7 +617,7 @@ function setupMapUIDGridTrigger(mapName, ...)
     args[args.n + 1] =
     [[
         local playerUID, questName, rectList, code = ...
-        addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
+        return addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
     ]]
 
     local triggerId = assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
@@ -655,7 +655,7 @@ function setupInstanceUIDGridTrigger(mapUID, ...)
     args[args.n + 1] =
     [[
         local playerUID, questName, rectList, code = ...
-        addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
+        return addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
     ]]
 
     return assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
@@ -697,7 +697,7 @@ function setupMapGridTrigger(mapName, ...)
     args[args.n + 1] =
     [[
         local rectList, code = ...
-        addGridTrigger(rectList, load(code)(select(3, ...)))
+        return addGridTrigger(rectList, load(code)(select(3, ...)))
     ]]
 
     return assertType(uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
