@@ -128,9 +128,19 @@ function addUIDGridTrigger(uid, questName, ...)
     local rectList = parseGridTriggerRectList(args)
     local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(rectList)
 
-    _RSVD_NAME_EPUID_questGridTriggers[uid] = _RSVD_NAME_EPUID_questGridTriggers[uid] or {}
-    _RSVD_NAME_EPUID_questGridTriggers[uid][questName] = _RSVD_NAME_EPUID_questGridTriggers[uid][questName] or {}
-    _RSVD_NAME_EPUID_questGridTriggers[uid][questName][gridTriggerId] = true
+    local uidGridTriggerList = _RSVD_NAME_EPUID_questGridTriggers[uid]
+    if not uidGridTriggerList then
+        uidGridTriggerList = {}
+        _RSVD_NAME_EPUID_questGridTriggers[uid] = uidGridTriggerList
+    end
+
+    local questGridTriggerList = uidGridTriggerList[questName]
+    if not questGridTriggerList then
+        questGridTriggerList = {}
+        uidGridTriggerList[questName] = questGridTriggerList
+    end
+
+    questGridTriggerList[gridTriggerId] = true
 
     _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId] = {uid, questName, handler}
     return gridTriggerId
