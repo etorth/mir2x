@@ -50,9 +50,8 @@ end
 -- addUIDGridTrigger() and turns everybody else away with addGridTrigger()
 
 local _RSVD_NAME_EPDEF_gridTriggers = {}  -- gridTriggerId -> handler, everyone on the map
-local _RSVD_NAME_EPUID_gridTriggers = {}  -- uid -> gridTriggerId -> handler
 local _RSVD_NAME_EPUID_questGridTriggers = {}  -- uid -> questName -> {gridTriggerId = true, ...}
-local _RSVD_NAME_EPUID_gridTriggerOwners = {}  -- gridTriggerId -> {uid, questName}
+local _RSVD_NAME_EPUID_gridTriggerOwners = {}  -- gridTriggerId -> {uid, questName, handler}
 
 -- normalize the rect args shared by addGridTrigger() and addUIDGridTrigger():
 --
@@ -134,14 +133,11 @@ function addUIDGridTrigger(uid, questName, ...)
     local rectList = parseGridTriggerRectList(args)
     local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(rectList)
 
-    _RSVD_NAME_EPUID_gridTriggers[uid] = _RSVD_NAME_EPUID_gridTriggers[uid] or {}
-    _RSVD_NAME_EPUID_gridTriggers[uid][gridTriggerId] = handler
-
     _RSVD_NAME_EPUID_questGridTriggers[uid] = _RSVD_NAME_EPUID_questGridTriggers[uid] or {}
     _RSVD_NAME_EPUID_questGridTriggers[uid][questName] = _RSVD_NAME_EPUID_questGridTriggers[uid][questName] or {}
     _RSVD_NAME_EPUID_questGridTriggers[uid][questName][gridTriggerId] = true
 
-    _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId] = {uid, questName}
+    _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId] = {uid, questName, handler}
     return gridTriggerId
 end
 
@@ -151,16 +147,8 @@ function deleteUIDGridTrigger(gridTriggerId)
 
     local owner = _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId]
     if owner then
-        local uid, questName = table.unpack(owner)
+        local uid, questName = owner[1], owner[2]
         _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId] = nil
-
-        local handlerList = _RSVD_NAME_EPUID_gridTriggers[uid]
-        if handlerList then
-            handlerList[gridTriggerId] = nil
-            if next(handlerList) == nil then
-                _RSVD_NAME_EPUID_gridTriggers[uid] = nil
-            end
-        end
 
         local questTriggerList = _RSVD_NAME_EPUID_questGridTriggers[uid]
         if questTriggerList and questTriggerList[questName] then
@@ -211,16 +199,13 @@ function _RSVD_NAME_runGridTrigger(uid, x, y)
     local idList = getGridTriggerIDList(x, y)
 
     -- per-player (SYS_EPUID) triggers first, the quest's own player
-    local handlerList = _RSVD_NAME_EPUID_gridTriggers[uid]
-    if handlerList then
-        for _, gridTriggerId in ipairs(idList) do
-            local handler = handlerList[gridTriggerId]
-            if handler then
-                if handler(uid, x, y) then
-                    uidGridMapSwitch(uid, x, y)
-                end
-                return
+    for _, gridTriggerId in ipairs(idList) do
+        local owner = _RSVD_NAME_EPUID_gridTriggerOwners[gridTriggerId]
+        if owner and owner[1] == uid then
+            if owner[3](uid, x, y) then
+                uidGridMapSwitch(uid, x, y)
             end
+            return
         end
     end
 
