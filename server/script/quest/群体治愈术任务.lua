@@ -161,7 +161,7 @@ end
 -- the gates on a copy still name the base cave, so refuse them and stay inside this run's set
 local function linkCaves(uid, fromUID, toUID, gridList, at)
     eachGrid(gridList, function(gridX, gridY)
-        setupInstanceGridTrigger(fromUID, gridX, gridY, uid,
+        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
         string.format([[ return %d, %d, %d ]], toUID, at[1], at[2]),
         [[
             local toUID, x, y = ...
@@ -204,7 +204,7 @@ local function enterCaves(uid)
 
     -- 1_020's other gate is the way back out to 绝命谷, which folds the whole cave up
     eachGrid(caveExitGrids, function(gridX, gridY)
-        setupInstanceGridTrigger(uidList[1], gridX, gridY, uid,
+        setupInstanceUIDGridTrigger(uidList[1], gridX, gridY, uid,
         [[
             return getUID()
         ]],
@@ -541,7 +541,7 @@ setQuestFSMTable(
 
         -- @MapQuest_massheal_cave, the mouth of it
         eachGrid(doorGrids, function(gridX, gridY)
-            setupMapGridTrigger(doorMap, gridX, gridY, uid,
+            setupMapUIDGridTrigger(doorMap, gridX, gridY, uid,
             [[
                 return getUID()
             ]],
@@ -727,7 +727,7 @@ setQuestFSMTable(
 for _, grid in ipairs(doorGrids) do
     for dx = 0, grid[3] - 1 do
         for dy = 0, grid[4] - 1 do
-            setupMapDefaultGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
+            setupMapGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
             [[
                 return getUID()
             ]],

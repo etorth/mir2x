@@ -24,7 +24,7 @@ local mondrop = require('quest.include.mondrop')
 -- pass the state the player is allowed to walk in on and bounce off, that first bounce is
 -- what tells them there is a sealed room at all
 local function setupSealedRoom(uid, discoverState)
-    setupMapGridTrigger(sealedRoomMap, sealedRoomX, sealedRoomY, uid,
+    setupMapUIDGridTrigger(sealedRoomMap, sealedRoomX, sealedRoomY, uid,
     string.format([[ return %s, getUID() ]], discoverState and ('"' .. discoverState .. '"') or 'nil'),
     [[
         local discoverState, questUID = ...

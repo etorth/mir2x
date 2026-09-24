@@ -143,8 +143,8 @@ def parse_args():
     parser.add_argument(
         "--ccache",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use ccache to speed up rebuilds if available. Use --no-ccache to disable. Defaults to true.",
+        default=False,
+        help="Use ccache to speed up rebuilds if available. Use --no-ccache to disable. Defaults to false.",
     )
     parser.add_argument(
         "--verbose",

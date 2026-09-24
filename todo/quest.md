@@ -287,7 +287,7 @@ Every line-initial verb in the two directories, with what mir2x has. Counted wit
 | `give` / `Give` / `givew` | 35/5/1 | ⚠️ | `addItem` yes; `Givew <slot> <item>` (straight into a wear slot) has no binding — `Player::setWLItem` exists in C++ at `player.cpp:2146` but is unbound |
 | `linemsg` / `Linemsg` | 11/6 | ❌ | broadcast to one map |
 | `Checkmonmap` / `checkmonmap` | 11/6 | ✅ | `getMonsterCount()` |
-| `Enter_fail` | 10 | ✅ | `setupMapDefaultGridTrigger` / `setupMapGridTrigger`, return `false` |
+| `Enter_fail` | 10 | ✅ | `setupMapGridTrigger` / `setupMapUIDGridTrigger`, return `false` |
 | `close` | 9 | ✅ | `close="1"` on an event |
 | `mapting` | 8 | ❓ | `mapting D1606 41 148 84` — **4 args, purpose unknown**, investigate |
 | `mapmove` / `MAPMOVE` / `map` | 5/3/5 | ✅ | `spaceMove`, takes a name, id or uid since `b82f2bee` |

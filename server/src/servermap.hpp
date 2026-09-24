@@ -1,9 +1,11 @@
 #pragma once
+#include <array>
 #include <tuple>
 #include <memory>
 #include <vector>
 #include <cstdint>
 #include <concepts>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "pathf.hpp"
@@ -98,15 +100,17 @@ class ServerMap final: public ServerObject
             int      switchX = -1;
             int      switchY = -1;
 
-            // a script decides whether a player standing here gets sent to mapUID
+            // gridTriggerIds of every grid trigger covering this grid
             //
-            // set from lua, when set the automatic switch is skipped and the map script runs
-            // instead, see setGridTrigger() in servermap.lua
-            int switchTrigger = 0;
+            // each id belongs to one _RSVD_NAME_allocateGridTriggerId() call, and the rect
+            // list of that id lives in m_gridTriggerList. when non-empty the automatic
+            // switch is skipped and the map script decides instead, see addGridTrigger()
+            // in servermap.lua
+            std::vector<int> triggerList;
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && (switchTrigger == 0);
+                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && triggerList.empty();
             }
 
             bool hasUID(uint64_t uid) const
@@ -133,6 +137,16 @@ class ServerMap final: public ServerObject
         phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_gridItemLocList;
 
     private:
+        // grid trigger registry, see ServerMap::allocateGridTriggerId()
+        //
+        // gridTriggerId -> the rect array of that trigger, each rect is {x, y, w, h}; the
+        // grid -> gridTriggerId direction lives in each MapGrid::triggerList
+        std::unordered_map<int, std::vector<std::array<int, 4>>> m_gridTriggerList;
+
+        // next free gridTriggerId handed out by allocateGridTriggerId()
+        int m_gridTriggerID = 0;
+
+    private:
         const uint64_t m_mainScriptThreadKey = 1;
         /* */ uint64_t m_threadKey = m_mainScriptThreadKey + 1;
 
@@ -145,8 +159,14 @@ class ServerMap final: public ServerObject
 
     private:
         // a player finished a move or jump onto (x, y), send it to the next map if that grid
-        // leads anywhere, unless a script has taken the decision over
+        // leads anywhere, unless a trigger owns this grid and takes the decision over
         void dispatchGridSwitch(uint64_t, int, int);
+
+    private:
+        // allocate a fresh gridTriggerId for a rect array of grid trigger, each rect is
+        // {x, y, w, h}; removeGridTriggerId() restores the grid state
+        int  allocateGridTriggerId(const std::vector<std::array<int, 4>> &);
+        void removeGridTriggerId(int);
 
     public:
         ServerMap(uint64_t);

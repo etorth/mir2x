@@ -246,7 +246,7 @@ function setQuestState(fargs)
         local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
         if gridTriggers then
             for _, v in pairs(gridTriggers) do
-                clearMapGridTrigger(v[1], v[2], v[3], uid)
+                clearMapUIDGridTrigger(v[1], v[2], v[3], uid)
             end
         end
         _RSVD_NAME_dbSetQuestStateDone(uid)
@@ -479,7 +479,7 @@ end
 -- the grid stops sending the player through on its own, the installed code decides, return
 -- true from it to let the player continue to wherever the grid leads
 --
---     setupMapGridTrigger('半兽洞穴2层_D002', 225, 175, uid,
+--     setupMapUIDGridTrigger('半兽洞穴2层_D002', 225, 175, uid,
 --     [[
 --         return getQuestName()
 --     ]],
@@ -496,7 +496,7 @@ end
 --
 -- like setupNPCQuestBehavior the argstr is re-evaluated on every install, so it must not
 -- capture anything from the current environment
-function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
+function setupMapUIDGridTrigger(mapName, x, y, uid, arg1, arg2)
     assertType(mapName, 'string')
     assertType(x, 'integer')
     assertType(y, 'integer')
@@ -520,7 +520,7 @@ function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
         code   = arg2
 
     else
-        fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
+        fatalPrintf('Invalid arguments to setupMapUIDGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
     end
 
     local mapUID = loadBaseMap(mapName)
@@ -529,13 +529,13 @@ function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
     end
 
     local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ setUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), {mapName, x, y, code, argstr})
 end
 
--- setupMapGridTrigger against one map copy instead of a map name
+-- setupMapUIDGridTrigger against one map copy instead of a map name
 --
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
 -- carries the mapSwitchList destination, which only ever names the base map, so a quest that
@@ -544,7 +544,7 @@ end
 --
 -- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
 -- survive a restart and there is nothing to reinstall onto
-function setupInstanceGridTrigger(mapUID, x, y, uid, arg1, arg2)
+function setupInstanceUIDGridTrigger(mapUID, x, y, uid, arg1, arg2)
     assertType(mapUID, 'integer')
     assertType(x, 'integer')
     assertType(y, 'integer')
@@ -568,11 +568,11 @@ function setupInstanceGridTrigger(mapUID, x, y, uid, arg1, arg2)
         code   = arg2
 
     else
-        fatalPrintf('Invalid arguments to setupInstanceGridTrigger(%d, %d, %d, %d, ...)', mapUID, x, y, uid)
+        fatalPrintf('Invalid arguments to setupInstanceUIDGridTrigger(%d, %d, %d, %d, ...)', mapUID, x, y, uid)
     end
 
     local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ setUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
 end
@@ -580,11 +580,11 @@ end
 -- take one grid of a map over for everyone on it, not just one player
 --
 -- this is the SYS_EPDEF half of the grid trigger layer, and it is what gates a door against
--- players who are not on the quest at all. a per-player trigger from setupMapGridTrigger is
+-- players who are not on the quest at all. a per-player trigger from setupMapUIDGridTrigger is
 -- consulted first, so the two compose: the quest installs EPUID to let its own player through
 -- and EPDEF to turn everybody else away
 --
---     setupMapDefaultGridTrigger('沃玛神殿2层_D023', 371, 366,
+--     setupMapGridTrigger('沃玛神殿2层_D023', 371, 366,
 --     [[
 --         return getUID()
 --     ]],
@@ -598,7 +598,7 @@ end
 --
 -- deliberately not persisted: nothing about it is per-player, and a quest script re-runs from
 -- the top on every server start, which is where this belongs
-function setupMapDefaultGridTrigger(mapName, x, y, arg1, arg2)
+function setupMapGridTrigger(mapName, x, y, arg1, arg2)
     assertType(mapName, 'string')
     assertType(x, 'integer')
     assertType(y, 'integer')
@@ -619,7 +619,7 @@ function setupMapDefaultGridTrigger(mapName, x, y, arg1, arg2)
         code   = arg2
 
     else
-        fatalPrintf('Invalid arguments to setupMapDefaultGridTrigger(%s, %d, %d, ...)', asInitString(mapName), x, y)
+        fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, ...)', asInitString(mapName), x, y)
     end
 
     local mapUID = loadBaseMap(mapName)
@@ -628,23 +628,23 @@ function setupMapDefaultGridTrigger(mapName, x, y, arg1, arg2)
     end
 
     local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ setGridTrigger(%d, %d, load(%s)(...)) ]], x, y, asInitString(code))
+    args[args.n + 1] = string.format([[ addGridTrigger(%d, %d, load(%s)(...)) ]], x, y, asInitString(code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
 end
 
-function clearMapDefaultGridTrigger(mapName, x, y)
+function clearMapGridTrigger(mapName, x, y)
     assertType(mapName, 'string')
     assertType(x, 'integer')
     assertType(y, 'integer')
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        uidRemoteCall(mapUID, x, y, [[ deleteGridTrigger(...) ]])
+        uidRemoteCall(mapUID, x, y, [[ deleteGridTriggerAt(...) ]])
     end
 end
 
-function clearMapGridTrigger(mapName, x, y, uid)
+function clearMapUIDGridTrigger(mapName, x, y, uid)
     assertType(mapName, 'string')
     assertType(x, 'integer')
     assertType(y, 'integer')
@@ -654,7 +654,13 @@ function clearMapGridTrigger(mapName, x, y, uid)
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        uidRemoteCall(mapUID, uid, x, y, [[ deleteUIDGridTrigger(...) ]])
+        uidRemoteCall(mapUID, uid, x, y, [[
+            local uid, x, y = ...
+            local gridTriggerId = getUIDGridTriggerID(uid, x, y)
+            if gridTriggerId then
+                deleteUIDGridTrigger(gridTriggerId)
+            end
+        ]])
     end
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), nil)
 end

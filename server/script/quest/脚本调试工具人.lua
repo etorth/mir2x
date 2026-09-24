@@ -54,6 +54,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             {
                 dialog.link('npc_test_script', '测试脚本'),
                 dialog.link('npc_test_deliver_iterms', '测试邮寄'),
+                dialog.link('npc_test_map_trigger', '测试地图网格触发'),
                 dialog.link('npc_test_switch_map', '测试地图切换', {close = true, args = [=[{'比奇县_0',390,400}]=]}),
                 dialog.link('npc_test_random_move', '狂奔', {close = true}),
                 getNPCMapLocXML("event", {id="npc_test_switch_map", close="1"}),
@@ -101,6 +102,25 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             uidRemoteCall(uid,
             [=[
                 deliverItem(getItemID(SYS_GOLDNAME), 1000)
+            ]=])
+        end,
+
+        npc_test_map_trigger = function(uid, value)
+            dialog.post(uid, questPath,
+            {
+                '谢谢帮我测试地图网格触发！',
+                '去道馆（400，121）看看会发生什么？',
+                '走着去，跑着去，飞着去都行',
+            },
+            dialog.link(SYS_EXIT, '退出'))
+
+            uidRemoteCall(loadBaseMap('道馆_1'), uid, questName,
+            [=[
+                local playerUID, questName = ...
+                addUIDGridTrigger(playerUID, 400, 121, function(uid, x, y)
+                    server.player.postString(uid, '任务【%s】：我来到了%d:%d！', questName, x, y)
+                    return false
+                end)
             ]=])
         end,
     })

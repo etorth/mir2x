@@ -36,7 +36,7 @@ endif()
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(MIR2X_USE_CCACHE "Use ccache to speed up rebuilds if available" ON)
+option(MIR2X_USE_CCACHE "Use ccache to speed up rebuilds if available" OFF)
 if(MIR2X_USE_CCACHE)
     find_program(CCACHE_FOUND ccache)
     if(CCACHE_FOUND)

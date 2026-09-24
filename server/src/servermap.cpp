@@ -410,32 +410,49 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return 0;
     });
 
-    // grid switch triggers
+    // grid triggers
     //
     // a grid in mapSwitchList normally sends a player straight through, these let a script
-    // take that decision over, the counter is here because a quest installs a trigger per
-    // player and several can sit on the same grid
+    // take that decision over. every trigger owns a rect array (each {x, y, w, h}), gets a
+    // unique gridTriggerId from allocateGridTriggerId() and can be removed by that id, a
+    // quest can install several triggers covering the same grid
 
-    bindFunction("setGridSwitchTrigger", [this](int x, int y, int w, int h)
+    bindFunction("_RSVD_NAME_allocateGridTriggerId", [this](sol::table rectList) -> int
     {
-        for(int nW = 0; nW < w; ++nW){
-            for(int nH = 0; nH < h; ++nH){
-                if(getServerMap()->mapBin()->validC(x + nW, y + nH)){
-                    getServerMap()->getGrid(x + nW, y + nH).switchTrigger++;
-                }
-            }
+        std::vector<std::array<int, 4>> rectArray;
+        for(size_t i = 1; i <= rectList.size(); ++i){
+            const sol::object entry = rectList[i];
+            fflassert(entry.is<sol::table>(), i);
+
+            const sol::table rect = entry.as<sol::table>();
+            const sol::object xObj = rect["x"];
+            const sol::object yObj = rect["y"];
+            fflassert(xObj.valid() && xObj.is<lua_Integer>(), "grid trigger rect missing or invalid x");
+            fflassert(yObj.valid() && yObj.is<lua_Integer>(), "grid trigger rect missing or invalid y");
+
+            const int x = check_cast<int>(xObj.as<lua_Integer>());
+            const int y = check_cast<int>(yObj.as<lua_Integer>());
+            const int w = rect["w"].get_or<int, int>(1);
+            const int h = rect["h"].get_or<int, int>(1);
+
+            fflassert(w > 0 && h > 0, w, h);
+            rectArray.push_back({x, y, w, h});
         }
+        return getServerMap()->allocateGridTriggerId(rectArray);
     });
 
-    bindFunction("clearGridSwitchTrigger", [this](int x, int y, int w, int h)
+    bindFunction("_RSVD_NAME_removeGridTriggerId", [this](int gridTriggerID)
     {
-        for(int nW = 0; nW < w; ++nW){
-            for(int nH = 0; nH < h; ++nH){
-                if(getServerMap()->mapBin()->validC(x + nW, y + nH) && (getServerMap()->getGrid(x + nW, y + nH).switchTrigger > 0)){
-                    getServerMap()->getGrid(x + nW, y + nH).switchTrigger--;
-                }
-            }
+        getServerMap()->removeGridTriggerId(gridTriggerID);
+    });
+
+    bindFunction("_RSVD_NAME_getGridTriggerIDList", [this](int x, int y)
+    {
+        std::vector<int> idList;
+        if(getServerMap()->mapBin()->validC(x, y)){
+            idList = getServerMap()->getGrid(x, y).triggerList;
         }
+        return sol::as_table(std::move(idList));
     });
 
     bindFunction("hasGridSwitchDest", [this](int x, int y) -> bool
@@ -829,15 +846,54 @@ std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool
     return getRCGLoc(checkCO, checkLock, checkCount, regionX + mathf::rand() % regionW, regionY + mathf::rand() % regionH, regionX, regionY, regionW, regionH);
 }
 
+int ServerMap::allocateGridTriggerId(const std::vector<std::array<int, 4>> &rectList)
+{
+    const int gridTriggerID = ++m_gridTriggerID;
+
+    // ids come from the monotonic counter so the entry is fresh, operator[] creates the
+    // vector when it is missing
+    m_gridTriggerList[gridTriggerID] = rectList;
+
+    for(const auto &[x, y, w, h] : rectList){
+        for(int nW = 0; nW < w; ++nW){
+            for(int nH = 0; nH < h; ++nH){
+                if(mapBin()->validC(x + nW, y + nH)){
+                    getGrid(x + nW, y + nH).triggerList.push_back(gridTriggerID);
+                }
+            }
+        }
+    }
+    return gridTriggerID;
+}
+
+void ServerMap::removeGridTriggerId(int gridTriggerID)
+{
+    const auto it = m_gridTriggerList.find(gridTriggerID);
+    if(it == m_gridTriggerList.end()){
+        return;
+    }
+
+    for(const auto &[x, y, w, h] : it->second){
+        for(int nW = 0; nW < w; ++nW){
+            for(int nH = 0; nH < h; ++nH){
+                if(mapBin()->validC(x + nW, y + nH)){
+                    std::erase(getGrid(x + nW, y + nH).triggerList, gridTriggerID);
+                }
+            }
+        }
+    }
+    m_gridTriggerList.erase(it);
+}
+
 void ServerMap::dispatchGridSwitch(uint64_t playerUID, int x, int y)
 {
     if(!(uidf::isPlayer(playerUID) && mapBin()->validC(x, y))){
         return;
     }
 
-    // a script owns this grid, it decides whether the player goes anywhere and can say why
+    // a trigger owns this grid, it decides whether the player goes anywhere and can say why
     // not, mapSwitchList is deliberately ignored here
-    if(getGrid(x, y).switchTrigger > 0){
+    if(!getGrid(x, y).triggerList.empty()){
         m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_runGridTrigger(%llu, %d, %d)", to_llu(playerUID), x, y));
         return;
     }

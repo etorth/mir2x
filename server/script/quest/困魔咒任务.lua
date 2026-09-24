@@ -16,7 +16,7 @@
 -- checks it, so it stays a warning here too
 --
 -- the door turns away anybody who has no business in the rooms, which is a map-wide grid
--- trigger rather than a per-player one — see setupMapDefaultGridTrigger. a player on the quest
+-- trigger rather than a per-player one — see setupMapGridTrigger. a player on the quest
 -- has an EPUID trigger on the same grid and EPUID is consulted first, so the two compose
 --
 -- holy2's 我怎么会在这里呢? 难道我的魂被什么勾住了? and 首先试着离开这个地方 are on its kill
@@ -167,7 +167,7 @@ end
 -- refuse it and hand the player to the copy this run owns
 local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
     eachGrid(forwardGrids, function(gridX, gridY)
-        setupInstanceGridTrigger(fromUID, gridX, gridY, uid,
+        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
         string.format([[ return %d, %d, %d, %s, %s, %s ]], toUID, x, y, asInitString(stone), asInitString(needLine), asInitString(clearLine)),
         [[
             local toUID, x, y, stone, needLine, clearLine = ...
@@ -196,7 +196,7 @@ end
 -- and the way back, which needs no stone, it just has to stay inside this run's copies
 local function linkBack(uid, fromUID, toUID, gridList)
     eachGrid(gridList, function(gridX, gridY)
-        setupInstanceGridTrigger(fromUID, gridX, gridY, uid,
+        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
         string.format([[ return %d, %d, %d ]], toUID, backEntry[1], backEntry[2]),
         [[
             local toUID, x, y = ...
@@ -237,7 +237,7 @@ local function enterRooms(uid)
 
     -- 1_019's exit, which closes the whole set down behind you
     eachGrid(exitGrids, function(gridX, gridY)
-        setupInstanceGridTrigger(uidList[#rooms], gridX, gridY, uid,
+        setupInstanceUIDGridTrigger(uidList[#rooms], gridX, gridY, uid,
         [[
             return getUID()
         ]],
@@ -357,7 +357,7 @@ setQuestFSMTable(
 
         -- the door in 沃玛神殿2层_D023. it opens on the first stone and takes it
         eachGrid(doorGrids, function(gridX, gridY)
-            setupMapGridTrigger(doorMap, gridX, gridY, uid,
+            setupMapUIDGridTrigger(doorMap, gridX, gridY, uid,
             [[
                 return getUID()
             ]],
@@ -435,7 +435,7 @@ setQuestFSMTable(
 for _, grid in ipairs(doorGrids) do
     for dx = 0, grid[3] - 1 do
         for dy = 0, grid[4] - 1 do
-            setupMapDefaultGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
+            setupMapGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
             string.format([[ return getUID(), %s ]], asInitString(magicName)),
             [[
                 local questUID, magicName = ...

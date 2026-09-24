@@ -17,8 +17,24 @@ end
 -- item, a finished quest, a level, a gender, then either let the player through or tell them
 -- why the door will not open
 --
--- handlers follow the same event paths as an NPC, a map script installs SYS_EPDEF for
--- everyone and a quest installs SYS_EPUID for one player, EPUID is consulted first
+-- every trigger owns a rect array (each {x, y, w, h}) and gets a unique gridTriggerId from
+-- the C++ side, which keeps gridTriggerId -> rects in m_gridTriggerList and
+-- grid -> [gridTriggerId] in each grid. a grid with any trigger stops auto-switching and
+-- the script decides instead
+--
+-- addGridTrigger() creates the trigger, binds the handler under the returned id and hands
+-- the id back, deleteGridTrigger() removes it again:
+--
+--     local gridTriggerId = addGridTrigger(226, 177, function(uid, x, y)
+--         if server.player.hasItem(uid, '牢房钥匙', 1) then
+--             server.player.postString(uid, '门被打开了！进去看看……')
+--             return true
+--         end
+--         server.player.postString(uid, '我没有钥匙，无法进入……')
+--         return false
+--     end)
+--
+--     deleteGridTrigger(gridTriggerId)
 --
 -- a handler is called as handler(uid, x, y) and decides what happens next:
 --
@@ -28,133 +44,145 @@ end
 -- returning nothing counts as false, so a handler that moves the player somewhere else
 -- itself (uidMapSwitch) just falls through
 --
---     setGridTrigger(226, 177, function(uid, x, y)
---         if server.player.hasItem(uid, '牢房钥匙', 1) then
---             server.player.postString(uid, '门被打开了！进去看看……')
---             return true
---         end
---         server.player.postString(uid, '我没有钥匙，无法进入……')
---         return false
---     end)
+-- handlers follow the same event paths as an NPC: addGridTrigger() installs the SYS_EPDEF
+-- handler for everyone and addUIDGridTrigger() installs the SYS_EPUID handler for one
+-- player, EPUID is consulted first, so a quest gates its own player with
+-- addUIDGridTrigger() and turns everybody else away with addGridTrigger()
 
-local _RSVD_NAME_EPDEF_gridTriggers = {}
-local _RSVD_NAME_EPUID_gridTriggers = {}
+local _RSVD_NAME_EPDEF_gridTriggers = {}  -- gridTriggerId -> handler, everyone on the map
+local _RSVD_NAME_EPUID_gridTriggers = {}  -- gridTriggerId -> {uid = ..., handler = ...}, one player
 
--- how many handlers sit on a grid, the C++ side only needs to know whether the automatic
--- switch has been taken over, so it is kept in step with this count
-local _RSVD_NAME_gridTriggerCount = {}
+-- normalize the rect args shared by addGridTrigger() and addUIDGridTrigger():
+--
+--     x, y                   a 1x1 rect
+--     x, y, w, h             one rect
+--     rectList               array of {x = ..., y = ..., w = ..., h = ...}, w/h default to 1
+--
+-- argList is a table.pack()-ed slice that holds the rect args only, the handler is never
+-- part of it
+local function parseGridTriggerRectList(argList)
+    local rectList = nil
 
-local function gridKey(x, y)
-    assertType(x, 'integer')
-    assertType(y, 'integer')
-    return x .. ',' .. y
-end
+    if argList.n == 1 and type(argList[1]) == 'table' then
+        rectList = argList[1]
 
-local function addGridTriggerRef(x, y)
-    local key = gridKey(x, y)
-    local count = (_RSVD_NAME_gridTriggerCount[key] or 0) + 1
+    elseif argList.n == 2 or argList.n == 4 then
+        rectList = {{ x = argList[1], y = argList[2], w = argList[3] or 1, h = argList[4] or 1 }}
 
-    _RSVD_NAME_gridTriggerCount[key] = count
-    if count == 1 then
-        setGridSwitchTrigger(x, y, 1, 1)
-    end
-end
-
-local function removeGridTriggerRef(x, y)
-    local key = gridKey(x, y)
-    local count = _RSVD_NAME_gridTriggerCount[key] or 0
-
-    if count <= 0 then
-        return
+    else
+        fatalPrintf('Invalid rect arguments to grid trigger, expect (x, y), (x, y, w, h) or a rect array')
     end
 
-    count = count - 1
-    _RSVD_NAME_gridTriggerCount[key] = (count > 0) and count or nil
-
-    if count == 0 then
-        clearGridSwitchTrigger(x, y, 1, 1)
+    local result = {}
+    for _, rect in ipairs(rectList) do
+        assertType(rect, 'table')
+        assertType(rect.x, 'integer')
+        assertType(rect.y, 'integer')
+        result[#result + 1] = { x = rect.x, y = rect.y, w = rect.w or 1, h = rect.h or 1 }
     end
+    assert(#result > 0, 'a grid trigger needs at least one rect')
+    return result
 end
 
 -- everyone on this map, installed by the map script
-function setGridTrigger(x, y, handler)
-    assertType(handler, 'function')
-    local key = gridKey(x, y)
+function addGridTrigger(...)
+    local args = table.pack(...)
+    assertType(args[args.n], 'function')
 
-    if _RSVD_NAME_EPDEF_gridTriggers[key] == nil then
-        addGridTriggerRef(x, y)
-    end
-    _RSVD_NAME_EPDEF_gridTriggers[key] = handler
+    local handler = args[args.n]
+    args.n = args.n - 1
+
+    local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseGridTriggerRectList(args))
+    _RSVD_NAME_EPDEF_gridTriggers[gridTriggerId] = handler
+    return gridTriggerId
 end
 
-function deleteGridTrigger(x, y)
-    local key = gridKey(x, y)
-
-    if _RSVD_NAME_EPDEF_gridTriggers[key] ~= nil then
-        _RSVD_NAME_EPDEF_gridTriggers[key] = nil
-        removeGridTriggerRef(x, y)
-    end
+-- remove a trigger again, by the id addGridTrigger() returned
+function deleteGridTrigger(gridTriggerId)
+    assertType(gridTriggerId, 'integer')
+    _RSVD_NAME_removeGridTriggerId(gridTriggerId)
+    _RSVD_NAME_EPDEF_gridTriggers[gridTriggerId] = nil
 end
 
--- one player, installed by a quest through setupMapGridTrigger()
-function setUIDGridTrigger(uid, x, y, handler)
+-- one player, installed by a quest through setupMapUIDGridTrigger()
+--
+-- same rect forms as addGridTrigger(), with a uid in front
+function addUIDGridTrigger(uid, ...)
     assertType(uid, 'integer')
-    assertType(handler, 'function')
 
-    local key = gridKey(x, y)
-    if _RSVD_NAME_EPUID_gridTriggers[key] == nil then
-        _RSVD_NAME_EPUID_gridTriggers[key] = {}
-    end
+    local args = table.pack(...)
+    assertType(args[args.n], 'function')
 
-    if _RSVD_NAME_EPUID_gridTriggers[key][uid] == nil then
-        addGridTriggerRef(x, y)
-    end
-    _RSVD_NAME_EPUID_gridTriggers[key][uid] = handler
+    local handler = args[args.n]
+    args.n = args.n - 1
+
+    local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseGridTriggerRectList(args))
+    _RSVD_NAME_EPUID_gridTriggers[gridTriggerId] = { uid = uid, handler = handler }
+    return gridTriggerId
 end
 
-function deleteUIDGridTrigger(uid, x, y)
-    assertType(uid, 'integer')
-    local key = gridKey(x, y)
+function deleteUIDGridTrigger(gridTriggerId)
+    assertType(gridTriggerId, 'integer')
+    _RSVD_NAME_removeGridTriggerId(gridTriggerId)
+    _RSVD_NAME_EPUID_gridTriggers[gridTriggerId] = nil
+end
 
-    if _RSVD_NAME_EPUID_gridTriggers[key] == nil then
-        return
+-- every gridTriggerId covering (x, y), in install order, straight from the C++ side
+function getGridTriggerIDList(x, y)
+    return _RSVD_NAME_getGridTriggerIDList(x, y)
+end
+
+-- the per-player trigger of uid at (x, y), if one is installed, quest cleanup helper
+function getUIDGridTriggerID(uid, x, y)
+    for _, gridTriggerId in ipairs(getGridTriggerIDList(x, y)) do
+        local entry = _RSVD_NAME_EPUID_gridTriggers[gridTriggerId]
+        if entry and entry.uid == uid then
+            return gridTriggerId
+        end
     end
+    return nil
+end
 
-    if _RSVD_NAME_EPUID_gridTriggers[key][uid] ~= nil then
-        _RSVD_NAME_EPUID_gridTriggers[key][uid] = nil
-        removeGridTriggerRef(x, y)
+function hasGridTrigger(x, y)
+    return #getGridTriggerIDList(x, y) > 0
+end
 
-        if next(_RSVD_NAME_EPUID_gridTriggers[key]) == nil then
-            _RSVD_NAME_EPUID_gridTriggers[key] = nil
+-- remove every all-players (SYS_EPDEF) trigger covering (x, y), quest cleanup helper
+function deleteGridTriggerAt(x, y)
+    for _, gridTriggerId in ipairs(getGridTriggerIDList(x, y)) do
+        if _RSVD_NAME_EPDEF_gridTriggers[gridTriggerId] then
+            deleteGridTrigger(gridTriggerId)
         end
     end
 end
 
-function hasGridTrigger(x, y)
-    return (_RSVD_NAME_gridTriggerCount[gridKey(x, y)] or 0) > 0
-end
-
 -- called from ServerMap::dispatchGridSwitch when a player lands on a triggered grid
 function _RSVD_NAME_runGridTrigger(uid, x, y)
-    local key = gridKey(x, y)
-    local handler = nil
+    local idList = getGridTriggerIDList(x, y)
 
-    if _RSVD_NAME_EPUID_gridTriggers[key] then
-        handler = _RSVD_NAME_EPUID_gridTriggers[key][uid]
+    -- per-player (SYS_EPUID) triggers first, the quest's own player
+    for _, gridTriggerId in ipairs(idList) do
+        local entry = _RSVD_NAME_EPUID_gridTriggers[gridTriggerId]
+        if entry and entry.uid == uid then
+            if entry.handler(uid, x, y) then
+                uidGridMapSwitch(uid, x, y)
+            end
+            return
+        end
     end
 
-    if handler == nil then
-        handler = _RSVD_NAME_EPDEF_gridTriggers[key]
+    -- then the default (SYS_EPDEF) trigger, everyone on the map
+    for _, gridTriggerId in ipairs(idList) do
+        local handler = _RSVD_NAME_EPDEF_gridTriggers[gridTriggerId]
+        if handler then
+            if handler(uid, x, y) then
+                uidGridMapSwitch(uid, x, y)
+            end
+            return
+        end
     end
 
-    -- the count and the handler tables went out of step, let the player through rather
-    -- than trapping them on a grid nobody owns
-    if handler == nil then
-        uidGridMapSwitch(uid, x, y)
-        return
-    end
-
-    if handler(uid, x, y) then
-        uidGridMapSwitch(uid, x, y)
-    end
+    -- no handler applies to this player, e.g. only other players' per-player triggers sit
+    -- on the grid, let the player through rather than trapping them
+    uidGridMapSwitch(uid, x, y)
 end

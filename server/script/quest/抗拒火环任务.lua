@@ -131,7 +131,7 @@ local function enterTrial(uid)
     -- hand them to this run's copy
     for _, grid in ipairs(gateGrids) do
         for dy = 0, grid[4] - 1 do
-            setupInstanceGridTrigger(firstUID, grid[1], grid[2] + dy, uid,
+            setupInstanceUIDGridTrigger(firstUID, grid[1], grid[2] + dy, uid,
             string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
             [[
                 local secondUID, x, y = ...
