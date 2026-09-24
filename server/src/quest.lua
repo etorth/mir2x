@@ -604,7 +604,7 @@ function setupMapUIDGridTrigger(mapName, ...)
     assertType(mapName, 'string')
 
     local config = parseUIDGridTriggerArgs('setupMapUIDGridTrigger', ...)
-    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
+    local rectList = config.rectList or {{config.x, config.y, 1, 1}}
 
     local mapUID = loadBaseMap(mapName)
     if not mapUID then
@@ -612,9 +612,13 @@ function setupMapUIDGridTrigger(mapName, ...)
     end
 
     local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %s, load(%s)(...)) ]], config.uid, rectCode, asInitString(config.code))
+    args[args.n + 1] =
+    [[
+        local playerUID, rectList, code = ...
+        addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
+    ]]
 
-    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+    uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1))
 
     local storageKey = nil
     local storageValue = nil
@@ -673,7 +677,7 @@ function setupMapGridTrigger(mapName, ...)
     assertType(mapName, 'string')
 
     local config = parseGridTriggerArgs('setupMapGridTrigger', ...)
-    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
+    local rectList = config.rectList or {{config.x, config.y, 1, 1}}
 
     local mapUID = loadBaseMap(mapName)
     if not mapUID then
@@ -681,9 +685,13 @@ function setupMapGridTrigger(mapName, ...)
     end
 
     local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addGridTrigger(%s, load(%s)(...)) ]], rectCode, asInitString(config.code))
+    args[args.n + 1] =
+    [[
+        local rectList, code = ...
+        addGridTrigger(rectList, load(code)(select(3, ...)))
+    ]]
 
-    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+    uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1))
 end
 
 function clearMapGridTrigger(mapName, x, y)
