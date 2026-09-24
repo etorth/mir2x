@@ -112,13 +112,8 @@ function deleteGridTrigger(gridTriggerId)
     _RSVD_NAME_EPDEF_gridTriggers[gridTriggerId] = nil
 end
 
--- one player, installed by a quest through setupMapUIDGridTrigger()
---
--- questName ties this trigger to the quest that installed it, so it can be removed in bulk
--- by _RSVD_NAME_clearQuestUIDGridTrigger() once the quest is done, without ever having to
--- match it back to the rect it was registered on
---
--- same rect forms as addGridTrigger() after that, with a uid in front
+-- questName ties this trigger to the quest that installed it
+-- so it can be removed in bulk by _RSVD_NAME_clearQuestUIDGridTrigger() once the quest is done
 function addUIDGridTrigger(uid, questName, ...)
     assertType(uid, 'integer')
     assertType(questName, 'string')
@@ -163,8 +158,6 @@ function deleteUIDGridTrigger(gridTriggerId)
     end
 end
 
--- remove every SYS_EPUID trigger this player has installed for this quest, in one pass,
--- no rect matching needed. called once the quest reaches SYS_DONE
 function _RSVD_NAME_clearQuestUIDGridTrigger(uid, questName)
     assertType(uid, 'integer')
     assertType(questName, 'string')
@@ -175,11 +168,11 @@ function _RSVD_NAME_clearQuestUIDGridTrigger(uid, questName)
         return
     end
 
-    -- deleteUIDGridTrigger() mutates idList as it goes, so collect the ids first
     local ids = {}
     for gridTriggerId in pairs(idList) do
         ids[#ids + 1] = gridTriggerId
     end
+
     for _, gridTriggerId in ipairs(ids) do
         deleteUIDGridTrigger(gridTriggerId)
     end

@@ -245,11 +245,12 @@ function setQuestState(fargs)
 
         local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
         if gridTriggers then
-            local mapNameSet = {}
+            local mapNameList = {}
             for _, v in pairs(gridTriggers) do
-                mapNameSet[v[1]] = true
+                mapNameList[v[1]] = true
             end
-            for mapName in pairs(mapNameSet) do
+
+            for mapName in pairs(mapNameList) do
                 _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
             end
         end
@@ -722,9 +723,8 @@ function clearMapUIDGridTrigger(mapName, triggerId)
     end
 end
 
--- remove every SYS_EPUID grid trigger this player has for the current quest, on the given
--- map, in one remote call, no rect matching needed. used by setQuestState() when the quest
--- reaches SYS_DONE
+-- remove every SYS_EPUID grid trigger this player has for the current quest
+-- used by setQuestState() when the quest reaches SYS_DONE
 function _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
     assertType(mapName, 'string')
     assertType(uid, 'integer')
