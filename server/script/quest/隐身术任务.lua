@@ -120,19 +120,15 @@ local function enterTrial(uid)
     dbSetQuestVar(uid, 'firstMapUID', firstUID)
     dbSetQuestVar(uid, 'secondMapUID', secondUID)
 
-    for _, grid in ipairs(gateGrids) do
-        for dy = 0, grid[4] - 1 do
-            setupInstanceUIDGridTrigger(firstUID, grid[1], grid[2] + dy, uid,
-            string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
-            [[
-                local secondUID, x, y = ...
-                return function(uid, gridX, gridY)
-                    server.player.spaceMove(uid, secondUID, x, y)
-                    return false
-                end
-            ]])
+    setupInstanceUIDGridTrigger(firstUID, gateGrids, uid,
+    string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
+    [[
+        local secondUID, x, y = ...
+        return function(uid, gridX, gridY)
+            server.player.spaceMove(uid, secondUID, x, y)
+            return false
         end
-    end
+    ]])
 
     -- @mugong_hiding_test. reaching him is all there is to it, he does not look at anything
     setupInstanceNPCBehavior(secondUID, trialNPC, uid,

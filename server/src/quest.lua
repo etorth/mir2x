@@ -246,7 +246,11 @@ function setQuestState(fargs)
         local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
         if gridTriggers then
             for _, v in pairs(gridTriggers) do
-                clearMapUIDGridTrigger(v[1], v[2], v[3], uid)
+                if type(v[2]) == 'table' then
+                    clearMapUIDGridTrigger(v[1], v[2], uid)
+                else
+                    clearMapUIDGridTrigger(v[1], v[2], v[3], uid)
+                end
             end
         end
         _RSVD_NAME_dbSetQuestStateDone(uid)
@@ -474,10 +478,102 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), nil)
 end
 
--- take over one grid of a map for one player
+local function parseUIDGridTriggerArgs(funcName, ...)
+    local args = table.pack(...)
+    local rectList = nil
+    local x        = nil
+    local y        = nil
+    local uid      = nil
+    local argstr   = nil
+    local code     = nil
+
+    if type(args[1]) == 'table' and args.n == 3 then
+        rectList, uid, code = table.unpack(args, 1, 3)
+
+    elseif type(args[1]) == 'table' and args.n == 4 then
+        rectList, uid, argstr, code = table.unpack(args, 1, 4)
+
+    elseif math.type(args[1]) == 'integer' and args.n == 4 then
+        x, y, uid, code = table.unpack(args, 1, 4)
+
+    elseif math.type(args[1]) == 'integer' and args.n == 5 then
+        x, y, uid, argstr, code = table.unpack(args, 1, 5)
+
+    else
+        fatalPrintf('Invalid arguments to %s()', funcName)
+    end
+
+    if rectList then
+        assertType(rectList, 'table')
+    else
+        assertType(x, 'integer')
+        assertType(y, 'integer')
+    end
+    assertType(uid, 'integer')
+    assert(uid > 0)
+    assertType(argstr, 'string', 'nil')
+    assertType(code, 'string')
+
+    return
+    {
+        rectList = rectList,
+        x        = x,
+        y        = y,
+        uid      = uid,
+        argstr   = argstr,
+        code     = code,
+    }
+end
+
+local function parseGridTriggerArgs(funcName, ...)
+    local args = table.pack(...)
+    local rectList = nil
+    local x        = nil
+    local y        = nil
+    local argstr   = nil
+    local code     = nil
+
+    if type(args[1]) == 'table' and args.n == 2 then
+        rectList, code = table.unpack(args, 1, 2)
+
+    elseif type(args[1]) == 'table' and args.n == 3 then
+        rectList, argstr, code = table.unpack(args, 1, 3)
+
+    elseif math.type(args[1]) == 'integer' and args.n == 3 then
+        x, y, code = table.unpack(args, 1, 3)
+
+    elseif math.type(args[1]) == 'integer' and args.n == 4 then
+        x, y, argstr, code = table.unpack(args, 1, 4)
+
+    else
+        fatalPrintf('Invalid arguments to %s()', funcName)
+    end
+
+    if rectList then
+        assertType(rectList, 'table')
+    else
+        assertType(x, 'integer')
+        assertType(y, 'integer')
+    end
+    assertType(argstr, 'string', 'nil')
+    assertType(code, 'string')
+
+    return
+    {
+        rectList = rectList,
+        x        = x,
+        y        = y,
+        argstr   = argstr,
+        code     = code,
+    }
+end
+
+-- take over one grid or a rect list of a map for one player
 --
 -- the grid stops sending the player through on its own, the installed code decides, return
 -- true from it to let the player continue to wherever the grid leads
+--
+-- rect lists use {{x, y, w, h}, ...}; the whole list is installed as one trigger
 --
 --     setupMapUIDGridTrigger('半兽洞穴2层_D002', 225, 175, uid,
 --     [[
@@ -496,46 +592,35 @@ end
 --
 -- like setupNPCQuestBehavior the argstr is re-evaluated on every install, so it must not
 -- capture anything from the current environment
-function setupMapUIDGridTrigger(mapName, x, y, uid, arg1, arg2)
+function setupMapUIDGridTrigger(mapName, ...)
     assertType(mapName, 'string')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
 
-    assertType(uid, 'integer')
-    assert(uid > 0)
-
-    local argstr = nil
-    local code   = nil
-
-    if type(arg1) == 'string' and type(arg2) == 'string' then
-        argstr = arg1
-        code   = arg2
-
-    elseif type(arg1) == 'string' and arg2 == nil then
-        argstr = nil
-        code   = arg1
-
-    elseif arg1 == nil and type(arg2) == 'string' then
-        argstr = nil
-        code   = arg2
-
-    else
-        fatalPrintf('Invalid arguments to setupMapUIDGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
-    end
+    local config = parseUIDGridTriggerArgs('setupMapUIDGridTrigger', ...)
+    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
 
     local mapUID = loadBaseMap(mapName)
     if not mapUID then
         fatalPrintf('Can not load map %s', asInitString(mapName))
     end
 
-    local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %s, load(%s)(...)) ]], config.uid, rectCode, asInitString(config.code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
-    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), {mapName, x, y, code, argstr})
+
+    local storageKey = nil
+    local storageValue = nil
+    if config.rectList then
+        storageKey = strAny({mapName, config.rectList})
+        storageValue = {mapName, config.rectList, config.code, config.argstr}
+    else
+        storageKey = strAny({mapName, config.x, config.y})
+        storageValue = {mapName, config.x, config.y, config.code, config.argstr}
+    end
+    _RSVD_NAME_dbUpdateQuestFieldTable(config.uid, 'fld_gridtriggers', storageKey, storageValue)
 end
 
--- setupMapUIDGridTrigger against one map copy instead of a map name
+-- setupMapUIDGridTrigger against one map copy instead of a map name, also accepts a rect list
 --
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
 -- carries the mapSwitchList destination, which only ever names the base map, so a quest that
@@ -544,40 +629,18 @@ end
 --
 -- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
 -- survive a restart and there is nothing to reinstall onto
-function setupInstanceUIDGridTrigger(mapUID, x, y, uid, arg1, arg2)
+function setupInstanceUIDGridTrigger(mapUID, ...)
     assertType(mapUID, 'integer')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
 
-    assertType(uid, 'integer')
-    assert(uid > 0)
-
-    local argstr = nil
-    local code   = nil
-
-    if type(arg1) == 'string' and type(arg2) == 'string' then
-        argstr = arg1
-        code   = arg2
-
-    elseif type(arg1) == 'string' and arg2 == nil then
-        argstr = nil
-        code   = arg1
-
-    elseif arg1 == nil and type(arg2) == 'string' then
-        argstr = nil
-        code   = arg2
-
-    else
-        fatalPrintf('Invalid arguments to setupInstanceUIDGridTrigger(%d, %d, %d, %d, ...)', mapUID, x, y, uid)
-    end
-
-    local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+    local config = parseUIDGridTriggerArgs('setupInstanceUIDGridTrigger', ...)
+    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
+    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ addUIDGridTrigger(%d, %s, load(%s)(...)) ]], config.uid, rectCode, asInitString(config.code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
 end
 
--- take one grid of a map over for everyone on it, not just one player
+-- take one grid or a rect list of a map over for everyone on it, not just one player
 --
 -- this is the SYS_EPDEF half of the grid trigger layer, and it is what gates a door against
 -- players who are not on the quest at all. a per-player trigger from setupMapUIDGridTrigger is
@@ -598,37 +661,19 @@ end
 --
 -- deliberately not persisted: nothing about it is per-player, and a quest script re-runs from
 -- the top on every server start, which is where this belongs
-function setupMapGridTrigger(mapName, x, y, arg1, arg2)
+function setupMapGridTrigger(mapName, ...)
     assertType(mapName, 'string')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
 
-    local argstr = nil
-    local code   = nil
-
-    if type(arg1) == 'string' and type(arg2) == 'string' then
-        argstr = arg1
-        code   = arg2
-
-    elseif type(arg1) == 'string' and arg2 == nil then
-        argstr = nil
-        code   = arg1
-
-    elseif arg1 == nil and type(arg2) == 'string' then
-        argstr = nil
-        code   = arg2
-
-    else
-        fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, ...)', asInitString(mapName), x, y)
-    end
+    local config = parseGridTriggerArgs('setupMapGridTrigger', ...)
+    local rectCode = config.rectList and asInitString(config.rectList) or string.format('%d, %d', config.x, config.y)
 
     local mapUID = loadBaseMap(mapName)
     if not mapUID then
         fatalPrintf('Can not load map %s', asInitString(mapName))
     end
 
-    local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ addGridTrigger(%d, %d, load(%s)(...)) ]], x, y, asInitString(code))
+    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ addGridTrigger(%s, load(%s)(...)) ]], rectCode, asInitString(config.code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
 end
@@ -644,25 +689,57 @@ function clearMapGridTrigger(mapName, x, y)
     end
 end
 
-function clearMapUIDGridTrigger(mapName, x, y, uid)
+function clearMapUIDGridTrigger(mapName, ...)
     assertType(mapName, 'string')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
 
+    local args = table.pack(...)
+    local rectList = nil
+    local x        = nil
+    local y        = nil
+    local uid      = nil
+
+    if type(args[1]) == 'table' and args.n == 2 then
+        rectList, uid = table.unpack(args, 1, 2)
+
+    elseif math.type(args[1]) == 'integer' and args.n == 3 then
+        x, y, uid = table.unpack(args, 1, 3)
+
+    else
+        fatalPrintf('Invalid arguments to clearMapUIDGridTrigger()')
+    end
+
+    if rectList then
+        assertType(rectList, 'table')
+    else
+        assertType(x, 'integer')
+        assertType(y, 'integer')
+    end
     assertType(uid, 'integer')
     assert(uid > 0)
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        uidRemoteCall(mapUID, uid, x, y, [[
-            local uid, x, y = ...
-            local gridTriggerId = getUIDGridTriggerID(uid, x, y)
-            if gridTriggerId then
-                deleteUIDGridTrigger(gridTriggerId)
-            end
-        ]])
+        if rectList then
+            uidRemoteCall(mapUID, uid, rectList, [[
+                local uid, rectList = ...
+                local gridTriggerId = getUIDGridTriggerID(uid, rectList)
+                if gridTriggerId then
+                    deleteUIDGridTrigger(gridTriggerId)
+                end
+            ]])
+        else
+            uidRemoteCall(mapUID, uid, x, y, [[
+                local uid, x, y = ...
+                local gridTriggerId = getUIDGridTriggerID(uid, x, y)
+                if gridTriggerId then
+                    deleteUIDGridTrigger(gridTriggerId)
+                end
+            ]])
+        end
     end
-    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), nil)
+
+    local storageKey = rectList and strAny({mapName, rectList}) or strAny({mapName, x, y})
+    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', storageKey, nil)
 end
 
 function runNPCEventHandler(npcUID, playerUID, eventPath, event, value)

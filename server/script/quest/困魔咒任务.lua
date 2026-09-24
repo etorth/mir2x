@@ -126,16 +126,6 @@ _G.exitMap   = '道馆_1'
 _G.exitX     = 350
 _G.exitY     = 402
 
-local function eachGrid(gridList, func)
-    for _, grid in ipairs(gridList) do
-        for dx = 0, grid[3] - 1 do
-            for dy = 0, grid[4] - 1 do
-                func(grid[1] + dx, grid[2] + dy)
-            end
-        end
-    end
-end
-
 local function stockRoom(mapUID, spawn)
     uidRemoteCall(mapUID, spawn[1], spawn[2], spawn[3],
     [[
@@ -166,46 +156,42 @@ end
 -- a gate between two copies: the mapSwitchList destination on a copy names the base room, so
 -- refuse it and hand the player to the copy this run owns
 local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
-    eachGrid(forwardGrids, function(gridX, gridY)
-        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
-        string.format([[ return %d, %d, %d, %s, %s, %s ]], toUID, x, y, asInitString(stone), asInitString(needLine), asInitString(clearLine)),
-        [[
-            local toUID, x, y, stone, needLine, clearLine = ...
-            return function(uid, gridX, gridY)
-                -- checkmonmap on the room behind you, the ward is not repaired until it is
-                -- empty and the next gate will not open on a half-finished one
-                if uidRemoteCall(getMapUID(), [=[ return getMonsterCount() ]=]) > 0 then
-                    server.player.postString(uid, clearLine)
-                    return false
-                end
-
-                -- checkitem then take, the gate eats the stone that belongs to it
-                if not server.player.hasItem(uid, stone, 1) then
-                    server.player.postString(uid, needLine)
-                    return false
-                end
-
-                server.player.removeItem(uid, stone, 1)
-                server.player.spaceMove(uid, toUID, x, y)
+    setupInstanceUIDGridTrigger(fromUID, forwardGrids, uid,
+    string.format([[ return %d, %d, %d, %s, %s, %s ]], toUID, x, y, asInitString(stone), asInitString(needLine), asInitString(clearLine)),
+    [[
+        local toUID, x, y, stone, needLine, clearLine = ...
+        return function(uid, gridX, gridY)
+            -- checkmonmap on the room behind you, the ward is not repaired until it is
+            -- empty and the next gate will not open on a half-finished one
+            if uidRemoteCall(getMapUID(), [=[ return getMonsterCount() ]=]) > 0 then
+                server.player.postString(uid, clearLine)
                 return false
             end
-        ]])
-    end)
+
+            -- checkitem then take, the gate eats the stone that belongs to it
+            if not server.player.hasItem(uid, stone, 1) then
+                server.player.postString(uid, needLine)
+                return false
+            end
+
+            server.player.removeItem(uid, stone, 1)
+            server.player.spaceMove(uid, toUID, x, y)
+            return false
+        end
+    ]])
 end
 
 -- and the way back, which needs no stone, it just has to stay inside this run's copies
 local function linkBack(uid, fromUID, toUID, gridList)
-    eachGrid(gridList, function(gridX, gridY)
-        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
-        string.format([[ return %d, %d, %d ]], toUID, backEntry[1], backEntry[2]),
-        [[
-            local toUID, x, y = ...
-            return function(uid, gridX, gridY)
-                server.player.spaceMove(uid, toUID, x, y)
-                return false
-            end
-        ]])
-    end)
+    setupInstanceUIDGridTrigger(fromUID, gridList, uid,
+    string.format([[ return %d, %d, %d ]], toUID, backEntry[1], backEntry[2]),
+    [[
+        local toUID, x, y = ...
+        return function(uid, gridX, gridY)
+            server.player.spaceMove(uid, toUID, x, y)
+            return false
+        end
+    ]])
 end
 
 -- everything @MapQuest_holycircle_moveTo1_1 did, all five rooms stocked in one go
@@ -236,19 +222,17 @@ local function enterRooms(uid)
     end
 
     -- 1_019's exit, which closes the whole set down behind you
-    eachGrid(exitGrids, function(gridX, gridY)
-        setupInstanceUIDGridTrigger(uidList[#rooms], gridX, gridY, uid,
-        [[
-            return getUID()
-        ]],
-        [[
-            local questUID = ...
-            return function(uid, gridX, gridY)
-                server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
-                return false
-            end
-        ]])
-    end)
+    setupInstanceUIDGridTrigger(uidList[#rooms], exitGrids, uid,
+    [[
+        return getUID()
+    ]],
+    [[
+        local questUID = ...
+        return function(uid, gridX, gridY)
+            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            return false
+        end
+    ]])
 
     server.player.spaceMove(uid, uidList[1], rooms[1].entry[1], rooms[1].entry[2])
     return true
@@ -356,19 +340,17 @@ setQuestFSMTable(
         end
 
         -- the door in 沃玛神殿2层_D023. it opens on the first stone and takes it
-        eachGrid(doorGrids, function(gridX, gridY)
-            setupMapUIDGridTrigger(doorMap, gridX, gridY, uid,
-            [[
-                return getUID()
-            ]],
-            [[
-                local questUID = ...
-                return function(uid, gridX, gridY)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_open_rooms'})
-                    return false
-                end
-            ]])
-        end)
+        setupMapUIDGridTrigger(doorMap, doorGrids, uid,
+        [[
+            return getUID()
+        ]],
+        [[
+            local questUID = ...
+            return function(uid, gridX, gridY)
+                server.quest.setState(questUID, {uid = uid, state = 'quest_open_rooms'})
+                return false
+            end
+        ]])
     end,
 
     -- standing on the door with the first stone in hand
@@ -432,25 +414,19 @@ setQuestFSMTable(
 -- @MapQuest_holycircle_moveTo1's [726] / checkmagic / not-[522] branches. the quest's own
 -- SYS_ENTER installs an EPUID trigger on the same grids to let its player in, and EPUID wins,
 -- so this only ever answers somebody who is not on the quest
-for _, grid in ipairs(doorGrids) do
-    for dx = 0, grid[3] - 1 do
-        for dy = 0, grid[4] - 1 do
-            setupMapGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
-            string.format([[ return getUID(), %s ]], asInitString(magicName)),
-            [[
-                local questUID, magicName = ...
-                return function(uid, x, y)
-                    if (server.quest.getState(questUID, {uid = uid}) == SYS_DONE) or server.player.hasMagic(uid, magicName) then
-                        server.player.postString(uid, '(现在也没有进去的必要了<t wrap="0">···</t>)')
-                    else
-                        server.player.postString(uid, '(现在好像进不去了<t wrap="0">···</t>)')
-                    end
-                    return false
-                end
-            ]])
+setupMapGridTrigger(doorMap, doorGrids,
+string.format([[ return getUID(), %s ]], asInitString(magicName)),
+[[
+    local questUID, magicName = ...
+    return function(uid, x, y)
+        if (server.quest.getState(questUID, {uid = uid}) == SYS_DONE) or server.player.hasMagic(uid, magicName) then
+            server.player.postString(uid, '(现在也没有进去的必要了<t wrap="0">···</t>)')
+        else
+            server.player.postString(uid, '(现在好像进不去了<t wrap="0">···</t>)')
         end
+        return false
     end
-end
+]])
 
 -- @mugong_holycircle, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

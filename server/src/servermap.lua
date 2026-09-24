@@ -76,9 +76,15 @@ local function parseGridTriggerRectList(argList)
     local result = {}
     for _, rect in ipairs(rectList) do
         assertType(rect, 'table')
-        assertType(rect.x, 'integer')
-        assertType(rect.y, 'integer')
-        result[#result + 1] = { x = rect.x, y = rect.y, w = rect.w or 1, h = rect.h or 1 }
+        local x = rect.x or rect[1]
+        local y = rect.y or rect[2]
+        local w = rect.w or rect[3] or 1
+        local h = rect.h or rect[4] or 1
+        assertType(x, 'integer')
+        assertType(y, 'integer')
+        assertType(w, 'integer')
+        assertType(h, 'integer')
+        result[#result + 1] = { x = x, y = y, w = w, h = h }
     end
     assert(#result > 0, 'a grid trigger needs at least one rect')
     return result
@@ -90,6 +96,7 @@ function addGridTrigger(...)
     assertType(args[args.n], 'function')
 
     local handler = args[args.n]
+    args[args.n] = nil
     args.n = args.n - 1
 
     local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseGridTriggerRectList(args))
@@ -114,6 +121,7 @@ function addUIDGridTrigger(uid, ...)
     assertType(args[args.n], 'function')
 
     local handler = args[args.n]
+    args[args.n] = nil
     args.n = args.n - 1
 
     local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseGridTriggerRectList(args))
@@ -132,8 +140,7 @@ function getGridTriggerIDList(x, y)
     return _RSVD_NAME_getGridTriggerIDList(x, y)
 end
 
--- the per-player trigger of uid at (x, y), if one is installed, quest cleanup helper
-function getUIDGridTriggerID(uid, x, y)
+local function getUIDGridTriggerIDAt(uid, x, y)
     for _, gridTriggerId in ipairs(getGridTriggerIDList(x, y)) do
         local entry = _RSVD_NAME_EPUID_gridTriggers[gridTriggerId]
         if entry and entry.uid == uid then
@@ -141,6 +148,24 @@ function getUIDGridTriggerID(uid, x, y)
         end
     end
     return nil
+end
+
+-- the per-player trigger of uid at a grid or any grid in a rect list, quest cleanup helper
+function getUIDGridTriggerID(uid, x, y)
+    if type(x) == 'table' then
+        for _, rect in ipairs(parseGridTriggerRectList(table.pack(x))) do
+            for dx = 0, rect.w - 1 do
+                for dy = 0, rect.h - 1 do
+                    local gridTriggerId = getUIDGridTriggerIDAt(uid, rect.x + dx, rect.y + dy)
+                    if gridTriggerId then
+                        return gridTriggerId
+                    end
+                end
+            end
+        end
+        return nil
+    end
+    return getUIDGridTriggerIDAt(uid, x, y)
 end
 
 function hasGridTrigger(x, y)

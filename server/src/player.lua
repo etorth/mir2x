@@ -155,7 +155,11 @@ function _RSVD_NAME_setupQuests()
 
             if gridTriggers then
                 for _, v in pairs(gridTriggers) do
-                    setupMapUIDGridTrigger(v[1], v[2], v[3], playerUID, v[5], v[4])
+                    if type(v[2]) == 'table' then
+                        setupMapUIDGridTrigger(v[1], v[2], playerUID, v[4], v[3])
+                    else
+                        setupMapUIDGridTrigger(v[1], v[2], v[3], playerUID, v[5], v[4])
+                    end
                 end
             end
 

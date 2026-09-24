@@ -120,16 +120,6 @@ _G.caveExitGrids = {{186, 17, 2, 1}, {187, 18, 1, 1}}
 _G.respawnAt    = {22, 22}
 _G.respawnCount = 2
 
-local function eachGrid(gridList, func)
-    for _, grid in ipairs(gridList or {}) do
-        for dx = 0, grid[3] - 1 do
-            for dy = 0, grid[4] - 1 do
-                func(grid[1] + dx, grid[2] + dy)
-            end
-        end
-    end
-end
-
 local function stockCave(mapUID, spawnList)
     for _, cluster in ipairs(spawnList) do
         uidRemoteCall(mapUID, cluster[1], cluster[2], cluster[3],
@@ -160,17 +150,15 @@ end
 
 -- the gates on a copy still name the base cave, so refuse them and stay inside this run's set
 local function linkCaves(uid, fromUID, toUID, gridList, at)
-    eachGrid(gridList, function(gridX, gridY)
-        setupInstanceUIDGridTrigger(fromUID, gridX, gridY, uid,
-        string.format([[ return %d, %d, %d ]], toUID, at[1], at[2]),
-        [[
-            local toUID, x, y = ...
-            return function(uid, gridX, gridY)
-                server.player.spaceMove(uid, toUID, x, y)
-                return false
-            end
-        ]])
-    end)
+    setupInstanceUIDGridTrigger(fromUID, gridList, uid,
+    string.format([[ return %d, %d, %d ]], toUID, at[1], at[2]),
+    [[
+        local toUID, x, y = ...
+        return function(uid, gridX, gridY)
+            server.player.spaceMove(uid, toUID, x, y)
+            return false
+        end
+    ]])
 end
 
 -- @MapQuest_massheal_cave1_4 from Monclear onwards, set [525]
@@ -203,19 +191,17 @@ local function enterCaves(uid)
     end
 
     -- 1_020's other gate is the way back out to 绝命谷, which folds the whole cave up
-    eachGrid(caveExitGrids, function(gridX, gridY)
-        setupInstanceUIDGridTrigger(uidList[1], gridX, gridY, uid,
-        [[
-            return getUID()
-        ]],
-        [[
-            local questUID = ...
-            return function(uid, gridX, gridY)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_left_cave'})
-                return false
-            end
-        ]])
-    end)
+    setupInstanceUIDGridTrigger(uidList[1], caveExitGrids, uid,
+    [[
+        return getUID()
+    ]],
+    [[
+        local questUID = ...
+        return function(uid, gridX, gridY)
+            server.quest.setState(questUID, {uid = uid, state = 'quest_left_cave'})
+            return false
+        end
+    ]])
 
     server.player.spaceMove(uid, uidList[1], caveEntry[1], caveEntry[2])
     return true
@@ -540,19 +526,17 @@ setQuestFSMTable(
         ]])
 
         -- @MapQuest_massheal_cave, the mouth of it
-        eachGrid(doorGrids, function(gridX, gridY)
-            setupMapUIDGridTrigger(doorMap, gridX, gridY, uid,
-            [[
-                return getUID()
-            ]],
-            [[
-                local questUID = ...
-                return function(uid, gridX, gridY)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_enter_cave'})
-                    return false
-                end
-            ]])
-        end)
+        setupMapUIDGridTrigger(doorMap, doorGrids, uid,
+        [[
+            return getUID()
+        ]],
+        [[
+            local questUID = ...
+            return function(uid, gridX, gridY)
+                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_cave'})
+                return false
+            end
+        ]])
     end,
 
     quest_enter_cave = function(uid, args)
@@ -724,28 +708,22 @@ setQuestFSMTable(
 -- @MapQuest_massheal_cave's [730] / [526] / not-[524] / not-[523] branches. the quest's own
 -- quest_kill_boss installs an EPUID trigger on the same grids to let its player in, and EPUID
 -- wins, so this only ever answers somebody who has no business there
-for _, grid in ipairs(doorGrids) do
-    for dx = 0, grid[3] - 1 do
-        for dy = 0, grid[4] - 1 do
-            setupMapGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
-            [[
-                return getUID()
-            ]],
-            [[
-                local questUID = ...
-                return function(uid, x, y)
-                    local state = server.quest.getState(questUID, {uid = uid})
-                    if (state == SYS_DONE) or (state == 'quest_cave_done') then
-                        server.player.postString(uid, '(这里是以前击退蜈蚣的洞窟哦<t wrap="0">···</t>现在洞口被堵上了。)')
-                    else
-                        server.player.postString(uid, '(好像是什么洞窟入口？现在洞口被堵上了。)')
-                    end
-                    return false
-                end
-            ]])
+setupMapGridTrigger(doorMap, doorGrids,
+[[
+    return getUID()
+]],
+[[
+    local questUID = ...
+    return function(uid, x, y)
+        local state = server.quest.getState(questUID, {uid = uid})
+        if (state == SYS_DONE) or (state == 'quest_cave_done') then
+            server.player.postString(uid, '(这里是以前击退蜈蚣的洞窟哦<t wrap="0">···</t>现在洞口被堵上了。)')
+        else
+            server.player.postString(uid, '(好像是什么洞窟入口？现在洞口被堵上了。)')
         end
+        return false
     end
-end
+]])
 
 -- @mugong_massheal_illtown answers out of the flags whether or not you are on the quest: it has
 -- nothing to say to somebody who never took the charm, and it bows to you once it is over
