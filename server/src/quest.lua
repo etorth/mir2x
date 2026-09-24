@@ -411,12 +411,16 @@ function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     -- don't save the environ's specific value to database, which may causes error for next time loading
 
     local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
+    args[args.n + 1] =
+    [[
+        local playerUID, questName, code = ...
+        setUIDQuestHandler(playerUID, questName, load(code)(select(4, ...)))
+    ]]
 
     -- use array as {code, argstr}
     -- argstr can be nil, put ahead may cause trouble
 
-    uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
+    uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), code, table.unpack(args, 1, args.n + 1))
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), {mapName, npcName, code, argstr})
 end
 
@@ -462,9 +466,13 @@ function setupInstanceNPCBehavior(mapUID, npcName, uid, arg1, arg2)
     end
 
     local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
+    args[args.n + 1] =
+    [[
+        local playerUID, questName, code = ...
+        setUIDQuestHandler(playerUID, questName, load(code)(select(4, ...)))
+    ]]
 
-    uidRemoteCall(npcUID, table.unpack(args, 1, args.n + 1))
+    uidRemoteCall(npcUID, uid, getQuestName(), code, table.unpack(args, 1, args.n + 1))
 end
 
 function clearNPCQuestBehavior(mapName, npcName, uid)
