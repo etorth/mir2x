@@ -618,10 +618,10 @@ function setupMapUIDGridTrigger(mapName, ...)
         addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
     ]]
 
-    uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1))
-
+    local triggerId = assertType(uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
     local storageKey = nil
     local storageValue = nil
+
     if config.rectList then
         storageKey = strAny({mapName, config.rectList})
         storageValue = {mapName, config.rectList, config.code, config.argstr}
@@ -629,7 +629,9 @@ function setupMapUIDGridTrigger(mapName, ...)
         storageKey = strAny({mapName, config.x, config.y})
         storageValue = {mapName, config.x, config.y, config.code, config.argstr}
     end
+
     _RSVD_NAME_dbUpdateQuestFieldTable(config.uid, 'fld_gridtriggers', storageKey, storageValue)
+    return triggerId
 end
 
 -- setupMapUIDGridTrigger against one map copy instead of a map name, also accepts a rect list
@@ -654,7 +656,7 @@ function setupInstanceUIDGridTrigger(mapUID, ...)
         addUIDGridTrigger(playerUID, rectList, load(code)(select(4, ...)))
     ]]
 
-    uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1))
+    return assertType(uidRemoteCall(mapUID, config.uid, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
 end
 
 -- take one grid or a rect list of a map over for everyone on it, not just one player
@@ -696,7 +698,7 @@ function setupMapGridTrigger(mapName, ...)
         addGridTrigger(rectList, load(code)(select(3, ...)))
     ]]
 
-    uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1))
+    return assertType(uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
 end
 
 function clearMapGridTrigger(mapName, x, y)
