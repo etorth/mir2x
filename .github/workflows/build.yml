@@ -232,8 +232,8 @@ jobs:
       - name: Package release assets
         run: |
           set -euo pipefail
-          (cd dist/linux && zip -r ../mir2x-linux-latest-build.zip .)
-          (cd dist/windows && zip -r ../mir2x-windows-latest-build.zip .)
+          (cd dist/linux && zip -r ../mir2x-linux-build-${GITHUB_SHA:0:7}.zip .)
+          (cd dist/windows && zip -r ../mir2x-windows-build-${GITHUB_SHA:0:7}.zip .)
 
       - name: Replace latest release
         env:
@@ -245,8 +245,8 @@ jobs:
           gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/latest" || true
 
           gh release create latest \
-            dist/mir2x-linux-latest-build.zip \
-            dist/mir2x-windows-latest-build.zip \
+            dist/mir2x-linux-build-${GITHUB_SHA:0:7}.zip \
+            dist/mir2x-windows-build-${GITHUB_SHA:0:7}.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Latest build" \
