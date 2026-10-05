@@ -35,6 +35,12 @@ function quest.setState(questUID, fargs)
     assert(isQuest(questUID))
 
     assertType(fargs, 'table')
+
+    -- uidRemoteCall() can't send a function, it would fail with "unsupported type: function"
+    if fargs.fallback ~= nil then
+        fatalPrintf('Can not give fallback by remote call, use stateWithFallback() in quest script instead')
+    end
+
     return uidRemoteCall(questUID, fargs,
     [[
         local fargs = ...

@@ -143,6 +143,10 @@ namespace
             TEST['after_' .. uid .. '_' .. state] = true
         end
 
+        local function trace(uid, s)
+            TEST['trace_' .. uid] = (TEST['trace_' .. uid] or '') .. s .. ','
+        end
+
         setQuestFSMTable(
         {
             [SYS_ENTER] = function(uid, args)
@@ -232,6 +236,35 @@ namespace
                 end})
                 error('state k failed')
             end,
+
+            l = function(uid, args)
+                local guard <close> = enter(uid, 'l')
+                local order <close> = setmetatable({}, {__close = function()
+                    trace(uid, 'close')
+                end})
+
+                if args == 'typo' then
+                    setQuestState{uid=uid, state='nosuchstate'}
+                end
+                error('state l failed')
+            end,
+
+            n = stateWithFallback(function(uid, args)
+                local guard <close> = enter(uid, 'n')
+                trace(uid, 'func')
+                error('state n failed')
+            end,
+
+            function(uid, args, err)
+                TEST['fallbackN_' .. uid] = err
+                trace(uid, 'fallback')
+                if args == 'raise' then
+                    error('fallback n failed')
+                elseif args ~= 'stay' then
+                    setQuestState{uid=uid, state='failed'}
+                    after(uid, 'n')
+                end
+            end),
 
             failed = function(uid, args)
                 local guard <close> = enter(uid, 'failed')
@@ -530,6 +563,118 @@ namespace
         require(f.alive("key_15_c"), "state change after a state switch that raised doesn't work");
     }
 
+    void testFallbackOnRaise()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=20, state='l', args='x', fallback=function(uid, args, err) TEST.fbUID_20 = uid TEST.fbArgs_20 = args TEST.fbErr_20 = err TEST.trace_20 = (TEST.trace_20 or '') .. 'fallback,' setQuestState{uid=uid, state='failed'} TEST.fbAfter_20 = true end}");
+
+        require(!f.alive("key_20_l") && f.isTrue("closed_20_l"), "state runner is not closed after its fallback switched state");
+        require(f.isNil("fbAfter_20"), "fallback continued after switching state");
+        require(f.alive("key_20_failed") && f.inState(20, "SYS_QSTFSM", "'failed'"), "fallback didn't switch state");
+        require(f.str("trace_20") == "close,fallback,", "<close> handler doesn't run before fallback");
+        require(f.get("fbUID_20").as<int>() == 20 && f.str("fbArgs_20") == "x", "fallback gets wrong uid or args");
+        require(f.strHas("fbErr_20", "state l failed") && f.strHas("fbErr_20", "stack traceback"), "fallback gets no error with traceback");
+        require(capture.has("Quest state raised: uid 20, fsm ") && capture.has("state l failed"), "error caught for fallback is not logged");
+
+        f.drive("setQuestState{uid=20, state='c'}");
+        require(!f.alive("key_20_failed") && f.isTrue("closed_20_failed") && f.alive("key_20_c"), "state runner started by fallback is not registered");
+    }
+
+    void testFallbackNotCalled()
+    {
+        QuestFixture f;
+        f.drive("setQuestState{uid=21, state='b', fallback=function() TEST.fb_21 = true end}");
+        require(f.alive("key_21_b") && f.isNil("fb_21"), "fallback is called for a state function that pauses");
+
+        f.drive("setQuestState{uid=21, state='a', fallback=function() TEST.fb_21 = true end}");
+        require(!f.alive("key_21_a") && f.isTrue("closed_21_a") && f.isNil("after_21_a"), "state runner with fallback is not closed after going to next state");
+        require(f.alive("key_21_b") && f.isNil("fb_21"), "fallback is called for a state function that goes to next state");
+
+        f.drive("setQuestState{uid=21, state='c', fallback=function() TEST.fb_21 = true end}");
+        f.drive("setQuestState{uid=21, state='b'}");
+        require(!f.alive("key_21_c") && f.isTrue("closed_21_c") && f.isNil("fb_21"), "fallback is called for a state runner closed by other thread");
+
+        f.drive("setQuestState{uid=21, state='g', fallback=function() TEST.fb_21 = true end, exitfunc=function() TEST.exit_21 = true end}");
+        require(f.isNil("fb_21") && f.isTrue("exit_21"), "fallback is called, or exitfunc is not, for a state function that returns");
+    }
+
+    void testFallbackNoSwitch()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=22, state='l', fallback=function() TEST.fb_22 = true end, exitfunc=function() TEST.exit_22 = true end}");
+
+        require(f.isTrue("fb_22") && f.isNil("exit_22"), "fallback is not called, or exitfunc is, for a state function that raises");
+        require(!f.alive("key_22_l") && f.isTrue("closed_22_l") && f.inState(22, "SYS_QSTFSM", "'l'"), "state runner is not done after fallback returned without switching state");
+
+        f.drive("setQuestState{uid=22, state='c'}");
+        require(f.alive("key_22_c"), "state change after fallback returned without switching state doesn't work");
+    }
+
+    void testFallbackCatchesBadSwitch()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=23, state='l', args='typo', fallback=function(uid, args, err) TEST.fbErr_23 = err setQuestState{uid=uid, state='failed'} end}");
+
+        require(f.strHas("fbErr_23", "Invalid arguments: fsm ") && f.strHas("fbErr_23", "state nosuchstate"), "fallback doesn't catch an invalid state switch");
+        require(!f.alive("key_23_l") && f.alive("key_23_failed") && f.inState(23, "SYS_QSTFSM", "'failed'"), "fallback doesn't recover from an invalid state switch");
+    }
+
+    void testFallbackNeedsStateFunction()
+    {
+        QuestFixture f;
+        f.drive("setQuestState{uid=24, state='b'} TEST.doneOK_24, TEST.doneErr_24 = pcall(setQuestState, {uid=24, state=SYS_DONE, fallback=function() end})");
+
+        require(f.get("doneOK_24").is<bool>() && !f.isTrue("doneOK_24") && f.strHas("doneErr_24", "fallback given to fsm "), "fallback for a state without state function doesn't raise");
+        require(f.alive("key_24_b") && f.inState(24, "SYS_QSTFSM", "'b'"), "state switch with invalid fallback has changed quest state");
+    }
+
+    void testCloseHandlerSwitchBeforeFallback()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=29, state='k', fallback=function() TEST.fb_29 = true end}");
+
+        require(f.isNil("fb_29"), "fallback is called after a <close> handler switched state");
+        require(!f.alive("key_29_k") && f.isTrue("closed_29_k"), "state runner is not closed after its <close> handler switched state");
+        require(f.alive("key_29_failed") && f.inState(29, "SYS_QSTFSM", "'failed'"), "<close> handler can't switch state while xpcall() unwinds");
+        require(capture.has("Quest state raised: uid 29, fsm ") && capture.has("state k failed"), "error is lost when a <close> handler switched state");
+    }
+
+    void testStateWithFallback()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=25, state='n'}");
+
+        require(f.strHas("fallbackN_25", "state n failed") && f.strHas("fallbackN_25", "stack traceback"), "fallback of stateWithFallback() gets no error with traceback");
+        require(!f.alive("key_25_n") && f.isNil("after_25_n"), "state runner is not closed after fallback of stateWithFallback() switched state");
+        require(f.alive("key_25_failed") && f.inState(25, "SYS_QSTFSM", "'failed'"), "fallback of stateWithFallback() didn't switch state");
+        require(capture.has("Quest state raised: uid 25"), "error caught for stateWithFallback() is not logged");
+
+        const auto oldKey = f.key("key_25_failed");
+        f.drive("_RSVD_NAME_restoreQuestState(25, SYS_QSTFSM, 'n', nil)");
+        require(!f.runner.hasKey(oldKey) && f.key("key_25_failed") != oldKey && f.alive("key_25_failed"), "fallback of stateWithFallback() doesn't work after restore");
+    }
+
+    void testFallbackNested()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=26, state='n', args='raise', fallback=function(uid, args, err) TEST.fbErr_26 = err setQuestState{uid=uid, state='failed'} end}");
+        require(f.strHas("fbErr_26", "fallback n failed") && f.str("trace_26") == "func,fallback,", "fallback of setQuestState() doesn't catch a raise in fallback of stateWithFallback()");
+        require(!f.alive("key_26_n") && f.alive("key_26_failed") && f.inState(26, "SYS_QSTFSM", "'failed'"), "fallback of setQuestState() didn't switch state");
+
+        f.drive("setQuestState{uid=27, state='n', args='stay', fallback=function() TEST.fb_27 = true end, exitfunc=function() TEST.exit_27 = true end}");
+        require(f.isNil("fb_27") && f.isTrue("exit_27"), "fallback of stateWithFallback() returning doesn't count as the state function returning");
+        require(!f.alive("key_27_n") && f.inState(27, "SYS_QSTFSM", "'n'"), "state runner is not done after fallback of stateWithFallback() returned");
+
+        f.drive("setQuestState{uid=28, state='n', fallback=function() TEST.fb_28 = true end}");
+        require(f.isNil("fb_28") && f.alive("key_28_failed") && f.isNil("after_28_n"), "fallback of setQuestState() is called after fallback of stateWithFallback() switched state");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -546,6 +691,14 @@ namespace
         testNoStateSwitchInQuestDone();
         testNoStateSwitchAfterError();
         testSelfCloseCheckedFirst();
+        testFallbackOnRaise();
+        testFallbackNotCalled();
+        testFallbackNoSwitch();
+        testFallbackCatchesBadSwitch();
+        testFallbackNeedsStateFunction();
+        testCloseHandlerSwitchBeforeFallback();
+        testStateWithFallback();
+        testFallbackNested();
     }
 }
 
@@ -577,7 +730,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, and self close checked before any change.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, and fallback of setQuestState() and stateWithFallback().\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

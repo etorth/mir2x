@@ -213,6 +213,61 @@ function hasQuestState(arg1, arg2)
     return true
 end
 
+-- calls func(...) on the calling state runner, and fallback(uid, args, err) if func raises
+-- when func raises, its <close> handlers run first, while xpcall() unwinds, they can still switch state, then fallback never runs
+-- fallback runs on the state runner itself, so a setQuestState() in it is the state runner switching its own state
+--
+-- returns true if func returns, false if func raises and fallback returns without switching state
+local function _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, ...)
+    assertType(desc, 'string')
+    assertType(fallback, 'function')
+    assertType(uid, 'integer')
+    assertType(func, 'function')
+
+    -- logs at the raise point, not after xpcall() returns
+    -- xpcall() never returns if a <close> handler switches state while the stack unwinds, a log after it would be lost
+    local function onError(e)
+        local err = debug.traceback(e, 2)
+        addLog(LOGTYPE_WARNING, 'Quest state raised: %s', desc)
+        for line in tostring(err):gmatch('[^\n]+') do
+            addLog(LOGTYPE_WARNING, '%s', line)
+        end
+        return err
+    end
+
+    local ok, err = xpcall(func, onError, ...)
+    if ok then
+        return true
+    end
+
+    fallback(uid, args, err)
+    return false
+end
+
+-- wraps a state function with a fallback, fallback(uid, args, err) is called on the state runner if func raises:
+--
+--     a = stateWithFallback(function(uid, args)
+--         ...
+--         setQuestState{uid=uid, state='succeed'}
+--     end,
+--
+--     function(uid, args, err)
+--         setQuestState{uid=uid, state='fail'}
+--     end),
+--
+-- unlike the fallback argument of setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
+--
+-- a fallback entering the same state again should pause() first
+-- otherwise each try runs on top of the C stack of the last one, lua never raises "C stack overflow" for that, the process crashes
+function stateWithFallback(func, fallback)
+    assertType(func, 'function')
+    assertType(fallback, 'function')
+
+    return function(uid, args)
+        _RSVD_NAME_xpcallQuestState(string.format('uid %d', uid), fallback, uid, args, func, uid, args)
+    end
+end
+
 -- _RSVD_NAME_questStateRunners[uid][fsm] = key of the state runner, the thread running the state function of the current state
 -- keys come from rollKey(), which never repeats, an entry left by a state function that returned or raised closes nothing
 --
@@ -292,12 +347,15 @@ local function _RSVD_NAME_spawnQuestState(uid, fsm, func)
     runThread(key, func)
 end
 
--- switches {uid, fsm} to state, fargs: {uid, fsm, state, args, exitfunc, exitargs}
+-- switches {uid, fsm} to state, fargs: {uid, fsm, state, args, exitfunc, exitargs, fallback}
 --
 -- closes the old state runner, and runs the new state function on a new state runner
 -- called by the old state runner itself, it never returns, the old state runner ends right there
 -- called by any other thread, i.e. for another uid or another fsm, it returns as usual
 -- quest done, state SYS_DONE of SYS_QSTFSM, closes the state runners of all fsms of uid
+--
+-- fallback(uid, args, err) is called on the new state runner if the new state function raises
+-- it's not saved, a state restored at login or entered by server.quest.setState() has none, see stateWithFallback()
 --
 -- raises before it changes anything if called while a thread is being closed, i.e. in a <close> handler
 -- or by a state runner switching its own state where it can't end, i.e. from a coroutine created in it
@@ -307,6 +365,7 @@ function setQuestState(fargs)
     assertType(fargs.fsm, 'string', 'nil')
     assertType(fargs.state, 'string')
     assertType(fargs.exitfunc, 'function', 'string', 'nil')
+    assertType(fargs.fallback, 'function', 'nil')
 
     if type(fargs.exitfunc) == 'string' then
         assertType(fargs.exitargs, 'string', 'table', 'nil')
@@ -320,6 +379,10 @@ function setQuestState(fargs)
 
     if (not hasQuestState(fsm, state)) and (state ~= SYS_DONE) then
         fatalPrintf('Invalid arguments: fsm %s, state %s', fsm, state)
+    end
+
+    if (fargs.fallback ~= nil) and (not hasQuestState(fsm, state)) then
+        fatalPrintf('Invalid arguments: fallback given to fsm %s, state %s, which has no state function', fsm, state)
     end
 
     -- such a close can be in the middle of another setQuestState(), between closing the old state runner and starting the new one
@@ -379,7 +442,16 @@ function setQuestState(fargs)
 
     if hasQuestState(fsm, state) then
         _RSVD_NAME_spawnQuestState(uid, fsm, function()
-            _RSVD_NAME_enterQuestState(uid, fsm, state, fargs.args)
+            if fargs.fallback == nil then
+                _RSVD_NAME_enterQuestState(uid, fsm, state, fargs.args)
+            else
+                local desc = string.format('uid %d, fsm %s, state %s', uid, fsm, state)
+                if not _RSVD_NAME_xpcallQuestState(desc, fargs.fallback, uid, fargs.args, _RSVD_NAME_enterQuestState, uid, fsm, state, fargs.args) then
+                    -- fallback returned without switching state, skip exitfunc as a raise without fallback does
+                    return
+                end
+            end
+
             if type(fargs.exitfunc) == 'function' then
                 runQuestThread(fargs.exitfunc)
             elseif type(fargs.exitfunc) == 'string' then
