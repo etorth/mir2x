@@ -113,6 +113,8 @@ local _RSVD_NAME_guardScopeMetaTable =
 --
 -- the callback runs on a normal exit, on a break/return, and while an error unwinds,
 -- so it is the way to pair an acquire with its release without repeating the release on every exit path
+--
+-- in a server runner it also runs when the runner raises or gets closed, then it can't yield: no pause(), no uidRemoteCall()
 
 function guardScope(onExit)
     assertType(onExit, 'function')

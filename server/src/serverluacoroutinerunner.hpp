@@ -21,10 +21,15 @@ class LuaCoopResumer final
         void * const m_currRunner;
 
     private:
+        // keeps the calling lua thread alive till the coop ends, the thread can be closed while the coop is pending
+        // declared before m_callback, which refers to the thread, so it's destroyed after m_callback
+        sol::main_reference m_luaThread;
+
+    private:
         sol::function m_callback;
 
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function);
+        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function, sol::this_state);
 
     public:
         LuaCoopResumer(const LuaCoopResumer & );
@@ -170,6 +175,13 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             bool needNotify = false;
             std::deque<luaf::luaVar> notifyList; // sender called table.pack(...) before pushed into this list
 
+            // onStack       : thread has frames on the C stack, it can't be resumed, closing it only sets closeRequested
+            // closeRequested: asked to close while onStack, resumeRunner() closes it at its next yield
+            // closing       : lua_closethread() is running its <close> handlers
+            bool onStack = false;
+            bool closeRequested = false;
+            bool closing = false;
+
             LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
                 : key(argKey)
                 , seqID(argSeqID)
@@ -241,6 +253,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         LuaThreadHandle *m_currRunner = nullptr;
 
     private:
+        // the thread whose <close> handlers lua_closethread() is running, see closeLuaThread()
+        LuaThreadHandle *m_closingRunner = nullptr;
+
+    private:
         uint64_t m_seqID = 1;
         std::unordered_multimap<uint64_t, LuaThreadHandle> m_runnerList;
 
@@ -301,6 +317,18 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         bool resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
 
     private:
+        // closeLuaThread(): lua side only, runs the <close> handlers
+        // eraseRunner()   : C++ side only, takes the handle out of m_runnerList and runs its onClose callbacks
+        // closeRunner()   : both, or only sets closeRequested if the thread is onStack
+        int  closeLuaThread(LuaThreadHandle *);
+        void closeRunner   (LuaThreadHandle *);
+        void eraseRunner   (const std::pair<uint64_t, uint64_t> &);
+
+    private:
+        // nullptr if the lua code running on the given state can end m_currRunner by a yield, else why not
+        const char *selfCloseError(lua_State *) const;
+
+    private:
         static std::string concatCode(const std::string &code)
         {
             // exception thrown eventually feeds to FLTK
@@ -355,10 +383,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     const auto callDoneSg = stdf::guard([this](){ m_currRunner->needResume = true; });
 
                     if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb), LuaCoopState(s)), std::move(args))).resume();
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, s), LuaCoopState(s)), std::move(args))).resume();
                     }
                     else{
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb)), std::move(args))).resume();
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, s)), std::move(args))).resume();
                     }
                 };
             }(std::forward<Func>(func)));

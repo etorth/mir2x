@@ -28,11 +28,13 @@ LuaModule::LuaModule()
 
         -- maps a coroutine to its sandboxed globals
         --
-        -- keys are weak because a coroutine that errors or gets abandoned while suspended never runs the __close below
-        -- so its entry would otherwise stay forever, and because the key is the coroutine itself a strong reference would also keep the dead coroutine alive and unreclaimable
+        -- keys are weak because a coroutine can be dropped without ever running the __close below
+        -- i.e. one abandoned while suspended and never closed, or a server runner destroyed together with its actor
+        -- ServerLuaCoroutineRunner runs lua_closethread() on runners that raise or get closed, but runs no lua at actor teardown
+        -- its entry would otherwise stay forever, and because the key is the coroutine itself a strong reference would also keep the dead coroutine alive and unreclaimable
         --
         -- with weak keys the collector drops both once nothing else refers to the coroutine
-        -- __close stays as the prompt path that frees the entry as soon as the coroutine finishes
+        -- __close stays as the prompt path that frees the entry as soon as the coroutine finishes, raises, or gets closed
 
         local _RSVD_NAME_G_threadSandBox = setmetatable({}, {__mode = 'k'})
 

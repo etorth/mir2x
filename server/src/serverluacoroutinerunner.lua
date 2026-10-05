@@ -40,6 +40,41 @@ function pause(msec)
     return getTime() - oldTime
 end
 
+-- close thread {key, seqID}, or every thread under key if seqID is nil or 0, returns true if any thread is found
+-- a thread sitting in pause() is what a lua timer is, so this is how a timer gets cancelled
+--
+-- closing the calling thread itself never returns, the thread ends right there like exit()
+-- it raises, and closes nothing, if called from a coroutine created in the thread, or where the thread can't yield
+function closeThread(key, seqID)
+    assertType(key, 'integer')
+    assertType(seqID, 'integer', 'nil')
+
+    local found, selfClose = _RSVD_NAME_closeThread(key, seqID or 0)
+    if selfClose then
+        -- resumeRunner() closes this thread at this yield, the loop is only a guard
+        while true do
+            coroutine.yield()
+        end
+    end
+    return found
+end
+
+-- run func on a new thread under key right away, returns when the new thread yields the first time or ends
+-- never returns if the new thread closes the calling thread, i.e. switches the state of the calling quest state runner
+function runThread(key, func)
+    assertType(key, 'integer')
+    assertType(func, 'function')
+
+    local seqID, closed = _RSVD_NAME_runThread(key, func)
+    if closed then
+        -- resumeRunner() closes this thread at this yield, the loop is only a guard
+        while true do
+            coroutine.yield()
+        end
+    end
+    return key, seqID
+end
+
 function postNotify(addr, ...)
     assertType(addr, 'array')
 

@@ -1,5 +1,6 @@
 #include <memory>
 #include <iterator>
+#include <tuple>
 #include "stdf.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
@@ -13,9 +14,18 @@
 
 extern Server *g_server;
 
-LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback)
+LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback, sol::this_state s)
     : m_luaRunner(luaRunner)
     , m_currRunner(currRunner)
+    , m_luaThread([s]
+      {
+          lua_State * const L = s;
+          lua_pushthread(L);
+          sol::main_reference threadRef(L, -1);
+
+          lua_pop(L, 1);
+          return threadRef;
+      }())
     , m_callback(std::move(callback))
 {
     fflassert(m_luaRunner);
@@ -23,11 +33,17 @@ LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRu
 }
 
 LuaCoopResumer::LuaCoopResumer(const LuaCoopResumer & resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, resumer.m_callback)
+    : m_luaRunner(resumer.m_luaRunner)
+    , m_currRunner(resumer.m_currRunner)
+    , m_luaThread(resumer.m_luaThread)
+    , m_callback(resumer.m_callback)
 {}
 
 LuaCoopResumer::LuaCoopResumer(LuaCoopResumer && resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, std::move(resumer.m_callback))
+    : m_luaRunner(resumer.m_luaRunner)
+    , m_currRunner(resumer.m_currRunner)
+    , m_luaThread(std::move(resumer.m_luaThread))
+    , m_callback(std::move(resumer.m_callback))
 {}
 
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
@@ -115,41 +131,32 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return sol::as_table<std::array<uint64_t, 3>>({m_actorPod->UID(), m_currRunner->key, m_currRunner->seqID});
     });
 
-    // drop a thread started by runThread, by the {key, seqID} pair it returned
-    //
-    // a thread sitting in pause() is what a lua timer is, so this is how a timer gets
-    // cancelled. seqID 0 drops every thread under that key
-    bindFunction("closeThread", [this](uint64_t key, sol::variadic_args args)
+    // backend of closeThread() in serverluacoroutinerunner.lua, seqID 0 closes every thread under key
+    // selfClose: the calling thread is one of them, it only gets closeRequested, the lua wrapper yields to end it
+    bindFunction("_RSVD_NAME_closeThread", [this](uint64_t key, uint64_t seqID, sol::this_state s) -> std::tuple<bool, bool>
     {
-        const std::vector<sol::object> argList(args.begin(), args.end());
-        const auto seqID = [&argList]() -> uint64_t
-        {
-            switch(argList.size()){
-                case 0 : return 0;
-                case 1 : return argList[0].as<uint64_t>();
-                default: throw fflpanic("invalid argument count: {}", argList.size());
+        const bool selfClose = m_currRunner && m_currRunner->key == key && (seqID == 0 || m_currRunner->seqID == seqID);
+        if(selfClose){
+            if(const auto reason = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), reason);
             }
-        }();
-
-        // never let a thread take itself down here, close() would free the frame we are
-        // still running on, use the runner's own exit path for that
-        if(m_currRunner && m_currRunner->key == key && (seqID == 0 || m_currRunner->seqID == seqID)){
-            throw fflpanic("thread {} closing itself, return from it instead", to_llu(key));
         }
 
-        if(hasKey(key, seqID)){
+        const bool found = hasKey(key, seqID);
+        if(found){
             close(key, seqID);
-            return true;
         }
-        return false;
+        return {found, selfClose};
     });
 
-    bindFunction("runThread", [this](uint64_t key, sol::function func)
+    // backend of runThread() in serverluacoroutinerunner.lua
+    // closed: the new thread asked to close the calling thread, i.e. switched its quest state, the lua wrapper yields to end it
+    bindFunction("_RSVD_NAME_runThread", [this](uint64_t key, sol::function func, sol::this_state s) -> std::tuple<uint64_t, bool>
     {
-        return spawn(key, func, [key, this](const sol::protected_function_result &pfr)
+        const auto [newKey, newSeqID] = spawn(key, func, [key, this](const sol::protected_function_result &pfr)
         {
             std::vector<std::string> error;
-            if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+            if(pfrCheck(pfr, [&error](const std::string &errLine){ error.push_back(errLine); })){
                 if(pfr.return_count() > 0){
                     // drop quest state function result
                 }
@@ -164,6 +171,35 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
             }
         });
+
+        // closing: the caller is a <close> handler of the calling thread, the ongoing close ends it
+        if(m_currRunner && m_currRunner->closeRequested && !m_currRunner->closing){
+            if(const auto reason = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closed during runThread() of thread {}:{}, but it can't end there, runThread() is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), to_llu(newKey), to_llu(newSeqID), reason);
+            }
+            return {newSeqID, true};
+        }
+        return {newSeqID, false};
+    });
+
+    // true while lua_closethread() runs <close> handlers, setQuestState() refuses to run in them
+    bindFunction("_RSVD_NAME_hasClosingThread", [this]() -> bool
+    {
+        return m_closingRunner != nullptr;
+    });
+
+    // lets setQuestState() check, before it changes anything, that the calling state runner can close itself at the end
+    bindFunction("_RSVD_NAME_selfCloseError", [this](sol::this_state s) -> sol::object
+    {
+        const sol::state_view sv(s);
+        if(!m_currRunner){
+            return sol::make_object(sv, "outside any thread");
+        }
+
+        if(const auto reason = selfCloseError(s.lua_state())){
+            return sol::make_object(sv, reason);
+        }
+        return sol::make_object(sv, sol::lua_nil);
     });
 
     bindCoop("_RSVD_NAME_remoteCall", [thisptr = this](this auto, LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args) -> corof::awaitable<>
@@ -190,17 +226,13 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         switch(mpk.type()){
             case AM_SDBUFFER:
                 {
-                    // TODO shall we check if s still valid ?
-                    // coroutine can be closed when the remote call is still in progress, tried looks still fine to access s
-
                     auto sdRCR = mpk.template deserialize<SDRemoteCallResult>();
                     if(sdRCR.error.empty()){
-                        std::vector<sol::object> resList;
-                        for(auto & var: sdRCR.varList){
-                            resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
-                        }
-
                         if(!closed){
+                            std::vector<sol::object> resList;
+                            for(auto & var: sdRCR.varList){
+                                resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
+                            }
                             onDone(SYS_EXECDONE, sol::as_args(resList));
                         }
                     }
@@ -448,6 +480,20 @@ std::vector<uint64_t> ServerLuaCoroutineRunner::getSeqID(uint64_t key, std::vect
 void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
 {
     if(auto p = hasKey(key, seqID)){
+        // the caller of resume() doesn't know the state of the thread, only a suspended thread can be resumed
+        //
+        //     onStack: the thread is running, or it has ended and its resumeRunner() is still calling its onDone
+        //              running : lua_resume() fails with "cannot resume non-suspended coroutine"
+        //              raised  : lua_resume() fails with "cannot resume dead coroutine"
+        //              finished: worse, its code runs again from the start
+        //                        sol2 pushes the thread function before each lua_resume(), and lua_resume() takes a finished thread with a function on it as a new one
+        //     closing: lua_closethread() is running its <close> handlers, it never continues
+        //
+        // in both cases the thread is not waiting for this resume, dropping it loses nothing
+        // resumeRunner() asserts both flags are false, so they must be filtered here
+        if(p->onStack || p->closing){
+            return;
+        }
         resumeRunner(p);
     }
     else{
@@ -470,19 +516,75 @@ ServerLuaCoroutineRunner::LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    auto eqr = m_runnerList.equal_range(key);
-    auto itr = eqr.first;
+    // closing runs lua and C++ code that can spawn, resume or close threads under the same key
+    // so work on a snapshot of seqIDs and look each thread up again, never keep an iterator of m_runnerList across a close
+    const auto seqIDList = seqID ? std::vector<uint64_t>{seqID} : getSeqID(key);
+    for(const auto id: seqIDList){
+        if(auto runnerPtr = hasKey(key, id)){
+            closeRunner(runnerPtr);
+        }
+    }
+}
 
-    while(itr != eqr.second){
-        if(seqID == 0){
-            itr = m_runnerList.erase(itr);
-        }
-        else if(seqID == itr->second.seqID){
-            m_runnerList.erase(itr);
+int ServerLuaCoroutineRunner::closeLuaThread(LuaThreadHandle *runnerPtr)
+{
+    // returns LUA_OK, or the status of the final error, which lua_closethread() leaves at index 1 of the thread's stack
+    fflassert(runnerPtr);
+    runnerPtr->closing = true;
+
+    const stdf::ValueKeeper keepCurrRunner(m_currRunner, runnerPtr);
+    const stdf::ValueKeeper keepClosingRunner(m_closingRunner, runnerPtr);
+    return lua_closethread(runnerPtr->runner.thread_state(), nullptr);
+}
+
+const char *ServerLuaCoroutineRunner::selfCloseError(lua_State *callerState) const
+{
+    fflassert(m_currRunner);
+
+    // a yield there goes back to the code that resumed the coroutine, not to resumeRunner()
+    if(callerState != m_currRunner->runner.thread_state()){
+        return "from a coroutine created in it";
+    }
+
+    if(!lua_isyieldable(callerState)){
+        return "where it can't yield";
+    }
+    return nullptr;
+}
+
+void ServerLuaCoroutineRunner::closeRunner(LuaThreadHandle *runnerPtr)
+{
+    fflassert(runnerPtr);
+    if(runnerPtr->closing){
+        return;
+    }
+
+    // a thread with frames on the C stack can't be reset now, resumeRunner() closes it at its next yield
+    if(runnerPtr->onStack){
+        runnerPtr->closeRequested = true;
+        return;
+    }
+
+    const auto kp = runnerPtr->keyPair();
+    if(const auto status = closeLuaThread(runnerPtr); status != LUA_OK){
+        const sol::protected_function_result errPfr(runnerPtr->runner.thread_state(), 1, 1, 1, static_cast<sol::call_status>(status));
+        g_server->addLog(LOGTYPE_WARNING, "Error in <close> handler while closing runner: key %llu, seqID %llu", to_llu(kp.first), to_llu(kp.second));
+        pfrCheck(errPfr, [](const std::string &s)
+        {
+            g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(s));
+        });
+    }
+    eraseRunner(kp);
+}
+
+void ServerLuaCoroutineRunner::eraseRunner(const std::pair<uint64_t, uint64_t> &kp)
+{
+    // extract() first, the dtor runs onClose callbacks, which can spawn, resume or close threads, m_runnerList must be consistent by then
+    const auto eqr = m_runnerList.equal_range(kp.first);
+    for(auto p = eqr.first; p != eqr.second; ++p){
+        if(p->second.seqID == kp.second){
+            const auto node = m_runnerList.extract(p);
             return;
-        }
-        else{
-            itr++;
         }
     }
 }
@@ -583,7 +685,15 @@ template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLua
 
     co_await LuaEvalAwaitable
     {
-        .ready = done, // eval done without suspension
+        // done is what doSpawn() returns, i.e. what resumeRunner() returns after the first resume of the thread
+        //
+        //     true : thread is gone without suspension: it finished, raised, or got closed at its first yield, see closeRequested
+        //            fnOnThreadDone has been called already, by onDone, or by onClose with SYS_EXECCLOSE
+        //            result/errors are set, don't suspend, handle stays empty, fnOnThreadDone had nothing to resume
+        //
+        //     false: thread has yielded and is still alive
+        //            suspend, fnOnThreadDone resumes this coroutine by handle once the thread is gone
+        .ready = done,
         .handle = std::addressof(handle),
     };
 
@@ -700,11 +810,17 @@ corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::eval(uint6
 
 bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::pair<std::string, luaf::luaVar>> codeOpt)
 {
-    // resume current runnerPtr
-    // this function can invalidate runnerPtr if it's done
+    // resumes the thread once
+    // returns true if the thread is gone: it finished, raised, or got closed at its yield, runnerPtr is invalid then
 
     fflassert(runnerPtr);
+
+    // a sol::coroutine converts to true only if it's new or its last call yielded, sol2 doesn't ask lua, see resume()
     fflassert(runnerPtr->callback);
+
+    // resume() filters both out, other callers only resume a suspended thread
+    fflassert(!runnerPtr->onStack, runnerPtr->keyPair());
+    fflassert(!runnerPtr->closing, runnerPtr->keyPair());
 
     // here sol2 can tell if coroutine return nothing vs return nil
     //
@@ -719,60 +835,123 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // this difference has been propogated to remote caller side by pfr serialization
     // this difference should be handled by caller side
 
-    const auto pfr = [&]()
+    // onDone is not expected to throw
+    // but if it does, the handle must still be erased to avoid leaking the LuaThreadHandle entry, then the exception is rethrown
+
+    const auto fnNotifyDone = [runnerPtr, this](const sol::protected_function_result &pfr) -> std::exception_ptr
     {
-        const stdf::ValueKeeper keep(m_currRunner, runnerPtr);
-        if(codeOpt.has_value()){
-            return runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second));
-        }
-        else{
-            return runnerPtr->callback();
-        }
-    }();
-
-    if(runnerPtr->callback){
-        return false;
-    }
-
-    // backup key and comletion handler
-    // runnerPtr->onDone can invalidate runnerPtr, althrough this is no encouraged
-
-    const auto kp = runnerPtr->keyPair();
-    const auto onDoneFunc = std::move(runnerPtr->onDone);
-
-    // onDoneFunc is not expected to throw
-    // but if it does, close(kp) below must still run to avoid leaking the LuaThreadHandle entry
-
-    std::exception_ptr onDoneExcept;
-    try{
-        if(onDoneFunc){
-            onDoneFunc(pfr);
-        }
-        else{
-            std::vector<std::string> error;
-            if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
-                if(pfr.return_count() > 0){
-                    g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
-                }
+        try{
+            if(const auto onDoneFunc = std::move(runnerPtr->onDone)){
+                // runnerPtr stays valid, the thread is onStack, closing it in onDone only sets closeRequested
+                onDoneFunc(pfr);
             }
             else{
-                if(error.empty()){
-                    error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+                std::vector<std::string> error;
+                if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+                    if(pfr.return_count() > 0){
+                        g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
+                    }
+                }
+                else{
+                    if(error.empty()){
+                        error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+                    }
+
+                    for(const auto &line: error){
+                        g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                    }
+                }
+            }
+        }
+        catch(...){
+            return std::current_exception();
+        }
+        return nullptr;
+    };
+
+    const auto kp = runnerPtr->keyPair();
+
+    bool yielded = false;
+    std::exception_ptr onDoneExcept;
+    {
+        // onStack covers the resume and the onDone call
+        // declared first in this scope so it's reset last, after pfr and errPfr have popped their values from the thread's stack
+        const stdf::ValueKeeper keepOnStack(runnerPtr->onStack, true);
+
+        auto pfr = [&]()
+        {
+            const stdf::ValueKeeper keepCurrRunner(m_currRunner, runnerPtr);
+            if(codeOpt.has_value()){
+                return runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second));
+            }
+            else{
+                return runnerPtr->callback();
+            }
+        }();
+
+        if(runnerPtr->callback){
+            yielded = true;
+        }
+        else if(pfr.valid()){
+            onDoneExcept = fnNotifyDone(pfr);
+        }
+        else{
+            // thread raised, its <close> handlers haven't run yet, run them before the owner gets the error
+            // sol2 has added the traceback to the error, so the handlers get the same error as the owner
+            lua_State * const co = runnerPtr->runner.thread_state();
+            const auto errStatus = pfr.status();
+
+            std::vector<std::string> errLines;
+            pfrCheck(pfr, [&errLines](const std::string &s){ errLines.push_back(s); });
+
+            // lua_closethread() resets the stack pfr refers to, without abandon() the pfr dtor would pop slots that no longer exist
+            pfr.abandon();
+
+            auto closeStatus = closeLuaThread(runnerPtr);
+            if(closeStatus == LUA_OK){
+                // lua_closethread() sees no error only if lua_resume() refused to run the thread, i.e. "C stack overflow"
+                // can't happen here, kept as a guard so the owner still gets the error
+                std::string errStr;
+                for(const auto &line: errLines){
+                    if(!errStr.empty()){
+                        errStr += '\n';
+                    }
+                    errStr += line;
                 }
 
-                for(const auto &line: error){
+                lua_pushlstring(co, errStr.data(), errStr.size());
+                closeStatus = static_cast<int>(errStatus);
+            }
+
+            // the final error at index 1, a <close> handler that raised replaces the original one, same as coroutine.close()
+            const sol::protected_function_result errPfr(co, 1, 1, 1, static_cast<sol::call_status>(closeStatus));
+
+            std::vector<std::string> finalErrLines;
+            pfrCheck(errPfr, [&finalErrLines](const std::string &s){ finalErrLines.push_back(s); });
+
+            if(finalErrLines != errLines){
+                g_server->addLog(LOGTYPE_WARNING, "Runner error replaced by error in <close> handler: key %llu, seqID %llu, original error:", to_llu(kp.first), to_llu(kp.second));
+                for(const auto &line: errLines){
                     g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                 }
             }
+
+            onDoneExcept = fnNotifyDone(errPfr);
         }
     }
-    catch(...){
-        onDoneExcept = std::current_exception();
+
+    if(yielded){
+        // asked to close while it ran, i.e. it closed itself, close it now that it's suspended
+        if(runnerPtr->closeRequested){
+            closeRunner(runnerPtr);
+            return true;
+        }
+        return false;
     }
 
-    close(kp);
+    eraseRunner(kp);
     if(onDoneExcept){
         std::rethrow_exception(onDoneExcept);
     }
-    return true; // return true when thread is done
+    return true;
 }
