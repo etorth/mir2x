@@ -229,50 +229,6 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
                 }
         }
     });
-
-    bindFunction("_RSVD_NAME_closeQuestState", [this](uint64_t uid, const char *fsm)
-    {
-        closeQuestState(uid, fsm, m_currRunner);
-    });
-}
-
-void Quest::LuaThreadRunner::closeQuestState(uint64_t uid, const char *fsm, const void *handle)
-{
-    fflassert(uidf::isPlayer(uid));
-    fflassert(str_haschar(fsm));
-
-    auto &fsmStateRunner = getQuest()->m_uidStateRunner[fsm];
-    auto p = fsmStateRunner.find(uid);
-
-    if(p == fsmStateRunner.end()){
-        return;
-    }
-
-    if(static_cast<const LuaThreadHandle *>(handle)->key == p->second){
-        // put current thread to delayed close state
-        // however it's not deleted now after this function
-        //
-        // we also don't have suspend mark for thread running state
-        // means before the delayed handler registered here is called, the thread can still be resumed
-        //
-        // to prevent this, lua code must put an infinite loop after this function call:
-        //
-        //     while true do
-        //         coroutine.yield()
-        //     end
-        //
-        // this prevents any possibility of resuming the thread after this function call
-
-        getQuest()->defer([threadKey = p->second, this]()
-        {
-            close(threadKey);
-        });
-    }
-    else{
-        close(p->second);
-    }
-
-    fsmStateRunner.erase(p);
 }
 
 Quest::Quest(const SDInitQuest &initQuest)

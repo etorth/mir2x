@@ -11,3 +11,11 @@ mir2x_add_unit_test(
     LIBS server_objs
     WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
 )
+
+# same working directory as luarunner
+mir2x_add_unit_test(
+    NAME queststate
+    SOURCES test_queststate.cpp
+    LIBS server_objs
+    WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
+)

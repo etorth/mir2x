@@ -8,14 +8,8 @@ class Quest final: public ServerObject
     private:
         class LuaThreadRunner: public ServerObject::LuaThreadRunner
         {
-            private:
-                using LuaThreadHandle = ServerObject::LuaThreadRunner::LuaThreadHandle;
-
             public:
                 LuaThreadRunner(Quest *);
-
-            protected:
-                void closeQuestState(uint64_t, const char *, const void *);
 
             public:
                 Quest *getQuest() const
@@ -30,11 +24,6 @@ class Quest final: public ServerObject
     private:
         const uint64_t m_mainScriptThreadKey = 1;
         /* */ uint64_t m_threadKey = m_mainScriptThreadKey + 1;
-
-    private:
-        // one player can only have one state runner
-        // one player runs multiple FSM state simultaneously doesn't make sense
-        std::unordered_map<std::string, std::unordered_map<uint64_t, uint64_t>> m_uidStateRunner;
 
     private:
         std::unique_ptr<ServerObject::LuaThreadRunner> m_luaRunner;

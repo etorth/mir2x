@@ -12,6 +12,8 @@
 --
 -- rollKey is unique per call, so the key alone identifies the thread and the seqID does not
 -- have to be carried around. from inside the thread use getKeyPair()
+--
+-- never returns if func switches the state of the calling state runner before its first yield, see runThread()
 function runQuestThread(func)
     assertType(func, 'function')
 
@@ -211,6 +213,94 @@ function hasQuestState(arg1, arg2)
     return true
 end
 
+-- _RSVD_NAME_questStateRunners[uid][fsm] = key of the state runner, the thread running the state function of the current state
+-- keys come from rollKey(), which never repeats, an entry left by a state function that returned or raised closes nothing
+--
+-- a file local, not a global: a global assigned in a lua thread only goes to the sandbox of that thread
+local _RSVD_NAME_questStateRunners = {}
+
+-- unregisters and closes the state runners of {uid, fsm}, or of all fsms of uid if fsm is nil
+-- the calling thread is not closed, its key is returned instead, the caller closes itself as its very last step
+local function _RSVD_NAME_closeQuestState(uid, fsm)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string', 'nil')
+
+    local fsmRunners = _RSVD_NAME_questStateRunners[uid]
+    if not fsmRunners then
+        return nil
+    end
+
+    -- unregister all before closing any, the <close> handlers of a closed state runner see it unregistered
+    local keys = {}
+    for runnerFSM, key in pairs(fsmRunners) do
+        if (fsm == nil) or (runnerFSM == fsm) then
+            table.insert(keys, key)
+            fsmRunners[runnerFSM] = nil
+        end
+    end
+
+    if tableEmpty(fsmRunners) then
+        _RSVD_NAME_questStateRunners[uid] = nil
+    end
+
+    local currKey = getThreadKey()
+    local selfKey = nil
+
+    for _, key in ipairs(keys) do
+        if key == currKey then
+            selfKey = key
+        else
+            closeThread(key)
+        end
+    end
+    return selfKey
+end
+
+-- true if the calling thread is the state runner of {uid, fsm}, or of any fsm of uid if fsm is nil
+local function _RSVD_NAME_isCallerQuestStateRunner(uid, fsm)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string', 'nil')
+
+    local fsmRunners = _RSVD_NAME_questStateRunners[uid]
+    if not fsmRunners then
+        return false
+    end
+
+    local currKey = getThreadKey()
+    for runnerFSM, key in pairs(fsmRunners) do
+        if ((fsm == nil) or (runnerFSM == fsm)) and (key == currKey) then
+            return true
+        end
+    end
+    return false
+end
+
+-- runs func on a new thread, registered as the state runner of {uid, fsm}
+local function _RSVD_NAME_spawnQuestState(uid, fsm, func)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+    assertType(func, 'function')
+
+    local key = rollKey()
+
+    -- register before runThread(), func can switch to the next state before runThread() returns, that switch has to find this thread
+    if not _RSVD_NAME_questStateRunners[uid] then
+        _RSVD_NAME_questStateRunners[uid] = {}
+    end
+    _RSVD_NAME_questStateRunners[uid][fsm] = key
+
+    runThread(key, func)
+end
+
+-- switches {uid, fsm} to state, fargs: {uid, fsm, state, args, exitfunc, exitargs}
+--
+-- closes the old state runner, and runs the new state function on a new state runner
+-- called by the old state runner itself, it never returns, the old state runner ends right there
+-- called by any other thread, i.e. for another uid or another fsm, it returns as usual
+-- quest done, state SYS_DONE of SYS_QSTFSM, closes the state runners of all fsms of uid
+--
+-- raises before it changes anything if called while a thread is being closed, i.e. in a <close> handler
+-- or by a state runner switching its own state where it can't end, i.e. from a coroutine created in it
 function setQuestState(fargs)
     assertType(fargs, 'table')
     assertType(fargs.uid, 'integer')
@@ -230,6 +320,27 @@ function setQuestState(fargs)
 
     if (not hasQuestState(fsm, state)) and (state ~= SYS_DONE) then
         fatalPrintf('Invalid arguments: fsm %s, state %s', fsm, state)
+    end
+
+    -- such a close can be in the middle of another setQuestState(), between closing the old state runner and starting the new one
+    -- a state switch in there would leave an orphan state runner, or undo a quest done
+    if _RSVD_NAME_hasClosingThread() then
+        fatalPrintf('setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid %d, fsm %s, state %s', uid, fsm, state)
+    end
+
+    -- quest done drops the states of all fsms, so it closes the state runners of all of them
+    local closeFSM = fsm
+    if (fsm == SYS_QSTFSM) and (state == SYS_DONE) then
+        closeFSM = nil
+    end
+
+    -- the caller closes itself at the end, check it can before anything changes
+    -- a failure at the end would leave the new state started and the caller going on
+    if _RSVD_NAME_isCallerQuestStateRunner(uid, closeFSM) then
+        local reason = _RSVD_NAME_selfCloseError()
+        if reason then
+            fatalPrintf('state runner %d switching its own state by setQuestState() %s: uid %d, fsm %s, state %s', getThreadKey(), reason, uid, fsm, state)
+        end
     end
 
     -- don't save team member list here
@@ -263,15 +374,11 @@ function setQuestState(fargs)
         _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_states', fsm, {state, fargs.args})
     end
 
-    -- if not called from another FSM state op
-    -- fsm name is nil
+    -- selfKey: the caller is one of the closed state runners, closing itself never returns, so it starts the new state runner first
+    local selfKey = _RSVD_NAME_closeQuestState(uid, closeFSM)
 
-    local currFSMName = _RSVD_NAME_currFSMName
-    assertType(currFSMName, 'string', 'nil')
-
-    _RSVD_NAME_closeQuestState(uid, fsm)
     if hasQuestState(fsm, state) then
-        runQuestThread(function()
+        _RSVD_NAME_spawnQuestState(uid, fsm, function()
             _RSVD_NAME_enterQuestState(uid, fsm, state, fargs.args)
             if type(fargs.exitfunc) == 'function' then
                 runQuestThread(fargs.exitfunc)
@@ -297,14 +404,23 @@ function setQuestState(fargs)
         end)
     end
 
-    -- drop current thread in C layer
-    -- next state will be executed in a new thread
-
-    if currFSMName == fsm then
-        while true do
-            coroutine.yield()
-        end
+    -- never returns, the old state runner ends right here
+    if selfKey then
+        closeThread(selfKey)
     end
+end
+
+-- restarts the saved state of {uid, fsm} when the player logs in, see _RSVD_NAME_setupQuests() in player.lua
+-- the quest keeps running while the player is offline, the old state runner can still be alive, it's closed first
+function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+    assertType(state, 'string')
+
+    _RSVD_NAME_closeQuestState(uid, fsm)
+    _RSVD_NAME_spawnQuestState(uid, fsm, function()
+        _RSVD_NAME_enterQuestState(uid, fsm, state, args)
+    end)
 end
 
 function dbGetQuestDesp(uid)
@@ -752,7 +868,6 @@ function _RSVD_NAME_enterQuestState(uid, fsm, state, args)
         fatalPrintf('Invalid quest: fsm %s, state %s', fsm, state)
     end
 
-    _RSVD_NAME_currFSMName = fsm
     _RSVD_NAME_questFSMTable[fsm][state](uid, args)
 end
 
