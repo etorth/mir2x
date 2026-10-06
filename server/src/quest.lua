@@ -320,10 +320,7 @@ function closeThread(key, seqID)
 end
 
 -- _RSVD_NAME_switchMarks[uid] = the mark of the state switch of uid that runs, from its first change till its new state runner starts
--- another switch of the uid in there would undo it, or be undone by it, it's refused:
---
---     a <close> handler of an old state runner, they run in the closes of the switch
---     a trigger or callback in the yields of quest done, which writes the done row after its remote calls
+-- another switch of the uid in there would undo it, or be undone by it, it's refused, i.e. in a <close> handler of an old state runner, they run in the closes of the switch
 local _RSVD_NAME_switchMarks = {}
 
 local _RSVD_NAME_switchMarkMeta = {}
@@ -936,6 +933,8 @@ end
 --
 -- from: a state, or an array of states, switches only if {uid, fsm} is in one of them now, else changes nothing and returns false
 -- give it when the caller checked the state before something that yields, i.e. a remote call, the state can move on meanwhile
+-- SYS_LUANIL stands for no state, the fsm isn't started: from = SYS_LUANIL starts a quest once, a second accept changes nothing
+-- every fsm of a quest done is SYS_DONE here, its row keeps the main fsm only
 --
 -- fallback(uid, args, err) is called on the new state runner if the new state function raises
 -- it's not saved, a state restored at login or entered by server.quest.setState() has none, see stateWithFallback()
@@ -970,9 +969,14 @@ function setQuestState(fargs)
         fatalPrintf('Invalid arguments: fallback given to fsm %s, state %s, which has no state function', fsm, state)
     end
 
-    -- checked before anything changes, nothing yields from here till the state is written, except the remote calls of quest done
+    -- checked before anything changes, nothing yields from here till the state is written
     if fargs.from ~= nil then
         local currState = dbGetQuestState(uid, fsm)
+        if (currState == nil) and (dbGetQuestState(uid, SYS_QSTFSM) == SYS_DONE) then
+            currState = SYS_DONE
+        end
+
+        currState = currState or SYS_LUANIL
         local matched = false
 
         for _, fromState in ipairs((type(fargs.from) == 'table') and fargs.from or {fargs.from}) do
@@ -986,7 +990,7 @@ function setQuestState(fargs)
     end
 
     if _RSVD_NAME_switchMarks[uid] then
-        fatalPrintf('setQuestState() is not allowed while another switch of uid %d runs, i.e. in a <close> handler of its old state runner, or in the yields of its quest done: fsm %s, state %s', uid, fsm, state)
+        fatalPrintf('setQuestState() is not allowed while another switch of uid %d runs, i.e. in a <close> handler of its old state runner: fsm %s, state %s', uid, fsm, state)
     end
 
     -- quest done drops the states of all fsms, so it closes the state runners of all of them

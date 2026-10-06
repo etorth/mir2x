@@ -1028,6 +1028,34 @@ namespace
         require(!f.alive("key_42_q") && f.isNil("afterSwitch_42") && f.alive("key_42_b") && f.inState(42, "SYS_QSTFSM", "'b'"), "state runner switching from its own state doesn't end");
     }
 
+    void testSetStateFromNotStarted()
+    {
+        // from = SYS_LUANIL: the fsm has no state, a quest start guarded against a second accept
+        QuestFixture f;
+        const auto isFalse = [&f](const std::string &name){ return f.get(name).is<bool>() && !f.isTrue(name); };
+
+        f.drive("TEST.start = setQuestState{uid=43, from=SYS_LUANIL, state='b'}");
+        require(f.isTrue("start") && f.alive("key_43_b") && f.inState(43, "SYS_QSTFSM", "'b'"), "switch from no state doesn't start a quest not started");
+        const auto keyB = f.key("key_43_b");
+
+        f.drive("TEST.again = setQuestState{uid=43, from=SYS_LUANIL, state='c'}");
+        require(isFalse("again") && f.runner.hasKey(keyB) && f.isNil("key_43_c") && f.inState(43, "SYS_QSTFSM", "'b'"), "switch from no state starts a quest again");
+
+        f.drive("TEST.subStart = setQuestState{uid=43, fsm='sub', from=SYS_LUANIL, state='s1'}");
+        require(f.isTrue("subStart") && f.alive("key_43_s1") && f.inState(43, "'sub'", "'s1'"), "switch from no state doesn't start an fsm without state in a quest started");
+
+        f.drive("TEST.fromList = setQuestState{uid=43, from={SYS_LUANIL, 'b'}, state='c'}");
+        require(f.isTrue("fromList") && f.alive("key_43_c") && f.inState(43, "SYS_QSTFSM", "'c'"), "switch from no state or a state doesn't switch from the state");
+
+        // quest done keeps the main fsm only, the others count as done too
+        f.drive(R"###(
+            setQuestState{uid=43, state=SYS_DONE}
+            TEST.mainAfterDone = setQuestState{uid=43, from=SYS_LUANIL, state='b'}
+            TEST.subAfterDone = setQuestState{uid=43, fsm='sub', from=SYS_LUANIL, state='s1'}
+        )###");
+        require(isFalse("mainAfterDone") && isFalse("subAfterDone") && f.inState(43, "SYS_QSTFSM", "SYS_DONE") && f.inState(43, "'sub'", "nil"), "switch from no state starts an fsm of a quest done");
+    }
+
     void testOldStateClosedFirst()
     {
         QuestFixture f;
@@ -1992,6 +2020,7 @@ namespace
         testFallbackCatchesRemoteError();
         testQuestRuntimeVar();
         testSetStateFrom();
+        testSetStateFromNotStarted();
         testOldStateClosedFirst();
         testSwitchCycleStops();
         testNoStateSwitchDuringQuestDone();
@@ -2052,7 +2081,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state or from no state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
