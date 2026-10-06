@@ -137,17 +137,20 @@ namespace
             dbSetQuestField(uid, 'fld_desp', despTable)
         end
 
+        -- TEST.lastFields_<uid>: the fields of the last write of several fields
         function _RSVD_NAME_dbSetQuestFields(uid, fields, replace)
             if replace or (TEST.db[uid] == nil) then
                 TEST.db[uid] = {}
             end
 
+            TEST['lastFields_' .. uid] = {}
             for field, value in pairs(fields) do
                 if value == SYS_LUANIL then
                     TEST.db[uid][field] = nil
                 else
                     TEST.db[uid][field] = copy(value)
                 end
+                TEST['lastFields_' .. uid][field] = true
             end
         end
 
@@ -1230,6 +1233,76 @@ namespace
         require(f.isTrue("undone90") && f.isTrue("back90"), "an undo puts its key into the pending table of a state that came after the write");
     }
 
+    void testContextCommitWithSwitch()
+    {
+        QuestFixture f;
+
+        // another thread switches: the state that ends commits its items with the new state, in one write
+        f.drive(R"###(
+            setQuestState{uid=91, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/k', {code = 'run'}) ]]}
+            TEST.pendingBefore91 = TEST.db[91].fld_context == nil
+            setQuestState{uid=91, state='b'}
+            TEST.commit91 = (TEST.db[91].fld_context['npc/m/k'].code == 'run') and (TEST.lastFields_91.fld_states == true) and (TEST.lastFields_91.fld_context == true)
+        )###");
+        require(f.isTrue("pendingBefore91"), "an install by the state runner is written before its switch");
+        require(f.isTrue("commit91") && f.inState(91, "SYS_QSTFSM", "'b'"), "a switch by another thread doesn't write the items of the state that ends with the new state");
+
+        // the state runner switches itself
+        f.drive(R"###(
+            setQuestState{uid=92, state='run', args=[[
+                local uid = ...
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k', {code = 'self'})
+                setQuestState{uid=uid, state='b'}
+            ]]}
+            TEST.commit92 = TEST.db[92].fld_context['npc/m/k'].code == 'self'
+        )###");
+        require(f.isTrue("commit92") && f.inState(92, "SYS_QSTFSM", "'b'"), "a switch by the state runner doesn't write its items with the new state");
+
+        // a switch of another fsm commits only its own items
+        f.drive(R"###(
+            setQuestState{uid=93, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/main', {code = 'main'}) ]]}
+            setQuestState{uid=93, fsm='sub', state='s1'}
+            TEST.sub93 = TEST.db[93].fld_context == nil
+            setQuestState{uid=93, state='b'}
+            TEST.main93 = TEST.db[93].fld_context['npc/m/main'].code == 'main'
+        )###");
+        require(f.isTrue("sub93") && f.isTrue("main93"), "a switch of one fsm commits the items of another");
+    }
+
+    void testQuestDoneWritesRowFirst()
+    {
+        QuestFixture f;
+
+        // an item type whose removal records what it saw
+        require(f.runner.execRawString(R"###(
+            _RSVD_NAME_questContext.types.test = {remove = function(uid, key, record)
+                TEST['removed_' .. uid] = (TEST['removed_' .. uid] or '') .. key .. '=' .. record.item.code .. ','
+                TEST['doneAtRemove_' .. uid] = dbGetQuestState(uid, SYS_QSTFSM) == SYS_DONE
+            end}
+        )###").valid(), "failed to add an item type");
+
+        f.drive(R"###(
+            setQuestState{uid=94, state='b'}
+            _RSVD_NAME_questContext.install(94, 'test/k', {type = 'test', code = 'a'})
+            TEST.db[94].fld_gridtriggers = {{'slowMap'}}
+        )###");
+
+        // the old grid trigger record makes quest done wait in loadBaseMap(), after its row and the removals of its items
+        const auto kp = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=94, state=SYS_DONE} TEST.done94 = true"));
+        require(f.runner.hasKeyPair(kp) && f.isNil("done94"), "quest done doesn't wait in its remote call");
+        require(f.inState(94, "SYS_QSTFSM", "SYS_DONE"), "quest done doesn't write its row before it removes items from the world");
+
+        f.drive("TEST.removed94 = (TEST.removed_94 == 'test/k=a,') and TEST.doneAtRemove_94 and (_RSVD_NAME_questContext.get(94, 'test/k') == nil) and (TEST.db[94].fld_context == nil)");
+        require(f.isTrue("removed94"), "quest done doesn't remove the items of the context after its row, or keeps them");
+
+        f.drive("local ok, err = pcall(_RSVD_NAME_questContext.install, 94, 'test/k2', {type = 'test', code = 'b'}) TEST.lateRaised94 = (not ok) and (string.find(err, 'its quest is done', 1, true) ~= nil)");
+        require(f.isTrue("lateRaised94"), "an install while quest done removes items doesn't raise");
+
+        require(f.runner.execRawString("TEST.mapLoaded = true").valid(), "failed to load the map");
+        f.runner.resume(kp);
+        require(!f.runner.hasKeyPair(kp) && f.isTrue("done94"), "quest done doesn't finish");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -1270,6 +1343,8 @@ namespace
         testContextCommit();
         testContextRollback();
         testContextUndo();
+        testContextCommitWithSwitch();
+        testQuestDoneWritesRowFirst();
     }
 }
 
@@ -1301,7 +1376,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, and the writers, owners, commit, rollback and undo of the quest context.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, and quest done writing its row first.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

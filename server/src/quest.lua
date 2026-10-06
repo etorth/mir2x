@@ -632,6 +632,19 @@ function _RSVD_NAME_questContext.rollback(uid, fsm)
     return changes
 end
 
+-- drops the context of uid at its quest done, returns its runtime records, what the world has to lose
+function _RSVD_NAME_questContext.drop(uid)
+    assertType(uid, 'integer')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    _RSVD_NAME_questContexts[uid] = nil
+    return context and context.runtime or {}
+end
+
+-- item type -> {remove = function(uid, key, record)}, how the world loses an item of the type
+-- remove() is called in a critical section, it starts a thread that removes the item and doesn't yield itself
+_RSVD_NAME_questContext.types = {}
+
 -- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
 --
 -- closes the old state runner, and runs the new state function on a new state runner
@@ -727,14 +740,30 @@ function setQuestState(fargs)
     -- a player can be in a team but still start a single-role quest alone
 
     if (fsm == SYS_QSTFSM) and (state == SYS_DONE) then
-        local npcBehaviors = dbGetQuestField(uid, 'fld_npcbehaviors')
-        if npcBehaviors then
-            for _, v in pairs(npcBehaviors) do
-                clearNPCQuestBehavior(v[1], v[2], uid)
+        -- the done row first, then the removals: a crash or a raise in them leaves a quest done, not a quest in its old state missing items
+        -- an install after the row raises, see _RSVD_NAME_questContext
+        local npcBehaviors = nil
+        local gridTriggers = nil
+
+        do
+            local section <close> = _RSVD_NAME_criticalSection()
+            npcBehaviors = dbGetQuestField(uid, 'fld_npcbehaviors')
+            gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
+
+            -- the row keeps fld_states only
+            _RSVD_NAME_dbSetQuestFields(uid, {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}, true)
+            _RSVD_NAME_questRuntimeVars[uid] = nil
+
+            -- each removal starts on a thread of its own, a close of this thread doesn't stop them
+            for key, record in pairs(_RSVD_NAME_questContext.drop(uid)) do
+                _RSVD_NAME_questContext.types[record.item.type].remove(uid, key, record)
             end
         end
 
-        local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
+        for _, v in pairs(npcBehaviors or {}) do
+            uidRemoteCall(getNPCharUID(v[1], v[2]), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
+        end
+
         if gridTriggers then
             local mapNameList = {}
             for _, v in pairs(gridTriggers) do
@@ -745,14 +774,17 @@ function setQuestState(fargs)
                 _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
             end
         end
-        -- the row keeps fld_states only, in one write
-        _RSVD_NAME_dbSetQuestFields(uid, {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}, true)
-        _RSVD_NAME_questRuntimeVars[uid] = nil
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
             setQuestDesp{uid=uid, fsm=fsm, ''}
         end
-        _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_states', fsm, {state, fargs.args})
+
+        -- the new state, and the items its state runner installed in the state that ends, in one write
+        local section <close> = _RSVD_NAME_criticalSection()
+        local states = dbGetQuestField(uid, 'fld_states') or {}
+
+        states[fsm] = {state, fargs.args}
+        _RSVD_NAME_questContext.commit(uid, fsm, {fld_states = states})
     end
 
     -- selfKey: the caller is one of the closed state runners, it closes itself last
