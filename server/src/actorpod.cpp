@@ -99,8 +99,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                 },
             },
 
-            p->second);
-            m_respondCBList.erase(p);
+            m_respondCBList.extract(p).mapped());
         }
         else{
             throw fflpanic("{} <- {}: no corresponding coroutine exists", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
