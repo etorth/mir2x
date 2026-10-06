@@ -397,6 +397,12 @@ namespace
                 end})
                 pause(SYS_POSINF)
             end,
+
+            -- runs the code given as args on the state runner
+            run = function(uid, args)
+                load(args)(uid)
+                pause(SYS_POSINF)
+            end,
         })
 
         setQuestFSMTable('sub',
@@ -420,6 +426,11 @@ namespace
                 local guard <close> = enter(uid, 's2')
                 setQuestState{uid=uid, state=SYS_DONE}
                 after(uid, 's2')
+            end,
+
+            run = function(uid, args)
+                load(args)(uid)
+                pause(SYS_POSINF)
             end,
         })
     )###";
@@ -1030,6 +1041,195 @@ namespace
         require(gridID.is<int>() && gridID.as<int>() == 77, "setupMapGridTrigger() doesn't return the id of the trigger");
     }
 
+    void testContextWriters()
+    {
+        QuestFixture f;
+
+        // a quest not started: runtime only
+        f.drive("_RSVD_NAME_questContext.install(80, 'npc/m/a', {code = 'none'})");
+        f.drive("TEST.ctx80 = (TEST.db[80] == nil) and (_RSVD_NAME_questContext.get(80, 'npc/m/a').item.code == 'none')");
+        require(f.isTrue("ctx80"), "an install for a quest not started isn't in runtime only");
+
+        // the state runner: runtime and pending, the database gets it when its fsm commits
+        f.drive(R"###(
+            setQuestState{uid=81, state='run', args=[[
+                local uid = ...
+                TEST.v81 = _RSVD_NAME_questContext.install(uid, 'npc/m/a', {code = 'runner'})
+            ]]}
+        )###");
+        f.drive("TEST.ctx81 = (TEST.db[81].fld_context == nil) and (_RSVD_NAME_questContext.get(81, 'npc/m/a').version == TEST.v81)");
+        require(f.isTrue("ctx81"), "an install by the state runner is written at once, or isn't in runtime");
+
+        f.drive("_RSVD_NAME_questContext.commit(81, SYS_QSTFSM, {}) TEST.ctx81 = TEST.db[81].fld_context['npc/m/a'].code == 'runner'");
+        require(f.isTrue("ctx81"), "the commit of the fsm of the state runner doesn't write its install");
+
+        // any other thread: runtime and committed at once
+        f.drive("setQuestState{uid=82, state='b'} _RSVD_NAME_questContext.install(82, 'npc/m/a', {code = 'through'})");
+        f.drive("TEST.ctx82 = (TEST.db[82].fld_context['npc/m/a'].code == 'through') and (_RSVD_NAME_questContext.get(82, 'npc/m/a') ~= nil)");
+        require(f.isTrue("ctx82"), "an install by another thread isn't written at once");
+
+        f.drive("_RSVD_NAME_questContext.remove(82, 'npc/m/a') TEST.ctx82 = (TEST.db[82].fld_context == nil) and (_RSVD_NAME_questContext.get(82, 'npc/m/a') == nil)");
+        require(f.isTrue("ctx82"), "a remove by another thread isn't written at once");
+
+        // a quest done: an install raises, a remove changes nothing
+        f.drive(R"###(
+            setQuestState{uid=83, state=SYS_DONE}
+            local ok, err = pcall(_RSVD_NAME_questContext.install, 83, 'npc/m/a', {code = 'late'})
+            TEST.ctx83 = (not ok) and (string.find(err, 'its quest is done', 1, true) ~= nil)
+                and (select('#', _RSVD_NAME_questContext.remove(83, 'npc/m/a')) == 0)
+                and (TEST.db[83].fld_context == nil) and (_RSVD_NAME_questContext.get(83, 'npc/m/a') == nil)
+        )###");
+        require(f.isTrue("ctx83"), "an install into a quest done doesn't raise, or a remove changes something");
+    }
+
+    void testContextOwner()
+    {
+        QuestFixture f;
+
+        // the last writer owns a key: the runner of sub takes it from the pending keys of the main fsm, with a warning
+        CoutCapture capture;
+        f.drive(R"###(
+            setQuestState{uid=84, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/k', {code = 'main'}) ]]}
+            setQuestState{uid=84, fsm='sub', state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/k', {code = 'sub'}) ]]}
+
+            _RSVD_NAME_questContext.commit(84, SYS_QSTFSM, {})
+            TEST.mainOwns84 = TEST.db[84].fld_context ~= nil
+
+            _RSVD_NAME_questContext.commit(84, 'sub', {})
+            TEST.subOwns84 = TEST.db[84].fld_context['npc/m/k'].code == 'sub'
+        )###");
+
+        require(!f.isTrue("mainOwns84") && f.isTrue("subOwns84"), "a key written by the runner of another fsm stays pending in the first fsm");
+        require(capture.has("Quest context npc/m/k of uid 84 is pending in fsm ") && capture.has(", written by the state runner of fsm sub"), "a key pending in one fsm and written by the runner of another isn't logged");
+
+        // a write by another thread takes the key too
+        f.drive(R"###(
+            setQuestState{uid=85, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/k', {code = 'main'}) ]]}
+            _RSVD_NAME_questContext.install(85, 'npc/m/k', {code = 'through'})
+            _RSVD_NAME_questContext.commit(85, SYS_QSTFSM, {})
+            TEST.ctx85 = TEST.db[85].fld_context['npc/m/k'].code == 'through'
+        )###");
+        require(f.isTrue("ctx85"), "the commit of an fsm overwrites a key another thread wrote after it");
+    }
+
+    void testContextCommit()
+    {
+        QuestFixture f;
+
+        // installs overwrite, removes delete, the fields are written with the items
+        f.drive(R"###(
+            setQuestState{uid=86, state='b'}
+            _RSVD_NAME_questContext.install(86, 'npc/m/k1', {code = 'old1'})
+            _RSVD_NAME_questContext.install(86, 'npc/m/k2', {code = 'old2'})
+
+            setQuestState{uid=86, state='run', args=[[
+                local uid = ...
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k1', {code = 'new1'})
+                _RSVD_NAME_questContext.remove(uid, 'npc/m/k2')
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k3', {code = 'new3'})
+            ]]}
+
+            _RSVD_NAME_questContext.commit(86, SYS_QSTFSM, {fld_states = {[SYS_QSTFSM] = {'c'}}})
+            local committed = TEST.db[86].fld_context
+            TEST.ctx86 = (committed['npc/m/k1'].code == 'new1') and (committed['npc/m/k2'] == nil) and (committed['npc/m/k3'].code == 'new3')
+                and (TEST.db[86].fld_states[SYS_QSTFSM][1] == 'c')
+
+            _RSVD_NAME_questContext.commit(86, SYS_QSTFSM, {fld_vars = {x = 1}})
+            TEST.ctx86again = (TEST.db[86].fld_vars.x == 1) and (TEST.db[86].fld_context['npc/m/k1'].code == 'new1')
+        )###");
+
+        require(f.isTrue("ctx86"), "a commit doesn't apply the pending installs and removes, or doesn't write the fields with them");
+        require(f.isTrue("ctx86again"), "a commit with nothing pending doesn't write its fields, or changes the committed items");
+    }
+
+    void testContextRollback()
+    {
+        QuestFixture f;
+
+        // the pending keys go back to their committed items, or away
+        f.drive(R"###(
+            setQuestState{uid=87, state='b'}
+            _RSVD_NAME_questContext.install(87, 'npc/m/k1', {code = 'old1'})
+            _RSVD_NAME_questContext.install(87, 'npc/m/k2', {code = 'old2'})
+
+            setQuestState{uid=87, state='run', args=[[
+                local uid = ...
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k1', {code = 'new1'})
+                _RSVD_NAME_questContext.remove(uid, 'npc/m/k2')
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k3', {code = 'new3'})
+            ]]}
+
+            local changes = _RSVD_NAME_questContext.rollback(87, SYS_QSTFSM)
+            local k1 = _RSVD_NAME_questContext.get(87, 'npc/m/k1')
+
+            TEST.ctx87 = (changes['npc/m/k1'].item.code == 'old1') and (changes['npc/m/k2'].item.code == 'old2') and (changes['npc/m/k3'].item == false)
+                and (k1.item.code == 'old1') and (k1.version == changes['npc/m/k1'].version)
+                and (_RSVD_NAME_questContext.get(87, 'npc/m/k2').item.code == 'old2') and (_RSVD_NAME_questContext.get(87, 'npc/m/k3') == nil)
+
+            _RSVD_NAME_questContext.commit(87, SYS_QSTFSM, {})
+            local committed = TEST.db[87].fld_context
+            TEST.ctx87commit = (committed['npc/m/k1'].code == 'old1') and (committed['npc/m/k2'].code == 'old2') and (committed['npc/m/k3'] == nil)
+                and (next(_RSVD_NAME_questContext.rollback(87, SYS_QSTFSM)) == nil)
+        )###");
+
+        require(f.isTrue("ctx87"), "a rollback doesn't put the pending keys back to their committed items, or doesn't return them");
+        require(f.isTrue("ctx87commit"), "a rollback leaves pending keys for a commit or a second rollback");
+    }
+
+    void testContextUndo()
+    {
+        QuestFixture f;
+
+        // an undo puts back what the write replaced, if no write of the key came after it
+        f.drive(R"###(
+            setQuestState{uid=88, state='b'}
+            local v1 = _RSVD_NAME_questContext.install(88, 'npc/m/k', {code = 'one'})
+            local v2, undo2 = _RSVD_NAME_questContext.install(88, 'npc/m/k', {code = 'two'})
+
+            local record = nil
+            TEST.undone88 = _RSVD_NAME_questContext.undo(88, 'npc/m/k', v2, undo2)
+            record = _RSVD_NAME_questContext.get(88, 'npc/m/k')
+            TEST.back88 = (record.item.code == 'one') and (record.version == v1) and (TEST.db[88].fld_context['npc/m/k'].code == 'one')
+
+            local v3, undo3 = _RSVD_NAME_questContext.install(88, 'npc/m/k', {code = 'three'})
+            _RSVD_NAME_questContext.install(88, 'npc/m/k', {code = 'four'})
+            TEST.stale88 = (not _RSVD_NAME_questContext.undo(88, 'npc/m/k', v3, undo3)) and (_RSVD_NAME_questContext.get(88, 'npc/m/k').item.code == 'four')
+        )###");
+
+        require(f.isTrue("undone88") && f.isTrue("back88"), "an undo of a write by another thread doesn't put back runtime and committed");
+        require(f.isTrue("stale88"), "an undo of a write followed by another one changes something");
+
+        // an undo by the state runner puts its pending key back
+        f.drive(R"###(
+            setQuestState{uid=89, state='run', args=[[
+                local uid = ...
+                _RSVD_NAME_questContext.install(uid, 'npc/m/k', {code = 'first'})
+                local v, undo = _RSVD_NAME_questContext.install(uid, 'npc/m/k', {code = 'second'})
+                TEST.undone89 = _RSVD_NAME_questContext.undo(uid, 'npc/m/k', v, undo)
+            ]]}
+
+            _RSVD_NAME_questContext.commit(89, SYS_QSTFSM, {})
+            TEST.back89 = TEST.db[89].fld_context['npc/m/k'].code == 'first'
+        )###");
+        require(f.isTrue("undone89") && f.isTrue("back89"), "an undo by the state runner doesn't put its pending key back");
+
+        // a pending table committed since the write is gone, an undo doesn't put the key into the pending table of the next state
+        f.drive(R"###(
+            setQuestState{uid=90, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/k', {code = 'pending'}) ]]}
+            local v, undo = _RSVD_NAME_questContext.install(90, 'npc/m/k', {code = 'through'})
+
+            _RSVD_NAME_questContext.commit(90, SYS_QSTFSM, {})
+            setQuestState{uid=90, state='run', args=[[ _RSVD_NAME_questContext.install(..., 'npc/m/other', {code = 'next'}) ]]}
+
+            TEST.undone90 = _RSVD_NAME_questContext.undo(90, 'npc/m/k', v, undo)
+            _RSVD_NAME_questContext.commit(90, SYS_QSTFSM, {})
+
+            local committed = TEST.db[90].fld_context
+            TEST.back90 = (committed['npc/m/k'] == nil) and (committed['npc/m/other'].code == 'next')
+        )###");
+        require(f.isTrue("undone90") && f.isTrue("back90"), "an undo puts its key into the pending table of a state that came after the write");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -1065,6 +1265,11 @@ namespace
         testClosedDuringSwitch();
         testCloseHandlerSwitchesOtherUID();
         testMapGridTriggerQuest();
+        testContextWriters();
+        testContextOwner();
+        testContextCommit();
+        testContextRollback();
+        testContextUndo();
     }
 }
 
@@ -1096,7 +1301,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, and setupMapGridTrigger() installs a trigger of its quest.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, and the writers, owners, commit, rollback and undo of the quest context.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

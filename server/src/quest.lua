@@ -415,6 +415,223 @@ local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
     end
 end
 
+-- the quest context, the world changes a quest made for each player, item by item
+--
+-- an item is one world change under a key, npc/<map>/<npc> for an NPC behavior, grid/<name> for a per-player grid trigger
+-- it holds what installs it again, i.e. {type = 'npc', map = ..., npc = ..., argstr = ..., code = ..., hash = ...}
+-- a key of a player has three layers:
+--
+--     committed    fld_context in the database, key -> item, what the first login after a restart installs again
+--     pending[F]   key -> record installed by the state runner of fsm F, or false for a key it removed
+--                  the next switch of F commits it, it's rolled back when the state of F raises or is replayed
+--     runtime      key -> record installed in the world now
+--
+-- a record is {item = item, version = version}, every write of a key gets a new version, a reply or a notice about an older one is stale
+--
+-- who writes decides where it goes:
+--
+--     the quest isn't started     runtime only
+--     the quest is done           an install raises, a remove changes nothing
+--     the state runner of fsm F   runtime and pending[F]
+--     any other thread            runtime and committed, at once
+--
+-- a write takes the key out of the pending tables of the other fsms, the last writer owns a key
+--
+-- these functions only record and never yield, the caller runs them in a critical section and changes the world itself
+_RSVD_NAME_questContext = {}
+
+-- uid -> {runtime = {key -> record}, pending = {fsm -> {key -> record or false}}, versions = {key -> version of its last write}}
+local _RSVD_NAME_questContexts = {}
+local _RSVD_NAME_questContextVersion = 0
+
+local function _RSVD_NAME_getQuestContext(uid)
+    local context = _RSVD_NAME_questContexts[uid]
+    if not context then
+        context = {runtime = {}, pending = {}, versions = {}}
+        _RSVD_NAME_questContexts[uid] = context
+    end
+    return context
+end
+
+local function _RSVD_NAME_nextQuestContextVersion()
+    _RSVD_NAME_questContextVersion = _RSVD_NAME_questContextVersion + 1
+    return _RSVD_NAME_questContextVersion
+end
+
+local function _RSVD_NAME_dbSetQuestContext(uid, committed)
+    _RSVD_NAME_dbSetQuestFields(uid, {fld_context = (next(committed) == nil) and SYS_LUANIL or committed}, false)
+end
+
+-- the fsm the calling thread is the state runner of, nil for any other thread
+local function _RSVD_NAME_getCallerQuestStateFSM(uid)
+    local currKey = getThreadKey()
+    for fsm, key in pairs(_RSVD_NAME_questStateRunners[uid] or {}) do
+        if key == currKey then
+            return fsm
+        end
+    end
+end
+
+-- records a write of key by the calling thread, item, or false for a remove
+-- returns the version and what undoes it, nothing if nothing is recorded, i.e. a remove for a quest done
+local function _RSVD_NAME_writeQuestContext(uid, key, item)
+    assertType(uid, 'integer')
+    assertType(key, 'string')
+    assertType(item, 'table', 'boolean')
+
+    local state = dbGetQuestState(uid, SYS_QSTFSM)
+    if state == SYS_DONE then
+        if item then
+            fatalPrintf('Can not install %s for uid %d, its quest is done', key, uid)
+        end
+        return
+    end
+
+    local fsm = (state ~= nil) and _RSVD_NAME_getCallerQuestStateFSM(uid) or nil
+    local context = _RSVD_NAME_getQuestContext(uid)
+    local version = _RSVD_NAME_nextQuestContextVersion()
+    local undo = {version = context.versions[key], runtime = context.runtime[key], pending = {}}
+
+    for pendingFSM, pendingTable in pairs(context.pending) do
+        if (pendingFSM ~= fsm) and (pendingTable[key] ~= nil) then
+            if fsm then
+                addLog(LOGTYPE_WARNING, 'Quest context %s of uid %d is pending in fsm %s, written by the state runner of fsm %s', key, uid, pendingFSM, fsm)
+            end
+
+            table.insert(undo.pending, {fsm = pendingFSM, table = pendingTable, value = pendingTable[key]})
+            pendingTable[key] = nil
+        end
+    end
+
+    local record = item and {item = item, version = version} or nil
+    context.versions[key] = version
+    context.runtime[key] = record
+
+    if state == nil then
+        return version, undo
+    end
+
+    if fsm then
+        local pendingTable = context.pending[fsm]
+        if not pendingTable then
+            pendingTable = {}
+            context.pending[fsm] = pendingTable
+        end
+
+        table.insert(undo.pending, {fsm = fsm, table = pendingTable, value = pendingTable[key]})
+        pendingTable[key] = record or false
+    else
+        local committed = dbGetQuestField(uid, 'fld_context') or {}
+        undo.committed = {item = committed[key]}
+
+        committed[key] = item or nil
+        _RSVD_NAME_dbSetQuestContext(uid, committed)
+    end
+    return version, undo
+end
+
+function _RSVD_NAME_questContext.install(uid, key, item)
+    assertType(item, 'table')
+    return _RSVD_NAME_writeQuestContext(uid, key, item)
+end
+
+function _RSVD_NAME_questContext.remove(uid, key)
+    return _RSVD_NAME_writeQuestContext(uid, key, false)
+end
+
+-- the record of key installed in the world now, nil if none
+function _RSVD_NAME_questContext.get(uid, key)
+    assertType(uid, 'integer')
+    assertType(key, 'string')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    return context and context.runtime[key]
+end
+
+-- undoes the write of version if it's still the last write of key, i.e. the remote side refused it, returns true if undone
+-- a pending table committed or rolled back since is gone with its state, it isn't written back
+function _RSVD_NAME_questContext.undo(uid, key, version, undo)
+    assertType(uid, 'integer')
+    assertType(key, 'string')
+    assertType(version, 'integer')
+    assertType(undo, 'table')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    if not (context and (context.versions[key] == version)) then
+        return false
+    end
+
+    context.versions[key] = undo.version
+    context.runtime[key] = undo.runtime
+
+    for _, entry in ipairs(undo.pending) do
+        if context.pending[entry.fsm] == entry.table then
+            entry.table[key] = entry.value
+        end
+    end
+
+    if undo.committed then
+        local committed = dbGetQuestField(uid, 'fld_context') or {}
+        committed[key] = undo.committed.item
+        _RSVD_NAME_dbSetQuestContext(uid, committed)
+    end
+    return true
+end
+
+-- a switch of fsm commits its pending keys: writes fields, i.e. the new state of fsm, and the committed items in one write
+function _RSVD_NAME_questContext.commit(uid, fsm, fields)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+    assertType(fields, 'table')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    local pendingTable = context and context.pending[fsm]
+
+    if pendingTable then
+        local committed = dbGetQuestField(uid, 'fld_context') or {}
+        for key, record in pairs(pendingTable) do
+            committed[key] = record and record.item or nil
+        end
+        fields.fld_context = (next(committed) == nil) and SYS_LUANIL or committed
+    end
+
+    if next(fields) ~= nil then
+        _RSVD_NAME_dbSetQuestFields(uid, fields, false)
+    end
+
+    if pendingTable then
+        context.pending[fsm] = nil
+    end
+end
+
+-- puts the pending keys of fsm back to their committed items, when the state of fsm raised or is replayed
+-- returns key -> {item = committed item or false, version = version}, what the world has to get back to
+function _RSVD_NAME_questContext.rollback(uid, fsm)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    local pendingTable = context and context.pending[fsm]
+
+    if not pendingTable then
+        return {}
+    end
+
+    context.pending[fsm] = nil
+    local committed = dbGetQuestField(uid, 'fld_context') or {}
+    local changes = {}
+
+    for key in pairs(pendingTable) do
+        local item = committed[key]
+        local version = _RSVD_NAME_nextQuestContextVersion()
+
+        context.versions[key] = version
+        context.runtime[key] = item and {item = item, version = version} or nil
+        changes[key] = {item = item or false, version = version}
+    end
+    return changes
+end
+
 -- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
 --
 -- closes the old state runner, and runs the new state function on a new state runner
