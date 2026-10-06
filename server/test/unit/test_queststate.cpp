@@ -266,6 +266,17 @@ namespace
                 end
             end),
 
+            r = stateWithFallback(function(uid, args)
+                local guard <close> = enter(uid, 'r')
+                uidRemoteCall(args, [[ return true ]])
+                after(uid, 'r')
+            end,
+
+            function(uid, args, err)
+                TEST['fallbackR_' .. uid] = err
+                setQuestState{uid=uid, state='failed'}
+            end),
+
             failed = function(uid, args)
                 local guard <close> = enter(uid, 'failed')
                 pause(SYS_POSINF)
@@ -675,6 +686,20 @@ namespace
         require(f.isNil("fb_28") && f.alive("key_28_failed") && f.isNil("after_28_n"), "fallback of setQuestState() is called after fallback of stateWithFallback() switched state");
     }
 
+    void testFallbackCatchesRemoteError()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+
+        // the remote code raised, _RSVD_NAME_remoteCall passes its error on as SYS_EXECERROR
+        require(f.runner.execRawString("_G['_RSVD_NAME_remoteCall' .. SYS_COOP] = function(uid, code, args, onDone) onDone(SYS_EXECERROR, 'remote side raised') end").valid(), "failed to stub remote call");
+        f.drive("setQuestState{uid=30, state='r', args=" + std::to_string(uidf::getQuestUID(2)) + "}");
+
+        require(f.strHas("fallbackR_30", "Remote call to QST_2 failed: remote side raised"), "fallback doesn't get the error raised by the remote code");
+        require(!f.alive("key_30_r") && f.isNil("after_30_r"), "state runner goes on after its remote call raised");
+        require(f.alive("key_30_failed") && f.inState(30, "SYS_QSTFSM", "'failed'"), "fallback doesn't switch state after a remote error");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -699,6 +724,7 @@ namespace
         testCloseHandlerSwitchBeforeFallback();
         testStateWithFallback();
         testFallbackNested();
+        testFallbackCatchesRemoteError();
     }
 }
 
@@ -730,7 +756,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, and fallback of setQuestState() and stateWithFallback().\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), and fallback of a remote error.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

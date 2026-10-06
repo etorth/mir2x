@@ -19,3 +19,11 @@ mir2x_add_unit_test(
     LIBS server_objs
     WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
 )
+
+# loads server/src/player.lua, same working directory as luarunner
+mir2x_add_unit_test(
+    NAME playerquest
+    SOURCES test_playerquest.cpp
+    LIBS server_objs
+    WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
+)

@@ -196,6 +196,7 @@ LuaModule::LuaModule()
     execString("SYS_EXECDONE   = %s", str_quoted(SYS_EXECDONE  ).c_str());
     execString("SYS_EXECCLOSE  = %s", str_quoted(SYS_EXECCLOSE ).c_str());
     execString("SYS_EXECBADUID = %s", str_quoted(SYS_EXECBADUID).c_str());
+    execString("SYS_EXECERROR  = %s", str_quoted(SYS_EXECERROR ).c_str());
 
     execString("SYS_FLAGVAL = %s", str_quoted(SYS_FLAGVAL).c_str());
 

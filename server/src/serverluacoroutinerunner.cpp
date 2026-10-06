@@ -237,14 +237,19 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                         }
                     }
                     else{
-                        // don't need to handle remote call error, peer side has reported the error
-                        // _RSVD_NAME_remoteCall always returns valid result from remote peer to lua layer if not throw
+                        // the remote code raised, the error goes back to the calling lua code as a lua error, see uidRemoteCall()
+                        // a throw here would leave the actor thread and stop the whole server
+                        //
+                        // logged here as well, the remote side doesn't log it, and the calling code may catch it
                         fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
                         g_server->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
                         for(const auto &line: sdRCR.error){
                             g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                         }
-                        throw fflpanic("lua call failed in {}", to_cstr(uidf::getUIDString(uid)));
+
+                        if(!closed){
+                            onDone(SYS_EXECERROR, str_join(sdRCR.error, "\n"));
+                        }
                     }
                     break;
                 }

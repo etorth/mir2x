@@ -238,6 +238,8 @@ function uidRemoteCall(uid, ...)
         return table.unpack(resList, 2, resList.n)
     elseif resType == SYS_EXECBADUID then
         fatalPrintf('Invalid uid: %d', uid)
+    elseif resType == SYS_EXECERROR then
+        fatalPrintf('Remote call to %s failed: %s', getUIDString(uid), resList[2])
     else
         fatalPrintf('Unknown error')
     end

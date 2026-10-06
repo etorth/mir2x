@@ -859,6 +859,60 @@ namespace
         require(!threadAlive(f, "weak"), "closed thread is never collected after its coop finished");
     }
 
+    void testRemoteCallError()
+    {
+        RunnerFixture f;
+        PendingCoop pending;
+        const std::string remoteError = "remote side raised\nstack traceback:\n\t[C]: in function 'error'";
+
+        // stands for _RSVD_NAME_remoteCall getting the reply of a remote call whose code raised
+        f.runner.bindCoop("_RSVD_NAME_remoteCall", [&pending, &remoteError](this auto, LuaCoopResumer onDone, uint64_t, std::string, sol::object) -> corof::awaitable<>
+        {
+            bool closed = false;
+            onDone.pushOnClose([&closed](){ closed = true; });
+
+            co_await pending;
+            if(closed){
+                co_return;
+            }
+
+            onDone.popOnClose();
+            onDone(SYS_EXECERROR, remoteError);
+        });
+
+        const auto remoteUID = std::to_string(uidf::getQuestUID(2));
+        f.runner.spawn(1140, std::string(R"###(
+            local ok, err = pcall(uidRemoteCall, )###") + remoteUID + R"###(, [[ error('remote side raised') ]])
+            TEST.caughtOK = ok
+            TEST.caughtErr = err
+        )###");
+
+        require(f.runner.hasKey(1140), "runner doesn't wait for its remote call");
+        pending.reply();
+        require(!f.runner.hasKey(1140), "runner doesn't finish after catching a remote error");
+        require(f.get("caughtOK").is<bool>() && !f.isTrue("caughtOK"), "remote error doesn't raise in the calling runner");
+
+        const auto caughtErr = f.get("caughtErr");
+        require(caughtErr.is<std::string>() && caughtErr.as<std::string>().find("Remote call to QST_2 failed: remote side raised\nstack traceback:") != std::string::npos, "remote error doesn't carry the error of the remote code");
+
+        int doneCount = 0;
+        std::string doneError;
+        f.runner.spawn(1141, std::string(R"###(
+            uidRemoteCall()###") + remoteUID + R"###(, [[ error('remote side raised') ]])
+            TEST.afterRemoteCall = true
+        )###", {}, [&](const sol::protected_function_result &pfr)
+        {
+            doneCount++;
+            if(!pfr.valid()){
+                doneError = errorString(pfr);
+            }
+        });
+
+        pending.reply();
+        require(!f.runner.hasKey(1141) && f.isNil("afterRemoteCall"), "runner goes on after an uncaught remote error");
+        require(doneCount == 1 && doneError.find("Remote call to QST_2 failed: remote side raised") != std::string::npos, "uncaught remote error doesn't reach onDone as the runner error");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -899,6 +953,7 @@ namespace
         testSelfClose();
         testSelfCloseWhereCanNotYield();
         testCloseWhileCoopPending();
+        testRemoteCallError();
         testTeardown();
     }
 }
@@ -931,7 +986,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

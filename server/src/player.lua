@@ -133,11 +133,20 @@ function getQuestState(questName, fsmName)
     end
 end
 
+-- logs a lua error of one quest, the caller goes on with the other quests
+local function logQuestError(msg, err)
+    addLog(LOGTYPE_WARNING, '%s', msg)
+    for line in tostring(err):gmatch('[^\n]+') do
+        addLog(LOGTYPE_WARNING, '%s', line)
+    end
+end
+
 function _RSVD_NAME_setupQuests()
     local questDespList = {}
     for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList') or {})
     do
-        uidRemoteCall(questUID, getUID(),
+        -- a quest failing its restore, i.e. a saved NPC behavior that doesn't load anymore, doesn't stop the other quests
+        local restored, restoreErr = pcall(uidRemoteCall, questUID, getUID(),
         [[
             local playerUID = ...
 
@@ -180,6 +189,10 @@ function _RSVD_NAME_setupQuests()
             end
         ]])
 
+        if not restored then
+            logQuestError(string.format('Quest %s failed to restore player %s', getUIDString(questUID), getUIDString(getUID())), restoreErr)
+        end
+
         local questName, questState, questDesp = uidRemoteCall(questUID, getUID(),
         [[
             local playerUID = ...
@@ -210,7 +223,8 @@ for triggerType = SYS_ON_BEGIN, (SYS_ON_END - 1)
 do
     addTrigger(triggerType, function(...)
         for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestTriggerList', triggerType)) do
-            uidRemoteCall(questUID, triggerType, getUID(), table.pack(...),
+            -- a quest failing its trigger doesn't stop the other quests, i.e. their cleanup on SYS_ON_OFFLINE
+            local ok, err = pcall(uidRemoteCall, questUID, triggerType, getUID(), table.pack(...),
             [[
                 -- run quest triggers
                 -- quest trigger and player triggers are designed to have identical parameters
@@ -218,6 +232,10 @@ do
                 local triggerType, playerUID, packedArgs = ...
                 _RSVD_NAME_trigger(triggerType, playerUID, table.unpack(packedArgs, 1, packedArgs.n))
             ]])
+
+            if not ok then
+                logQuestError(string.format('Quest %s failed to run trigger %d for player %s', getUIDString(questUID), triggerType, getUIDString(getUID())), err)
+            end
         end
     end)
 end
