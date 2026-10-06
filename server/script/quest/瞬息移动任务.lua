@@ -282,9 +282,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     -- @MapQuest_fly_check1, the whole path judged at once
+    -- the remote call above yields, the run can have ended meanwhile, i.e. by the clock
     if pathMatches(path) then
-        server.player.postString(uid, '（不知道为什么好像可以成功<t wrap="0">···</t>嘿嘿）')
-        setQuestState{uid = uid, state = 'quest_trial_passed'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'} then
+            server.player.postString(uid, '（不知道为什么好像可以成功<t wrap="0">···</t>嘿嘿）')
+        end
         return
     end
 
@@ -299,9 +301,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 end)
 
 local function abandonTrial(uid)
-    if dbGetQuestState(uid) == 'quest_in_trial' then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonTrial)

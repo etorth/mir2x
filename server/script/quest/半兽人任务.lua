@@ -35,8 +35,8 @@ local function setupSealedRoom(uid, discoverState)
             end
 
             server.player.postString(uid, '这间屋子被一道古怪的魔法锁住了，怎么也进不去<t wrap="0">···</t>')
-            if discoverState and (server.quest.getState(questUID, {uid=uid}) == discoverState) then
-                server.quest.setState(questUID, {uid=uid, state='quest_locked_room'})
+            if discoverState then
+                server.quest.setState(questUID, {uid=uid, from=discoverState, state='quest_locked_room'})
             end
             return false
         end

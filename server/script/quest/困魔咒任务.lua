@@ -255,15 +255,15 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
-    server.player.postString(uid, '(终于找到了困魔咒秘籍<t wrap="0">···</t>)')
-    setQuestState{uid = uid, state = 'quest_rooms_done'}
+    -- the remote call above yields, the run can have ended meanwhile, i.e. by a logout
+    if setQuestState{uid = uid, from = 'quest_in_rooms', state = 'quest_rooms_done'} then
+        server.player.postString(uid, '(终于找到了困魔咒秘籍<t wrap="0">···</t>)')
+    end
 end)
 
 -- logging out or dying in there loses the run, and the stones with it
 local function abandonRooms(uid)
-    if dbGetQuestState(uid) == 'quest_in_rooms' then
-        setQuestState{uid = uid, state = SYS_ENTER}
-    end
+    setQuestState{uid = uid, from = 'quest_in_rooms', state = SYS_ENTER}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonRooms)

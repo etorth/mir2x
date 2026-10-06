@@ -111,9 +111,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     local monsterName = getMonsterName(getMonsterID(monsterUID))
 
     if monsterName == markedMonster then
-        server.player.addItem(uid, bookName, 1)
-        server.player.postString(uid, '（嘿，终于通过了学习地狱火的测试。）')
-        setQuestState{uid = uid, state = 'quest_trial_passed'}
+        -- switch first, the book only goes with a pass that happened, not with one the clock beat
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'} then
+            server.player.addItem(uid, bookName, 1)
+            server.player.postString(uid, '（嘿，终于通过了学习地狱火的测试。）')
+        end
         return
     end
 
@@ -132,9 +134,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 end)
 
 local function abandonTrial(uid)
-    if dbGetQuestState(uid) == 'quest_in_trial' then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonTrial)

@@ -171,9 +171,7 @@ local function enterTrial(uid)
 end
 
 local function abandonTrial(uid)
-    if dbGetQuestState(uid) == 'quest_in_trial' then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonTrial)

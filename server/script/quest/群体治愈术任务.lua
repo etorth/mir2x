@@ -226,10 +226,14 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     local monsterName = getMonsterName(getMonsterID(monsterUID))
 
     -- massheal1, the one fouling the water
+    -- the remote call above yields, the run can have ended meanwhile, i.e. by a logout
+    -- switch first, the book only goes with a switch that happened
+    -- the book before the line, with no yield since the switch: a player going offline stays till this quest answers its SYS_ON_OFFLINE, which is after the book
     if monsterName == bossCentipede then
-        server.player.postString(uid, '(几乎都处理哟<t wrap="0">···</t>)')
-        server.player.addItem(uid, mijiName, 1)
-        setQuestState{uid = uid, state = 'quest_cave_done'}
+        if setQuestState{uid = uid, from = 'quest_in_cave', state = 'quest_cave_done'} then
+            server.player.addItem(uid, mijiName, 1)
+            server.player.postString(uid, '(几乎都处理哟<t wrap="0">···</t>)')
+        end
         return
     end
 
@@ -246,9 +250,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 end)
 
 local function abandonCave(uid)
-    if dbGetQuestState(uid) == 'quest_in_cave' then
-        setQuestState{uid = uid, state = 'quest_kill_boss'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_cave', state = 'quest_kill_boss'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonCave)

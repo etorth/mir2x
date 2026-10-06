@@ -109,9 +109,7 @@ end
 -- logging out, dying, or coming back after a restart that took the copy with it all count as
 -- walking out of the trial
 local function abandonTrial(uid)
-    if dbGetQuestState(uid) == 'quest_in_trial' then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonTrial)

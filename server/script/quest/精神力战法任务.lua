@@ -56,8 +56,10 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     if isMonster(monsterUID, '半兽战士') then
-        server.player.postString(uid, '（噢，终于通过了学习精神力战法的测试<t wrap="0">···</t>）')
-        setQuestState{uid = uid, state = 'quest_trial_passed'}
+        -- switch first, the line only goes with a pass that happened, not with one the clock beat
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'} then
+            server.player.postString(uid, '（噢，终于通过了学习精神力战法的测试<t wrap="0">···</t>）')
+        end
 
     elseif isMonster(monsterUID, '半兽人') then
         server.player.postString(uid, '（这么大的事情。半兽人没有了，还要再出现的<t wrap="0">···</t>）')
@@ -73,9 +75,7 @@ end)
 
 -- logging out or dying in there ends the attempt, the map copy goes with it
 local function abandonTrial(uid)
-    if dbGetQuestState(uid) == 'quest_in_trial' then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'}
 end
 
 -- and coming back finds no copy to come back to, a restart took it with it

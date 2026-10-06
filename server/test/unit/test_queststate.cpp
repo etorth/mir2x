@@ -277,6 +277,14 @@ namespace
                 setQuestState{uid=uid, state='failed'}
             end),
 
+            q = function(uid, args)
+                local guard <close> = enter(uid, 'q')
+                TEST['fromOther_' .. uid] = setQuestState{uid=uid, from='c', state='b'}
+                after(uid, 'q')
+                setQuestState{uid=uid, from='q', state='b'}
+                TEST['afterSwitch_' .. uid] = true
+            end,
+
             failed = function(uid, args)
                 local guard <close> = enter(uid, 'failed')
                 pause(SYS_POSINF)
@@ -716,6 +724,34 @@ namespace
         require(f.isTrue("rtDone"), "quest done doesn't drop the runtime vars of its uid only");
     }
 
+    void testSetStateFrom()
+    {
+        QuestFixture f;
+        const auto isFalse = [&f](const std::string &name){ return f.get(name).is<bool>() && !f.isTrue(name); };
+
+        f.drive("TEST.plain = setQuestState{uid=40, state='b'}");
+        require(f.isTrue("plain"), "switch by another thread doesn't return true");
+        const auto keyB = f.key("key_40_b");
+
+        f.drive("TEST.fromOther = setQuestState{uid=40, from='c', state='c'}");
+        require(isFalse("fromOther"), "switch from another state doesn't return false");
+        require(f.runner.hasKey(keyB) && f.isNil("key_40_c") && f.inState(40, "SYS_QSTFSM", "'b'"), "switch from another state changes something");
+
+        f.drive("TEST.fromList = setQuestState{uid=40, from={'a', 'b'}, state='c'}");
+        require(f.isTrue("fromList"), "switch from one of the given states doesn't return true");
+        require(!f.runner.hasKey(keyB) && f.alive("key_40_c") && f.inState(40, "SYS_QSTFSM", "'c'"), "switch from one of the given states doesn't switch");
+
+        f.drive("TEST.fromDone = setQuestState{uid=40, from='b', state=SYS_DONE}");
+        require(isFalse("fromDone") && f.alive("key_40_c") && f.inState(40, "SYS_QSTFSM", "'c'"), "quest done from another state changes something");
+
+        f.drive("TEST.fromNoState = setQuestState{uid=41, from='b', state='c'}");
+        require(isFalse("fromNoState") && f.isNil("key_41_c") && f.inState(41, "SYS_QSTFSM", "nil"), "switch of a quest not started changes something");
+
+        f.drive("setQuestState{uid=42, state='q'}");
+        require(isFalse("fromOther_42") && f.isTrue("after_42_q"), "state runner doesn't go on after its switch from another state returned false");
+        require(!f.alive("key_42_q") && f.isNil("afterSwitch_42") && f.alive("key_42_b") && f.inState(42, "SYS_QSTFSM", "'b'"), "state runner switching from its own state doesn't end");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -742,6 +778,7 @@ namespace
         testFallbackNested();
         testFallbackCatchesRemoteError();
         testQuestRuntimeVar();
+        testSetStateFrom();
     }
 }
 
@@ -773,7 +810,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, and runtime vars.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, and switch from a given state.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

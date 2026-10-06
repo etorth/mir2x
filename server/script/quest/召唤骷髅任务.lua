@@ -370,14 +370,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
-    setQuestState{uid = uid, state = 'quest_duel_beaten'}
+    setQuestState{uid = uid, from = 'quest_in_duel', state = 'quest_duel_beaten'}
 end)
 
 local function abandonTrial(uid)
-    local state = dbGetQuestState(uid)
-    if (state == 'quest_in_yard') or (state == 'quest_in_duel') or (state == 'quest_duel_beaten') then
-        setQuestState{uid = uid, state = 'quest_ready'}
-    end
+    setQuestState{uid = uid, from = {'quest_in_yard', 'quest_in_duel', 'quest_duel_beaten'}, state = 'quest_ready'}
 end
 
 addQuestTrigger(SYS_ON_ONLINE, abandonTrial)

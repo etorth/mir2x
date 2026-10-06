@@ -376,12 +376,15 @@ local function _RSVD_NAME_spawnQuestState(uid, fsm, func)
     runThread(key, func)
 end
 
--- switches {uid, fsm} to state, fargs: {uid, fsm, state, args, exitfunc, exitargs, fallback}
+-- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
 --
 -- closes the old state runner, and runs the new state function on a new state runner
 -- called by the old state runner itself, it never returns, the old state runner ends right there
--- called by any other thread, i.e. for another uid or another fsm, it returns as usual
+-- called by any other thread, i.e. for another uid or another fsm, it returns true
 -- quest done, state SYS_DONE of SYS_QSTFSM, closes the state runners of all fsms of uid
+--
+-- from: a state, or an array of states, switches only if {uid, fsm} is in one of them now, else changes nothing and returns false
+-- give it when the caller checked the state before something that yields, i.e. a remote call, the state can move on meanwhile
 --
 -- fallback(uid, args, err) is called on the new state runner if the new state function raises
 -- it's not saved, a state restored at login or entered by server.quest.setState() has none, see stateWithFallback()
@@ -392,6 +395,7 @@ function setQuestState(fargs)
     assertType(fargs, 'table')
     assertType(fargs.uid, 'integer')
     assertType(fargs.fsm, 'string', 'nil')
+    assertType(fargs.from, 'string', 'array', 'nil')
     assertType(fargs.state, 'string')
     assertType(fargs.exitfunc, 'function', 'string', 'nil')
     assertType(fargs.fallback, 'function', 'nil')
@@ -418,6 +422,21 @@ function setQuestState(fargs)
     -- a state switch in there would leave an orphan state runner, or undo a quest done
     if _RSVD_NAME_hasClosingThread() then
         fatalPrintf('setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid %d, fsm %s, state %s', uid, fsm, state)
+    end
+
+    -- checked before anything changes, nothing yields from here till the state is written, except the remote calls of quest done
+    if fargs.from ~= nil then
+        local currState = dbGetQuestState(uid, fsm)
+        local matched = false
+
+        for _, fromState in ipairs((type(fargs.from) == 'table') and fargs.from or {fargs.from}) do
+            assertType(fromState, 'string')
+            matched = matched or (fromState == currState)
+        end
+
+        if not matched then
+            return false
+        end
     end
 
     -- quest done drops the states of all fsms, so it closes the state runners of all of them
@@ -510,6 +529,7 @@ function setQuestState(fargs)
     if selfKey then
         closeThread(selfKey)
     end
+    return true
 end
 
 -- restarts the saved state of {uid, fsm} when the player logs in, see _RSVD_NAME_setupQuests() in player.lua
