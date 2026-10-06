@@ -111,8 +111,21 @@ namespace
             return 'queststate_test'
         end
 
+        local function copy(value)
+            if type(value) ~= 'table' then
+                return value
+            end
+
+            local result = {}
+            for k, v in pairs(value) do
+                result[k] = copy(v)
+            end
+            return result
+        end
+
+        -- a copy, as the real database returns a new table on every read, a table read before doesn't see later writes
         function dbGetQuestField(uid, field)
-            return (TEST.db[uid] or {})[field]
+            return copy((TEST.db[uid] or {})[field])
         end
 
         function dbSetQuestField(uid, field, value)
@@ -319,6 +332,24 @@ namespace
                 pause(SYS_POSINF)
             end,
 
+            -- restored first at login, they switch the other fsm, or do quest done, before they yield
+            rs = function(uid, args)
+                local guard <close> = enter(uid, 'rs')
+                setQuestState{uid=uid, fsm='sub', state='s1'}
+                pause(SYS_POSINF)
+            end,
+
+            rd = function(uid, args)
+                local guard <close> = enter(uid, 'rd')
+                setQuestState{uid=uid, state=SYS_DONE}
+            end,
+
+            rsd = function(uid, args)
+                local guard <close> = enter(uid, 'rsd')
+                setQuestState{uid=uid, fsm='sub', state=SYS_DONE}
+                pause(SYS_POSINF)
+            end,
+
             cyc = function(uid, args)
                 TEST['cycCount_' .. uid] = (TEST['cycCount_' .. uid] or 0) + 1
                 setQuestState{uid=uid, state='cyc'}
@@ -341,6 +372,12 @@ namespace
 
             s1 = function(uid, args)
                 local guard <close> = enter(uid, 's1')
+                TEST['s1Count_' .. uid] = (TEST['s1Count_' .. uid] or 0) + 1
+                pause(SYS_POSINF)
+            end,
+
+            s3 = function(uid, args)
+                local guard <close> = enter(uid, 's3')
                 pause(SYS_POSINF)
             end,
 
@@ -853,6 +890,29 @@ namespace
         require(f.alive("key_55_c") && f.inState(55, "SYS_QSTFSM", "'c'"), "quest done closed while it runs keeps refusing state switches");
     }
 
+    void testRestoreReadsEachFSM()
+    {
+        QuestFixture f;
+
+        // the db as a former run left it
+        f.drive("TEST.db[56] = {fld_states = {[SYS_QSTFSM] = {'b'}, sub = {'s1'}}} _RSVD_NAME_restoreQuestStates(56)");
+        require(f.alive("key_56_b") && f.alive("key_56_s1"), "restore doesn't start every fsm");
+
+        // main is restored first, its state function switches sub before it yields
+        f.drive("TEST.db[57] = {fld_states = {[SYS_QSTFSM] = {'rs'}, sub = {'s3'}}} _RSVD_NAME_restoreQuestStates(57)");
+        require(f.alive("key_57_rs") && f.alive("key_57_s1") && f.isNil("key_57_s3") && f.inState(57, "'sub'", "'s1'"), "restore overrides the switch of a state function restored before");
+
+        const auto s1Count = f.get("s1Count_57");
+        require(s1Count.is<int>() && s1Count.as<int>() == 1, "restore starts a fsm again that a state function restored before switched");
+
+        f.drive("TEST.db[58] = {fld_states = {[SYS_QSTFSM] = {'rd'}, sub = {'s3'}}} _RSVD_NAME_restoreQuestStates(58)");
+        require(f.isNil("key_58_s3") && f.inState(58, "SYS_QSTFSM", "SYS_DONE"), "restore goes on after a state function restored before did quest done");
+
+        // a switch to SYS_DONE starts no state runner, only the state read again tells
+        f.drive("TEST.db[59] = {fld_states = {[SYS_QSTFSM] = {'rsd'}, sub = {'s3'}}} _RSVD_NAME_restoreQuestStates(59)");
+        require(f.alive("key_59_rsd") && f.isNil("key_59_s3") && f.inState(59, "'sub'", "SYS_DONE"), "restore overrides a fsm a state function restored before set to SYS_DONE");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -883,6 +943,7 @@ namespace
         testOldStateClosedFirst();
         testSwitchCycleStops();
         testNoStateSwitchDuringQuestDone();
+        testRestoreReadsEachFSM();
     }
 }
 
@@ -914,7 +975,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, and no state switch or restore while quest done runs.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, and restore reads each fsm again.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

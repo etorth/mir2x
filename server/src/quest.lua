@@ -568,8 +568,9 @@ function setQuestState(fargs)
     return true
 end
 
--- restarts the saved state of {uid, fsm} when the player logs in, see _RSVD_NAME_setupQuests() in player.lua
+-- restarts the saved state of {uid, fsm} when the player logs in, see _RSVD_NAME_restoreQuestStates()
 -- the quest keeps running while the player is offline, the old state runner can still be alive, it's closed first
+-- returns false if quest done of uid runs, nothing is restored then
 function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
     assertType(uid, 'integer')
     assertType(fsm, 'string')
@@ -579,13 +580,66 @@ function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
     -- quest done closes all state runners of uid when it ends anyway
     if _RSVD_NAME_questDoneUIDs[uid] then
         addLog(LOGTYPE_WARNING, 'Quest done of uid %d runs, fsm %s is not restored', uid, fsm)
-        return
+        return false
     end
 
     _RSVD_NAME_closeQuestState(uid, fsm)
     _RSVD_NAME_spawnQuestState(uid, fsm, function()
         _RSVD_NAME_enterQuestState(uid, fsm, state, args)
     end)
+    return true
+end
+
+-- restarts the saved states of all fsms of uid when the player logs in, see _RSVD_NAME_setupQuests() in player.lua
+-- the main fsm first, then the others by name
+--
+-- a state function restored first can switch another fsm, or do quest done, before it yields
+-- so each fsm is read again right before its restore: one whose state runner changed since the loop began was switched, and has its new one already
+-- and nothing is restored after quest done
+function _RSVD_NAME_restoreQuestStates(uid)
+    assertType(uid, 'integer')
+
+    local states = _RSVD_NAME_dbGetQuestStateList(uid)
+    assertType(states, 'table', 'nil')
+
+    if not states then
+        return
+    end
+
+    assertType(states[SYS_QSTFSM], 'array')
+    assertType(states[SYS_QSTFSM][1], 'string')
+
+    local fsmList = {}
+    for fsm in pairs(states) do
+        table.insert(fsmList, fsm)
+    end
+
+    table.sort(fsmList, function(a, b)
+        if (a == SYS_QSTFSM) ~= (b == SYS_QSTFSM) then
+            return a == SYS_QSTFSM
+        end
+        return a < b
+    end)
+
+    local runnersAtStart = {}
+    for fsm, key in pairs(_RSVD_NAME_questStateRunners[uid] or {}) do
+        runnersAtStart[fsm] = key
+    end
+
+    for _, fsm in ipairs(fsmList) do
+        if dbGetQuestState(uid, SYS_QSTFSM) == SYS_DONE then
+            break
+        end
+
+        local state, args = dbGetQuestState(uid, fsm)
+        local key = (_RSVD_NAME_questStateRunners[uid] or {})[fsm]
+
+        if (state ~= nil) and (state ~= SYS_DONE) and (key == runnersAtStart[fsm]) then
+            if not _RSVD_NAME_restoreQuestState(uid, fsm, state, args) then
+                break
+            end
+        end
+    end
 end
 
 function dbGetQuestDesp(uid)

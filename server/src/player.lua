@@ -172,21 +172,7 @@ function _RSVD_NAME_setupQuests()
                 end
             end
 
-            local states = _RSVD_NAME_dbGetQuestStateList(playerUID)
-            assertType(states, 'table', 'nil')
-
-            if states then
-                assertType(states[SYS_QSTFSM], 'array')
-                assertType(states[SYS_QSTFSM][1], 'string')
-
-                if states[SYS_QSTFSM][1] ~= SYS_DONE then
-                    for k, v in pairs(states) do
-                        if v[1] ~= SYS_DONE then
-                            _RSVD_NAME_restoreQuestState(playerUID, k, v[1], v[2])
-                        end
-                    end
-                end
-            end
+            _RSVD_NAME_restoreQuestStates(playerUID)
         ]])
 
         if not restored then
