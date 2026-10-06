@@ -1046,6 +1046,8 @@ end
 -- consulted first, so the two compose: the quest installs EPUID to let its own player through
 -- and EPDEF to turn everybody else away
 --
+-- the trigger belongs to this quest, see addQuestGridTrigger() in servermap.lua
+--
 --     setupMapGridTrigger('沃玛神殿2层_D023', 371, 366,
 --     [[
 --         return getUID()
@@ -1074,11 +1076,11 @@ function setupMapGridTrigger(mapName, ...)
     local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
     args[args.n + 1] =
     [[
-        local rectList, code = ...
-        return addGridTrigger(rectList, load(code)(select(3, ...)))
+        local questName, rectList, code = ...
+        return addQuestGridTrigger(questName, rectList, load(code)(select(4, ...)))
     ]]
 
-    return assertType(uidRemoteCall(mapUID, rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
+    return assertType(uidRemoteCall(mapUID, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
 end
 
 function clearMapGridTrigger(mapName, triggerId)
@@ -1097,7 +1099,7 @@ function clearMapUIDGridTrigger(mapName, triggerId)
 
     local mapUID = loadBaseMap(mapName)
     if mapUID then
-        uidRemoteCall(mapUID, triggerId, [[ deleteUIDGridTrigger(...) ]])
+        uidRemoteCall(mapUID, triggerId, [[ deleteGridTrigger(...) ]])
     end
 end
 

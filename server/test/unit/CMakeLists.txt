@@ -27,3 +27,11 @@ mir2x_add_unit_test(
     LIBS server_objs
     WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
 )
+
+# loads server/src/servermap.lua, same working directory as luarunner
+mir2x_add_unit_test(
+    NAME gridtrigger
+    SOURCES test_gridtrigger.cpp
+    LIBS server_objs
+    WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
+)

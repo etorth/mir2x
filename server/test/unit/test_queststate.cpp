@@ -985,6 +985,38 @@ namespace
         require(f.alive("key_62_c") && f.inState(62, "SYS_QSTFSM", "'c'"), "state switch whose old state runner switched the caller isn't done");
     }
 
+    void testMapGridTriggerQuest()
+    {
+        QuestFixture f;
+
+        // the remote call runs its code right here, against a stub of the map side
+        require(f.runner.execRawString(R"###(
+            function loadBaseMap(mapName)
+                return 9001
+            end
+
+            _G['_RSVD_NAME_remoteCall' .. SYS_COOP] = function(uid, code, args, onDone)
+                onDone(SYS_EXECDONE, load(code)(table.unpack(args, 1, args.n)))
+            end
+
+            function addQuestGridTrigger(questName, rectList, handler)
+                TEST.gridQuest = questName
+                TEST.gridRect = (rectList[1][1] == 3) and (rectList[1][2] == 4)
+                TEST.gridHandler = type(handler) == 'function'
+                return 77
+            end
+        )###").valid(), "failed to stub the map side");
+
+        f.drive("TEST.gridID = setupMapGridTrigger('someMap', 3, 4, [[ return function(uid, x, y) return false end ]])");
+
+        const auto gridQuest = f.get("gridQuest");
+        require(gridQuest.is<std::string>() && gridQuest.as<std::string>() == "queststate_test", "setupMapGridTrigger() doesn't install the trigger as a trigger of its quest");
+        require(f.isTrue("gridRect") && f.isTrue("gridHandler"), "setupMapGridTrigger() doesn't pass the rect and the handler");
+
+        const auto gridID = f.get("gridID");
+        require(gridID.is<int>() && gridID.as<int>() == 77, "setupMapGridTrigger() doesn't return the id of the trigger");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -1019,6 +1051,7 @@ namespace
         testRestoreReadsEachFSM();
         testClosedDuringSwitch();
         testCloseHandlerSwitchesOtherUID();
+        testMapGridTriggerQuest();
     }
 }
 
@@ -1050,7 +1083,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, and a <close> handler switches another uid.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, and setupMapGridTrigger() installs a trigger of its quest.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
