@@ -43,9 +43,10 @@ end
 -- handlers follow the same event paths as an NPC: a SYS_EPDEF trigger is for everyone and a
 -- SYS_EPUID trigger for one player
 --
---     addGridTrigger()         SYS_EPDEF, installed by the map script, belongs to no quest
---     addQuestGridTrigger()    SYS_EPDEF, installed by a quest
---     addUIDGridTrigger()      SYS_EPUID, installed by a quest for one player
+--     addGridTrigger()                    SYS_EPDEF, installed by the map script, belongs to no quest
+--     addQuestGridTrigger()               SYS_EPDEF, installed by a quest
+--     addUIDGridTrigger()                 SYS_EPUID, installed by a quest for one player
+--     _RSVD_NAME_setUIDGridTrigger()      SYS_EPUID with a name, a quest installs it again by the name to replace it
 --
 -- every trigger records its type, its player and its quest, see getGridTriggerInfo()
 -- deleteGridTrigger() removes a trigger of any kind
@@ -56,10 +57,14 @@ end
 -- a SYS_EPUID handler returning exactly true retires its trigger
 
 -- gridTriggerId -> {type = SYS_EPDEF or SYS_EPUID, uid = the player of a SYS_EPUID trigger, quest = the quest that installed it, handler = handler}
+-- a named SYS_EPUID trigger has name, and version and questUID if its quest saves it, see _RSVD_NAME_setUIDGridTrigger()
 local _RSVD_NAME_gridTriggers = {}
 
 -- uid -> questName -> {gridTriggerId = true, ...}, the SYS_EPUID triggers of each player by quest
 local _RSVD_NAME_EPUID_questGridTriggers = {}
+
+-- uid -> questName -> name -> gridTriggerId, the SYS_EPUID triggers a quest named, see _RSVD_NAME_setUIDGridTrigger()
+local _RSVD_NAME_EPUID_namedGridTriggers = {}
 
 -- normalize the rect args shared by the add functions:
 --
@@ -148,6 +153,51 @@ function addUIDGridTrigger(uid, questName, ...)
     return gridTriggerId
 end
 
+-- installs the trigger name of quest questName for uid, or replaces it, in one call with no yield, the grid is never without it
+-- version and questUID come from the quest, a retire is reported to questUID with version, see _RSVD_NAME_runGridTrigger()
+-- a trigger the quest doesn't save, i.e. on a map copy, comes without them and is never reported
+function _RSVD_NAME_setUIDGridTrigger(uid, questName, name, version, questUID, ...)
+    assertType(name, 'string')
+    assertType(version, 'integer', 'nil')
+    assertType(questUID, 'integer', 'nil')
+
+    local oldTriggerId = ((_RSVD_NAME_EPUID_namedGridTriggers[uid] or {})[questName] or {})[name]
+    local gridTriggerId = addUIDGridTrigger(uid, questName, ...)
+
+    local record = _RSVD_NAME_gridTriggers[gridTriggerId]
+    record.name = name
+    record.version = version
+    record.questUID = questUID
+
+    if not _RSVD_NAME_EPUID_namedGridTriggers[uid] then
+        _RSVD_NAME_EPUID_namedGridTriggers[uid] = {}
+    end
+
+    if not _RSVD_NAME_EPUID_namedGridTriggers[uid][questName] then
+        _RSVD_NAME_EPUID_namedGridTriggers[uid][questName] = {}
+    end
+
+    _RSVD_NAME_EPUID_namedGridTriggers[uid][questName][name] = gridTriggerId
+    if oldTriggerId then
+        deleteGridTrigger(oldTriggerId)
+    end
+    return gridTriggerId
+end
+
+-- deletes the trigger name of quest questName for uid, if version is given only the copy of that version
+-- a delete of an old copy then never hits a newer one installed by the same name
+function _RSVD_NAME_deleteUIDGridTrigger(uid, questName, name, version)
+    assertType(uid, 'integer')
+    assertType(questName, 'string')
+    assertType(name, 'string')
+    assertType(version, 'integer', 'nil')
+
+    local gridTriggerId = ((_RSVD_NAME_EPUID_namedGridTriggers[uid] or {})[questName] or {})[name]
+    if gridTriggerId and ((version == nil) or (_RSVD_NAME_gridTriggers[gridTriggerId].version == version)) then
+        deleteGridTrigger(gridTriggerId)
+    end
+end
+
 -- remove a trigger of any kind, by the id its add function returned
 function deleteGridTrigger(gridTriggerId)
     assertType(gridTriggerId, 'integer')
@@ -168,6 +218,18 @@ function deleteGridTrigger(gridTriggerId)
             end
             if next(questTriggerList) == nil then
                 _RSVD_NAME_EPUID_questGridTriggers[record.uid] = nil
+            end
+        end
+
+        -- a replace installs the new trigger before it deletes the old one, the name stays with the new one
+        local namedList = _RSVD_NAME_EPUID_namedGridTriggers[record.uid]
+        if record.name and namedList and namedList[record.quest] and (namedList[record.quest][record.name] == gridTriggerId) then
+            namedList[record.quest][record.name] = nil
+            if next(namedList[record.quest]) == nil then
+                namedList[record.quest] = nil
+            end
+            if next(namedList) == nil then
+                _RSVD_NAME_EPUID_namedGridTriggers[record.uid] = nil
             end
         end
     end
@@ -193,13 +255,13 @@ function _RSVD_NAME_clearQuestUIDGridTrigger(uid, questName)
     end
 end
 
--- {type, uid, quest} of a trigger, see the add functions, nil if there is no such trigger
+-- {type, uid, quest, name, version} of a trigger, see the add functions, nil if there is no such trigger
 function getGridTriggerInfo(gridTriggerId)
     assertType(gridTriggerId, 'integer')
 
     local record = _RSVD_NAME_gridTriggers[gridTriggerId]
     if record then
-        return {type = record.type, uid = record.uid, quest = record.quest}
+        return {type = record.type, uid = record.uid, quest = record.quest, name = record.name, version = record.version}
     end
 end
 
@@ -265,6 +327,13 @@ function _RSVD_NAME_runGridTrigger(uid, x, y)
 
             elseif (record.type == SYS_EPUID) and (result == true) then
                 deleteGridTrigger(gridTriggerId)
+
+                -- the quest drops a notice whose version isn't its last write of the name, a replace made meanwhile wins
+                if record.version and record.questUID then
+                    runMapThread(function()
+                        uidRemoteCall(record.questUID, uid, record.name, record.version, [[ _RSVD_NAME_retireQuestGridTrigger(...) ]])
+                    end)
+                end
             end
         end
     end

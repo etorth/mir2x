@@ -73,7 +73,18 @@ namespace
     // stands for the C++ bindings of ServerMap::LuaThreadRunner that the grid triggers use
     // TEST.grids['x,y'] holds the trigger ids of a grid in install order, as MapGrid::triggerList does
     constexpr const char *mapBindings = R"###(
-        TEST = {grids = {}, rects = {}, ran = {}, switched = {}}
+        TEST = {grids = {}, rects = {}, ran = {}, switched = {}, notices = {}}
+
+        local lastKey = 5000
+        function rollKey()
+            lastKey = lastKey + 1
+            return lastKey
+        end
+
+        -- a retire notice to a quest, recorded instead of sent
+        function uidRemoteCall(uid, ...)
+            table.insert(TEST.notices, {uid = uid, args = table.pack(...)})
+        end
 
         local lastID = 0
         local function eachGrid(rectList, func)
@@ -372,6 +383,51 @@ namespace
         require(f.check("getGridTriggerInfo(TEST.raising) ~= nil"), "a raising trigger is deleted");
     }
 
+    void testNamed()
+    {
+        MapFixture f;
+        f.run(R"###(
+            TEST.first      = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 1, 7001, 10, 10, TEST.handler('first', false))
+            TEST.second     = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 2, 7001, 11, 10, TEST.handler('second', false))
+            TEST.other      = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'gate', 3, 7001, 10, 10, TEST.handler('other', false))
+            TEST.otherQuest = _RSVD_NAME_setUIDGridTrigger(7, 'questB', 'door', 4, 7002, 10, 10, TEST.handler('otherQuest', false))
+            TEST.otherUID   = _RSVD_NAME_setUIDGridTrigger(8, 'questA', 'door', 5, 7001, 10, 10, TEST.handler('otherUID', false))
+        )###");
+
+        require(f.check("(getGridTriggerInfo(TEST.first) == nil) and TEST.same(getGridTriggerIDList(11, 10), {TEST.second})"), "installing a name again doesn't replace the trigger of the name");
+        require(f.check("TEST.same(getGridTriggerIDList(10, 10), {TEST.other, TEST.otherQuest, TEST.otherUID})"), "a name replaces a trigger of another name, quest or player");
+        require(f.check("(getGridTriggerInfo(TEST.second).name == 'door') and (getGridTriggerInfo(TEST.second).version == 2)"), "a named trigger doesn't record its name and version");
+
+        // a delete by name with the version of an old copy leaves the newer one
+        f.run("_RSVD_NAME_deleteUIDGridTrigger(7, 'questA', 'door', 1)");
+        require(f.check("getGridTriggerInfo(TEST.second) ~= nil"), "a delete of an old version deletes the newer copy of the name");
+
+        f.run("_RSVD_NAME_deleteUIDGridTrigger(7, 'questA', 'door', 2) _RSVD_NAME_deleteUIDGridTrigger(7, 'questA', 'gate')");
+        require(f.check("(getGridTriggerInfo(TEST.second) == nil) and (getGridTriggerInfo(TEST.other) == nil) and TEST.same(getGridTriggerIDList(10, 10), {TEST.otherQuest, TEST.otherUID})"), "a delete by name doesn't delete its trigger, or deletes another one");
+
+        // the name is free again, and a per-quest clear removes named triggers too
+        f.run("TEST.again = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 6, 7001, 12, 10, TEST.handler('again', false)) _RSVD_NAME_clearQuestUIDGridTrigger(7, 'questA')");
+        require(f.check("(getGridTriggerInfo(TEST.again) == nil) and TEST.same(getGridTriggerIDList(12, 10), {})"), "a per-quest clear leaves a named trigger");
+    }
+
+    void testRetireNotice()
+    {
+        // a retire of a trigger the quest saves is reported with the player, the name and the version, one on a map copy isn't
+        MapFixture f;
+        f.run(R"###(
+            TEST.saved = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 5, 7001, 10, 10, TEST.handler('saved', true))
+            TEST.copy  = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'gate', nil, nil, 11, 10, TEST.handler('copy', true))
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+            _RSVD_NAME_runGridTrigger(7, 11, 10)
+        )###");
+
+        require(f.check("(getGridTriggerInfo(TEST.saved) == nil) and (getGridTriggerInfo(TEST.copy) == nil)"), "a named trigger returning true isn't retired");
+        require(f.check(R"###(
+            (#TEST.notices == 1) and (TEST.notices[1].uid == 7001) and (TEST.notices[1].args[1] == 7) and (TEST.notices[1].args[2] == 'door') and (TEST.notices[1].args[3] == 5)
+                and (string.find(TEST.notices[1].args[4], '_RSVD_NAME_retireQuestGridTrigger', 1, true) ~= nil)
+        )###"), "a retire isn't reported to its quest with the player, name and version, or a trigger the quest doesn't save is reported");
+    }
+
     void runTests()
     {
         testRegistration();
@@ -383,6 +439,8 @@ namespace
         testRetire();
         testLetThrough();
         testRaise();
+        testNamed();
+        testRetireNotice();
     }
 }
 
@@ -414,7 +472,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, per-quest clear, the door of a quest, several quests, snapshot, retire, let through, and a raising handler.\n");
+        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, per-quest clear, the door of a quest, several quests, snapshot, retire, let through, a raising handler, named triggers, and the retire notice.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
