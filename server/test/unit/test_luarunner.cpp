@@ -1,6 +1,8 @@
 #include <coroutine>
 #include <cstdio>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -68,13 +70,56 @@ namespace
             }
     };
 
+    // runs the timers of pause() and waitNotify() by hand, this test has no actor pool to run them
+    class ManualTimerRunner final: public ServerLuaCoroutineRunner
+    {
+        private:
+            uint64_t m_lastTimer = 0;
+
+        public:
+            std::map<uint64_t, std::function<void(bool)>> timers; // waiting to fire, by id
+            std::vector<std::function<void(bool)>> cancelled;    // cancelled, their call with false is still to come
+
+        public:
+            using ServerLuaCoroutineRunner::ServerLuaCoroutineRunner;
+            using ServerLuaCoroutineRunner::addNotify;
+
+        protected:
+            std::pair<uint64_t, uint64_t> addTimer(uint64_t, std::function<void(bool)> fnOnTimer) override
+            {
+                timers.emplace(++m_lastTimer, std::move(fnOnTimer));
+                return {m_lastTimer, m_lastTimer};
+            }
+
+            // as the delay driver does: a cancelled timer is called later with false, a fired one can't be cancelled anymore
+            void cancelTimer(const std::pair<uint64_t, uint64_t> &timer) override
+            {
+                if(auto p = timers.find(timer.first); p != timers.end()){
+                    cancelled.push_back(std::move(p->second));
+                    timers.erase(p);
+                }
+            }
+
+        public:
+            // takes the timer out as firing does, its call with true comes when the caller makes it
+            std::function<void(bool)> fire(uint64_t id)
+            {
+                const auto p = timers.find(id);
+                require(p != timers.end(), "timer is not waiting to fire");
+
+                auto fnOnTimer = std::move(p->second);
+                timers.erase(p);
+                return fnOnTimer;
+            }
+    };
+
     struct RunnerFixture
     {
         TestServerObject so;
 
         // the pod is never attached to an actor pool, and ~ActorPod() detaches from g_actorPool, which this test doesn't have
         // so the pod is left alive on purpose
-        ServerLuaCoroutineRunner runner{new ActorPod(&so)};
+        ManualTimerRunner runner{new ActorPod(&so)};
 
         RunnerFixture()
         {
@@ -913,6 +958,71 @@ namespace
         require(doneCount == 1 && doneError.find("Remote call to QST_2 failed: remote side raised") != std::string::npos, "uncaught remote error doesn't reach onDone as the runner error");
     }
 
+    void testWaitNotifyTimeout()
+    {
+        RunnerFixture f;
+
+        // a failed check leaves threads waiting on timers, close them while the runner can still cancel the timers by hand
+        // the base runner's teardown would cancel them by its own cancelTimer(), which needs an actor pool
+        const auto closeLeft = stdf::guard([&f]()
+        {
+            for(const auto key: {1150, 1151, 1152, 1153}){
+                f.runner.close(key);
+            }
+        });
+
+        require(f.runner.execRawString("TEST.msg1 = table.pack('first') TEST.msg2 = table.pack('second')").valid(), "failed to create notify messages");
+        const auto msg = [&f](const char *name){ return luaf::buildLuaVar(f.get(name)); };
+
+        f.runner.spawn(1150, std::string(R"###(
+            TEST.got = waitNotify(1000)
+            pause(500)
+            TEST.afterPause = true
+        )###"));
+
+        require(f.runner.timers.size() == 1, "waitNotify() with a timeout doesn't start a timer");
+        f.runner.addNotify(1150, 0, msg("msg1"));
+        require(f.isString("got", "first"), "notify doesn't end the wait");
+        require(f.runner.timers.size() == 1 && f.runner.cancelled.size() == 1, "notify doesn't cancel the timer of the wait");
+
+        for(const auto &fnOnTimer: std::exchange(f.runner.cancelled, {})){
+            fnOnTimer(false);
+        }
+        require(f.runner.hasKey(1150) && f.isNil("afterPause"), "cancelled timer of a wait ends the pause after it");
+
+        f.runner.fire(f.runner.timers.begin()->first)(true);
+        require(!f.runner.hasKey(1150) && f.isTrue("afterPause"), "pause doesn't end at its timer");
+
+        // the timer fires while a notify is on its way, its call comes after the notify, when the thread waits again
+        f.runner.spawn(1151, std::string(R"###(
+            TEST.first = waitNotify(1000)
+            TEST.second = waitNotify(1000)
+            TEST.afterSecond = true
+        )###"));
+
+        const auto stale = f.runner.fire(f.runner.timers.begin()->first);
+        f.runner.addNotify(1151, 0, msg("msg1"));
+        require(f.isString("first", "first") && f.runner.timers.size() == 1, "notify doesn't end the wait, or the thread doesn't wait again");
+
+        stale(true);
+        require(f.runner.hasKey(1151) && f.isNil("afterSecond"), "timer that fired before a notify ends the next wait");
+
+        f.runner.addNotify(1151, 0, msg("msg2"));
+        require(!f.runner.hasKey(1151) && f.isString("second", "second"), "notify doesn't end the next wait");
+
+        f.runner.spawn(1152, std::string("TEST.timedOut = select('#', waitNotify(1000)) == 0"));
+        f.runner.fire(f.runner.timers.begin()->first)(true);
+        require(!f.runner.hasKey(1152) && f.isTrue("timedOut"), "waitNotify() doesn't end at its timeout");
+
+        f.runner.spawn(1153, std::string("waitNotify(1000)"));
+        f.runner.close(1153);
+        require(!f.runner.hasKey(1153) && f.runner.timers.empty(), "closing a thread in waitNotify() doesn't cancel its timer");
+
+        for(const auto &fnOnTimer: std::exchange(f.runner.cancelled, {})){
+            fnOnTimer(false);
+        }
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -954,6 +1064,7 @@ namespace
         testSelfCloseWhereCanNotYield();
         testCloseWhileCoopPending();
         testRemoteCallError();
+        testWaitNotifyTimeout();
         testTeardown();
     }
 }
@@ -986,7 +1097,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

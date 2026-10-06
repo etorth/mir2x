@@ -175,6 +175,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             bool needNotify = false;
             std::deque<luaf::luaVar> notifyList; // sender called table.pack(...) before pushed into this list
 
+            // the timer of the timeout of the waitNotify() the thread waits in, see _RSVD_NAME_waitNotify
+            std::optional<std::pair<uint64_t, uint64_t>> notifyTimer;
+
             // onStack       : thread has frames on the C stack, it can't be resumed, closing it only sets closeRequested
             // closeRequested: asked to close while onStack, resumeRunner() closes it at its next yield
             // closing       : lua_closethread() is running its <close> handlers
@@ -313,8 +316,22 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             return hasKey(kp.first, kp.second);
         }
 
+    protected:
+        // queues a notify for thread {key, seqID}, and resumes the thread if it waits in waitNotify()
+        void addNotify(uint64_t, uint64_t, luaf::luaVar);
+
+    protected:
+        // timers of pause() and waitNotify(), fnOnTimer(timeout) is called once, with false if the timer got cancelled
+        // virtual so a test without an actor pool can run them by hand
+        virtual std::pair<uint64_t, uint64_t> addTimer(uint64_t, std::function<void(bool)>);
+        virtual void cancelTimer(const std::pair<uint64_t, uint64_t> &);
+
     private:
         bool resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
+
+    private:
+        // resumes a thread waiting in waitNotify(), for a notify or for its timeout, whichever comes first
+        void resumeNotifyWaiter(LuaThreadHandle *);
 
     private:
         // closeLuaThread(): lua side only, runs the <close> handlers

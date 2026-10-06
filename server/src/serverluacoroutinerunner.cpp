@@ -73,33 +73,14 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this](this auto, const ActorMsgPack &mpk) -> corof::awaitable<>
     {
         auto sdSN = mpk.deserialize<SDSendNotify>();
-        auto runnerPtr = thisptr->hasKey(sdSN.key, sdSN.seqID);
-
-        if(runnerPtr){
-            runnerPtr->notifyList.push_back(std::move(sdSN.varList));
+        if(mpk.seqID() && !sdSN.waitConsume){
+            thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
         }
 
-        if(mpk.seqID()){
-            if(sdSN.waitConsume){
-                if(runnerPtr && runnerPtr->needNotify){
-                    runnerPtr->needNotify = false;
-                    thisptr->resumeRunner(runnerPtr);
-                }
-                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
-            }
-            else{
-                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
-                if(runnerPtr && runnerPtr->needNotify){
-                    runnerPtr->needNotify = false;
-                    thisptr->resumeRunner(runnerPtr);
-                }
-            }
-        }
-        else{
-            if(runnerPtr && runnerPtr->needNotify){
-                runnerPtr->needNotify = false;
-                thisptr->resumeRunner(runnerPtr);
-            }
+        thisptr->addNotify(sdSN.key, sdSN.seqID, std::move(sdSN.varList));
+
+        if(mpk.seqID() && sdSN.waitConsume){
+            thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
         }
         return {};
     });
@@ -413,18 +394,22 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         m_currRunner->needNotify = true;
         if(timeout > 0){
             const auto kp = m_currRunner->keyPair();
-            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [kp, this](bool)
+            const auto timer = std::make_shared<std::pair<uint64_t, uint64_t>>();
+
+            // the timer can fire after a notify has ended the wait, its call can even come after the thread waits again
+            *timer = addTimer(timeout, [kp, timer, this](bool fired)
             {
-                if(auto runner = hasKeyPair(kp)){
-                    runner->onClose.pop();
-                    runner->needNotify = false;
-                    resumeRunner(runner);
+                if(fired){
+                    if(auto runnerPtr = hasKeyPair(kp); runnerPtr && runnerPtr->notifyTimer == *timer){
+                        resumeNotifyWaiter(runnerPtr);
+                    }
                 }
             });
 
-            m_currRunner->onClose.push([delayKey, this]()
+            m_currRunner->notifyTimer = *timer;
+            m_currRunner->onClose.push([timer = *timer, this]()
             {
-                m_actorPod->getSO()->cancelDelay(delayKey);
+                cancelTimer(timer);
             });
         }
         return sol::make_object(sol::state_view(s), sol::lua_nil);
@@ -438,7 +423,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     bindYielding("_RSVD_NAME_pauseYielding", [this](uint64_t msec)
     {
         const auto kp = m_currRunner->keyPair();
-        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [kp, this](bool timeout)
+        const auto timer = addTimer(msec, [kp, this](bool timeout)
         {
             if(timeout){
                 if(auto runnerPtr = hasKeyPair(kp)){
@@ -451,9 +436,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             }
         });
 
-        m_currRunner->onClose.push([delayKey, this]()
+        m_currRunner->onClose.push([timer, this]()
         {
-            m_actorPod->getSO()->cancelDelay(delayKey);
+            cancelTimer(timer);
         });
     });
 
@@ -529,6 +514,41 @@ void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
             closeRunner(runnerPtr);
         }
     }
+}
+
+void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, luaf::luaVar var)
+{
+    if(auto runnerPtr = hasKey(key, seqID)){
+        runnerPtr->notifyList.push_back(std::move(var));
+        if(runnerPtr->needNotify){
+            resumeNotifyWaiter(runnerPtr);
+        }
+    }
+}
+
+void ServerLuaCoroutineRunner::resumeNotifyWaiter(LuaThreadHandle *runnerPtr)
+{
+    fflassert(runnerPtr);
+    fflassert(runnerPtr->needNotify, runnerPtr->keyPair());
+
+    // the other one of the two must not resume the thread again
+    // the onClose entry of the timer is on top while the thread waits, nothing else runs on the thread to push one
+    runnerPtr->needNotify = false;
+    if(const auto timer = std::exchange(runnerPtr->notifyTimer, std::nullopt)){
+        cancelTimer(*timer);
+        runnerPtr->onClose.pop();
+    }
+    resumeRunner(runnerPtr);
+}
+
+std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::addTimer(uint64_t msec, std::function<void(bool)> fnOnTimer)
+{
+    return m_actorPod->getSO()->addDelay(msec, std::move(fnOnTimer));
+}
+
+void ServerLuaCoroutineRunner::cancelTimer(const std::pair<uint64_t, uint64_t> &timer)
+{
+    m_actorPod->getSO()->cancelDelay(timer);
 }
 
 int ServerLuaCoroutineRunner::closeLuaThread(LuaThreadHandle *runnerPtr)
