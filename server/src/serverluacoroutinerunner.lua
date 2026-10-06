@@ -25,6 +25,48 @@ function _RSVD_NAME_luaCoroutineRunner_funcMain(func)
     end
 end
 
+-- coroutine -> count of the critical sections it is in, see _RSVD_NAME_criticalSection()
+local _RSVD_NAME_criticalSections = setmetatable({}, {__mode = 'k'})
+
+local _RSVD_NAME_criticalSectionMeta = {}
+_RSVD_NAME_criticalSectionMeta.__index = _RSVD_NAME_criticalSectionMeta
+
+function _RSVD_NAME_criticalSectionMeta.__close(section)
+    local count = _RSVD_NAME_criticalSections[section.co] - 1
+    _RSVD_NAME_criticalSections[section.co] = (count > 0) and count or nil
+end
+
+-- marks a critical section of the calling coroutine, hold the result in a <close> variable, the section ends with its scope:
+--
+--     do
+--         local section <close> = _RSVD_NAME_criticalSection()
+--         ...  -- read, decide, record, no pause(), uidRemoteCall(), waitNotify() here
+--     end
+--
+-- other threads run only while a thread yields, a critical section is code no other thread can run into
+-- a yield of the coroutine inside one raises, a yield of a coroutine created inside it doesn't, that one returns to the section
+function _RSVD_NAME_criticalSection()
+    local co = coroutine.running()
+    _RSVD_NAME_criticalSections[co] = (_RSVD_NAME_criticalSections[co] or 0) + 1
+    return setmetatable({co = co}, _RSVD_NAME_criticalSectionMeta)
+end
+
+-- raises at the caller of the yielding function
+local function _RSVD_NAME_checkYield()
+    if _RSVD_NAME_criticalSections[coroutine.running()] then
+        error('yield in a critical section', 3)
+    end
+end
+
+-- lua code yields by coroutine.yield(), waitNotify() and the coop calls included, only pause() yields from C, it checks itself
+do
+    local yield = coroutine.yield
+    coroutine.yield = function(...)
+        _RSVD_NAME_checkYield()
+        return yield(...)
+    end
+end
+
 function pause(msec)
     if msec == SYS_POSINF then
         while true do
@@ -34,6 +76,7 @@ function pause(msec)
 
     assertType(msec, 'integer')
     assert(msec >= 0)
+    _RSVD_NAME_checkYield()
 
     local oldTime = getTime()
     _RSVD_NAME_pauseYielding(msec)

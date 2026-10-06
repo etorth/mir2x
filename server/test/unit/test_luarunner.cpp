@@ -1122,6 +1122,74 @@ namespace
         require(f.isTrue("sortRaised") && !f.runner.hasKey(1182) && !f.runner.hasKey(1183) && f.isNil("afterSortPause"), "closeThread() closing its caller where it can't end doesn't raise, or the caller doesn't end at its next yield");
     }
 
+    void testCriticalSection()
+    {
+        RunnerFixture f;
+
+        // a pause() that doesn't raise leaves the thread waiting on a timer, see testWaitNotifyTimeout()
+        const auto closeLeft = stdf::guard([&f]()
+        {
+            for(const auto key: {1190, 1191}){
+                f.runner.close(key);
+            }
+        });
+
+        // a yield inside a critical section raises, by coroutine.yield() or by pause(), which yields from C
+        // the sections count per coroutine and end with their scope, the raise ends them too
+        const auto kp = f.runner.spawn(1190, std::string(R"###(
+            local function raisesYield(func)
+                local ok, err = pcall(func)
+                return (not ok) and (string.find(err, 'yield in a critical section', 1, true) ~= nil)
+            end
+
+            TEST.yieldRaised = raisesYield(function()
+                local section <close> = _RSVD_NAME_criticalSection()
+                coroutine.yield()
+            end)
+
+            TEST.pauseRaised = raisesYield(function()
+                local section <close> = _RSVD_NAME_criticalSection()
+                pause(0)
+            end)
+
+            TEST.nestedRaised = raisesYield(function()
+                local section <close> = _RSVD_NAME_criticalSection()
+                do
+                    local inner <close> = _RSVD_NAME_criticalSection()
+                end
+                coroutine.yield()
+            end)
+
+            do
+                local section <close> = _RSVD_NAME_criticalSection()
+
+                local co = coroutine.wrap(function()
+                    coroutine.yield(7)
+                    return 8
+                end)
+                TEST.innerYield = (co() == 7) and (co() == 8)
+
+                runThread(1191, function()
+                    coroutine.yield()
+                end)
+                TEST.otherYield = true
+            end
+
+            coroutine.yield()
+            TEST.afterSections = true
+        )###"));
+
+        require(f.isTrue("yieldRaised"), "coroutine.yield() inside a critical section doesn't raise");
+        require(f.isTrue("pauseRaised"), "pause() inside a critical section doesn't raise");
+        require(f.isTrue("nestedRaised"), "a yield in a critical section after a nested one ended doesn't raise");
+        require(f.isTrue("innerYield"), "a coroutine created inside a critical section can't yield back to it");
+        require(f.isTrue("otherYield") && f.runner.hasKey(1191), "another thread started inside a critical section can't yield");
+        require(f.runner.hasKeyPair(kp) && f.isNil("afterSections"), "a yield after the critical sections ended raises");
+
+        f.runner.resume(kp);
+        require(f.isTrue("afterSections") && !f.runner.hasKeyPair(kp), "a thread doesn't go on after its critical sections ended");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -1167,6 +1235,7 @@ namespace
         testCloseThenRun();
         testNestingLimit();
         testClosedDuringCloseThread();
+        testCriticalSection();
         testTeardown();
     }
 }
@@ -1199,7 +1268,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), critical sections, and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
