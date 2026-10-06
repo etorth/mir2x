@@ -287,7 +287,7 @@ end
 -- unlike the fallback argument of setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
 --
 -- a fallback entering the same state again should pause() first
--- otherwise each try runs on top of the C stack of the last one, lua never raises "C stack overflow" for that, the process crashes
+-- otherwise each try runs on top of the C stack of the last one, and the tries end with an error after about 64 of them
 function stateWithFallback(func, fallback)
     assertType(func, 'function')
     assertType(fallback, 'function')
@@ -399,6 +399,7 @@ end
 --
 -- raises before it changes anything if called while a thread is being closed, i.e. in a <close> handler
 -- or by a state runner switching its own state where it can't end, i.e. from a coroutine created in it
+-- or if the new state runner would start on top of too many threads on the C stack, i.e. state switches in a cycle with no yield
 function setQuestState(fargs)
     assertType(fargs, 'table')
     assertType(fargs.uid, 'integer')
@@ -460,6 +461,12 @@ function setQuestState(fargs)
         if reason then
             fatalPrintf('state runner %d switching its own state by setQuestState() %s: uid %d, fsm %s, state %s', getThreadKey(), reason, uid, fsm, state)
         end
+    end
+
+    -- the start of the new state runner raises on top of too many threads on the C stack, i.e. state switches in a cycle with no yield
+    -- check it before anything changes, as for the self close above
+    if hasQuestState(fsm, state) then
+        _RSVD_NAME_checkThreadDepth()
     end
 
     -- don't save team member list here

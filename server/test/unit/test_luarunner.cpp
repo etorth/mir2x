@@ -1057,6 +1057,28 @@ namespace
         require(f.isTrue("wrapRaised") && f.runner.hasKey(1162) && !f.runner.hasKey(1163) && f.isNil("wrongStart"), "closeThreadThenRun() where the thread can't end doesn't raise, or changes something");
     }
 
+    void testNestingLimit()
+    {
+        RunnerFixture f;
+
+        // each runThread() runs the new thread on top of the calling one, the 64th one can't start one more
+        f.runner.spawn(1170, std::string(R"###(
+            local function nest(n)
+                TEST.levels = n
+                local ok, err = pcall(runThread, 6000 + n, function() nest(n + 1) end)
+                if not ok then
+                    TEST.nestErr = err
+                end
+                pause(SYS_POSINF)
+            end
+            nest(1)
+        )###"));
+
+        const auto nestErr = f.get("nestErr");
+        require(f.isInteger("levels", 64), "nested runThread() doesn't stop at 64 threads on the C stack");
+        require(nestErr.is<std::string>() && nestErr.as<std::string>().find("threads run on top of each other on the C stack") != std::string::npos, "nested runThread() over the limit doesn't raise");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -1100,6 +1122,7 @@ namespace
         testRemoteCallError();
         testWaitNotifyTimeout();
         testCloseThenRun();
+        testNestingLimit();
         testTeardown();
     }
 }
@@ -1132,7 +1155,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

@@ -264,6 +264,11 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         LuaThreadHandle *m_closingRunner = nullptr;
 
     private:
+        // threads running on top of each other on the C stack, each resumeRunner() counts one while it runs
+        // lua doesn't count them, sol2 resumes a thread with no "from" thread, too many of them overflow the C stack and crash the process
+        int m_threadDepth = 0;
+
+    private:
         uint64_t m_seqID = 1;
         std::unordered_multimap<uint64_t, LuaThreadHandle> m_runnerList;
 
@@ -340,6 +345,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
     private:
         // spawns func as runThread() in serverluacoroutinerunner.lua does, an error of the thread is only logged
         std::pair<uint64_t, uint64_t> runThread(uint64_t, const sol::function &);
+
+    private:
+        // raises if a thread started now would run on top of too many threads, see m_threadDepth
+        void checkThreadDepth() const;
 
     private:
         // closeLuaThread(): lua side only, runs the <close> handlers

@@ -311,6 +311,11 @@ namespace
                 pause(SYS_POSINF)
             end,
 
+            cyc = function(uid, args)
+                TEST['cycCount_' .. uid] = (TEST['cycCount_' .. uid] or 0) + 1
+                setQuestState{uid=uid, state='cyc'}
+            end,
+
             t3 = function(uid, args)
                 local guard <close> = enter(uid, 't3')
                 local order <close> = setmetatable({}, {__close = function()
@@ -790,6 +795,22 @@ namespace
         require(f.str("trace_51") == "exit t3,enter t2,", "new state function runs before the <close> handlers of the state runner closed by other thread");
     }
 
+    void testSwitchCycleStops()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=52, state='cyc'}");
+
+        // the driver thread is the first of the 64 threads on the C stack
+        const auto cycCount = f.get("cycCount_52");
+        require(cycCount.is<int>() && cycCount.as<int>() == 63, "state switches in a cycle with no yield don't stop at 64 threads on the C stack");
+        require(capture.has("threads run on top of each other on the C stack"), "state switch over the limit doesn't raise");
+        require(f.inState(52, "SYS_QSTFSM", "'cyc'"), "state switch over the limit changes the quest state");
+
+        f.drive("setQuestState{uid=52, state='c'}");
+        require(f.alive("key_52_c") && f.inState(52, "SYS_QSTFSM", "'c'"), "state change after a cycle of state switches stopped doesn't work");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -818,6 +839,7 @@ namespace
         testQuestRuntimeVar();
         testSetStateFrom();
         testOldStateClosedFirst();
+        testSwitchCycleStops();
     }
 }
 
@@ -849,7 +871,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, and old state closed before the new one starts.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, and state switches in a cycle with no yield stop.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

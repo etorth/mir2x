@@ -61,6 +61,7 @@ end
 
 -- run func on a new thread under key right away, returns when the new thread yields the first time or ends
 -- never returns if the new thread closes the calling thread, i.e. switches the state of the calling quest state runner
+-- raises if too many threads already run on top of each other on the C stack, i.e. state switches in a cycle with no yield
 function runThread(key, func)
     assertType(key, 'integer')
     assertType(func, 'function')

@@ -134,6 +134,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     // closed: the new thread asked to close the calling thread, i.e. switched its quest state, the lua wrapper yields to end it
     bindFunction("_RSVD_NAME_runThread", [this](uint64_t key, sol::function func, sol::this_state s) -> std::tuple<uint64_t, bool>
     {
+        checkThreadDepth();
         const auto [newKey, newSeqID] = runThread(key, func);
 
         // closing: the caller is a <close> handler of the calling thread, the ongoing close ends it
@@ -158,9 +159,18 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), reason);
         }
 
+        // func starts in the resumeRunner() of the calling thread, on top of the same threads as a runThread() here
+        checkThreadDepth();
+
         fflassert(!m_currRunner->afterClose, m_currRunner->keyPair());
         m_currRunner->afterClose = std::make_pair(key, std::move(func));
         closeRunner(m_currRunner);
+    });
+
+    // lets setQuestState() check, before it changes anything, that it can start the new state runner
+    bindFunction("_RSVD_NAME_checkThreadDepth", [this]()
+    {
+        checkThreadDepth();
     });
 
     // true while lua_closethread() runs <close> handlers, setQuestState() refuses to run in them
@@ -563,6 +573,15 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::runThread(uint64_t key, 
     });
 }
 
+void ServerLuaCoroutineRunner::checkThreadDepth() const
+{
+    // a level takes about 8KB of C stack for runThread() in a debug build, 64 of them fit the 1MB stack of a windows thread with room to spare
+    constexpr int maxThreadDepth = 64;
+    if(m_threadDepth >= maxThreadDepth){
+        throw fflpanic("{} threads run on top of each other on the C stack, can't start one more, i.e. state switches in a cycle with no yield", m_threadDepth);
+    }
+}
+
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::addTimer(uint64_t msec, std::function<void(bool)> fnOnTimer)
 {
     return m_actorPod->getSO()->addDelay(msec, std::move(fnOnTimer));
@@ -868,6 +887,9 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // resume() filters both out, other callers only resume a suspended thread
     fflassert(!runnerPtr->onStack, runnerPtr->keyPair());
     fflassert(!runnerPtr->closing, runnerPtr->keyPair());
+
+    // the whole call, a thread started after the close below runs on top of this one too
+    const stdf::ValueKeeper keepThreadDepth(m_threadDepth, m_threadDepth + 1);
 
     // here sol2 can tell if coroutine return nothing vs return nil
     //
