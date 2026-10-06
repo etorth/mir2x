@@ -162,6 +162,8 @@ LuaModule::LuaModule()
     execString("SYS_EXIT  = %s", luaf::quotedLuaString(SYS_EXIT ).c_str());
     execString("SYS_ABORT = %s", luaf::quotedLuaString(SYS_ABORT).c_str());
 
+    execString("SYS_LUANIL = %s", luaf::quotedLuaString(SYS_LUANIL).c_str());
+
     execString("SYS_POSINF = %s", str_quoted(SYS_POSINF).c_str());
     execString("SYS_NEGINF = %s", str_quoted(SYS_NEGINF).c_str());
 

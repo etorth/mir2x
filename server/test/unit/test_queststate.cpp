@@ -130,15 +130,25 @@ namespace
 
         function dbSetQuestField(uid, field, value)
             TEST.db[uid] = TEST.db[uid] or {}
-            TEST.db[uid][field] = value
+            TEST.db[uid][field] = copy(value)
         end
 
         function _RSVD_NAME_setQuestDesp(uid, despTable, fsm, desp)
             dbSetQuestField(uid, 'fld_desp', despTable)
         end
 
-        function _RSVD_NAME_dbSetQuestStateDone(uid)
-            TEST.db[uid] = {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}
+        function _RSVD_NAME_dbSetQuestFields(uid, fields, replace)
+            if replace or (TEST.db[uid] == nil) then
+                TEST.db[uid] = {}
+            end
+
+            for field, value in pairs(fields) do
+                if value == SYS_LUANIL then
+                    TEST.db[uid][field] = nil
+                else
+                    TEST.db[uid][field] = copy(value)
+                end
+            end
         end
 
         -- quest done looks up the map of a recorded grid trigger, it waits here till TEST.mapLoaded, as for a slow map, then finds no map
@@ -546,13 +556,16 @@ namespace
     void testQuestDoneClosesAllFSM()
     {
         QuestFixture f;
-        f.drive("setQuestState{uid=6, state='b'} setQuestState{uid=6, fsm='sub', state='s1'}");
+        f.drive("setQuestState{uid=6, state='b'} setQuestState{uid=6, fsm='sub', state='s1'} dbSetQuestVar(6, 'k', 1)");
         require(f.alive("key_6_b") && f.alive("key_6_s1"), "state runners of two FSMs are not running together");
 
         f.drive("setQuestState{uid=6, state=SYS_DONE}");
         require(!f.alive("key_6_b") && f.isTrue("closed_6_b"), "quest done doesn't close state runner of main FSM");
         require(!f.alive("key_6_s1") && f.isTrue("closed_6_s1"), "quest done doesn't close state runner of sub FSM");
         require(f.inState(6, "SYS_QSTFSM", "SYS_DONE"), "quest is not done");
+
+        f.drive("TEST.doneRow_6 = (TEST.db[6].fld_vars == nil) and (TEST.db[6].fld_states.sub == nil)");
+        require(f.isTrue("doneRow_6"), "quest done keeps a field of the row other than the done state of the main FSM");
     }
 
     void testSubFSMRunnerSetsQuestDone()

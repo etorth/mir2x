@@ -157,6 +157,9 @@ constexpr char SYS_DONE [] = "_RSVD_NAME_DONE__06562813788";
 constexpr char SYS_EXIT [] = "_RSVD_NAME_EXIT__14208236065";
 constexpr char SYS_ABORT[] = "_RSVD_NAME_ABORT_72061294738";
 
+// stands for nil where a nil can't be written, i.e. as a table value, which a nil deletes
+constexpr char SYS_LUANIL[] = "_RSVD_NAME_LUA_NIL_31840276915";
+
 constexpr char SYS_POSINF[] = "_RSVD_NAME_POS_INF_63583688";
 constexpr char SYS_NEGINF[] = "_RSVD_NAME_NEG_INF_55461872";
 

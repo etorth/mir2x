@@ -528,8 +528,8 @@ function setQuestState(fargs)
                 _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
             end
         end
-        dbSetQuestField(uid, 'fld_gridtriggers', nil)
-        _RSVD_NAME_dbSetQuestStateDone(uid)
+        -- the row keeps fld_states only, in one write
+        _RSVD_NAME_dbSetQuestFields(uid, {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}, true)
         _RSVD_NAME_questRuntimeVars[uid] = nil
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
