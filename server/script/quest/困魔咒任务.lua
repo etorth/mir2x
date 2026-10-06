@@ -17,7 +17,8 @@
 --
 -- the door turns away anybody who has no business in the rooms, which is a map-wide grid
 -- trigger rather than a per-player one — see setupMapGridTrigger. a player on the quest
--- has an EPUID trigger on the same grid and EPUID is consulted first, so the two compose
+-- has an EPUID trigger of this quest on the same grid, which replaces the map-wide one for
+-- that player, so the two compose
 --
 -- holy2's 我怎么会在这里呢? 难道我的魂被什么勾住了? and 首先试着离开这个地方 are on its kill
 -- hook rather than the door, for somebody killing things in the base 1_019 without the quest.

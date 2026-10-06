@@ -31,7 +31,8 @@ local function setupSealedRoom(uid, discoverState)
         return function(uid, x, y)
             if server.player.hasItem(uid, '角笛', 1) then
                 server.player.postString(uid, '你举起角笛，封住洞口的魔法应声散开了！')
-                return true
+                uidGridMapSwitch(uid, x, y)
+                return false
             end
 
             server.player.postString(uid, '这间屋子被一道古怪的魔法锁住了，怎么也进不去<t wrap="0">···</t>')

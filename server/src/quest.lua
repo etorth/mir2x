@@ -958,8 +958,9 @@ end
 
 -- take over one grid or a rect list of a map for one player
 --
--- the grid stops sending the player through on its own, the installed code decides, return
--- true from it to let the player continue to wherever the grid leads
+-- the grid stops sending the player through on its own, the installed code decides, it calls
+-- uidGridMapSwitch(uid, x, y) to send the player on to wherever the grid leads
+-- returning exactly true retires the trigger, see _RSVD_NAME_runGridTrigger() in servermap.lua
 --
 -- rect lists use {{x, y, w, h}, ...}; the whole list is installed as one trigger
 --
@@ -971,7 +972,8 @@ end
 --         local questName = ...
 --         return function(uid, x, y)
 --             if server.player.hasItem(uid, '不死牌', 1) then
---                 return true
+--                 uidGridMapSwitch(uid, x, y)
+--                 return false
 --             end
 --             server.player.postString(uid, '不知道为什么，门被反锁了，无法进入……')
 --             return false
@@ -1018,8 +1020,8 @@ end
 --
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
 -- carries the mapSwitchList destination, which only ever names the base map, so a quest that
--- loaded copies of both maps installs a trigger here, returns false to refuse the automatic
--- switch, and spaceMoves the player into its own copy of the far side by uid
+-- loaded copies of both maps installs a trigger here, which takes the automatic switch over,
+-- and spaceMoves the player into its own copy of the far side by uid
 --
 -- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
 -- survive a restart and there is nothing to reinstall onto
@@ -1042,9 +1044,9 @@ end
 -- take one grid or a rect list of a map over for everyone on it, not just one player
 --
 -- this is the SYS_EPDEF half of the grid trigger layer, and it is what gates a door against
--- players who are not on the quest at all. a per-player trigger from setupMapUIDGridTrigger is
--- consulted first, so the two compose: the quest installs EPUID to let its own player through
--- and EPDEF to turn everybody else away
+-- players who are not on the quest at all. it doesn't run for a player who has a per-player
+-- trigger of this quest on the grid, from setupMapUIDGridTrigger, so the two compose: the
+-- quest installs EPUID to let its own player through and EPDEF to turn everybody else away
 --
 -- the trigger belongs to this quest, see addQuestGridTrigger() in servermap.lua
 --

@@ -28,25 +28,20 @@ end
 --     local gridTriggerId = addGridTrigger(226, 177, function(uid, x, y)
 --         if server.player.hasItem(uid, '牢房钥匙', 1) then
 --             server.player.postString(uid, '门被打开了！进去看看……')
---             return true
+--             uidGridMapSwitch(uid, x, y)
+--             return
 --         end
 --         server.player.postString(uid, '我没有钥匙，无法进入……')
---         return false
 --     end)
 --
 --     deleteGridTrigger(gridTriggerId)
 --
--- a handler is called as handler(uid, x, y) and decides what happens next:
---
---     true    let the player through to wherever the grid leads
---     false   keep the player where they are
---
--- returning nothing counts as false, so a handler that moves the player somewhere else
--- itself (uidMapSwitch) just falls through
+-- a handler is called as handler(uid, x, y), a grid it runs on never sends the player on by
+-- itself: the handler calls uidGridMapSwitch(uid, x, y) to do that, or moves the player
+-- anywhere else, or keeps them where they are
 --
 -- handlers follow the same event paths as an NPC: a SYS_EPDEF trigger is for everyone and a
--- SYS_EPUID trigger for one player, EPUID is consulted first, so a quest gates its own player
--- with a SYS_EPUID trigger and turns everybody else away with a SYS_EPDEF one
+-- SYS_EPUID trigger for one player
 --
 --     addGridTrigger()         SYS_EPDEF, installed by the map script, belongs to no quest
 --     addQuestGridTrigger()    SYS_EPDEF, installed by a quest
@@ -54,6 +49,11 @@ end
 --
 -- every trigger records its type, its player and its quest, see getGridTriggerInfo()
 -- deleteGridTrigger() removes a trigger of any kind
+--
+-- which handlers run is decided per quest, see _RSVD_NAME_runGridTrigger(): a player's own
+-- SYS_EPUID triggers of a quest replace the SYS_EPDEF ones of that quest, so a quest gates
+-- its own player with a SYS_EPUID trigger and turns everybody else away with a SYS_EPDEF one
+-- a SYS_EPUID handler returning exactly true retires its trigger
 
 -- gridTriggerId -> {type = SYS_EPDEF or SYS_EPUID, uid = the player of a SYS_EPUID trigger, quest = the quest that installed it, handler = handler}
 local _RSVD_NAME_gridTriggers = {}
@@ -213,32 +213,59 @@ function hasGridTrigger(x, y)
 end
 
 -- called from ServerMap::dispatchGridSwitch when a player lands on a triggered grid
+--
+-- per quest: the player's SYS_EPUID triggers of the quest run, else its SYS_EPDEF ones
+-- quests don't silence each other, and a SYS_EPDEF trigger of the map script belongs to no quest, it always runs
+--
+-- all chosen handlers run in install order, from the list taken before the first one, a handler can add and delete triggers
+-- a trigger deleted meanwhile doesn't run, a new one doesn't either
+-- a raising handler is logged, the others still run
+-- a SYS_EPUID handler returning exactly true retires its trigger, other results are ignored
+--
+-- no trigger applies to the player, i.e. only other players' SYS_EPUID ones are on the grid: it sends the player on as a grid without triggers does
 function _RSVD_NAME_runGridTrigger(uid, x, y)
     local idList = getGridTriggerIDList(x, y)
 
-    -- per-player (SYS_EPUID) triggers first, the quest's own player
+    local uidQuests = {}
     for _, gridTriggerId in ipairs(idList) do
         local record = _RSVD_NAME_gridTriggers[gridTriggerId]
         if record and (record.type == SYS_EPUID) and (record.uid == uid) then
-            if record.handler(uid, x, y) then
-                uidGridMapSwitch(uid, x, y)
-            end
-            return
+            uidQuests[record.quest] = true
         end
     end
 
-    -- then the default (SYS_EPDEF) trigger, everyone on the map
+    local runList = {}
     for _, gridTriggerId in ipairs(idList) do
         local record = _RSVD_NAME_gridTriggers[gridTriggerId]
-        if record and (record.type == SYS_EPDEF) then
-            if record.handler(uid, x, y) then
-                uidGridMapSwitch(uid, x, y)
+        if record then
+            if record.type == SYS_EPUID then
+                if record.uid == uid then
+                    table.insert(runList, gridTriggerId)
+                end
+            elseif (record.quest == nil) or (not uidQuests[record.quest]) then
+                table.insert(runList, gridTriggerId)
             end
-            return
         end
     end
 
-    -- no handler applies to this player, e.g. only other players' per-player triggers sit
-    -- on the grid, let the player through rather than trapping them
-    uidGridMapSwitch(uid, x, y)
+    if #runList == 0 then
+        uidGridMapSwitch(uid, x, y)
+        return
+    end
+
+    for _, gridTriggerId in ipairs(runList) do
+        local record = _RSVD_NAME_gridTriggers[gridTriggerId]
+        if record then
+            local ok, result = xpcall(record.handler, debug.traceback, uid, x, y)
+            if not ok then
+                addLog(LOGTYPE_WARNING, 'Grid trigger %d of quest %s raised for player %d at (%d, %d)', gridTriggerId, tostring(record.quest), uid, x, y)
+                for line in tostring(result):gmatch('[^\n]+') do
+                    addLog(LOGTYPE_WARNING, '%s', line)
+                end
+
+            elseif (record.type == SYS_EPUID) and (result == true) then
+                deleteGridTrigger(gridTriggerId)
+            end
+        end
+    end
 end

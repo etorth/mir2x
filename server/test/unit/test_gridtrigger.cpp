@@ -234,29 +234,142 @@ namespace
         require(f.check("TEST.same(getGridTriggerIDList(10, 10), {TEST.questA, TEST.uid7B, TEST.uid8A})"), "second per-quest clear changes something");
     }
 
-    void testDispatch()
+    void testDoor()
     {
-        // the first per-player trigger of the player, of any quest, else the first all-player one, else let through
+        // 困魔咒任务.lua: its per-player trigger lets its own player in, its all-player trigger turns everybody else away
         MapFixture f;
         f.run(R"###(
-            addQuestGridTrigger('questA', 10, 10, TEST.handler('questA', true))
-            addGridTrigger(10, 10, TEST.handler('map', false))
-            addUIDGridTrigger(7, 'questB', 10, 10, TEST.handler('uid7B', false))
-            addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('uid7A', true))
-            addUIDGridTrigger(9, 'questC', 11, 11, TEST.handler('uid9C', false))
+            addQuestGridTrigger('困魔咒任务', {{x = 371, y = 366, w = 1, h = 2}}, TEST.handler('door', false))
+            addUIDGridTrigger(7, '困魔咒任务', {{x = 371, y = 366, w = 1, h = 2}}, TEST.handler('uid7', false))
+            addUIDGridTrigger(9, 'otherQuest', 371, 367, TEST.handler('uid9', false))
 
-            _RSVD_NAME_runGridTrigger(7, 10, 10)
-            TEST.ran7, TEST.switched7, TEST.ran, TEST.switched = TEST.ran, TEST.switched, {}, {}
+            _RSVD_NAME_runGridTrigger(7, 371, 366)
+            TEST.ran7, TEST.ran = TEST.ran, {}
 
-            _RSVD_NAME_runGridTrigger(8, 10, 10)
-            TEST.ran8, TEST.switched8, TEST.ran, TEST.switched = TEST.ran, TEST.switched, {}, {}
+            _RSVD_NAME_runGridTrigger(8, 371, 366)
+            TEST.ran8, TEST.ran = TEST.ran, {}
 
-            _RSVD_NAME_runGridTrigger(7, 11, 11)
+            _RSVD_NAME_runGridTrigger(9, 371, 367)
         )###");
 
-        require(f.check("TEST.same(TEST.ran7, {'uid7B'}) and TEST.same(TEST.switched7, {})"), "dispatch doesn't run the first per-player trigger of the player alone");
-        require(f.check("TEST.same(TEST.ran8, {'questA'}) and TEST.same(TEST.switched8, {8})"), "dispatch doesn't run the first all-player trigger alone, or doesn't switch when it returns true");
-        require(f.check("TEST.same(TEST.ran, {}) and TEST.same(TEST.switched, {7})"), "dispatch doesn't let a player through a grid with only another player's trigger");
+        require(f.check("TEST.same(TEST.ran7, {'uid7'})"), "a per-player trigger of the quest doesn't replace the all-player one of the same quest");
+        require(f.check("TEST.same(TEST.ran8, {'door'})"), "a player with no trigger of the quest doesn't get its all-player trigger");
+        require(f.check("TEST.same(TEST.ran, {'door', 'uid9'})"), "a per-player trigger of another quest silences the all-player trigger of this quest");
+        require(f.check("TEST.same(TEST.switched, {})"), "a grid with a trigger that applies sends the player on by itself");
+    }
+
+    void testQuests()
+    {
+        // per quest, all chosen triggers run in install order, a trigger of the map script always runs
+        MapFixture f;
+        f.run(R"###(
+            addGridTrigger(10, 10, TEST.handler('map', false))
+            addQuestGridTrigger('questA', 10, 10, TEST.handler('A', false))
+            addQuestGridTrigger('questB', 10, 10, TEST.handler('B', false))
+            addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('7A', false))
+            addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('7A2', false))
+            addUIDGridTrigger(8, 'questB', 10, 10, TEST.handler('8B', false))
+
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+            TEST.ran7, TEST.ran = TEST.ran, {}
+
+            _RSVD_NAME_runGridTrigger(8, 10, 10)
+            TEST.ran8, TEST.ran = TEST.ran, {}
+
+            _RSVD_NAME_runGridTrigger(9, 10, 10)
+        )###");
+
+        require(f.check("TEST.same(TEST.ran7, {'map', 'B', '7A', '7A2'})"), "player 7 doesn't get its own triggers of questA and the all-player ones of the other quests, in install order");
+        require(f.check("TEST.same(TEST.ran8, {'map', 'A', '8B'})"), "player 8 doesn't get its own trigger of questB and the all-player ones of the other quests, in install order");
+        require(f.check("TEST.same(TEST.ran, {'map', 'A', 'B'})"), "a player with no per-player trigger doesn't get all the all-player triggers, in install order");
+    }
+
+    void testSnapshot()
+    {
+        // the first handler deletes the second trigger and adds one, the dispatch runs neither
+        MapFixture f;
+        f.run(R"###(
+            addQuestGridTrigger('questA', 10, 10, function(uid, x, y)
+                table.insert(TEST.ran, 'first')
+                deleteGridTrigger(TEST.deleted)
+                TEST.added = addQuestGridTrigger('questC', 10, 10, TEST.handler('added', false))
+            end)
+
+            TEST.deleted = addQuestGridTrigger('questB', 10, 10, TEST.handler('deleted', false))
+            addQuestGridTrigger('questD', 10, 10, TEST.handler('last', false))
+
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+        )###");
+
+        require(f.check("TEST.same(TEST.ran, {'first', 'last'})"), "the dispatch runs a trigger deleted or added by an earlier handler, or misses one it chose");
+        require(f.check("getGridTriggerInfo(TEST.added) ~= nil and TEST.same(getGridTriggerIDList(10, 10), {1, 3, TEST.added})"), "the trigger added by a handler isn't installed");
+    }
+
+    void testRetire()
+    {
+        // only a per-player handler returning exactly true retires its trigger, no result sends the player on
+        MapFixture f;
+        f.run(R"###(
+            TEST.keepFalse  = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('false', false))
+            TEST.keepNil    = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('nil', nil))
+            TEST.keepOne    = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('one', 1))
+            TEST.keepString = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('string', 'true'))
+            TEST.retired    = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('true', true))
+            TEST.allPlayer  = addQuestGridTrigger('questB', 10, 10, TEST.handler('allPlayer', true))
+
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+            TEST.ranFirst, TEST.ran = TEST.ran, {}
+
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+        )###");
+
+        require(f.check("TEST.same(TEST.ranFirst, {'false', 'nil', 'one', 'string', 'true', 'allPlayer'})"), "the dispatch doesn't run every chosen trigger");
+        require(f.check("getGridTriggerInfo(TEST.retired) == nil"), "a per-player trigger returning true isn't retired");
+        require(f.check("(getGridTriggerInfo(TEST.keepFalse) ~= nil) and (getGridTriggerInfo(TEST.keepNil) ~= nil) and (getGridTriggerInfo(TEST.keepOne) ~= nil) and (getGridTriggerInfo(TEST.keepString) ~= nil)"), "a per-player trigger returning something other than true is retired");
+        require(f.check("getGridTriggerInfo(TEST.allPlayer) ~= nil"), "an all-player trigger returning true is retired");
+        require(f.check("TEST.same(TEST.ran, {'false', 'nil', 'one', 'string', 'allPlayer'})"), "the retired trigger still runs");
+        require(f.check("TEST.same(TEST.switched, {})"), "a handler returning true sends the player on");
+    }
+
+    void testLetThrough()
+    {
+        // only another player's per-player trigger on the grid: nothing applies, the grid sends the player on
+        MapFixture f;
+        f.run(R"###(
+            addUIDGridTrigger(9, 'questA', 10, 10, TEST.handler('uid9', false))
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+        )###");
+
+        require(f.check("TEST.same(TEST.ran, {}) and TEST.same(TEST.switched, {7})"), "a player isn't let through a grid with only another player's trigger");
+    }
+
+    void testRaise()
+    {
+        // a raising handler is logged, the triggers after it still run
+        MapFixture f;
+        f.run(R"###(
+            TEST.logs = {}
+            addLog = function(logType, format, ...)
+                table.insert(TEST.logs, string.format(format, ...))
+            end
+
+            TEST.raising = addQuestGridTrigger('questA', 10, 10, function(uid, x, y)
+                error('raised by the trigger')
+            end)
+            addQuestGridTrigger('questB', 10, 10, TEST.handler('after', false))
+
+            _RSVD_NAME_runGridTrigger(7, 10, 10)
+
+            TEST.logged = false
+            TEST.logHead = TEST.logs[1] == string.format('Grid trigger %d of quest questA raised for player 7 at (10, 10)', TEST.raising)
+            for _, line in ipairs(TEST.logs) do
+                TEST.logged = TEST.logged or (string.find(line, 'raised by the trigger', 1, true) ~= nil)
+            end
+        )###");
+
+        require(f.check("TEST.same(TEST.ran, {'after'})"), "a raising handler stops the triggers after it");
+        require(f.check("TEST.logHead and TEST.logged"), "a raising handler isn't logged with its trigger, quest, player, grid and error");
+        require(f.check("getGridTriggerInfo(TEST.raising) ~= nil"), "a raising trigger is deleted");
     }
 
     void runTests()
@@ -264,7 +377,12 @@ namespace
         testRegistration();
         testDelete();
         testQuestClear();
-        testDispatch();
+        testDoor();
+        testQuests();
+        testSnapshot();
+        testRetire();
+        testLetThrough();
+        testRaise();
     }
 }
 
@@ -296,7 +414,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, per-quest clear, and dispatch.\n");
+        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, per-quest clear, the door of a quest, several quests, snapshot, retire, let through, and a raising handler.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
