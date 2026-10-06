@@ -410,6 +410,19 @@ namespace
                 load(args)(uid)
                 pause(SYS_POSINF)
             end,
+
+            ret = function(uid, args)
+                load(args)(uid)
+            end,
+
+            -- its fallback records whether the context of npc/m/n was rolled back before it
+            fb = stateWithFallback(function(uid, args)
+                load(args)(uid)
+            end,
+
+            function(uid, args, err)
+                TEST['fbRolledBack_' .. uid] = _RSVD_NAME_questContext.get(uid, 'npc/m/n').item.code == 'committed'
+            end),
         })
 
         setQuestFSMTable('sub',
@@ -531,7 +544,15 @@ namespace
                 TEST.calls = {}
                 TEST.world = {}
 
+                -- TEST.slowLookup makes the next lookup wait till TEST.slowGo, its thread is TEST.slowKey, TEST.slowSeq
                 function getNPCharUID(mapName, npcName)
+                    if TEST.slowLookup then
+                        TEST.slowLookup = false
+                        TEST.slowKey, TEST.slowSeq = getThreadKey(), getThreadSeqID()
+                        while not TEST.slowGo do
+                            coroutine.yield()
+                        end
+                    end
                     return TEST.npcs[mapName .. '/' .. npcName]
                 end
 
@@ -1466,6 +1487,111 @@ namespace
         require(f.isTrue("owner107"), "an NPC behavior cleared by another thread comes back with the commit of the fsm that installed it");
     }
 
+    void testErrorAbort()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+
+        f.stubNPCs();
+        f.drive("TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.npcs['m/p'] = 9102");
+
+        // the state runner raises: its installs and removes go back to committed, in the context and in the world, its switch saves none of them
+        f.drive(R"###(
+            setQuestState{uid=110, state='b'}
+            setupNPCQuestBehavior('m', 'n', 110, 'committed')
+            setupNPCQuestBehavior('m', 'o', 110, 'committedO')
+
+            setQuestState{uid=110, state='run', args=[[
+                local uid = ...
+                setupNPCQuestBehavior('m', 'n', uid, 'pending')
+                clearNPCQuestBehavior('m', 'o', uid)
+                setupNPCQuestBehavior('m', 'p', uid, 'new')
+                error('state run failed')
+            ]]}
+
+            TEST.abort110 = (_RSVD_NAME_questContext.get(110, 'npc/m/n').item.code == 'committed')
+                and (_RSVD_NAME_questContext.get(110, 'npc/m/o').item.code == 'committedO')
+                and (_RSVD_NAME_questContext.get(110, 'npc/m/p') == nil)
+
+            TEST.world110 = (TEST.world[9100][110] == 'committed') and (TEST.world[9101][110] == 'committedO') and (TEST.world[9102][110] == nil)
+            TEST.unregistered110 = _RSVD_NAME_getQuestStateRunnerKey(110, SYS_QSTFSM) == nil
+
+            setQuestState{uid=110, state='b'}
+            local committed = TEST.db[110].fld_context
+            TEST.saved110 = (committed['npc/m/n'].code == 'committed') and (committed['npc/m/o'].code == 'committedO') and (committed['npc/m/p'] == nil)
+        )###");
+        require(f.isTrue("abort110"), "a raise of the state runner doesn't roll its pending items back");
+        require(f.isTrue("world110"), "a raise of the state runner doesn't put the world back to committed");
+        require(f.isTrue("unregistered110"), "a state runner that raised stays registered");
+        require(f.isTrue("saved110"), "the switch after a raise saves items of the run that raised");
+
+        // design A: the context is rolled back before the fallback runs
+        f.drive(R"###(
+            setQuestState{uid=111, state='b'}
+            setupNPCQuestBehavior('m', 'n', 111, 'committed')
+            setQuestState{uid=111, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'pending') error('state run failed') ]], fallback=function(uid, args, err)
+                TEST.fallback111 = _RSVD_NAME_questContext.get(uid, 'npc/m/n').item.code == 'committed'
+            end}
+        )###");
+        require(f.isTrue("fallback111"), "the fallback given to setQuestState() runs before the rollback");
+
+        // design B: the same, and its log names the fsm and the state
+        f.drive(R"###(
+            setQuestState{uid=112, state='b'}
+            setupNPCQuestBehavior('m', 'n', 112, 'committed')
+            setQuestState{uid=112, state='fb', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'pending') error('state fb failed') ]]}
+        )###");
+        require(f.isTrue("fbRolledBack_112"), "the fallback of stateWithFallback() runs before the rollback");
+        require(capture.has("Quest state raised: uid 112, fsm ") && capture.has(", state fb"), "the log of a state of stateWithFallback() doesn't name its fsm and state");
+    }
+
+    void testErrorAbortOnlyRaise()
+    {
+        QuestFixture f;
+        f.stubNPCs();
+        f.drive("TEST.npcs['m/n'] = 9100");
+
+        // a close by a switch keeps the items, the switch saves them
+        f.drive(R"###(
+            setQuestState{uid=113, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'kept') ]]}
+            setQuestState{uid=113, state='b'}
+            TEST.kept113 = (TEST.db[113].fld_context['npc/m/n'].code == 'kept') and (TEST.world[9100][113] == 'kept')
+        )###");
+        require(f.isTrue("kept113"), "a state runner closed by a switch has its items rolled back");
+
+        // a return keeps them pending, and unregisters the state runner
+        f.drive(R"###(
+            setQuestState{uid=114, state='ret', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'returned') ]]}
+            TEST.ret114 = (_RSVD_NAME_getQuestStateRunnerKey(114, SYS_QSTFSM) == nil) and (_RSVD_NAME_questContext.get(114, 'npc/m/n').item.code == 'returned')
+
+            setQuestState{uid=114, state='b'}
+            TEST.retSaved114 = TEST.db[114].fld_context['npc/m/n'].code == 'returned'
+        )###");
+        require(f.isTrue("ret114") && f.isTrue("retSaved114"), "a state function that returned has its items rolled back, or its state runner stays registered");
+    }
+
+    void testErrorAbortStale()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.stubNPCs();
+        f.drive("TEST.npcs['m/n'] = 9100");
+
+        // the rollback looks the NPC up, another thread writes the key meanwhile, the rollback leaves it to that write
+        f.drive(R"###(
+            setQuestState{uid=115, state='b'}
+            setupNPCQuestBehavior('m', 'n', 115, 'committed')
+            setQuestState{uid=115, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'pending') TEST.slowLookup = true error('state run failed') ]]}
+            setupNPCQuestBehavior('m', 'n', 115, 'newer')
+        )###");
+
+        require(f.runner.execRawString("TEST.slowGo = true").valid(), "failed to let the lookup go on");
+        f.runner.resume({f.get("slowKey").as<uint64_t>(), f.get("slowSeq").as<uint64_t>()});
+
+        f.drive("TEST.stale115 = (TEST.world[9100][115] == 'newer') and (_RSVD_NAME_questContext.get(115, 'npc/m/n').item.code == 'newer') and (TEST.db[115].fld_context['npc/m/n'].code == 'newer')");
+        require(f.isTrue("stale115"), "a rollback overwrites a write that came while it looked the NPC up");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -1511,6 +1637,9 @@ namespace
         testNPCBehaviorContext();
         testNPCBehaviorRefused();
         testNPCBehaviorTimelines();
+        testErrorAbort();
+        testErrorAbortOnlyRaise();
+        testErrorAbortStale();
     }
 }
 
@@ -1542,7 +1671,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, and the timelines T1 and T3.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, and error = abort with and without a fallback, only for a raise, and giving way to a newer write.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

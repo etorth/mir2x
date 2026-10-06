@@ -242,63 +242,8 @@ function hasQuestState(arg1, arg2)
     return true
 end
 
--- calls func(...) on the calling state runner, and fallback(uid, args, err) if func raises
--- when func raises, its <close> handlers run first, while xpcall() unwinds, they can still switch state, then fallback never runs
--- fallback runs on the state runner itself, so a setQuestState() in it is the state runner switching its own state
---
--- returns true if func returns, false if func raises and fallback returns without switching state
-local function _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, ...)
-    assertType(desc, 'string')
-    assertType(fallback, 'function')
-    assertType(uid, 'integer')
-    assertType(func, 'function')
-
-    -- logs at the raise point, not after xpcall() returns
-    -- xpcall() never returns if a <close> handler switches state while the stack unwinds, a log after it would be lost
-    local function onError(e)
-        local err = debug.traceback(e, 2)
-        addLog(LOGTYPE_WARNING, 'Quest state raised: %s', desc)
-        for line in tostring(err):gmatch('[^\n]+') do
-            addLog(LOGTYPE_WARNING, '%s', line)
-        end
-        return err
-    end
-
-    local ok, err = xpcall(func, onError, ...)
-    if ok then
-        return true
-    end
-
-    fallback(uid, args, err)
-    return false
-end
-
--- wraps a state function with a fallback, fallback(uid, args, err) is called on the state runner if func raises:
---
---     a = stateWithFallback(function(uid, args)
---         ...
---         setQuestState{uid=uid, state='succeed'}
---     end,
---
---     function(uid, args, err)
---         setQuestState{uid=uid, state='fail'}
---     end),
---
--- unlike the fallback argument of setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
---
--- a fallback entering the same state again should pause() first
--- otherwise each try runs on top of the C stack of the last one, and the tries end with an error after about 64 of them
-function stateWithFallback(func, fallback)
-    assertType(func, 'function')
-    assertType(fallback, 'function')
-
-    return function(uid, args)
-        _RSVD_NAME_xpcallQuestState(string.format('uid %d', uid), fallback, uid, args, func, uid, args)
-    end
-end
-
 -- _RSVD_NAME_questStateRunners[uid][fsm] = key of the state runner, the thread running the state function of the current state
--- keys come from rollKey(), which never repeats, an entry left by a state function that returned or raised closes nothing
+-- keys come from rollKey(), which never repeats, the entry goes when the state function ends, see _RSVD_NAME_spawnQuestState()
 --
 -- a file local, not a global: a global assigned in a lua thread only goes to the sandbox of that thread
 local _RSVD_NAME_questStateRunners = {}
@@ -390,29 +335,6 @@ local function _RSVD_NAME_markSwitch(uid)
     local mark = setmetatable({uid = uid, kept = false}, _RSVD_NAME_switchMarkMeta)
     _RSVD_NAME_switchMarks[uid] = mark
     return mark
-end
-
--- runs func on a new thread, registered as the state runner of {uid, fsm}
--- afterSelfClose: the caller is the old state runner, it's closed first, and this never returns
-local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
-    assertType(uid, 'integer')
-    assertType(fsm, 'string')
-    assertType(func, 'function')
-    assertType(afterSelfClose, 'boolean', 'nil')
-
-    local key = rollKey()
-
-    -- register before runThread(), func can switch to the next state before runThread() returns, that switch has to find this thread
-    if not _RSVD_NAME_questStateRunners[uid] then
-        _RSVD_NAME_questStateRunners[uid] = {}
-    end
-    _RSVD_NAME_questStateRunners[uid][fsm] = key
-
-    if afterSelfClose then
-        closeThreadThenRun(key, func)
-    else
-        runThread(key, func)
-    end
 end
 
 -- the quest context, the world changes a quest made for each player, item by item
@@ -550,6 +472,15 @@ function _RSVD_NAME_questContext.get(uid, key)
     return context and context.runtime[key]
 end
 
+-- the version of the last write of key in this server run, nil if none
+function _RSVD_NAME_questContext.version(uid, key)
+    assertType(uid, 'integer')
+    assertType(key, 'string')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    return context and context.versions[key]
+end
+
 -- undoes the write of version if it's still the last write of key, i.e. the remote side refused it, returns true if undone
 -- a pending table committed or rolled back since is gone with its state, it isn't written back
 function _RSVD_NAME_questContext.undo(uid, key, version, undo)
@@ -607,7 +538,7 @@ function _RSVD_NAME_questContext.commit(uid, fsm, fields)
 end
 
 -- puts the pending keys of fsm back to their committed items, when the state of fsm raised or is replayed
--- returns key -> {item = committed item or false, version = version}, what the world has to get back to
+-- returns key -> {item = committed item or false, version = version, current = record installed before}, what the world has to get back to
 function _RSVD_NAME_questContext.rollback(uid, fsm)
     assertType(uid, 'integer')
     assertType(fsm, 'string')
@@ -627,9 +558,9 @@ function _RSVD_NAME_questContext.rollback(uid, fsm)
         local item = committed[key]
         local version = _RSVD_NAME_nextQuestContextVersion()
 
+        changes[key] = {item = item or false, version = version, current = context.runtime[key]}
         context.versions[key] = version
         context.runtime[key] = item and {item = item, version = version} or nil
-        changes[key] = {item = item or false, version = version}
     end
     return changes
 end
@@ -698,6 +629,178 @@ local function _RSVD_NAME_removeQuestContextItem(uid, key, item)
         end
         error(err, 0)
     end
+end
+
+-- the world after a rollback: each key gets its committed item back, or loses what the rollback took out
+-- a key written since the rollback is left to its writer, the version is checked right before the send
+-- a refused send is only logged
+local function _RSVD_NAME_applyQuestContextChanges(uid, changes)
+    for key, change in pairs(changes) do
+        local item = change.item or (change.current and change.current.item)
+        if item then
+            local ok, err = pcall(function()
+                local itemType = _RSVD_NAME_questContext.types[item.type]
+                local target, send = nil, nil
+
+                if change.item then
+                    target, send = itemType.prepareInstall(uid, change.item)
+                else
+                    target, send = itemType.prepareRemove(uid, change.current.item, change.current.target)
+                end
+
+                do
+                    local section <close> = _RSVD_NAME_criticalSection()
+                    if _RSVD_NAME_questContext.version(uid, key) ~= change.version then
+                        return
+                    end
+
+                    local record = _RSVD_NAME_questContext.get(uid, key)
+                    if record then
+                        record.target = target
+                    end
+                end
+                send()
+            end)
+
+            if not ok then
+                addLog(LOGTYPE_WARNING, 'Quest context %s of uid %d is not put back: %s', key, uid, tostring(err))
+            end
+        end
+    end
+end
+
+-- error = abort: the state of fsm raised, its pending items go back to committed, then the world follows on a thread of its own
+-- the context is back before the caller goes on, i.e. before a fallback, which can write the same keys again
+-- it doesn't yield, it's called in the <close> handler of a state runner that raised too
+local function _RSVD_NAME_abortQuestState(uid, fsm)
+    local changes = nil
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        changes = _RSVD_NAME_questContext.rollback(uid, fsm)
+    end
+
+    if next(changes) ~= nil then
+        runQuestThread(function()
+            _RSVD_NAME_applyQuestContextChanges(uid, changes)
+        end)
+    end
+end
+
+-- calls func(...) on the calling state runner, and fallback(uid, args, err) if func raises
+-- when func raises, its <close> handlers run first, while xpcall() unwinds, they can still switch state, then fallback never runs
+-- then the pending items of its fsm are rolled back, the fallback starts from what is committed
+-- fallback runs on the state runner itself, so a setQuestState() in it is the state runner switching its own state
+--
+-- returns true if func returns, false if func raises and fallback returns without switching state
+local function _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, ...)
+    assertType(desc, 'string')
+    assertType(fallback, 'function')
+    assertType(uid, 'integer')
+    assertType(func, 'function')
+
+    -- logs at the raise point, not after xpcall() returns
+    -- xpcall() never returns if a <close> handler switches state while the stack unwinds, a log after it would be lost
+    local function onError(e)
+        local err = debug.traceback(e, 2)
+        addLog(LOGTYPE_WARNING, 'Quest state raised: %s', desc)
+        for line in tostring(err):gmatch('[^\n]+') do
+            addLog(LOGTYPE_WARNING, '%s', line)
+        end
+        return err
+    end
+
+    local ok, err = xpcall(func, onError, ...)
+    if ok then
+        return true
+    end
+
+    local fsm = _RSVD_NAME_getCallerQuestStateFSM(uid)
+    if fsm then
+        _RSVD_NAME_abortQuestState(uid, fsm)
+    end
+
+    fallback(uid, args, err)
+    return false
+end
+
+-- wraps a state function with a fallback, fallback(uid, args, err) is called on the state runner if func raises:
+--
+--     a = stateWithFallback(function(uid, args)
+--         ...
+--         setQuestState{uid=uid, state='succeed'}
+--     end,
+--
+--     function(uid, args, err)
+--         setQuestState{uid=uid, state='fail'}
+--     end),
+--
+-- unlike the fallback argument of setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
+--
+-- a fallback entering the same state again should pause() first
+-- otherwise each try runs on top of the C stack of the last one, and the tries end with an error after about 64 of them
+function stateWithFallback(func, fallback)
+    assertType(func, 'function')
+    assertType(fallback, 'function')
+
+    return function(uid, args)
+        local fsm = _RSVD_NAME_getCallerQuestStateFSM(uid)
+        local desc = fsm and string.format('uid %d, fsm %s, state %s', uid, fsm, tostring(dbGetQuestState(uid, fsm))) or string.format('uid %d', uid)
+        _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, uid, args)
+    end
+end
+
+-- runs func on a new thread, registered as the state runner of {uid, fsm}
+-- afterSelfClose: the caller is the old state runner, it's closed first, and this never returns
+--
+-- when func ends, by a return, a raise or a close, the state runner is unregistered if it still is the registered one
+-- a raise rolls the pending items of fsm back then, error = abort, see _RSVD_NAME_abortQuestState()
+-- a state runner a switch unregistered goes on for a while if it's on the C stack, its raise then is none of its fsm's business
+local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+    assertType(func, 'function')
+    assertType(afterSelfClose, 'boolean', 'nil')
+
+    local key = rollKey()
+
+    -- register before runThread(), func can switch to the next state before runThread() returns, that switch has to find this thread
+    if not _RSVD_NAME_questStateRunners[uid] then
+        _RSVD_NAME_questStateRunners[uid] = {}
+    end
+    _RSVD_NAME_questStateRunners[uid][fsm] = key
+
+    local function run()
+        -- the outermost to-be-closed variable of the thread, it's closed last, after the <close> handlers of func
+        local guard <close> = setmetatable({}, {__close = function(_, err)
+            local fsmRunners = _RSVD_NAME_questStateRunners[uid]
+            if not (fsmRunners and (fsmRunners[fsm] == key)) then
+                return
+            end
+
+            fsmRunners[fsm] = nil
+            if tableEmpty(fsmRunners) then
+                _RSVD_NAME_questStateRunners[uid] = nil
+            end
+
+            if err ~= nil then
+                _RSVD_NAME_abortQuestState(uid, fsm)
+            end
+        end})
+        func()
+    end
+
+    if afterSelfClose then
+        closeThreadThenRun(key, run)
+    else
+        runThread(key, run)
+    end
+end
+
+-- the key of the state runner of {uid, fsm}, nil if there is none, i.e. its state function ended
+function _RSVD_NAME_getQuestStateRunnerKey(uid, fsm)
+    assertType(uid, 'integer')
+    assertType(fsm, 'string')
+    return (_RSVD_NAME_questStateRunners[uid] or {})[fsm]
 end
 
 -- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
