@@ -415,6 +415,14 @@ namespace
                 load(args)(uid)
             end,
 
+            -- its <close> handler tries to restore the state of the uid
+            rq = function(uid, args)
+                local guard <close> = setmetatable({}, {__close = function()
+                    TEST['restoreInDone_' .. uid] = _RSVD_NAME_restoreQuestState(uid, SYS_QSTFSM, 'b', nil)
+                end})
+                pause(SYS_POSINF)
+            end,
+
             -- its fallback records whether the context of npc/m/n was rolled back before it
             fb = stateWithFallback(function(uid, args)
                 load(args)(uid)
@@ -533,16 +541,25 @@ namespace
             return isTrue("inState");
         }
 
-        // NPC actors as stubs, getNPCharUID() finds TEST.npcs[map .. '/' .. npc]
-        // a remote call takes effect in TEST.world[npcUID][playerUID] as it's sent, as the NPC handles its messages in order
+        // NPC and map actors as stubs, getNPCharUID() finds TEST.npcs[map .. '/' .. npc], loadBaseMap() TEST.maps[map]
+        // a remote call takes effect in TEST.world as it's sent, as the actor handles its messages in order:
+        //
+        //     TEST.world[npcUID][playerUID]                  the code of the NPC behavior
+        //     TEST.world[mapUID][playerUID .. '/' .. name]   {version, code} of the named grid trigger
+        //
         // it's recorded in TEST.calls with the key pair of its caller, its reply waits while TEST.holdReplies, see reply()
-        // TEST.refuse makes the NPC side raise
-        void stubNPCs()
+        // TEST.refuse makes the remote side raise
+        void stubActors()
         {
             require(runner.execRawString(R"###(
                 TEST.npcs = {}
+                TEST.maps = {}
                 TEST.calls = {}
                 TEST.world = {}
+
+                function loadBaseMap(mapName)
+                    return TEST.maps[mapName]
+                end
 
                 -- TEST.slowLookup makes the next lookup wait till TEST.slowGo, its thread is TEST.slowKey, TEST.slowSeq
                 function getNPCharUID(mapName, npcName)
@@ -564,12 +581,24 @@ namespace
                         call.result = {SYS_EXECERROR, 'refused by the npc'}
                     else
                         TEST.world[uid] = TEST.world[uid] or {}
+                        call.result = {SYS_EXECDONE}
+
                         if string.find(code, 'setUIDQuestHandler', 1, true) then
                             TEST.world[uid][args[1]] = args[3]
+
                         elseif string.find(code, 'deleteUIDQuestHandler', 1, true) then
                             TEST.world[uid][args[1]] = nil
+
+                        elseif string.find(code, '_RSVD_NAME_setUIDGridTrigger', 1, true) then
+                            TEST.world[uid][args[1] .. '/' .. args[3]] = {version = args[4], code = args[7]}
+                            call.result = {SYS_EXECDONE, 1}
+
+                        elseif string.find(code, '_RSVD_NAME_deleteUIDGridTrigger', 1, true) then
+                            local trigger = TEST.world[uid][args[1] .. '/' .. args[3]]
+                            if trigger and ((args[4] == nil) or (trigger.version == args[4])) then
+                                TEST.world[uid][args[1] .. '/' .. args[3]] = nil
+                            end
                         end
-                        call.result = {SYS_EXECDONE}
                     end
 
                     if not TEST.holdReplies then
@@ -1003,33 +1032,31 @@ namespace
         QuestFixture f;
         CoutCapture capture;
 
-        f.drive("setQuestState{uid=54, state='b'} TEST.db[54].fld_gridtriggers = {{'slowMap'}}");
-        const auto keyB = f.key("key_54_b");
+        // an item whose removal waits, quest done doesn't wait for it
+        require(f.runner.execRawString(R"###(
+            _RSVD_NAME_questContext.types.slow = {remove = function(uid, key, record)
+                runQuestThread(function()
+                    while not TEST.removeGo do
+                        coroutine.yield()
+                    end
+                    TEST['slowRemoved_' .. uid] = true
+                end)
+            end}
+        )###").valid(), "failed to add an item type");
 
-        const auto kp = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=54, state=SYS_DONE} TEST.done_54 = true"));
-        require(f.runner.hasKeyPair(kp) && f.isNil("done_54"), "quest done doesn't wait in its remote call");
+        f.drive("setQuestState{uid=54, state='b'} _RSVD_NAME_questContext.install(54, 'slow/k', {type = 'slow'})");
+        f.drive("setQuestState{uid=54, state=SYS_DONE} TEST.done_54 = true");
+        require(f.isTrue("done_54") && f.inState(54, "SYS_QSTFSM", "SYS_DONE") && f.isNil("slowRemoved_54"), "quest done waits for the removals of its items");
 
-        f.drive("TEST.switchOK_54, TEST.switchErr_54 = pcall(setQuestState, {uid=54, state='c'})");
-        require(f.get("switchOK_54").is<bool>() && !f.isTrue("switchOK_54") && f.strHas("switchErr_54", "setQuestState() is not allowed while another switch of uid 54 runs"), "state switch while quest done runs doesn't raise");
+        // the switch mark is gone with quest done, the quest can start again
+        f.drive("setQuestState{uid=54, state='c'}");
+        require(f.alive("key_54_c") && f.inState(54, "SYS_QSTFSM", "'c'"), "a switch right after quest done is refused");
 
-        f.drive("_RSVD_NAME_restoreQuestState(54, SYS_QSTFSM, 'b', nil)");
-        require(f.runner.hasKey(keyB) && f.key("key_54_b") == keyB, "restore while quest done runs closes or starts a state runner");
-        require(capture.has("Another switch of uid 54 runs, i.e. its quest done, fsm "), "restore skipped while quest done runs is not logged");
-
-        require(f.runner.execRawString("TEST.mapLoaded = true").valid(), "failed to load the map");
-        f.runner.resume(kp);
-        require(!f.runner.hasKeyPair(kp) && f.isTrue("done_54"), "quest done doesn't finish");
-        require(!f.runner.hasKey(keyB) && f.isTrue("closed_54_b") && f.isNil("key_54_c") && f.inState(54, "SYS_QSTFSM", "SYS_DONE"), "quest done is undone, or doesn't close the state runner");
-
-        // a quest done whose caller is closed while it runs drops its mark too
-        require(f.runner.execRawString("TEST.mapLoaded = nil").valid(), "failed to make the map slow again");
-        f.drive("setQuestState{uid=55, state='b'} TEST.db[55].fld_gridtriggers = {{'slowMap'}}");
-
-        const auto kpClosed = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=55, state=SYS_DONE}"));
-        f.runner.close(kpClosed);
-
-        f.drive("setQuestState{uid=55, state='c'}");
-        require(f.alive("key_55_c") && f.inState(55, "SYS_QSTFSM", "'c'"), "quest done closed while it runs keeps refusing state switches");
+        // the closes of quest done still have the mark: a restore from a <close> handler of a state runner it closes is skipped
+        f.drive("setQuestState{uid=55, state='rq'}");
+        f.drive("setQuestState{uid=55, state=SYS_DONE}");
+        require(f.get("restoreInDone_55").is<bool>() && !f.isTrue("restoreInDone_55") && f.inState(55, "SYS_QSTFSM", "SYS_DONE"), "a restore from a <close> handler of a state runner closed by quest done isn't skipped");
+        require(capture.has("Another switch of uid 55 runs, i.e. its quest done, fsm "), "a restore skipped while quest done runs isn't logged");
     }
 
     void testRestoreReadsEachFSM()
@@ -1359,29 +1386,20 @@ namespace
         f.drive(R"###(
             setQuestState{uid=94, state='b'}
             _RSVD_NAME_questContext.install(94, 'test/k', {type = 'test', code = 'a'})
-            TEST.db[94].fld_gridtriggers = {{'slowMap'}}
+            setQuestState{uid=94, state=SYS_DONE}
         )###");
 
-        // the old grid trigger record makes quest done wait in loadBaseMap(), after its row and the removals of its items
-        const auto kp = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=94, state=SYS_DONE} TEST.done94 = true"));
-        require(f.runner.hasKeyPair(kp) && f.isNil("done94"), "quest done doesn't wait in its remote call");
-        require(f.inState(94, "SYS_QSTFSM", "SYS_DONE"), "quest done doesn't write its row before it removes items from the world");
-
         f.drive("TEST.removed94 = (TEST.removed_94 == 'test/k=a,') and TEST.doneAtRemove_94 and (_RSVD_NAME_questContext.get(94, 'test/k') == nil) and (TEST.db[94].fld_context == nil)");
-        require(f.isTrue("removed94"), "quest done doesn't remove the items of the context after its row, or keeps them");
+        require(f.isTrue("removed94"), "quest done removes the items of the context before its row is written, or keeps them");
 
         f.drive("local ok, err = pcall(_RSVD_NAME_questContext.install, 94, 'test/k2', {type = 'test', code = 'b'}) TEST.lateRaised94 = (not ok) and (string.find(err, 'its quest is done', 1, true) ~= nil)");
-        require(f.isTrue("lateRaised94"), "an install while quest done removes items doesn't raise");
-
-        require(f.runner.execRawString("TEST.mapLoaded = true").valid(), "failed to load the map");
-        f.runner.resume(kp);
-        require(!f.runner.hasKeyPair(kp) && f.isTrue("done94"), "quest done doesn't finish");
+        require(f.isTrue("lateRaised94"), "an install after quest done doesn't raise");
     }
 
     void testNPCBehaviorContext()
     {
         QuestFixture f;
-        f.stubNPCs();
+        f.stubActors();
         f.drive("TEST.npcs['m/n'] = 9100");
 
         // a quest not started: in the world and in runtime, never saved
@@ -1427,7 +1445,7 @@ namespace
     void testNPCBehaviorRefused()
     {
         QuestFixture f;
-        f.stubNPCs();
+        f.stubActors();
 
         // the NPC refuses the new behavior, its record is undone, the old one is what the NPC still has
         f.drive(R"###(
@@ -1449,7 +1467,7 @@ namespace
     void testNPCBehaviorTimelines()
     {
         QuestFixture f;
-        f.stubNPCs();
+        f.stubActors();
         f.drive("TEST.npcs['m/n'] = 9100");
 
         // T1: another thread switches while the state runner waits for the reply of its install, the switch saves the item
@@ -1492,7 +1510,7 @@ namespace
         QuestFixture f;
         CoutCapture capture;
 
-        f.stubNPCs();
+        f.stubActors();
         f.drive("TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.npcs['m/p'] = 9102");
 
         // the state runner raises: its installs and removes go back to committed, in the context and in the world, its switch saves none of them
@@ -1548,7 +1566,7 @@ namespace
     void testErrorAbortOnlyRaise()
     {
         QuestFixture f;
-        f.stubNPCs();
+        f.stubActors();
         f.drive("TEST.npcs['m/n'] = 9100");
 
         // a close by a switch keeps the items, the switch saves them
@@ -1574,14 +1592,15 @@ namespace
     {
         QuestFixture f;
         CoutCapture capture;
-        f.stubNPCs();
+        f.stubActors();
         f.drive("TEST.npcs['m/n'] = 9100");
 
-        // the rollback looks the NPC up, another thread writes the key meanwhile, the rollback leaves it to that write
+        // the runner removed the item, the rollback looks the NPC up to install it again, another thread writes the key meanwhile
+        // the rollback leaves the key to that write
         f.drive(R"###(
             setQuestState{uid=115, state='b'}
             setupNPCQuestBehavior('m', 'n', 115, 'committed')
-            setQuestState{uid=115, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'pending') TEST.slowLookup = true error('state run failed') ]]}
+            setQuestState{uid=115, state='run', args=[[ clearNPCQuestBehavior('m', 'n', ...) TEST.slowLookup = true error('state run failed') ]]}
             setupNPCQuestBehavior('m', 'n', 115, 'newer')
         )###");
 
@@ -1590,6 +1609,124 @@ namespace
 
         f.drive("TEST.stale115 = (TEST.world[9100][115] == 'newer') and (_RSVD_NAME_questContext.get(115, 'npc/m/n').item.code == 'newer') and (TEST.db[115].fld_context['npc/m/n'].code == 'newer')");
         require(f.isTrue("stale115"), "a rollback overwrites a write that came while it looked the NPC up");
+    }
+
+    void testGridTriggerContext()
+    {
+        QuestFixture f;
+        f.stubActors();
+        f.drive("TEST.maps['m1'] = 9200 TEST.maps['m2'] = 9201");
+
+        // the state runner: on the map with its version, saved with the next switch, with what installs it again
+        f.drive(R"###(
+            setQuestState{uid=130, state='run', args=[[ setupMapUIDGridTrigger{uid = ..., name = 'door', map = 'm1', x = 3, y = 4, code = 'door130'} ]]}
+            local record = _RSVD_NAME_questContext.get(130, 'grid/door')
+            TEST.pending130 = (TEST.world[9200]['130/door'].code == 'door130') and (TEST.world[9200]['130/door'].version == record.version) and (TEST.db[130].fld_context == nil)
+
+            setQuestState{uid=130, state='b'}
+            local item = TEST.db[130].fld_context['grid/door']
+            TEST.saved130 = (item.type == 'grid') and (item.name == 'door') and (item.map == 'm1') and (item.rects[1][1] == 3) and (item.rects[1][2] == 4) and (item.code == 'door130') and (item.hash == 'hash1')
+        )###");
+        require(f.isTrue("pending130") && f.isTrue("saved130"), "a grid trigger of the state runner isn't installed with its version, or isn't saved with its next switch");
+
+        // another thread: saved at once; installed again on another map it moves, the old copy goes
+        f.drive(R"###(
+            setQuestState{uid=131, state='b'}
+            setupMapUIDGridTrigger{uid = 131, name = 'door', map = 'm1', rects = {{3, 4, 1, 1}}, code = 'first'}
+            setupMapUIDGridTrigger{uid = 131, name = 'door', map = 'm2', x = 5, y = 6, code = 'moved'}
+            TEST.moved131 = (TEST.world[9200]['131/door'] == nil) and (TEST.world[9201]['131/door'].code == 'moved') and (TEST.db[131].fld_context['grid/door'].map == 'm2')
+
+            clearMapUIDGridTrigger{uid = 131, name = 'door'}
+            TEST.cleared131 = (TEST.world[9201]['131/door'] == nil) and (TEST.db[131].fld_context == nil)
+        )###");
+        require(f.isTrue("moved131"), "a grid trigger installed again on another map doesn't move there, or keeps its old copy");
+        require(f.isTrue("cleared131"), "a clear of a grid trigger doesn't remove it from the world and the database");
+
+        // quest done removes it
+        f.drive(R"###(
+            setQuestState{uid=132, state='b'}
+            setupMapUIDGridTrigger{uid = 132, name = 'door', map = 'm1', x = 3, y = 4, code = 'done'}
+            setQuestState{uid=132, state=SYS_DONE}
+            TEST.done132 = TEST.world[9200]['132/door'] == nil
+        )###");
+        require(f.isTrue("done132"), "quest done doesn't remove a grid trigger");
+
+        // a map copy: installed by its name, never saved
+        f.drive(R"###(
+            setQuestState{uid=133, state='b'}
+            setupInstanceUIDGridTrigger{uid = 133, name = 'gate', mapUID = 9300, x = 1, y = 1, code = 'copy'}
+            TEST.copy133 = (TEST.world[9300]['133/gate'].code == 'copy') and (TEST.world[9300]['133/gate'].version == nil)
+                and (_RSVD_NAME_questContext.get(133, 'grid/gate') == nil) and (TEST.db[133].fld_context == nil)
+        )###");
+        require(f.isTrue("copy133"), "a grid trigger on a map copy isn't installed by its name, or is saved");
+
+        // a move deletes the old copy by its version: a copy installed by the name on the old map while the move waits stays
+        f.drive("setQuestState{uid=136, state='b'} setupMapUIDGridTrigger{uid = 136, name = 'door', map = 'm1', x = 3, y = 4, code = 'v1'} TEST.holdReplies = true");
+        const auto kp = f.runner.spawn(f.driverKey++, std::string("setupMapUIDGridTrigger{uid = 136, name = 'door', map = 'm2', x = 5, y = 6, code = 'v2'} TEST.moved136 = true"));
+        require(f.runner.hasKeyPair(kp), "a move doesn't wait for the reply of its install");
+
+        f.drive("TEST.moveCall136 = #TEST.calls TEST.holdReplies = false setupMapUIDGridTrigger{uid = 136, name = 'door', map = 'm1', x = 3, y = 4, code = 'v3'}");
+        f.reply(f.get("moveCall136").as<int>());
+        require(!f.runner.hasKeyPair(kp) && f.isTrue("moved136"), "a move doesn't finish after its reply");
+
+        f.drive("TEST.guard136 = (TEST.world[9200]['136/door'].code == 'v3') and (TEST.world[9201]['136/door'] == nil) and (_RSVD_NAME_questContext.get(136, 'grid/door').item.code == 'v3')");
+        require(f.isTrue("guard136"), "a move deletes the copy a later write installed by the name on the old map");
+    }
+
+    void testGridTriggerRollback()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+
+        f.stubActors();
+        f.drive("TEST.maps['m1'] = 9200 TEST.maps['m2'] = 9201");
+
+        // the state runner moved the trigger and raised: it's back on the old map, the moved copy is gone
+        f.drive(R"###(
+            setQuestState{uid=137, state='b'}
+            setupMapUIDGridTrigger{uid = 137, name = 'door', map = 'm1', x = 3, y = 4, code = 'committed'}
+            setQuestState{uid=137, state='run', args=[[ setupMapUIDGridTrigger{uid = ..., name = 'door', map = 'm2', x = 5, y = 6, code = 'moved'} error('state run failed') ]]}
+
+            TEST.back137 = (TEST.world[9200]['137/door'].code == 'committed') and (TEST.world[9201]['137/door'] == nil) and (_RSVD_NAME_questContext.get(137, 'grid/door').target == 9200)
+        )###");
+        require(f.isTrue("back137"), "a rollback of a moved grid trigger doesn't put it back on its map, or keeps the moved copy");
+    }
+
+    void testGridTriggerRetire()
+    {
+        QuestFixture f;
+        f.stubActors();
+        f.drive("TEST.maps['m1'] = 9200");
+
+        // a pending trigger retired: a DEL marker, the next switch deletes the committed one under the name too
+        f.drive(R"###(
+            setQuestState{uid=134, state='b'}
+            setupMapUIDGridTrigger{uid = 134, name = 'door', map = 'm1', x = 3, y = 4, code = 'committed'}
+            setQuestState{uid=134, state='run', args=[[ setupMapUIDGridTrigger{uid = ..., name = 'door', map = 'm1', x = 3, y = 4, code = 'pending'} ]]}
+
+            _RSVD_NAME_retireQuestGridTrigger(134, 'door', _RSVD_NAME_questContext.version(134, 'grid/door'))
+            TEST.retiredPending134 = (_RSVD_NAME_questContext.get(134, 'grid/door') == nil) and (TEST.db[134].fld_context['grid/door'].code == 'committed')
+
+            setQuestState{uid=134, state='b'}
+            TEST.committed134 = TEST.db[134].fld_context == nil
+        )###");
+        require(f.isTrue("retiredPending134") && f.isTrue("committed134"), "a retired pending trigger isn't deleted by the next switch, or is deleted before it");
+
+        // a committed trigger retired: deleted at once; the notice of an older version changes nothing
+        f.drive(R"###(
+            setQuestState{uid=135, state='b'}
+            setupMapUIDGridTrigger{uid = 135, name = 'door', map = 'm1', x = 3, y = 4, code = 'old'}
+            local old = _RSVD_NAME_questContext.version(135, 'grid/door')
+            setupMapUIDGridTrigger{uid = 135, name = 'door', map = 'm1', x = 3, y = 4, code = 'new'}
+
+            _RSVD_NAME_retireQuestGridTrigger(135, 'door', old)
+            TEST.stale135 = (_RSVD_NAME_questContext.get(135, 'grid/door').item.code == 'new') and (TEST.db[135].fld_context['grid/door'].code == 'new')
+
+            _RSVD_NAME_retireQuestGridTrigger(135, 'door', _RSVD_NAME_questContext.version(135, 'grid/door'))
+            TEST.retired135 = (_RSVD_NAME_questContext.get(135, 'grid/door') == nil) and (TEST.db[135].fld_context == nil)
+        )###");
+        require(f.isTrue("stale135"), "a retire notice of an older version deletes the trigger installed after it");
+        require(f.isTrue("retired135"), "a retired committed trigger isn't deleted at once");
     }
 
     void runTests()
@@ -1640,6 +1777,9 @@ namespace
         testErrorAbort();
         testErrorAbortOnlyRaise();
         testErrorAbortStale();
+        testGridTriggerContext();
+        testGridTriggerRetire();
+        testGridTriggerRollback();
     }
 }
 
@@ -1671,7 +1811,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, and error = abort with and without a fallback, only for a raise, and giving way to a newer write.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, and grid triggers as context items, moved, on map copies, retired, and rolled back.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

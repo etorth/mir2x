@@ -129,15 +129,15 @@ local function enterTrial(uid)
 
     -- the gate. left to itself it would send the player to the base 02_003, so refuse it and
     -- hand them to this run's copy
-    setupInstanceUIDGridTrigger(firstUID, gateGrids, uid,
-    string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'gate', mapUID = firstUID, rects = gateGrids,
+    argstr = string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
+    code = [[
         local secondUID, x, y = ...
         return function(uid, gridX, gridY)
             server.player.spaceMove(uid, secondUID, x, y)
             return false
         end
-    ]])
+    ]]}
 
     -- @mugong_firewind_test, he counts what is still breathing on both maps
     setupInstanceNPCBehavior(secondUID, trialNPC, uid,

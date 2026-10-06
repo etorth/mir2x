@@ -149,16 +149,16 @@ local function closeCaves(uid)
 end
 
 -- the gates on a copy still name the base cave, so refuse them and stay inside this run's set
-local function linkCaves(uid, fromUID, toUID, gridList, at)
-    setupInstanceUIDGridTrigger(fromUID, gridList, uid,
-    string.format([[ return %d, %d, %d ]], toUID, at[1], at[2]),
-    [[
+local function linkCaves(uid, name, fromUID, toUID, gridList, at)
+    setupInstanceUIDGridTrigger{uid = uid, name = name, mapUID = fromUID, rects = gridList,
+    argstr = string.format([[ return %d, %d, %d ]], toUID, at[1], at[2]),
+    code = [[
         local toUID, x, y = ...
         return function(uid, gridX, gridY)
             server.player.spaceMove(uid, toUID, x, y)
             return false
         end
-    ]])
+    ]]}
 end
 
 -- @MapQuest_massheal_cave1_4 from Monclear onwards, set [525]
@@ -182,26 +182,26 @@ local function enterCaves(uid)
 
     for index, cave in ipairs(caves) do
         if cave.forward then
-            linkCaves(uid, uidList[index], uidList[index + 1], cave.forward, cave.nextAt)
+            linkCaves(uid, 'forward', uidList[index], uidList[index + 1], cave.forward, cave.nextAt)
         end
 
         if cave.back then
-            linkCaves(uid, uidList[index], uidList[index - 1], cave.back, cave.backAt)
+            linkCaves(uid, 'back', uidList[index], uidList[index - 1], cave.back, cave.backAt)
         end
     end
 
     -- 1_020's other gate is the way back out to 绝命谷, which folds the whole cave up
-    setupInstanceUIDGridTrigger(uidList[1], caveExitGrids, uid,
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'exit', mapUID = uidList[1], rects = caveExitGrids,
+    argstr = [[
         return getUID()
     ]],
-    [[
+    code = [[
         local questUID = ...
         return function(uid, gridX, gridY)
             server.quest.setState(questUID, {uid = uid, state = 'quest_left_cave'})
             return false
         end
-    ]])
+    ]]}
 
     server.player.spaceMove(uid, uidList[1], caveEntry[1], caveEntry[2])
     return true
@@ -528,17 +528,17 @@ setQuestFSMTable(
         ]])
 
         -- @MapQuest_massheal_cave, the mouth of it
-        setupMapUIDGridTrigger(doorMap, doorGrids, uid,
-        [[
+        setupMapUIDGridTrigger{uid = uid, name = 'door', map = doorMap, rects = doorGrids,
+        argstr = [[
             return getUID()
         ]],
-        [[
+        code = [[
             local questUID = ...
             return function(uid, gridX, gridY)
                 server.quest.setState(questUID, {uid = uid, state = 'quest_enter_cave'})
                 return false
             end
-        ]])
+        ]]}
     end,
 
     quest_enter_cave = function(uid, args)

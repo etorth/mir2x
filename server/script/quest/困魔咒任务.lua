@@ -157,9 +157,9 @@ end
 -- a gate between two copies: the mapSwitchList destination on a copy names the base room, so
 -- refuse it and hand the player to the copy this run owns
 local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
-    setupInstanceUIDGridTrigger(fromUID, forwardGrids, uid,
-    string.format([[ return %d, %d, %d, %s, %s, %s ]], toUID, x, y, asInitString(stone), asInitString(needLine), asInitString(clearLine)),
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'forward', mapUID = fromUID, rects = forwardGrids,
+    argstr = string.format([[ return %d, %d, %d, %s, %s, %s ]], toUID, x, y, asInitString(stone), asInitString(needLine), asInitString(clearLine)),
+    code = [[
         local toUID, x, y, stone, needLine, clearLine = ...
         return function(uid, gridX, gridY)
             -- checkmonmap on the room behind you, the ward is not repaired until it is
@@ -179,20 +179,20 @@ local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
             server.player.spaceMove(uid, toUID, x, y)
             return false
         end
-    ]])
+    ]]}
 end
 
 -- and the way back, which needs no stone, it just has to stay inside this run's copies
 local function linkBack(uid, fromUID, toUID, gridList)
-    setupInstanceUIDGridTrigger(fromUID, gridList, uid,
-    string.format([[ return %d, %d, %d ]], toUID, backEntry[1], backEntry[2]),
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'back', mapUID = fromUID, rects = gridList,
+    argstr = string.format([[ return %d, %d, %d ]], toUID, backEntry[1], backEntry[2]),
+    code = [[
         local toUID, x, y = ...
         return function(uid, gridX, gridY)
             server.player.spaceMove(uid, toUID, x, y)
             return false
         end
-    ]])
+    ]]}
 end
 
 -- everything @MapQuest_holycircle_moveTo1_1 did, all five rooms stocked in one go
@@ -223,17 +223,17 @@ local function enterRooms(uid)
     end
 
     -- 1_019's exit, which closes the whole set down behind you
-    setupInstanceUIDGridTrigger(uidList[#rooms], exitGrids, uid,
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'exit', mapUID = uidList[#rooms], rects = exitGrids,
+    argstr = [[
         return getUID()
     ]],
-    [[
+    code = [[
         local questUID = ...
         return function(uid, gridX, gridY)
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
             return false
         end
-    ]])
+    ]]}
 
     server.player.spaceMove(uid, uidList[1], rooms[1].entry[1], rooms[1].entry[2])
     return true
@@ -341,17 +341,17 @@ setQuestFSMTable(
         end
 
         -- the door in 沃玛神殿2层_D023. it opens on the first stone and takes it
-        setupMapUIDGridTrigger(doorMap, doorGrids, uid,
-        [[
+        setupMapUIDGridTrigger{uid = uid, name = 'door', map = doorMap, rects = doorGrids,
+        argstr = [[
             return getUID()
         ]],
-        [[
+        code = [[
             local questUID = ...
             return function(uid, gridX, gridY)
                 server.quest.setState(questUID, {uid = uid, state = 'quest_open_rooms'})
                 return false
             end
-        ]])
+        ]]}
     end,
 
     -- standing on the door with the first stone in hand

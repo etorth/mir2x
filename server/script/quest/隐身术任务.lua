@@ -120,15 +120,15 @@ local function enterTrial(uid)
     setQuestRuntimeVar(uid, 'firstMapUID', firstUID)
     setQuestRuntimeVar(uid, 'secondMapUID', secondUID)
 
-    setupInstanceUIDGridTrigger(firstUID, gateGrids, uid,
-    string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
-    [[
+    setupInstanceUIDGridTrigger{uid = uid, name = 'gate', mapUID = firstUID, rects = gateGrids,
+    argstr = string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
+    code = [[
         local secondUID, x, y = ...
         return function(uid, gridX, gridY)
             server.player.spaceMove(uid, secondUID, x, y)
             return false
         end
-    ]])
+    ]]}
 
     -- @mugong_hiding_test. reaching him is all there is to it, he does not look at anything
     setupInstanceNPCBehavior(secondUID, trialNPC, uid,

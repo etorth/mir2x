@@ -114,13 +114,20 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             },
             dialog.link(SYS_EXIT, '退出'))
 
-            uidRemoteCall(loadBaseMap('道馆_1'), uid, questName,
+            uidRemoteCall(questUID, uid,
             [=[
-                local playerUID, questName = ...
-                addUIDGridTrigger(playerUID, questName, 400, 121, function(uid, x, y)
-                    server.player.postString(uid, '任务【%s】：我来到了%d:%d！', questName, x, y)
-                    return false
-                end)
+                local playerUID = ...
+                setupMapUIDGridTrigger{uid = playerUID, name = 'mapTriggerTest', map = '道馆_1', x = 400, y = 121,
+                argstr = [==[
+                    return getQuestName()
+                ]==],
+                code = [==[
+                    local questName = ...
+                    return function(uid, x, y)
+                        server.player.postString(uid, '任务【%s】：我来到了%d:%d！', questName, x, y)
+                        return false
+                    end
+                ]==]}
             ]=])
         end,
     })

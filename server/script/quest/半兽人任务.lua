@@ -24,9 +24,9 @@ local mondrop = require('quest.include.mondrop')
 -- pass the state the player is allowed to walk in on and bounce off, that first bounce is
 -- what tells them there is a sealed room at all
 local function setupSealedRoom(uid, discoverState)
-    setupMapUIDGridTrigger(sealedRoomMap, sealedRoomX, sealedRoomY, uid,
-    string.format([[ return %s, getUID() ]], discoverState and ('"' .. discoverState .. '"') or 'nil'),
-    [[
+    setupMapUIDGridTrigger{uid = uid, name = 'sealedRoom', map = sealedRoomMap, x = sealedRoomX, y = sealedRoomY,
+    argstr = string.format([[ return %s, getUID() ]], discoverState and ('"' .. discoverState .. '"') or 'nil'),
+    code = [[
         local discoverState, questUID = ...
         return function(uid, x, y)
             if server.player.hasItem(uid, '角笛', 1) then
@@ -41,7 +41,7 @@ local function setupSealedRoom(uid, discoverState)
             end
             return false
         end
-    ]])
+    ]]}
 end
 
 setQuestFSMTable(

@@ -149,20 +149,6 @@ function _RSVD_NAME_setupQuests()
         local restored, restoreErr = pcall(uidRemoteCall, questUID, getUID(),
         [[
             local playerUID = ...
-
-            local gridTriggers = dbGetQuestField(playerUID, 'fld_gridtriggers')
-            assertType(gridTriggers, 'table', 'nil')
-
-            if gridTriggers then
-                for _, v in pairs(gridTriggers) do
-                    if type(v[2]) == 'table' then
-                        setupMapUIDGridTrigger(v[1], v[2], playerUID, v[4], v[3])
-                    else
-                        setupMapUIDGridTrigger(v[1], v[2], v[3], playerUID, v[5], v[4])
-                    end
-                end
-            end
-
             _RSVD_NAME_restoreQuestStates(playerUID)
         ]])
 

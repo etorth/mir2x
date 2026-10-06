@@ -565,6 +565,37 @@ function _RSVD_NAME_questContext.rollback(uid, fsm)
     return changes
 end
 
+-- the world retired key by itself, i.e. a grid trigger returned true, version is the one it got
+-- a write of key after that version makes the notice stale, it changes nothing then and returns false
+-- a pending item gets a DEL marker, the commit deletes the committed one under the key too, a committed item is deleted at once
+function _RSVD_NAME_questContext.finalize(uid, key, version)
+    assertType(uid, 'integer')
+    assertType(key, 'string')
+    assertType(version, 'integer')
+
+    local context = _RSVD_NAME_questContexts[uid]
+    if not (context and (context.versions[key] == version)) then
+        return false
+    end
+
+    context.runtime[key] = nil
+    context.versions[key] = _RSVD_NAME_nextQuestContextVersion()
+
+    for _, pendingTable in pairs(context.pending) do
+        if pendingTable[key] then
+            pendingTable[key] = false
+            return true
+        end
+    end
+
+    local committed = dbGetQuestField(uid, 'fld_context') or {}
+    if committed[key] ~= nil then
+        committed[key] = nil
+        _RSVD_NAME_dbSetQuestContext(uid, committed)
+    end
+    return true
+end
+
 -- drops the context of uid at its quest done, returns its runtime records, what the world has to lose
 function _RSVD_NAME_questContext.drop(uid)
     assertType(uid, 'integer')
@@ -576,32 +607,51 @@ end
 
 -- item type -> how the world gets and loses an item of the type:
 --
---     prepareInstall(uid, item)          the lookups of an install, they yield, returns the target uid and a function that sends the install
+--     prepareInstall(uid, item, target)  the lookups of an install, they yield, returns the target uid and a function that sends the install
+--                                        a target given is the uid of the actor that gets the item, there is no lookup then
 --     prepareRemove(uid, item, target)   the same for a removal, target is nil when not known
 --     remove(uid, key, record)           for quest done, in its critical section, starts a thread that removes the item, never yields
 --
 -- a send function sends its remote call before it yields the first time, and raises if the remote side refuses
+-- it takes the version of the item, an install gives it to the remote side, a removal removes only the copy of that version if given
 -- the remote side installs and removes with no yield, so the messages of a quest to one actor take effect in the order they're sent
 _RSVD_NAME_questContext.types = {}
 
 -- a primitive installing item under key for uid: the lookups, which yield, then the record and the send with nothing between them
 -- a refused send raises, after the record is undone if no write of the key came since
+--
+-- an item that moves to another actor, i.e. a grid trigger to another map, loses its old copy after the new one is in
+-- a moment with both is safer than one with neither, a gated door is never open
 local function _RSVD_NAME_installQuestContextItem(uid, key, item)
-    local target, send = _RSVD_NAME_questContext.types[item.type].prepareInstall(uid, item)
+    local itemType = _RSVD_NAME_questContext.types[item.type]
+    local target, send = itemType.prepareInstall(uid, item)
+
+    local old = nil
     local version, undo = nil, nil
 
     do
         local section <close> = _RSVD_NAME_criticalSection()
+        old = _RSVD_NAME_questContext.get(uid, key)
         version, undo = _RSVD_NAME_questContext.install(uid, key, item, target)
     end
 
-    local ok, err = pcall(send)
+    local ok, err = pcall(send, version)
     if not ok then
         do
             local section <close> = _RSVD_NAME_criticalSection()
             _RSVD_NAME_questContext.undo(uid, key, version, undo)
         end
         error(err, 0)
+    end
+
+    -- by its version, whatever the key has by now: the old copy belongs to the old version, it'd be an orphan otherwise
+    if old and old.target and (old.target ~= target) then
+        local _, sendRemove = itemType.prepareRemove(uid, old.item, old.target)
+        local removed, removeErr = pcall(sendRemove, old.version)
+
+        if not removed then
+            addLog(LOGTYPE_WARNING, 'Quest context %s of uid %d keeps its old copy: %s', key, uid, tostring(removeErr))
+        end
     end
 end
 
@@ -631,45 +681,49 @@ local function _RSVD_NAME_removeQuestContextItem(uid, key, item)
     end
 end
 
--- the world after a rollback: each key gets its committed item back, or loses what the rollback took out
+-- the world after the rollback of key: its committed item back, or the loss of what the rollback took out, see rollback()
+-- the actor the rolled back write went to gets the committed item without a lookup, if it's the actor of the committed item too
 -- a key written since the rollback is left to its writer, the version is checked right before the send
--- a refused send is only logged
-local function _RSVD_NAME_applyQuestContextChanges(uid, changes)
-    for key, change in pairs(changes) do
-        local item = change.item or (change.current and change.current.item)
-        if item then
-            local ok, err = pcall(function()
-                local itemType = _RSVD_NAME_questContext.types[item.type]
-                local target, send = nil, nil
+local function _RSVD_NAME_applyQuestContextChange(uid, key, change)
+    local current = change.current
+    local itemType = _RSVD_NAME_questContext.types[(change.item or current.item).type]
 
-                if change.item then
-                    target, send = itemType.prepareInstall(uid, change.item)
-                else
-                    target, send = itemType.prepareRemove(uid, change.current.item, change.current.target)
-                end
+    local target, send = nil, nil
+    if change.item then
+        local knownTarget = current and current.target and (current.item.map == change.item.map) and (current.item.npc == change.item.npc) and current.target or nil
+        target, send = itemType.prepareInstall(uid, change.item, knownTarget)
+    else
+        target, send = itemType.prepareRemove(uid, current.item, current.target)
+    end
 
-                do
-                    local section <close> = _RSVD_NAME_criticalSection()
-                    if _RSVD_NAME_questContext.version(uid, key) ~= change.version then
-                        return
-                    end
-
-                    local record = _RSVD_NAME_questContext.get(uid, key)
-                    if record then
-                        record.target = target
-                    end
-                end
-                send()
-            end)
-
-            if not ok then
-                addLog(LOGTYPE_WARNING, 'Quest context %s of uid %d is not put back: %s', key, uid, tostring(err))
-            end
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        if _RSVD_NAME_questContext.version(uid, key) ~= change.version then
+            return
         end
+
+        local record = _RSVD_NAME_questContext.get(uid, key)
+        if record then
+            record.target = target
+        end
+    end
+
+    if not change.item then
+        send(current.version)
+        return
+    end
+
+    send(change.version)
+
+    -- the rolled back write had moved the item to another actor, i.e. a grid trigger to another map, its copy there goes too
+    if current and current.target and (current.target ~= target) then
+        local _, sendRemove = itemType.prepareRemove(uid, current.item, current.target)
+        sendRemove(current.version)
     end
 end
 
--- error = abort: the state of fsm raised, its pending items go back to committed, then the world follows on a thread of its own
+-- error = abort: the state of fsm raised, its pending items go back to committed, then the world follows, a thread for each key
+-- a key whose actor is known needs no lookup, its thread sends before this returns
 -- the context is back before the caller goes on, i.e. before a fallback, which can write the same keys again
 -- it doesn't yield, it's called in the <close> handler of a state runner that raised too
 local function _RSVD_NAME_abortQuestState(uid, fsm)
@@ -679,10 +733,15 @@ local function _RSVD_NAME_abortQuestState(uid, fsm)
         changes = _RSVD_NAME_questContext.rollback(uid, fsm)
     end
 
-    if next(changes) ~= nil then
-        runQuestThread(function()
-            _RSVD_NAME_applyQuestContextChanges(uid, changes)
-        end)
+    for key, change in pairs(changes) do
+        if change.item or change.current then
+            runQuestThread(function()
+                local ok, err = pcall(_RSVD_NAME_applyQuestContextChange, uid, key, change)
+                if not ok then
+                    addLog(LOGTYPE_WARNING, 'Quest context %s of uid %d is not put back: %s', key, uid, tostring(err))
+                end
+            end)
+        end
     end
 end
 
@@ -900,31 +959,15 @@ function setQuestState(fargs)
     if (fsm == SYS_QSTFSM) and (state == SYS_DONE) then
         -- the done row first, then the removals: a crash or a raise in them leaves a quest done, not a quest in its old state missing items
         -- an install after the row raises, see _RSVD_NAME_questContext
-        local gridTriggers = nil
+        -- each removal starts on a thread of its own, quest done doesn't yield, a close of this thread doesn't stop them
+        local section <close> = _RSVD_NAME_criticalSection()
 
-        do
-            local section <close> = _RSVD_NAME_criticalSection()
-            gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
+        -- the row keeps fld_states only
+        _RSVD_NAME_dbSetQuestFields(uid, {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}, true)
+        _RSVD_NAME_questRuntimeVars[uid] = nil
 
-            -- the row keeps fld_states only
-            _RSVD_NAME_dbSetQuestFields(uid, {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}, true)
-            _RSVD_NAME_questRuntimeVars[uid] = nil
-
-            -- each removal starts on a thread of its own, a close of this thread doesn't stop them
-            for key, record in pairs(_RSVD_NAME_questContext.drop(uid)) do
-                _RSVD_NAME_questContext.types[record.item.type].remove(uid, key, record)
-            end
-        end
-
-        if gridTriggers then
-            local mapNameList = {}
-            for _, v in pairs(gridTriggers) do
-                mapNameList[v[1]] = true
-            end
-
-            for mapName in pairs(mapNameList) do
-                _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
-            end
+        for key, record in pairs(_RSVD_NAME_questContext.drop(uid)) do
+            _RSVD_NAME_questContext.types[record.item.type].remove(uid, key, record)
         end
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
@@ -1136,8 +1179,8 @@ end
 -- NPC behaviors as quest context items, key npc/<map>/<npc>: one handler of a quest for a player on an NPC
 _RSVD_NAME_questContext.types.npc = {}
 
-function _RSVD_NAME_questContext.types.npc.prepareInstall(uid, item)
-    local npcUID = getNPCharUID(item.map, item.npc)
+function _RSVD_NAME_questContext.types.npc.prepareInstall(uid, item, npcUID)
+    npcUID = npcUID or getNPCharUID(item.map, item.npc)
     if not npcUID then
         fatalPrintf('No NPC %s on map %s', asInitString(item.npc), asInitString(item.map))
     end
@@ -1301,51 +1344,65 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
     _RSVD_NAME_removeQuestContextItem(uid, string.format('npc/%s/%s', mapName, npcName), {type = 'npc', map = mapName, npc = npcName})
 end
 
-local function parseUIDGridTriggerArgs(funcName, ...)
-    local args = table.pack(...)
-    local rectList = nil
-    local x        = nil
-    local y        = nil
-    local uid      = nil
-    local argstr   = nil
-    local code     = nil
+-- the rect list of a per-player trigger from its table arguments: x and y for one grid, or rects = {{x, y, w, h}, ...}
+local function _RSVD_NAME_parseUIDGridTriggerArgs(funcName, args)
+    assertType(args, 'table')
+    assertType(args.uid, 'integer')
+    assert(args.uid > 0)
+    assertType(args.name, 'string')
+    assertType(args.argstr, 'string', 'nil')
+    assertType(args.code, 'string')
 
-    if type(args[1]) == 'table' and args.n == 3 then
-        rectList, uid, code = table.unpack(args, 1, 3)
-
-    elseif type(args[1]) == 'table' and args.n == 4 then
-        rectList, uid, argstr, code = table.unpack(args, 1, 4)
-
-    elseif math.type(args[1]) == 'integer' and args.n == 4 then
-        x, y, uid, code = table.unpack(args, 1, 4)
-
-    elseif math.type(args[1]) == 'integer' and args.n == 5 then
-        x, y, uid, argstr, code = table.unpack(args, 1, 5)
-
-    else
-        fatalPrintf('Invalid arguments to %s()', funcName)
+    if args.rects ~= nil then
+        assertType(args.rects, 'table')
+        if (args.x ~= nil) or (args.y ~= nil) then
+            fatalPrintf('Invalid arguments to %s(): rects given with x, y', funcName)
+        end
+        return args.rects
     end
 
-    if rectList then
-        assertType(rectList, 'table')
-    else
-        assertType(x, 'integer')
-        assertType(y, 'integer')
-    end
-    assertType(uid, 'integer')
-    assert(uid > 0)
-    assertType(argstr, 'string', 'nil')
-    assertType(code, 'string')
+    assertType(args.x, 'integer')
+    assertType(args.y, 'integer')
+    return {{args.x, args.y, 1, 1}}
+end
 
-    return
-    {
-        rectList = rectList,
-        x        = x,
-        y        = y,
-        uid      = uid,
-        argstr   = argstr,
-        code     = code,
-    }
+-- per-player grid triggers as quest context items, key grid/<name>: one trigger of a quest for a player by the name, on one map at a time
+_RSVD_NAME_questContext.types.grid = {}
+
+function _RSVD_NAME_questContext.types.grid.prepareInstall(uid, item, mapUID)
+    mapUID = mapUID or loadBaseMap(item.map)
+    if not mapUID then
+        fatalPrintf('Can not load map %s', asInitString(item.map))
+    end
+
+    local args = item.argstr and table.pack(load(item.argstr)()) or table.pack()
+    args[args.n + 1] =
+    [[
+        local playerUID, questName, name, version, questUID, rectList, code = ...
+        return _RSVD_NAME_setUIDGridTrigger(playerUID, questName, name, version, questUID, rectList, load(code)(select(8, ...)))
+    ]]
+
+    return mapUID, function(version)
+        uidRemoteCall(mapUID, uid, getQuestName(), item.name, version, getUID(), item.rects, item.code, table.unpack(args, 1, args.n + 1))
+    end
+end
+
+function _RSVD_NAME_questContext.types.grid.prepareRemove(uid, item, mapUID)
+    mapUID = mapUID or (item.map and loadBaseMap(item.map))
+    return mapUID, function(version)
+        if mapUID then
+            uidRemoteCall(mapUID, uid, getQuestName(), item.name, version, [[ _RSVD_NAME_deleteUIDGridTrigger(...) ]])
+        end
+    end
+end
+
+-- any copy of the name: a rollback numbers its record again before the map gets the reinstall of that number
+-- the removal is sent at once when the map of the record is known, before the quest can start again and install the name again
+function _RSVD_NAME_questContext.types.grid.remove(uid, key, record)
+    runQuestThread(function()
+        local _, send = _RSVD_NAME_questContext.types.grid.prepareRemove(uid, record.item, record.target)
+        send()
+    end)
 end
 
 local function parseGridTriggerArgs(funcName, ...)
@@ -1391,19 +1448,20 @@ local function parseGridTriggerArgs(funcName, ...)
     }
 end
 
--- take over one grid or a rect list of a map for one player
+-- take over one grid or a rect list of a base map for one player, as the trigger name of this quest
+--
+-- a quest context item under grid/<name>, see _RSVD_NAME_questContext: saved with the state that
+-- installs it; installed again by its name it replaces the trigger, on another map it moves there
 --
 -- the grid stops sending the player through on its own, the installed code decides, it calls
 -- uidGridMapSwitch(uid, x, y) to send the player on to wherever the grid leads
--- returning exactly true retires the trigger, see _RSVD_NAME_runGridTrigger() in servermap.lua
+-- returning exactly true retires the trigger, it's gone from the world and from the context
 --
--- rect lists use {{x, y, w, h}, ...}; the whole list is installed as one trigger
---
---     setupMapUIDGridTrigger('半兽洞穴2层_D002', 225, 175, uid,
---     [[
+--     setupMapUIDGridTrigger{uid = uid, name = 'door', map = '半兽洞穴2层_D002', x = 225, y = 175,
+--     argstr = [[
 --         return getQuestName()
 --     ]],
---     [[
+--     code = [[
 --         local questName = ...
 --         return function(uid, x, y)
 --             if server.player.hasItem(uid, '不死牌', 1) then
@@ -1413,67 +1471,76 @@ end
 --             server.player.postString(uid, '不知道为什么，门被反锁了，无法进入……')
 --             return false
 --         end
---     ]])
+--     ]]}
 --
+-- rects = {{x, y, w, h}, ...} instead of x and y installs the whole list as one trigger
 -- like setupNPCQuestBehavior the argstr is re-evaluated on every install, so it must not
 -- capture anything from the current environment
-function setupMapUIDGridTrigger(mapName, ...)
-    assertType(mapName, 'string')
+-- raises for a quest done, and if the map refuses the trigger, i.e. its code doesn't load
+function setupMapUIDGridTrigger(args)
+    local rects = _RSVD_NAME_parseUIDGridTriggerArgs('setupMapUIDGridTrigger', args)
+    assertType(args.map, 'string')
 
-    local config = parseUIDGridTriggerArgs('setupMapUIDGridTrigger', ...)
-    local rectList = config.rectList or {{config.x, config.y, 1, 1}}
-
-    local mapUID = loadBaseMap(mapName)
-    if not mapUID then
-        fatalPrintf('Can not load map %s', asInitString(mapName))
-    end
-
-    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
-    args[args.n + 1] =
-    [[
-        local playerUID, questName, rectList, code = ...
-        return addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
-    ]]
-
-    local triggerId = assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
-    local storageKey = nil
-    local storageValue = nil
-
-    if config.rectList then
-        storageKey = strAny({mapName, config.rectList})
-        storageValue = {mapName, config.rectList, config.code, config.argstr}
-    else
-        storageKey = strAny({mapName, config.x, config.y})
-        storageValue = {mapName, config.x, config.y, config.code, config.argstr}
-    end
-
-    _RSVD_NAME_dbUpdateQuestFieldTable(config.uid, 'fld_gridtriggers', storageKey, storageValue)
-    return triggerId
+    _RSVD_NAME_installQuestContextItem(args.uid, 'grid/' .. args.name,
+    {
+        type   = 'grid',
+        name   = args.name,
+        map    = args.map,
+        rects  = rects,
+        argstr = args.argstr,
+        code   = args.code,
+        hash   = getQuestScriptHash(),
+    })
 end
 
--- setupMapUIDGridTrigger against one map copy instead of a map name, also accepts a rect list
+-- setupMapUIDGridTrigger against one map copy instead of a map name: mapUID = uid of the copy instead of map
 --
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
 -- carries the mapSwitchList destination, which only ever names the base map, so a quest that
 -- loaded copies of both maps installs a trigger here, which takes the automatic switch over,
 -- and spaceMoves the player into its own copy of the far side by uid
 --
--- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
--- survive a restart and there is nothing to reinstall onto
-function setupInstanceUIDGridTrigger(mapUID, ...)
-    assertType(mapUID, 'integer')
+-- deliberately not saved, for the same reason as setupInstanceNPCBehavior: a copy does not
+-- survive a restart and there is nothing to reinstall onto. the name replaces the trigger of
+-- the name on the copy, and a retire of it isn't reported
+function setupInstanceUIDGridTrigger(args)
+    local rects = _RSVD_NAME_parseUIDGridTriggerArgs('setupInstanceUIDGridTrigger', args)
+    assertType(args.mapUID, 'integer')
 
-    local config = parseUIDGridTriggerArgs('setupInstanceUIDGridTrigger', ...)
-    local rectList = config.rectList or {{config.x, config.y, 1, 1}}
-
-    local args = config.argstr and table.pack(load(config.argstr)()) or table.pack()
-    args[args.n + 1] =
+    local argList = args.argstr and table.pack(load(args.argstr)()) or table.pack()
+    argList[argList.n + 1] =
     [[
-        local playerUID, questName, rectList, code = ...
-        return addUIDGridTrigger(playerUID, questName, rectList, load(code)(select(5, ...)))
+        local playerUID, questName, name, version, questUID, rectList, code = ...
+        return _RSVD_NAME_setUIDGridTrigger(playerUID, questName, name, version, questUID, rectList, load(code)(select(8, ...)))
     ]]
 
-    return assertType(uidRemoteCall(mapUID, config.uid, getQuestName(), rectList, config.code, table.unpack(args, 1, args.n + 1)), 'integer')
+    return assertType(uidRemoteCall(args.mapUID, args.uid, getQuestName(), args.name, nil, nil, rects, args.code, table.unpack(argList, 1, argList.n + 1)), 'integer')
+end
+
+-- removes the trigger name of this quest for uid, as a quest context item: clearMapUIDGridTrigger{uid = uid, name = name}
+-- does nothing for a quest done
+function clearMapUIDGridTrigger(args)
+    assertType(args, 'table')
+    assertType(args.uid, 'integer')
+    assertType(args.name, 'string')
+
+    -- the map of the trigger, by its record, or by the committed item if it isn't installed in this server run
+    local key = 'grid/' .. args.name
+    local record = _RSVD_NAME_questContext.get(args.uid, key)
+    local item = (record and record.item) or (dbGetQuestField(args.uid, 'fld_context') or {})[key] or {type = 'grid', name = args.name}
+
+    _RSVD_NAME_removeQuestContextItem(args.uid, key, item)
+end
+
+-- the map retired the trigger name of uid by itself, its handler returned true, see _RSVD_NAME_runGridTrigger() in servermap.lua
+-- version is the one the map got, a write of the name after it makes the notice stale
+function _RSVD_NAME_retireQuestGridTrigger(uid, name, version)
+    assertType(uid, 'integer')
+    assertType(name, 'string')
+    assertType(version, 'integer')
+
+    local section <close> = _RSVD_NAME_criticalSection()
+    _RSVD_NAME_questContext.finalize(uid, 'grid/' .. name, version)
 end
 
 -- take one grid or a rect list of a map over for everyone on it, not just one player
@@ -1527,28 +1594,6 @@ function clearMapGridTrigger(mapName, triggerId)
     local mapUID = loadBaseMap(mapName)
     if mapUID then
         uidRemoteCall(mapUID, triggerId, [[ deleteGridTrigger(...) ]])
-    end
-end
-
-function clearMapUIDGridTrigger(mapName, triggerId)
-    assertType(mapName, 'string')
-    assertType(triggerId, 'integer')
-
-    local mapUID = loadBaseMap(mapName)
-    if mapUID then
-        uidRemoteCall(mapUID, triggerId, [[ deleteGridTrigger(...) ]])
-    end
-end
-
--- remove every SYS_EPUID grid trigger this player has for the current quest
--- used by setQuestState() when the quest reaches SYS_DONE
-function _RSVD_NAME_clearQuestMapUIDGridTrigger(mapName, uid)
-    assertType(mapName, 'string')
-    assertType(uid, 'integer')
-
-    local mapUID = loadBaseMap(mapName)
-    if mapUID then
-        uidRemoteCall(mapUID, uid, getQuestName(), [[ _RSVD_NAME_clearQuestUIDGridTrigger(...) ]])
     end
 end
 
