@@ -102,12 +102,16 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
+            -- the switch first, a second click while this one runs gets nothing
+            if not server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_DONE}) then
+                return
+            end
+
             dialog.post(uid, questPath, '现在你已经有了火球术秘籍，以前不理解的地方现在都可以理解了。',
             dialog.link(SYS_EXIT, '结束'))
 
             server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)
-            server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
         end,
     })
 ]])

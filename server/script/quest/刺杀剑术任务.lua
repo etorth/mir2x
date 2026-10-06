@@ -126,6 +126,11 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the 战酒 only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_horn', state = 'quest_got_wine'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     '好了，现在喝用沃玛角做成的<t color="red">战酒</t>。' ..
                     '这个酒以后将保护你的灵魂。' ..
@@ -137,7 +142,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '沃玛角', 1)
                     server.player.addItem(uid, '战酒', 1)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_got_wine'})
                 end,
             }
         ]])
@@ -168,6 +172,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_wine', state = SYS_DONE}) then
+                        return
+                    end
+
                     -- @mugong_asword_complete_next3
                     dialog.post(uid, questPath,
                     {
@@ -179,7 +187,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '刺杀剑术（秘籍）', 1)
                     server.player.deliverGold(uid, 25000)
                     server.player.addItem(uid, '龙骨戒指', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -299,7 +306,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath, '但是在学习刺杀剑术之前，你要做一件事情。不是很困难的事情。进入沃玛神殿取得<t color="red">沃玛角</t>即可。不要问理由，快去快回！我将等你回来。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

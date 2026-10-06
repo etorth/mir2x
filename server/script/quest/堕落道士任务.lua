@@ -116,7 +116,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '就是啊！一心想要长生不老的这个家伙完全能做出这种事儿来。唉<t wrap="0">···</t>本来应该是由本馆解决的事儿却引发了如此祸端，贫道真是惭愧至极啊！您回比奇省的时候请转告一下，现在本馆将会尽全力帮助解决这件事情的！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_report_thief'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_report_thief'})
                 end,
             }
         ]])
@@ -202,7 +202,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_hunt_taoist'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_report_thief', state='quest_hunt_taoist'})
                 end,
             }
         ]])
@@ -275,7 +275,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_fight_zombie'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_hunt_taoist', state='quest_fight_zombie'})
                 end,
             }
         ]])
@@ -344,7 +344,7 @@ setQuestFSMTable(
 
                     -- legacy threw the player back out of the tunnel as he left
                     server.player.spaceMove(uid, '连接通路_E402', 63, 72)
-                    server.quest.setState(questUID, {uid=uid, state='quest_report_mine'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_taoist_fled', state='quest_report_mine'})
                 end,
             }
         ]])
@@ -422,7 +422,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_search_mine'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_report_mine', state='quest_search_mine'})
                 end,
             }
         ]])
@@ -490,7 +490,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_fight_king'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_search_mine', state='quest_fight_king'})
                 end,
             }
         ]])
@@ -556,7 +556,7 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '关闭'))
 
                     server.player.spaceMove(uid, '地下2层采矿所_D404', 53, 129)
-                    server.quest.setState(questUID, {uid=uid, state='quest_report_king'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_king_dead', state='quest_report_king'})
                 end,
             }
         ]])
@@ -620,7 +620,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_tell_temple'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_report_king', state='quest_tell_temple'})
                 end,
             }
         ]])
@@ -676,7 +676,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_temple_pledge'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_tell_temple', state='quest_temple_pledge'})
                 end,
             }
         ]])
@@ -738,6 +738,11 @@ setQuestFSMTable(
                 end,
 
                 npc_hear_valley = function(uid, args)
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_temple_pledge', state='quest_find_lair'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '毒蛇山谷矿山又出现了和那次一样的现象？让尸体复活而造出的怪物<t wrap="0">···</t>',
@@ -748,7 +753,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, SYS_GOLDNAME, 10000)
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_lair'})
                 end,
             }
         ]])
@@ -810,7 +814,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_report_lair'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_lair', state='quest_report_lair'})
                 end,
             }
         ]])
@@ -869,7 +873,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_seal'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_report_lair', state='quest_ask_seal'})
                 end,
             }
         ]])
@@ -933,7 +937,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_collect_bones'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_ask_seal', state='quest_collect_bones'})
                 end,
             }
         ]])
@@ -1009,6 +1013,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_collect_bones', state='quest_final_fight'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '呼<t wrap="0">···</t>已经做完了！有了这个就可以破解署箭设下的不死牌困魔咒了。',
@@ -1019,7 +1027,6 @@ setQuestFSMTable(
                     server.player.removeItem(uid, '僧侣僵尸骨', 1)
                     server.player.removeItem(uid, '雷电僵尸骨', 1)
                     server.player.addItem(uid, '毁灭护身符', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_final_fight'})
                 end,
             }
         ]])
@@ -1106,7 +1113,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_kill_taoist'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_final_fight', state='quest_kill_taoist'})
                 end,
             }
         ]])
@@ -1183,6 +1190,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_return_token', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '危难之中最值得信赖和依托的人只有您啊！',
@@ -1193,7 +1204,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '不死牌', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 20000)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -1266,7 +1276,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQue
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
     })
 ]])

@@ -171,7 +171,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '好的，知道了。'))
 
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_investigate'})
+                    server.quest.setState(questUID, {uid = uid, from = SYS_ENTER, state = 'quest_investigate'})
                 end,
             }
         ]])
@@ -291,6 +291,11 @@ setQuestFSMTable(
 
                 -- @mugong_masshiding_complete3
                 npc_take_book = function(uid, value)
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_log', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '知道了。你的决心非常大嘛。',
@@ -302,7 +307,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '集体隐身术（秘籍）', 1)
                     server.player.addItem(uid, '暗黑竹笛', 1)
                     server.player.deliverGold(uid, 21000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -393,7 +397,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

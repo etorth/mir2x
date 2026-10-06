@@ -77,7 +77,8 @@ local function onMap(playerUID, mapList)
     return false
 end
 
-local function runDrop(playerUID, drop)
+-- fromState is the state that installed the drop, see addDropTrigger()
+local function runDrop(playerUID, drop, fromState)
     -- legacy keyed its MonDie hooks on the map the monster died on, see Envir/MapQuest.txt
     if not onMap(playerUID, drop.map) then
         return false
@@ -111,6 +112,11 @@ local function runDrop(playerUID, drop)
         dbSetQuestVar(playerUID, drop.counter, nil)
     end
 
+    -- the switch first, the items only for the kill that made it, a second kill meanwhile gets nothing
+    if drop.setState and (not setQuestState{uid = playerUID, from = fromState, state = drop.setState}) then
+        return true
+    end
+
     for _, item in ipairs(drop.take) do
         server.player.removeItem(playerUID, item[1], item[2])
     end
@@ -134,11 +140,6 @@ local function runDrop(playerUID, drop)
         else
             server.player.spaceMove(playerUID, table.unpack(drop.moveTo))
         end
-    end
-
-    -- last, it can clear the state this drop is gated on
-    if drop.setState then
-        setQuestState{uid = playerUID, state = drop.setState}
     end
     return true
 end
@@ -237,7 +238,9 @@ local function buildDropListByMonster(dropList)
 end
 
 -- call this from inside the quest_xxx state the drop is meant to be live in (not once at quest
--- script load time), the trigger lives in the player's own VM so a kill costs the killer a cheap
+-- script load time), a kill after the quest left that state removes the drop and gives nothing
+--
+-- the trigger lives in the player's own VM so a kill costs the killer a cheap
 -- local table lookup instead of a remote call to the quest actor for every single kill on the
 -- server, only a real match pays for the round trip back here to run runDrop
 --
@@ -246,7 +249,6 @@ end
 --         {
 --             {
 --                 monster  = '半兽人',
---                 state    = 'quest_wait_kill',
 --                 setState = 'quest_done',
 --             },
 --         },
@@ -254,7 +256,7 @@ end
 --             timeout   = 100 * 1000,
 --             onTimeout = function()
 --                 postString(uid, '时间到了，任务失败。')
---                 setQuestState{uid=uid, state='quest_failed'}
+--                 setQuestState{uid=uid, from='quest_wait_kill', state='quest_failed'}
 --             end,
 --         })
 --     end,
@@ -282,8 +284,18 @@ function mondrop._runDropOnKill(playerUID, callID, monsterID)
         return
     end
 
+    -- the quest left the state that installed the drop, i.e. by a dialog, see addDropTrigger()
+    if dbGetQuestState(playerUID) ~= call.state then
+        _RSVD_NAME_activeDropCalls[callID] = nil
+        if call.timerKey then
+            closeThread(call.timerKey)
+        end
+        _RSVD_NAME_removePlayerTrigger(playerUID, call.triggerPath)
+        return
+    end
+
     for _, drop in ipairs(call.dropListByMonster[monsterID] or {}) do
-        if runDrop(playerUID, drop) then
+        if runDrop(playerUID, drop, call.state) then
             _RSVD_NAME_activeDropCalls[callID] = nil
             if call.timerKey then
                 closeThread(call.timerKey)
@@ -335,6 +347,7 @@ function mondrop.addDropTrigger(uid, dropList, opts)
     _RSVD_NAME_activeDropCalls[callID] =
     {
         uid               = uid,
+        state             = dbGetQuestState(uid),
         dropListByMonster = dropListByMonster,
         triggerPath       = triggerPath,
     }

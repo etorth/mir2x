@@ -29,7 +29,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '嗯<t wrap="0">···</t>首饰店所蒙受的损失少一点，说不定他们会接受。',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_jewelry'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_ask_jewelry'})
                 end,
             }
         ]])
@@ -70,7 +70,7 @@ setQuestFSMTable(
                     '不过依我看那个女子好像和洪气霖是从一个地方来的！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_wife'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_ask_jewelry', state='quest_ask_wife'})
                 end,
             }
         ]])
@@ -123,15 +123,18 @@ setQuestFSMTable(
                         '拜托侠客您一件事！请您把这个玉指环拿给他，告诉他苏白花还活着！并告诉他如果他依然还爱我的话，就让他来这里接我吧！',
                     },
                     dialog.link('npc_ask_why_not_go_directly', '为什么不直接去找他呢？'))
-
-                    server.player.addItem(uid, getItemID('玉指环'), 1)
                 end,
 
+                -- the 玉指环 goes with the switch, a click on npc_where_from again gives none
                 npc_ask_why_not_go_directly = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_ask_wife', state='quest_ask_husband'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '只能这样啊！万一他已经有了别的妻子，我就会妨碍他们的！所以请你替我去打听一下他的心意啊！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_husband'})
+                    server.player.addItem(uid, getItemID('玉指环'), 1)
                 end,
             }
         ]])
@@ -174,6 +177,10 @@ setQuestFSMTable(
                 end,
 
                 npc_give_ring = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_ask_husband', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '真是太感谢了！啊，收下这个吧！这本来是我们家族的传家之宝，但现在已经家门零落还要这传家宝又有什么用呢？别谦让，请收下吧！',
@@ -182,7 +189,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, getItemID('制魔宝玉'), 1)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -221,7 +227,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '世玉_1'), getUID(), getQuestName(),
         end,
 
         [SYS_ENTER] = function(uid, args)
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER, exitargs=table.pack(getUID(), uid, questName), exitfunc=[=[
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER, exitargs=table.pack(getUID(), uid, questName), exitfunc=[=[
                 local npcUID, playerUID, questName = ...
                 runNPCEventHandler(npcUID, playerUID, {SYS_EPUID, questName}, SYS_ENTER)
             ]=]})

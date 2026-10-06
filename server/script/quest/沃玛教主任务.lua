@@ -136,8 +136,9 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
+                -- the medal first, the gold only for a medal that was taken, a second click meanwhile gets nothing
                 npc_sell = function(uid, args)
-                    if not server.player.hasItem(uid, '沃玛金牌', 1) then
+                    if not server.player.removeItem(uid, '沃玛金牌', 1) then
                         return
                     end
 
@@ -157,8 +158,6 @@ setQuestFSMTable(
                         dialog.link('npc_thanks', '谢谢！'))
                         server.player.addItem(uid, SYS_GOLDNAME, 50000)
                     end
-
-                    server.player.removeItem(uid, '沃玛金牌', 1)
                 end,
 
                 npc_thanks = function(uid, args)
@@ -174,7 +173,7 @@ setQuestFSMTable(
                     '那个无名老人隐居在<t color="red">道馆西北部的小山谷里</t>的一个小茅屋中，不过<t color="red">进入他隐居地的入口</t>可不太好找！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_hermit'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_sell_medal', state='quest_find_hermit'})
                 end,
             }
         ]])
@@ -341,6 +340,11 @@ setQuestFSMTable(
                 end,
 
                 npc_sold_it = function(uid, args)
+                    -- the switch first, the rest only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_find_hermit', state='quest_ask_wang'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     '你说什么？' ..
                     '你把那个给卖了？' ..
@@ -351,7 +355,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '无名日志', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_wang'})
                 end,
             }
         ]])
@@ -413,7 +416,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_trader'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_ask_wang', state='quest_find_trader'})
                 end,
             }
         ]])
@@ -481,7 +484,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '如果你一定要这个沃玛金牌的话，可以拿别的东西来和我交换。如果你能给我找来沃玛神殿中比沃玛金牌更有价值的古董的话我就会把这个东西还给你的！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_bell'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_trader', state='quest_find_bell'})
                 end,
             }
         ]])
@@ -563,7 +566,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_open_vault'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_bell', state='quest_open_vault'})
                 end,
             }
         ]])
@@ -640,6 +643,10 @@ setQuestFSMTable(
                 end,
 
                 npc_take_bell = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_open_vault', state='quest_trade_bell'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '真是年代十分久远的东西啊！不过不知道还有什么用处，好像除了作为古董没什么别的价值了<t wrap="0">···</t>',
@@ -648,7 +655,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '地狱神钟', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_trade_bell'})
                 end,
             }
         ]])
@@ -734,6 +740,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_trade_bell', state='quest_hunt_orb'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '哇<t wrap="0">···</t>这个看来确实是比沃玛金牌更有价值啊！好吧！成交！拿走沃玛金牌吧！',
@@ -743,7 +753,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '地狱神钟', 1)
                     server.player.addItem(uid, '沃玛金牌', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_hunt_orb'})
                 end,
             }
         ]])
@@ -790,7 +799,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_orb'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_hunt_orb', state='quest_find_orb'})
                 end,
             }
         ]])
@@ -906,7 +915,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_meet_priest'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_break_orb', state='quest_meet_priest'})
                 end,
             }
         ]])
@@ -961,6 +970,10 @@ setQuestFSMTable(
                 end,
 
                 npc_tricked = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_meet_priest', state='quest_fight_escort'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '呵呵呵<t wrap="0">···</t>这个傻小子！真是不知天高地厚啊！看来是该让你知道一下想碰灵魂明珠要付出的代价了！',
@@ -969,7 +982,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '灵魂明珠', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_fight_escort'})
                 end,
             }
         ]])
@@ -1039,7 +1051,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_kill_priest'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_fight_priest', state='quest_kill_priest'})
                 end,
             }
         ]])
@@ -1148,7 +1160,21 @@ setQuestFSMTable(
                     })
                 end,
 
+                -- no switch goes with this gold, a quest flag gives it once, checked and set in one call
                 npc_decline_job = function(uid, args)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        if hasQuestFlag(playerUID, 'gold_declined_job') then
+                            return false
+                        end
+
+                        addQuestFlag(playerUID, 'gold_declined_job')
+                        return true
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '<t wrap="0">···</t>',
@@ -1161,6 +1187,10 @@ setQuestFSMTable(
                 end,
 
                 npc_take_job = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_smash_orb', state='quest_kill_king'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '您的侠义心肠会救了世上的无数人啊！我这个老家伙也从您那儿得到了希望。希望您一定要除掉沃玛教主消除无数牺牲者的怨恨啊！',
@@ -1171,7 +1201,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '修罗', 1)
                     server.player.addItem(uid, '偃月', 1)
                     server.player.addItem(uid, '降魔', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_kill_king'})
                 end,
             }
         ]])
@@ -1240,13 +1269,16 @@ setQuestFSMTable(
                 end,
 
                 npc_comfort = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_king_dead', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '谢谢了！我死去的弟弟也不会忘记您的恩德的！真的太谢谢您能帮我这个罪孽深重的老家伙完成夙愿了！现在这个对我来说已经用不着了，如果您能够派上用场的话就好了。',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '沃玛修罗', 1)
                     server.player.addItem(uid, '沃玛偃月', 1)
                     server.player.addItem(uid, '沃玛降魔', 1)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -1294,7 +1326,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '王铁匠_1'), getUID(), getQuestName(),
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
     })
 ]])

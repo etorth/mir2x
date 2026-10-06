@@ -44,7 +44,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '找到苍蝇拍的材料的话我就会帮你做苍蝇拍！苍蝇拍所需的材料是牛毛和竹棍。牛毛可以从牛身上弄到，竹棍或许能从钉耙猫那儿弄到！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_start_collection'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_start_collection'})
                 end,
             }
         ]])
@@ -77,8 +77,9 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, playerUID,
                     [=[
                         local playerUID = ...
-                        setQuestDesp{uid=playerUID, '已经收集到制作苍蝇拍所需要的竹棍和牛毛，把他们交给杂货商吧。'}
-                        setQuestState{uid=playerUID, state='quest_complete_collection'}
+                        if setQuestState{uid=playerUID, from='quest_start_collection', state='quest_complete_collection'} then
+                            setQuestDesp{uid=playerUID, '已经收集到制作苍蝇拍所需要的竹棍和牛毛，把他们交给杂货商吧。'}
+                        end
                     ]=])
                     return true
                 end
@@ -144,6 +145,11 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
+                    -- the switch first, the 苍蝇拍 only for the visit that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_complete_collection', state='quest_get_fly_swatter'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '哦！材料全部找到了啊！请稍等一下<t wrap="0">···</t>')
 
                     pause(500)
@@ -158,7 +164,6 @@ setQuestFSMTable(
                     server.player.removeItem(uid, '牛毛', 1)
                     server.player.removeItem(uid, '竹棍', 1)
                     server.player.addItem(uid, getItemID('苍蝇拍'), 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_get_fly_swatter'})
                 end,
             }
         ]])
@@ -179,6 +184,10 @@ setQuestFSMTable(
             {
                 [SYS_ENTER] = function(uid, args)
                     if server.player.hasItem(uid, getItemID('苍蝇拍'), 0, 1) then
+                        if not server.quest.setState(questUID, {uid=uid, from='quest_get_fly_swatter', state=SYS_DONE}) then
+                            return
+                        end
+
                         dialog.post(uid, questPath,
                         {
                             '噢<t wrap="0">···</t>真是太感谢了，现在可以对付这些该死的苍蝇了！',
@@ -188,8 +197,6 @@ setQuestFSMTable(
 
                         server.player.removeItem(uid, getItemID('苍蝇拍'), 0, 1)
                         server.player.   addItem(uid, getItemID('蝉翼刀'), 1)
-
-                        server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                     else
                         dialog.post(uid, questPath, '你给我带的苍蝇拍呢？',
                         dialog.link(SYS_EXIT, '结束'))
@@ -232,7 +239,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
             dialog.post(uid, questPath, '那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450，413</t>。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
 
         npc_refuse = function(uid, args)

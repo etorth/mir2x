@@ -187,11 +187,15 @@ setQuestFSMTable(
                 -- away with 你的背囊装满了。。请整理些位置再来！, and mir2x has no inventory-full
                 -- check to hang that on
                 npc_take_letter = function(uid, value)
+                    -- the switch first, the 书信 only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = SYS_ENTER, state = 'quest_carry_letter'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '带着这个<t color="red">书信</t>，穿越沙漠。找到隐居在<t color="red">绿洲村</t>叫<t color="red">‘王铁匠’</t>的武士，并将书信交给他，他就会告诉你某种秘诀。接受他的指教后再来！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '书信', 1)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_carry_letter'})
                 end,
             }
         ]])
@@ -283,7 +287,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '真的吗？哦，绝对不是故意如此的。<t color="red">诺玛石</t>被装饰于诺玛法老的手杖上，而且请找到该<t color="red">诺玛石5个</t>。',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_find_stones'})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_carry_letter', state = 'quest_find_stones'})
                 end,
             }
         ]])
@@ -404,11 +408,15 @@ setQuestFSMTable(
                         '这个是对你善意的小小答谢。请将书信转交给<t color="red">皇甫</t>。',
                     },
                     dialog.link('npc_take_armor', '好的，我将转交。'))
-                    server.player.addItem(uid, '书信', 1)
                 end,
 
+                -- the 书信 to 皇甫 goes with the armour and the switch, a click on npc_hand_over again gives none
                 npc_take_armor = function(uid, value)
                     if not server.player.hasItem(uid, '诺玛石', 5) then
+                        return
+                    end
+
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_find_stones', state = 'quest_carry_reply'}) then
                         return
                     end
 
@@ -417,7 +425,7 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '诺玛石', 5)
                     server.player.addItem(uid, server.player.getGender(uid) and '诺玛重盔甲（男）' or '诺玛重盔甲（女）', 1)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_carry_reply'})
+                    server.player.addItem(uid, '书信', 1)
                 end,
             }
         ]])
@@ -503,6 +511,10 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_complete_receive_next3, SET [704]
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_carry_reply', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '在哪儿、写了些什么？嗯，说你是不顾各种危险并找到药的优秀年轻人。对的，帮助有困难的人是我们有能力的人应该做的事情。非常好！你的行为提高了战士的声誉。',
@@ -514,7 +526,6 @@ setQuestFSMTable(
 
                     server.player.addItem(uid, '野蛮冲撞（秘籍）', 1)
                     server.player.deliverGold(uid, 30000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -605,7 +616,7 @@ local weaponShopCode =
             dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]]
@@ -675,14 +686,14 @@ local armorShopCode =
                 '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
 
         -- @mugong_mute_explan_armor_m_next2, set [508]
         npc_accept = function(uid, value)
             dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
             dialog.link(SYS_EXIT, '结束'))
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]]

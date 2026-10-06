@@ -137,26 +137,28 @@ local function setupTailor(uid)
                     return
                 end
 
+                -- random 2, the switch first, a second click meanwhile coats nothing
+                -- SET [523] 0 sends you back to the caves for another 树脂, SET [524] goes on
+                local coated = (math.random(2) == 1)
+                if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_resin', state = coated and 'quest_find_stone' or SYS_ENTER}) then
+                    return
+                end
+
                 -- both go in whether or not it works
                 server.player.removeItem(uid, '树脂', 1)
                 server.player.removeWearItem(uid, WLG_DRESS)
 
-                -- random 2
-                if math.random(2) ~= 1 then
+                if not coated then
                     dialog.post(uid, questPath, '这个怎么办<t wrap="0">···</t>涂树脂的过程中<t color="red">将衣服破坏了<t wrap="0">···</t></t>这如何是好<t wrap="0">···</t>对不起<t wrap="0">···</t>如果重新再找到的话，我再给你做。',
                     dialog.link(SYS_EXIT, '结束'))
-
-                    -- SET [523] 0, back to the caves for another 树脂
-                    server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
                     return
                 end
 
-                -- @mugong_lightline_suzi_man3 / _wman3, SET [524]
+                -- @mugong_lightline_suzi_man3 / _wman3
                 dialog.post(uid, questPath, '恭喜你<t color="red">成功了<t wrap="0">···</t></t>虽然不知道这是用在那里的东西<t wrap="0">···</t>请好好使用<t wrap="0">···</t>',
                 dialog.link(SYS_EXIT, '结束'))
 
                 server.player.addItem(uid, coatedRobeName, 1)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_find_stone'})
             end,
         }
     ]])
@@ -272,6 +274,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_stone', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '辛苦了！这里有疾光电影秘籍，请看着练习就可以了。以后要修炼的武功还很多，别骄傲，请继续练习！',
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -279,7 +285,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '疾光电影（秘籍）', 1)
                     server.player.deliverGold(uid, 26000)
                     server.player.addItem(uid, '月光石手镯', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -365,7 +370,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath, '想得不错，获得闪电石虽然辛苦，完成了此事成就感也就比较大。那么就快去快回吧！',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

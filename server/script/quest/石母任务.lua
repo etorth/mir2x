@@ -42,7 +42,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '嘿，什么话？！我虽然是个做生意的，但我可不是诱拐别人家的孩子那种没头没脑的人。你如果是为这件事来找我，还是赶快走吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_book_store'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_ask_book_store'})
                 end,
             }
         ]])
@@ -88,7 +88,7 @@ setQuestFSMTable(
                 end,
 
                 npc_tell_mom = function(uid, args)
-                    server.quest.setState(questUID, {uid=uid, state='quest_tell_mom'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_ask_book_store', state='quest_tell_mom'})
                 end,
             }
         ]])
@@ -129,7 +129,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '现在还不能为你解释！不管怎么样，那个寿石就是我的孩子！帮我找回那个寿石我一定不忘您的大恩大德。请帮我把它找回来吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_buy_kid_stone'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_tell_mom', state='quest_buy_kid_stone'})
                 end,
             }
         ]])
@@ -223,7 +223,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '真是大甩卖了。你到底知不知道那东西的价值啊？那玩意儿不是普通的东西，是蕴含着灵气的。你小心点弄它吧。',
                     dialog.link(SYS_EXIT, '知道了'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_got_kid_statue'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_buy_kid_stone', state='quest_got_kid_statue'})
                 end,
             }
         ]])
@@ -263,7 +263,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '啊啊，终于找回我的孩子了，真是太感谢了！这个虽然微薄，但也是我的一片心意！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
+                    server.quest.setState(questUID, {uid=uid, from='quest_got_kid_statue', state=SYS_DONE})
                 end,
             }
         ]])
@@ -315,7 +315,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
             dialog.link(SYS_EXIT, '结束'))
 
             fnLeaveMap(uid)
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
 
         npc_refuse = function(uid, args)

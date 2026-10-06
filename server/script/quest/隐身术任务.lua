@@ -154,7 +154,7 @@ local function enterTrial(uid)
 
             -- SET [508]
             npc_leave_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_trial_passed'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'})
             end,
         }
     ]])
@@ -162,8 +162,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了训练场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
     end))
 
     server.player.spaceMove(uid, firstUID, firstX, firstY)
@@ -309,8 +310,9 @@ local function setupTeacher(uid, retry)
                 end
             end,
 
+            -- installed by SYS_ENTER and by quest_ready
             npc_enter_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                server.quest.setState(questUID, {uid = uid, from = {SYS_ENTER, 'quest_ready'}, state = 'quest_enter_trial'})
             end,
         }
     ]])
@@ -369,10 +371,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '隐身术（秘籍）', 1)
                     server.player.deliverGold(uid, 20000)
                     server.player.addItem(uid, '暗黑凤凰明珠', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -440,7 +445,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             },
             dialog.link(SYS_EXIT, '知道了'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

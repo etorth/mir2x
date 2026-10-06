@@ -196,6 +196,11 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_stone', state = SYS_DONE}) then
+                        return
+                    end
+
                     -- gender man. the closing line differs by a red mark on 大自然真气
                     if server.player.getGender(uid) then
                         dialog.post(uid, questPath, '想想你已经修炼成功的魔法，你就会知道该怎么使用神圣战技术了，持续使用神圣战甲术，你就自然而然学会利用大自然真气的。',
@@ -210,7 +215,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, server.player.getGender(uid) and '神奇灵魂战衣（男）' or '神奇灵魂战衣（女）', 1)
                     server.player.addItem(uid, '八面太极戒指', 1)
                     server.player.deliverGold(uid, 25000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -294,7 +298,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath, '请在<t color="red">比奇废矿</t>仔细找一下吧。那你就可以在秘密地点找到<t color="red">起爆石</t>。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

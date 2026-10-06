@@ -77,8 +77,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了训练场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
     end))
 
     server.player.spaceMove(uid, mapUID, startX, startY)
@@ -202,7 +203,7 @@ setQuestFSMTable(
                 end,
 
                 npc_enter_trial = function(uid, value)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
                 end,
             }
         ]])
@@ -245,10 +246,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '雷电术（秘籍）', 1)
                     server.player.addItem(uid, '闪电眼', 1)
                     server.player.deliverGold(uid, 17000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -330,7 +334,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- SET [518] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he greets you with the retry line next time
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
 
         -- @mugong_lightstick_next5
@@ -354,7 +358,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_lightstick_next4_2
         npc_enter_trial = function(uid, value)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
         end,
     })
 ]])

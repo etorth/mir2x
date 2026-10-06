@@ -88,8 +88,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了考场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了考场。')
+        end
     end))
 
     server.player.spaceMove(uid, mapUID, startX, startY)
@@ -196,7 +197,7 @@ setQuestFSMTable(
                 end,
 
                 npc_enter_trial = function(uid, value)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
                 end,
             }
         ]])
@@ -252,6 +253,11 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '哦，虽然现在还有些不熟练，但好像已经大体上领悟了新火镜的运气法。这个程度练习地狱火没有任何问题。以后你看书，一个人练习也没有任何问题。',
@@ -263,7 +269,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '地狱火（秘籍）', 1)
                     server.player.addItem(uid, '焰火手镯', 1)
                     server.player.deliverGold(uid, 16000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -342,7 +347,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- SET [520] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he goes straight to the move offer next time
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
 
         -- @mugong_fireline_next5. its <关闭> points at @mugong_fireline_next14_1, a label that
@@ -364,7 +369,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         end,
 
         npc_enter_trial = function(uid, value)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
         end,
     })
 ]])

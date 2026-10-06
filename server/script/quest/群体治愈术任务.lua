@@ -198,7 +198,7 @@ local function enterCaves(uid)
     code = [[
         local questUID = ...
         return function(uid, gridX, gridY)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_left_cave'})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_in_cave', state = 'quest_left_cave'})
             return false
         end
     ]]}
@@ -480,7 +480,7 @@ setQuestFSMTable(
                     },
                     dialog.link('npc_what_to_do', '在蜈蚣洞窟中要做什么呢？'))
 
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_kill_boss'})
+                    server.quest.setState(questUID, {uid = uid, from = SYS_ENTER, state = 'quest_kill_boss'})
                 end,
 
                 -- @mugong_massheal_illtown7_2
@@ -535,7 +535,7 @@ setQuestFSMTable(
         code = [[
             local questUID = ...
             return function(uid, gridX, gridY)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_cave'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_kill_boss', state = 'quest_enter_cave'})
                 return false
             end
         ]]}
@@ -596,6 +596,21 @@ setQuestFSMTable(
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
             local dialog = require('include.dialog')
+
+            -- the charm is settled once, by npc_return_charm or npc_charm_gone, a quest flag checked and set in one call
+            -- the dialog can be walked again before npc_the_book ends the quest, the reward can't
+            local function settleCharm(uid)
+                return uidRemoteCall(questUID, uid,
+                [=[
+                    local playerUID = ...
+                    if hasQuestFlag(playerUID, 'charm_settled') then
+                        return false
+                    end
+
+                    addQuestFlag(playerUID, 'charm_settled')
+                    return true
+                ]=])
+            end
 
             return
             {
@@ -671,10 +686,12 @@ setQuestFSMTable(
                     dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))
 
                     -- take then give, so the charm ends up back with you either way
-                    server.player.removeItem(uid, '威魂深怨护身符', 1)
-                    server.player.addItem(uid, '神圣铂金戒指', 1)
-                    server.player.deliverGold(uid, 10000)
-                    server.player.deliverGold(uid, 33000)
+                    if settleCharm(uid) then
+                        server.player.removeItem(uid, '威魂深怨护身符', 1)
+                        server.player.addItem(uid, '神圣铂金戒指', 1)
+                        server.player.deliverGold(uid, 10000)
+                        server.player.deliverGold(uid, 33000)
+                    end
                 end,
 
                 -- @mugong_massheal_complete7_2, no charm back and 10000 less for it
@@ -687,8 +704,10 @@ setQuestFSMTable(
                     },
                     dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))
 
-                    server.player.addItem(uid, '神圣铂金戒指', 1)
-                    server.player.deliverGold(uid, 33000)
+                    if settleCharm(uid) then
+                        server.player.addItem(uid, '神圣铂金戒指', 1)
+                        server.player.deliverGold(uid, 33000)
+                    end
                 end,
 
                 -- @mugong_massheal_complete8, SET [730]
@@ -700,7 +719,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_cave_done', state = SYS_DONE})
                 end,
             }
         ]])
@@ -877,6 +896,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- in mir2x, addInventoryItem takes whatever it is handed, so 背囊里没有位置了 has no
         -- trigger here
         npc_accept = function(uid, value)
+            if not server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER}) then
+                return
+            end
+
             dialog.post(uid, questPath,
             {
                 '哦哦<t wrap="0">···</t>',
@@ -888,7 +911,6 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.link(SYS_EXIT, '结束'))
 
             server.player.addItem(uid, '威魂深怨护身符', 1)
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,
     })
 ]])

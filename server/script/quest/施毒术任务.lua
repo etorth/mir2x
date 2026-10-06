@@ -125,7 +125,7 @@ local function enterTrial(uid)
 
             -- @mugong_poison_test_next, set [503]
             npc_leave_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_trial_passed'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'})
             end,
         }
     ]])
@@ -133,8 +133,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了考场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了考场。')
+        end
     end))
 
     server.player.spaceMove(uid, mapUID, trialX, trialY)
@@ -212,7 +213,7 @@ setQuestFSMTable(
                 end,
 
                 npc_enter_trial = function(uid, value)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
                 end,
             }
         ]])
@@ -255,10 +256,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '施毒术（秘籍）', 1)
                     server.player.deliverGold(uid, 14000)
                     server.player.addItem(uid, '天仙之珠', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -332,9 +336,9 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.link('npc_enter_trial', '为了掌握毒性而出发。', {close = true}))
         end,
 
-        -- @mugong_poison_next3, SET [502] and set [503] 0
+        -- @mugong_poison_next3, SET [502] and set [503] 0, the quest starts right in the trial
         npc_enter_trial = function(uid, value)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = 'quest_enter_trial'})
         end,
     })
 ]])

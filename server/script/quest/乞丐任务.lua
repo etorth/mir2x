@@ -55,14 +55,14 @@ setQuestFSMTable(
                 end,
 
                 npc_criticize_only = function(uid, args)
-                    server.quest.setState(questUID, {uid=uid, state='quest_criticize_only', exitfunc=string.format([=[ runNPCEventHandler(%d, %d, {SYS_EPUID, %s}, SYS_ENTER) ]=], getUID(), uid, asInitString(questName))})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_criticize_only', exitfunc=string.format([=[ runNPCEventHandler(%d, %d, {SYS_EPUID, %s}, SYS_ENTER) ]=], getUID(), uid, asInitString(questName))})
                 end,
 
                 npc_pay_on_behalf = function(uid, args)
                     dialog.post(uid, questPath, '呃<t wrap="0">···</t>真是太感谢了！我落得如此惨状，过去我也曾是堂堂的商坛主人呢！我不能如此厚颜地接受别人的帮助<t wrap="0">···</t>请收下这个吧！只要看到这个，几个还记得我的比奇省商人们会照应你的！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_pay_on_behalf'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_pay_on_behalf'})
                 end,
             }
         ]])
@@ -179,7 +179,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
             dialog.post(uid, questPath, '那就太谢谢了！那个客人白天时一般在酒摊儿附近喝得烂醉！',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
 
         npc_refuse = function(uid, args)

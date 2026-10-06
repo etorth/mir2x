@@ -29,7 +29,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, state=SYS_DONE}
+                        setQuestState{uid=playerUID, from=SYS_ENTER, state=SYS_DONE}
                     ]=])
                 end,
             }
@@ -65,8 +65,9 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
         npc_test_script = function(uid, value)
             uidRemoteCall(questUID, uid, questName,
             [=[
+                -- a test starts again once the last one is done
                 local playerUID, questName = ...
-                setQuestState{uid=playerUID, state=SYS_ENTER, exitfunc=function()
+                setQuestState{uid=playerUID, from={SYS_LUANIL, SYS_DONE}, state=SYS_ENTER, exitfunc=function()
                     runNPCEventHandler(getNPCharUID('道馆_1', '物品展示商人'), playerUID, {SYS_EPUID, questName}, SYS_ENTER)
                 end}
             ]=])

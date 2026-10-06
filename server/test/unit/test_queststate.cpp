@@ -1070,6 +1070,13 @@ namespace
         f.drive("TEST.fromNoState = setQuestState{uid=41, from='b', state='c'}");
         require(isFalse("fromNoState") && f.isNil("key_41_c") && f.inState(41, "SYS_QSTFSM", "nil"), "switch of a quest not started changes something");
 
+        // a from state the fsm doesn't have would never match, a typo
+        f.drive(R"###(
+            local ok, err = pcall(setQuestState, {uid=41, from={'b', 'nosuchstate'}, state='c'})
+            TEST.fromTypo = (not ok) and (string.find(err, 'from state nosuchstate is not a state of fsm', 1, true) ~= nil)
+        )###");
+        require(f.isTrue("fromTypo") && f.isNil("key_41_c") && f.inState(41, "SYS_QSTFSM", "nil"), "switch from a state the fsm doesn't have doesn't raise, or changes something");
+
         f.drive("setQuestState{uid=42, state='q'}");
         require(isFalse("fromOther_42") && f.isTrue("after_42_q"), "state runner doesn't go on after its switch from another state returned false");
         require(!f.alive("key_42_q") && f.isNil("afterSwitch_42") && f.alive("key_42_b") && f.inState(42, "SYS_QSTFSM", "'b'"), "state runner switching from its own state doesn't end");
@@ -1798,6 +1805,59 @@ namespace
         require(f.isTrue("guard136"), "a move deletes the copy a later write installed by the name on the old map");
     }
 
+    void testMonDrop()
+    {
+        // quest/include/mondrop.lua: a drop is live in the state that installed it, its switch comes first, from that state
+        QuestFixture f;
+        f.stubActors();
+        require(f.runner.execRawString(R"###(
+            function getMonsterID(name) return ({m1 = 11})[name] or 0 end
+            function getItemID(name) return 1 end
+            function getMapID(name) return 1 end
+
+            -- TEST.holdKill holds a kill in the check of its need, as a reply of the player would
+            TEST.given = {}
+            server.player =
+            {
+                hasItem    = function(uid, item, count) while TEST.holdKill do coroutine.yield() end return true end,
+                addItem    = function(uid, item, count) table.insert(TEST.given, uid .. '/' .. item) return true end,
+                removeItem = function(uid, item, count) return true end,
+                postString = function(uid, s) end,
+                getMapName = function(uid) return nil end,
+            }
+
+            TEST.mondrop = require('quest.include.mondrop')
+            TEST.dropCode = [[
+                local uid = ...
+                TEST['drop_' .. uid] = TEST.mondrop.addDropTrigger(uid, {{monster = 'm1', give = 'item1', setState = 'b'}})
+            ]]
+
+            TEST.giveCode = [[
+                local uid = ...
+                TEST['drop_' .. uid] = TEST.mondrop.addDropTrigger(uid, {{monster = 'm1', give = 'item2'}})
+            ]]
+
+            TEST.needCode = [[
+                local uid = ...
+                TEST['drop_' .. uid] = TEST.mondrop.addDropTrigger(uid, {{monster = 'm1', need = 'n1', give = 'item3', setState = 'b'}})
+            ]]
+        )###").valid(), "failed to stub monster drops");
+
+        f.drive("setQuestState{uid=160, state='run', args=TEST.dropCode} TEST.mondrop._runDropOnKill(160, TEST.drop_160, 11) TEST.mondrop._runDropOnKill(160, TEST.drop_160, 11)");
+        require(f.inState(160, "SYS_QSTFSM", "'b'") && f.alive("key_160_b"), "a drop doesn't switch from the state that installed it");
+        require(f.runner.execRawString("TEST.once_160 = (#TEST.given == 1) and (TEST.given[1] == '160/item1')").valid() && f.isTrue("once_160"), "a drop doesn't give its item, or gives it twice");
+
+        // the quest moved on by a dialog, a kill then removes the drop and gives nothing, also a drop that doesn't switch
+        f.drive("setQuestState{uid=161, state='run', args=TEST.giveCode} setQuestState{uid=161, state='c'} TEST.mondrop._runDropOnKill(161, TEST.drop_161, 11)");
+        require(f.inState(161, "SYS_QSTFSM", "'c'") && f.runner.execRawString("TEST.stale_161 = #TEST.given == 1").valid() && f.isTrue("stale_161"), "a drop of a state the quest has left gives its item");
+
+        // the quest moves on while a kill waits for the player, the switch of the drop comes first and is refused, no item
+        f.drive("setQuestState{uid=162, state='run', args=TEST.needCode} TEST.holdKill = true TEST.killKey_162 = runQuestThread(function() TEST.mondrop._runDropOnKill(162, TEST.drop_162, 11) end)");
+        f.drive("setQuestState{uid=162, state='c'} TEST.holdKill = false");
+        f.runner.resume(f.key("killKey_162"));
+        require(!f.alive("killKey_162") && f.inState(162, "SYS_QSTFSM", "'c'") && f.runner.execRawString("TEST.race_162 = #TEST.given == 1").valid() && f.isTrue("race_162"), "a kill held while the quest moved on switches it back, or gives its item");
+    }
+
     void testGridTriggerRollback()
     {
         QuestFixture f;
@@ -2092,6 +2152,7 @@ namespace
         testErrorAbortStale();
         testGridTriggerContext();
         testGridTriggerRetire();
+        testMonDrop();
         testGridTriggerRollback();
         testLoadOnce();
         testRestoreRollsBack();
@@ -2129,7 +2190,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, a from state the fsm doesn't have raises, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, monster drops live in the state that installed them, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

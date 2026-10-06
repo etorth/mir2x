@@ -135,12 +135,16 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the potion only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_gall', state = 'quest_got_potion'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '喂，这里有药水。这个药水是用你拿来的<t color="red">胆汁制成的</t>。你吃药的过程中，我将准备武功秘籍。',
                     dialog.link(SYS_EXIT, '下一步'))
 
                     server.player.removeItem(uid, '七点白蛇胆', 1)
                     server.player.addItem(uid, '胆汁', 1)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_got_potion'})
                 end,
             }
         ]])
@@ -181,10 +185,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_potion', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '爆裂火焰（秘籍）', 1)
                     server.player.deliverGold(uid, 99000)
                     server.player.addItem(uid, '流星天玉', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -352,7 +359,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath, '那么，快点去找到<t color="red">蛇胆汁</t>吧。这期间我准备其他的药材。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

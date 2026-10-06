@@ -35,7 +35,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, getUID(),
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_killed_monster'}
+                        setQuestState{uid=playerUID, from='quest_setup_kill_trigger', state='quest_killed_monster'}
                     ]=])
                     return true
                 end
@@ -80,6 +80,15 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '领取奖励',
                 [SYS_ENTER] = function(uid, value)
+                    -- the switch first, the reward only for the click that made it
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, from='quest_killed_monster', state=SYS_DONE}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '少侠神勇！我万拍子果然没有看错，这是我的一点心意，还望少侠收下！',
                     dialog.link(SYS_EXIT, '关闭'))
 
@@ -87,12 +96,6 @@ setQuestFSMTable(
                     [=[
                         addItem(getItemID('铁剑'), 1)
                         addItem(getItemID('太阳水'), 5)
-                    ]=])
-
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, state=SYS_DONE}
                     ]=])
                 end,
             }
@@ -144,7 +147,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '万事通_1'), getUID(), getQuestName(),
             uidRemoteCall(questUID, uid,
             [=[
                 local playerUID = ...
-                setQuestState{uid=playerUID, state=SYS_ENTER}
+                setQuestState{uid=playerUID, from=SYS_LUANIL, state=SYS_ENTER}
             ]=])
 
             uidRemoteCall(uid, questDoneFlag,

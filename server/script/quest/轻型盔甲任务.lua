@@ -9,7 +9,7 @@ setQuestFSMTable(
             addTrigger(SYS_ON_GAINITEM, function(itemID, seqID)
                 if hasItem(getItemID('铁矿'), 0, 5) then
                     postString('已经收集到5块铁矿了，快回去找怡美吧！')
-                    server.quest.setState(questUID, {uid=playerUID, state='quest_got_iron'})
+                    server.quest.setState(questUID, {uid=playerUID, from=SYS_ENTER, state='quest_got_iron'})
                     return true
                 end
             end)
@@ -74,7 +74,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
+                    server.quest.setState(questUID, {uid=uid, from='quest_got_iron', state=SYS_DONE})
                 end,
             }
         ]])
@@ -200,7 +200,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
         end,
 
         npc_accept_quest = function(uid, args)
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
     })
 ]])

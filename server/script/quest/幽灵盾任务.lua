@@ -129,12 +129,16 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the potion only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_pearl', state = 'quest_got_potion'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '好的，请喝<t color="red">药水</t>。这个药是用你拿来的灵珠和其它灵验的药材一起加工制成的珍贵药。这个药可以大力提高内力，吃了这个药，在修炼武功的时候不会发生走火入魔的事情。',
                     dialog.link(SYS_EXIT, '不，如何承受得了这种辛苦？'))
 
                     server.player.removeItem(uid, '灵珠', 1)
                     server.player.addItem(uid, '无名药', 1)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_got_potion'})
                 end,
             }
         ]])
@@ -174,13 +178,16 @@ setQuestFSMTable(
 
                 -- @mugong_hangma_getring_next2
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_potion', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '那么就到此为止了，请上路吧！你现在要做的事情还有很多，千万要小心！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.deliverGold(uid, 22000)
                     server.player.addItem(uid, '幽灵盾（秘籍）', 1)
                     server.player.addItem(uid, '松笛', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -309,7 +316,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

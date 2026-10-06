@@ -88,7 +88,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_gall'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_find_gall'})
                 end,
             }
         ]])
@@ -219,6 +219,11 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the 镯子 only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_got_gall', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '好的！真是太感谢了<t wrap="0">···</t>',
@@ -228,7 +233,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '千年毒蛇胆汁', 1)
                     server.player.addItem(uid, '波纹手镯', 1)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -319,7 +323,7 @@ uidRemoteCall(getNPCharUID('毒蛇山谷_2', '蛇谷老太_1'), getUID(), getQue
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
 
         npc_refuse_quest = function(uid, args)

@@ -171,12 +171,12 @@ local function enterTrial(uid)
             end,
 
             npc_fail_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_ready'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_ready'})
             end,
 
             -- SET [501]
             npc_pass_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_trial_passed'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'})
             end,
         }
     ]])
@@ -184,8 +184,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了考场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了考场。')
+        end
     end))
 
     server.player.spaceMove(uid, firstUID, firstX, firstY)
@@ -258,7 +259,7 @@ setQuestFSMTable(
                 end,
 
                 npc_enter_trial = function(uid, value)
-                    server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                    server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
                 end,
             }
         ]])
@@ -301,10 +302,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '抗拒火环（秘籍）', 1)
                     server.player.deliverGold(uid, 12000)
                     server.player.addItem(uid, '风之黑檀项链', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -381,7 +385,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- set [500] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he offers the run again next time
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
 
         -- @mugong_firewind_next4_2
@@ -401,7 +405,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         end,
 
         npc_enter_trial = function(uid, value)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
         end,
     })
 ]])

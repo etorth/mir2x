@@ -1012,8 +1012,12 @@ function setQuestState(fargs)
         currState = currState or SYS_LUANIL
         local matched = false
 
+        -- a state the fsm doesn't have would never match, i.e. a typo, the switch would be refused forever
         for _, fromState in ipairs((type(fargs.from) == 'table') and fargs.from or {fargs.from}) do
             assertType(fromState, 'string')
+            if (fromState ~= SYS_LUANIL) and (fromState ~= SYS_DONE) and (not hasQuestState(fsm, fromState)) then
+                fatalPrintf('Invalid arguments: from state %s is not a state of fsm %s', fromState, fsm)
+            end
             matched = matched or (fromState == currState)
         end
 

@@ -219,8 +219,9 @@ local function enterTrial(uid)
     -- TimeRecall 10
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了训练场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
     end))
 
     server.player.spaceMove(uid, uidList[1], forkX, forkY)
@@ -406,7 +407,7 @@ local function setupTeacher(uid)
             end,
 
             npc_enter_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_trial'})
             end,
         }
     ]])
@@ -458,10 +459,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '瞬息移动（秘籍）', 1)
                     server.player.deliverGold(uid, 19000)
                     server.player.addItem(uid, '变形银蛇戒指', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -537,7 +541,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             },
             dialog.link(SYS_EXIT, '知道了'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

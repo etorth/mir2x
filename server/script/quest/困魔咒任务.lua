@@ -230,7 +230,7 @@ local function enterRooms(uid)
     code = [[
         local questUID = ...
         return function(uid, gridX, gridY)
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_in_rooms', state = SYS_ENTER})
             return false
         end
     ]]}
@@ -348,7 +348,7 @@ setQuestFSMTable(
         code = [[
             local questUID = ...
             return function(uid, gridX, gridY)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_open_rooms'})
+                server.quest.setState(questUID, {uid = uid, from = SYS_ENTER, state = 'quest_open_rooms'})
                 return false
             end
         ]]}
@@ -402,10 +402,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_rooms_done', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '困魔咒（秘籍）', 1)
                     server.player.addItem(uid, '黑除魔戒指', 1)
                     server.player.deliverGold(uid, 28000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -537,7 +540,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

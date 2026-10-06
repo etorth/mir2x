@@ -312,7 +312,7 @@ local function setupMainSkel(uid, yardUID, retry)
             end,
 
             npc_walk_away = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_walked_away'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_yard', state = 'quest_walked_away'})
             end,
 
             -- mainskel6_1, set [505]
@@ -326,7 +326,7 @@ local function setupMainSkel(uid, yardUID, retry)
             end,
 
             npc_go_duel = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_duel'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_yard', state = 'quest_enter_duel'})
             end,
 
         }
@@ -350,8 +350,9 @@ local function enterYard(uid)
     -- TimeRecall 10
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了地牢空间。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = {'quest_in_yard', 'quest_in_duel', 'quest_duel_beaten'}, state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了地牢空间。')
+        end
     end))
 
     -- map 1_013, anywhere on it
@@ -438,7 +439,7 @@ local function setupTeacher(uid)
             end,
 
             npc_enter_yard = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_yard'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_yard'})
             end,
         }
     ]])
@@ -536,8 +537,6 @@ setQuestFSMTable(
                             '如果需要的帮助，请随时联系。',
                         },
                         dialog.link('npc_leave_yard', '首先要离开这个地方<t wrap="0">···</t>'))
-
-                        server.player.addItem(uid, '幻影玉珠', 1)
                     end,
 
                     npc_leave_yard = function(uid, value)
@@ -545,8 +544,11 @@ setQuestFSMTable(
                         dialog.link('npc_done', '结束', {close = true}))
                     end,
 
+                    -- the gift goes with the switch, opening the dialog again gives nothing
                     npc_done = function(uid, value)
-                        server.quest.setState(questUID, {uid = uid, state = 'quest_duel_won'})
+                        if server.quest.setState(questUID, {uid = uid, from = 'quest_duel_beaten', state = 'quest_duel_won'}) then
+                            server.player.addItem(uid, '幻影玉珠', 1)
+                        end
                     end,
                 }
             ]])
@@ -585,9 +587,12 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_duel_won', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '召唤骷髅（秘籍）', 1)
                     server.player.deliverGold(uid, 19000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -662,7 +667,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 dialog.link('npc_not_yet', '准备好了，再来！'),
             })
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
 
         -- @mugong_recallskel_next5
@@ -683,7 +688,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         end,
 
         npc_enter_yard = function(uid, value)
-            server.quest.setState(questUID, {uid = uid, state = 'quest_enter_yard'})
+            server.quest.setState(questUID, {uid = uid, from = 'quest_ready', state = 'quest_enter_yard'})
         end,
     })
 ]])

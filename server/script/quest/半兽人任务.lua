@@ -143,7 +143,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_scholar'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_locked_room', state='quest_find_scholar'})
                 end,
             }
         ]])
@@ -217,7 +217,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_guard'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_scholar', state='quest_find_guard'})
                 end,
             }
         ]])
@@ -312,7 +312,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '云发先生平安无事，这真是万幸啊！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_scholar_safe'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_guard', state='quest_scholar_safe'})
                 end,
             }
         ]])
@@ -397,7 +397,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_key'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_scholar_safe', state='quest_ask_key'})
                 end,
             }
         ]])
@@ -461,7 +461,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '听说最近<t color="red">华玉</t>很不安的样子。去帮帮她没准能得到有关特别的钥匙的情报呢！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_meet_smith'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_ask_key', state='quest_meet_smith'})
                 end,
             }
         ]])
@@ -503,7 +503,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_hammer'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_meet_smith', state='quest_find_hammer'})
                 end,
             }
         ]])
@@ -623,6 +623,11 @@ setQuestFSMTable(
                         return
                     end
 
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_got_hammer', state='quest_find_horn'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '不管怎么样，这个是我对你帮我找回铁锤的报答！',
@@ -632,7 +637,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '王铁匠的铁锤', 1)
                     server.player.addItem(uid, '青铜斧', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_find_horn'})
                 end,
             }
         ]])
@@ -673,7 +677,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_hunt_horn'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_find_horn', state='quest_hunt_horn'})
                 end,
             }
         ]])
@@ -899,11 +903,14 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_return_token', state='quest_fetch_scholar'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '快去把云发先生带来！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '半块不死牌', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_fetch_scholar'})
                 end,
             }
         ]])
@@ -962,7 +969,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_scholar_home'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_fetch_scholar', state='quest_scholar_home'})
                 end,
             }
         ]])
@@ -1038,6 +1045,10 @@ setQuestFSMTable(
                 end,
 
                 npc_take_reward = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_scholar_home', state='quest_ask_analysis'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '云发很担心自己的妻子就先回家去了！',
@@ -1046,7 +1057,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '回城卷', 6)
-                    server.quest.setState(questUID, {uid=uid, state='quest_ask_analysis'})
                 end,
             }
         ]])
@@ -1109,6 +1119,10 @@ setQuestFSMTable(
                 end,
 
                 npc_take_half = function(uid, args)
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_ask_analysis', state='quest_tell_lord'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '那就再多辛苦一下啦！',
@@ -1117,7 +1131,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '半块不死牌', 1)
-                    server.quest.setState(questUID, {uid=uid, state='quest_tell_lord'})
                 end,
             }
         ]])
@@ -1150,7 +1163,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_hunt_spirit'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_tell_lord', state='quest_hunt_spirit'})
                 end,
             }
         ]])
@@ -1244,6 +1257,20 @@ setQuestFSMTable(
                 end,
 
                 npc_take_gift = function(uid, args)
+                    -- no switch goes with the gift, a quest flag gives it once, checked and set in one call
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        if hasQuestFlag(playerUID, 'gift_zhishan') then
+                            return false
+                        end
+
+                        addQuestFlag(playerUID, 'gift_zhishan')
+                        return true
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '虽然不是什么贵重的东西，但是代表了我的一片心意！',
@@ -1280,6 +1307,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_final', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '噢！这就是不死牌的真面目啊！',
@@ -1291,7 +1322,6 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '不死牌', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 30000)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -1403,7 +1433,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQue
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
 
         npc_accept_quest = function(uid, args)
@@ -1416,7 +1446,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQue
             },
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
     })
 ]])

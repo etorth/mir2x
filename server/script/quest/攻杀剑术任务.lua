@@ -101,7 +101,7 @@ local function enterTrial(uid)
             end,
 
             npc_leave_trial = function(uid, args)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_trial_passed'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'})
             end,
         }
     ]])
@@ -112,8 +112,9 @@ local function enterTrial(uid)
     -- the clock. pause is cancellable, so clearing the timer on the way out stops it
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialSeconds * 1000)
-        server.player.postString(uid, '时间到了，你被送出了训练场。')
-        setQuestState{uid = uid, state = 'quest_trial_failed'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_failed'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
     end))
 
     setQuestState{uid = uid, state = 'quest_in_trial'}
@@ -224,8 +225,9 @@ local function teacherBehavior(uid, retry)
                 dialog.link('npc_go_trial', '下一步'))
             end,
 
+            -- installed by SYS_ENTER and by quest_trial_failed
             npc_go_trial = function(uid, args)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                server.quest.setState(questUID, {uid = uid, from = {SYS_ENTER, 'quest_trial_failed'}, state = 'quest_enter_trial'})
             end,
         }
     ]])
@@ -294,6 +296,11 @@ setQuestFSMTable(
                 end,
 
                 npc_take_reward = function(uid, args)
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_trial_passed', state=SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '在这里拿武功秘籍。而且给你一些金币和东西，用在需要的地方。',
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -306,7 +313,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '攻杀剑术（秘籍）', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 19000)
                     server.player.addItem(uid, '黑珍珠戒指', 1)
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                 end,
             }
         ]])
@@ -418,6 +424,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
+            if not server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER}) then
+                return
+            end
+
             dialog.post(uid, questPath,
             '攻杀剑法可以说是习剑的入门武功，他的要领可以说是剑术的修炼。' ..
             '当然不是现在就要求通过消耗功力，而攻击到武器不能到达地方的上乘剑术。' ..
@@ -432,8 +442,6 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             [=[
                 addBoundItem(getItemID('攻杀铁剑'))
             ]=])
-
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
         end,
     })
 ]])

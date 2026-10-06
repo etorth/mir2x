@@ -134,8 +134,9 @@ local function setupTeacher(uid, retry)
                 dialog.link(SYS_EXIT, '结束'))
             end,
 
+            -- installed by SYS_ENTER and by quest_ready
             npc_enter_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                server.quest.setState(questUID, {uid = uid, from = {SYS_ENTER, 'quest_ready'}, state = 'quest_enter_trial'})
             end,
         }
     ]])
@@ -179,8 +180,9 @@ setQuestFSMTable(
         -- TimeRecall 5, the trial is over whether or not the 战士 is down
         setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
             pause(trialMinutes * 60 * 1000)
-            server.player.postString(uid, '时间到了，你被送出了修炼场。')
-            setQuestState{uid = uid, state = 'quest_ready'}
+            if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+                server.player.postString(uid, '时间到了，你被送出了修炼场。')
+            end
         end))
 
         server.player.spaceMove(uid, mapUID, trialX, trialY)
@@ -221,10 +223,13 @@ setQuestFSMTable(
                 end,
 
                 npc_take_book = function(uid, value)
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     server.player.addItem(uid, '精神力战法（秘籍）', 1)
                     server.player.addItem(uid, '灵魂铁手镯', 1)
                     server.player.deliverGold(uid, 9000)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -320,7 +325,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath, '那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！',
             dialog.link(SYS_EXIT, '知道了'))
 
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+            server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER})
         end,
     })
 ]])

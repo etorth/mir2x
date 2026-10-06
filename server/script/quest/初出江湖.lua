@@ -25,6 +25,15 @@ setQuestFSMTable(
                 end,
 
                 npc_accept_quest = function(uid, value)
+                    -- the switch first, the 护身符 only for the click that made it
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, from=SYS_ENTER, state='quest_setup_apan'}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！',
@@ -33,11 +42,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '好的！'))
 
                     uidGrant(uid, '道力护身符', 1)
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_setup_apan'}
-                    ]=])
                 end,
 
                 npc_fly_to_loc = function(uid, value)
@@ -93,6 +97,14 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, value)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, from='quest_setup_apan', state='quest_done_apan'}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '嗯，这就是以前我要的护身符啊！要是你不送来的话我就要去催大老板道友了，做得不错啊！',
@@ -102,11 +114,6 @@ setQuestFSMTable(
                     dialog.link(SYS_EXIT, '结束'))
 
                     uidGrant(uid, '匕首', 1)
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_done_apan'}
-                    ]=])
                 end,
             }
         ]])
@@ -177,7 +184,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, playerUID,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_done_chicken_blood'}
+                        setQuestState{uid=playerUID, from='quest_find_chicken_blood', state='quest_done_chicken_blood'}
                     ]=])
                     return true
                 end
@@ -208,7 +215,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_prepare_to_wang'}
+                        setQuestState{uid=playerUID, from='quest_done_chicken_blood', state='quest_prepare_to_wang'}
                     ]=])
                 end,
             }
@@ -244,7 +251,7 @@ setQuestFSMTable(
                         uidRemoteCall(questUID, getUID(),
                         [=[
                             local playerUID = ...
-                            setQuestState{uid=playerUID, state='quest_prepare_to_wang'}
+                            setQuestState{uid=playerUID, from='quest_prepare_to_wang', state='quest_prepare_to_wang'}
                         ]=])
                         return true
                     end
@@ -274,6 +281,14 @@ setQuestFSMTable(
                     end,
 
                     npc_accept_wang = function(uid, value)
+                        if not uidRemoteCall(questUID, uid,
+                        [=[
+                            local playerUID = ...
+                            return setQuestState{uid=playerUID, from='quest_prepare_to_wang', state='quest_accept_wang_book'}
+                        ]=]) then
+                            return
+                        end
+
                         dialog.post(uid, questPath,
                         {
                             '往比奇省西南方走，就能找到王大人了。' ..
@@ -286,11 +301,6 @@ setQuestFSMTable(
 
                         uidGrant(uid, '古籍'  , 1)
                         uidGrant(uid, '治愈术', 1)
-                        uidRemoteCall(questUID, uid,
-                        [=[
-                            local playerUID = ...
-                            setQuestState{uid=playerUID, state='quest_accept_wang_book'}
-                        ]=])
                     end,
                 }
             ]])
@@ -347,6 +357,14 @@ setQuestFSMTable(
                 end,
 
                 npc_grant_bonus = function(uid, value)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, from='quest_accept_wang_book', state='quest_done_wang_book'}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '我就是你要找的王某人，咳嗯。',
@@ -357,11 +375,6 @@ setQuestFSMTable(
 
                     uidGrantGold(uid, 1000)
                     uidGrant(uid, '青铜头盔', 1)
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_done_wang_book'}
-                    ]=])
                 end,
 
                 npc_deny = function(uid, value)
@@ -503,7 +516,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
             uidRemoteCall(questUID, uid,
             [=[
                 local playerUID = ...
-                setQuestState{uid=playerUID, state=SYS_ENTER}
+                setQuestState{uid=playerUID, from=SYS_LUANIL, state=SYS_ENTER}
             ]=])
         end
     })

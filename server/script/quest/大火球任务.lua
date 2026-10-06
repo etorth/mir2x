@@ -118,7 +118,7 @@ local function enterTrial(uid)
 
             -- @upfireball_test_next1, SET [517]
             npc_leave_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_trial_passed'})
+                server.quest.setState(questUID, {uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'})
             end,
         }
     ]])
@@ -126,8 +126,9 @@ local function enterTrial(uid)
     -- TimeRecall 5
     setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
-        server.player.postString(uid, '时间到了，你被送出了训练场。')
-        setQuestState{uid = uid, state = 'quest_ready'}
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
     end))
 
     server.player.spaceMove(uid, mapUID, startX, startY)
@@ -266,8 +267,9 @@ local function setupTeacher(uid, retry)
                 server.player.addBoundItem(uid, '焱火剑')
             end,
 
+            -- installed by SYS_ENTER and by quest_ready, it stays during the trial and is refused there
             npc_enter_trial = function(uid, value)
-                server.quest.setState(questUID, {uid = uid, state = 'quest_enter_trial'})
+                server.quest.setState(questUID, {uid = uid, from = {SYS_ENTER, 'quest_ready'}, state = 'quest_enter_trial'})
             end,
         }
     ]])
@@ -323,6 +325,11 @@ setQuestFSMTable(
                 -- @mugong_upfireball_give1, takew 焱火剑 1 — the loan comes back, and EA_BIND
                 -- means this is the one thing that can take it off
                 npc_take_book = function(uid, value)
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '现在按照约定将剩余的部分传授给你。你修炼的过程中，我将在你<t color="red">大火球秘籍</t>内贴上详细的说明，请拿走该书用心地练习吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -330,7 +337,6 @@ setQuestFSMTable(
                     server.player.addItem(uid, '大火球（秘籍）', 1)
                     server.player.deliverGold(uid, 13000)
                     server.player.addItem(uid, '焰火项链', 1)
-                    server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
             }
         ]])
@@ -420,6 +426,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_upfireball_next4_1, give 焱火剑 1 and SET [516]. the first one is free, only
         -- a replacement costs anything
         npc_accept = function(uid, value)
+            if not server.quest.setState(questUID, {uid = uid, from = SYS_LUANIL, state = SYS_ENTER}) then
+                return
+            end
+
             dialog.post(uid, questPath,
             {
                 '如果再讲一次，那地方的所有火焰系列怪物只能用<t color="red">焱火剑</t>杀死。这里有焱火剑，<t color="red">请带上再来。</t>',
@@ -428,7 +438,6 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.link(SYS_EXIT, '结束'))
 
             server.player.addBoundItem(uid, '焱火剑')
-            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,
     })
 ]])

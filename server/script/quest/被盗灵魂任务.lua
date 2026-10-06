@@ -82,7 +82,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_heard_story'})
+                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_heard_story'})
                 end,
             }
         ]])
@@ -180,7 +180,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_help_scholar'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_heard_story', state='quest_help_scholar'})
                 end,
             }
         ]])
@@ -378,7 +378,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_taoist_left'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_help_scholar', state='quest_taoist_left'})
                 end,
             }
         ]])
@@ -430,7 +430,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '幸亏了你啊！竟然有他那种道士<t wrap="0">···</t>真是<t wrap="0">···</t>，不管怎么样我会跟比奇省联系一下，<t color="red">比奇城城主</t>大人会给你辛苦费的！谢谢你帮助我的工作啊！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state='quest_scholar_thanks'})
+                    server.quest.setState(questUID, {uid=uid, from='quest_taoist_left', state='quest_scholar_thanks'})
                 end,
             }
         ]])
@@ -477,12 +477,16 @@ setQuestFSMTable(
                 end,
 
                 npc_ask_bottle = function(uid, args)
+                    -- the switch first, the reward only for the click that made it
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_scholar_thanks', state='quest_got_bottle'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '唔？这个是黄晶先生调查王陵的途中发现的，以为是你落下的东西所以送了过来。嗯，既然不是那怎么办呢<t wrap="0">···</t>算了，你就拿走吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '灵魂护卫', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 5000)
-                    server.quest.setState(questUID, {uid=uid, state='quest_got_bottle'})
                 end,
             }
         ]])
@@ -582,6 +586,10 @@ setQuestFSMTable(
                         return
                     end
 
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_got_bottle', state='quest_liling_awake'}) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '哦，好的<t wrap="0">···</t>可是打开瓶塞干嘛<t wrap="0">···</t>啊，这<t wrap="0">···</t>',
@@ -594,7 +602,6 @@ setQuestFSMTable(
                     server.player.removeItem(uid, '灵魂护卫', 1)
                     server.player.addItem(uid, '牛肉', 5)
                     server.player.addItem(uid, SYS_GOLDNAME, 10000)
-                    server.quest.setState(questUID, {uid=uid, state='quest_liling_awake'})
                 end,
             }
         ]])
@@ -677,7 +684,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '<t color="red">不死牌</t>！那个混蛋道士所觊觎的东西就是不死牌。通过和您的对话得知了不死牌下落得那个道士，现在正要潜入衙门去盗取不死牌呢！如果让他得逞的话又不知会发生什么样的灾难呢，所以赶快去衙门看看吧！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
+                    server.quest.setState(questUID, {uid=uid, from='quest_liling_awake', state=SYS_DONE})
                 end,
             }
         ]])
@@ -741,7 +748,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '王大人_1'), getUID(), getQuestName
             dialog.post(uid, questPath, '你去比奇省西北城门之外<t color="red">357:273</t>就能找到他们家了。王小二这个名字很好记吧<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
+            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER})
         end,
     })
 ]])

@@ -1,3 +1,6 @@
+-- the states of a challenge running, the triggers on the player outlive it, i.e. a death after quest done
+_G.challengeStates = {'quest_setup_player_die_trigger', 'quest_setup_player_offline_trigger', 'quest_setup_kill_trigger'}
+
 setQuestFSMTable(
 {
     [SYS_ENTER] = function(uid, value)
@@ -19,7 +22,7 @@ setQuestFSMTable(
                 uidRemoteCall(questUID, playerUID,
                 [=[
                     local playerUID = ...
-                    setQuestState{uid=playerUID, state='quest_abort_by_die'}
+                    setQuestState{uid=playerUID, from=challengeStates, state='quest_abort_by_die'}
                 ]=])
                 return true
             end)
@@ -35,7 +38,7 @@ setQuestFSMTable(
                 uidRemoteCall(questUID, playerUID,
                 [=[
                     local playerUID = ...
-                    setQuestState{uid=playerUID, state='quest_abort_by_offline'}
+                    setQuestState{uid=playerUID, from=challengeStates, state='quest_abort_by_offline'}
                 ]=])
                 return true
             end)
@@ -91,7 +94,7 @@ setQuestFSMTable(
             ]])
 
             if playerUID ~= uid then
-                setQuestState{uid=playerUID, state=SYS_DONE}
+                setQuestState{uid=playerUID, from=challengeStates, state=SYS_DONE}
             end
         end
         setQuestState{uid=uid, state=SYS_DONE}
@@ -171,7 +174,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 uidRemoteCall(questUID, teamRole,
                 [=[
                     local teamRole = ...
-                    setQuestState{uid=teamRole, state=SYS_ENTER}
+                    setQuestState{uid=teamRole, from=SYS_LUANIL, state=SYS_ENTER}
                 ]=])
             end
         end,

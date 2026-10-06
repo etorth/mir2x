@@ -67,7 +67,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, state='quest_accept_quest'}
+                        setQuestState{uid=playerUID, from='quest_refuse_quest', state='quest_accept_quest'}
                     ]=])
                 end,
 
@@ -140,16 +140,21 @@ setQuestFSMTable(
                     end
                 end,
 
+                -- installed by quest_persuade_pharmacist_and_librarian, which goes on to quest_wait_done at once
                 npc_give_bonus = function(uid, value)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, from='quest_wait_done', state=SYS_DONE}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '真没想到啊！不知不觉中就把传奇商会的商家拉拢到我们这一方啦！真是手腕精明啊！由于你的活动终于使我们比奇商会统一了比奇地区商权。这是为了报答你的功劳准备的一点小小礼物，请不要谦让务必收下。',
                     dialog.link(SYS_EXIT, '退出'))
 
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        dbAddFlag('done_wang_coc')
-                        setQuestState{uid=playerUID, state=SYS_DONE}
-                    ]=])
+                    -- a flag of the player, dbAddFlag() is in player.lua, the quest actor has none
+                    uidRemoteCall(uid, [=[ dbAddFlag('done_wang_coc') ]=])
                 end,
             }
         ]])
@@ -217,7 +222,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state=SYS_ENTER}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from=SYS_LUANIL, state=SYS_ENTER}
                     ]=])
                 end,
             }
@@ -274,7 +279,7 @@ setQuestFSMTable(
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state=SYS_ENTER}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_LUANIL, state=SYS_ENTER}
                     ]=])
                 end,
 
@@ -347,7 +352,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_give_guard_1_soju'}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={SYS_ENTER, 'quest_wait_guard_1_and_guard_2_done'}, state='quest_give_guard_1_soju'}
                     ]=])
                 end,
             }
@@ -405,8 +410,9 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
+                        -- the flag first, the state it switches to reads it
                         addQuestFlag(playerUID, 'flag_done_query_guard_2')
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_wait_guard_1_and_guard_2_done'}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={SYS_ENTER, 'quest_give_guard_1_soju', 'quest_wait_guard_1_and_guard_2_done'}, state='quest_wait_guard_1_and_guard_2_done'}
                     ]=])
                 end,
             }
@@ -516,7 +522,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     [=[
                         local playerUID = ...
                         addQuestFlag(playerUID, 'flag_done_query_guard_1')
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_wait_guard_1_and_guard_2_done'}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={'quest_give_guard_1_soju', 'quest_wait_guard_1_and_guard_2_done'}, state='quest_wait_guard_1_and_guard_2_done'}
                     ]=])
                 end,
             }
@@ -570,7 +576,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                         local playerUID, giveGold, questName = ...
                         local nextState = string.format('quest_give_guard_3_%s_gold', giveGold)
 
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state=nextState, exitfunc=function()
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_wait_guard_1_and_guard_2_done', state=nextState, exitfunc=function()
                             runNPCEventHandler(getNPCharUID('比奇县_0', '休班卫士_3'), playerUID, {SYS_EPUID, questName}, SYS_ENTER)
                         end}
                     ]=])
@@ -603,7 +609,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     },
                     [=[
                         local playerUID, texts = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_guard_3_give_info', args=texts}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_100_gold', state='quest_guard_3_give_info', args=texts}
                     ]=])
                 end,
             }
@@ -653,7 +659,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_give_guard_3_soju'}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_1000_gold', state='quest_give_guard_3_soju'}
                     ]=])
                 end,
             }
@@ -706,7 +712,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     },
                     [=[
                         local playerUID, texts = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state='quest_guard_3_give_info', args=texts}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_soju', state='quest_guard_3_give_info', args=texts}
                     ]=])
                 end,
             }
@@ -838,8 +844,9 @@ setQuestFSMTable(fsmName_persuade_librarian,
                         uidRemoteCall(questUID, uid, getNPCMapName(false), getNPCName(false),
                         [=[
                             local playerUID, mapName, npcName = ...
-                            clearNPCQuestBehavior(mapName, npcName, playerUID)
-                            setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, state=SYS_DONE}
+                            if setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_answer_librarian_questions', state=SYS_DONE} then
+                                clearNPCQuestBehavior(mapName, npcName, playerUID)
+                            end
                         ]=])
                     else
                         runEventHandler(uid, questPath, 'npc_wrong_answer')
@@ -933,7 +940,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_purchased_tooth'}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_ENTER, state='quest_purchased_tooth'}
                     ]=])
                 end,
 
@@ -950,7 +957,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_purchase_with_agreed_price', args=100}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_ENTER, state='quest_purchase_with_agreed_price', args=100}
                     ]=])
                 end,
             }
@@ -973,6 +980,15 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
             local dialog = require('include.dialog')
 
             if currGold >= askedGold then
+                -- the switch first, a replay of this state at login meanwhile doesn't buy twice
+                if not uidRemoteCall(questUID, playerUID,
+                [=[
+                    local playerUID = ...
+                    return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_purchased_tooth'}
+                ]=]) then
+                    return
+                end
+
                 dialog.post(playerUID, '东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！',
                 dialog.link(SYS_EXIT, '好的'))
 
@@ -983,19 +999,13 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     addItem(getItemID('毒蛇牙齿'), 10)
                 ]=])
 
-                uidRemoteCall(questUID, playerUID,
-                [=[
-                    local playerUID = ...
-                    setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_purchased_tooth'}
-                ]=])
-
             else
                 local rand = math.random(0, 100)
                 if rand <= 0 then
                     uidRemoteCall(questUID, playerUID, questPath,
                     [=[
                         local playerUID, questPath = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_purchase_with_free_price', exitfunc=function()
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_purchase_with_free_price', exitfunc=function()
                             runEventHandler(playerUID, questPath, SYS_ENTER)
                         end}
                     ]=])
@@ -1011,7 +1021,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     uidRemoteCall(questUID, playerUID, askedGold,
                     [=[
                         local playerUID, askedGold = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_wait_purchase', args=askedGold}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_wait_purchase', args=askedGold}
                     ]=])
 
                 else
@@ -1026,7 +1036,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     uidRemoteCall(questUID, playerUID, newAskedGold,
                     [=[
                         local playerUID, newAskedGold = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_wait_purchase', args=newAskedGold}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_wait_purchase', args=newAskedGold}
                     ]=])
                 end
             end
@@ -1054,7 +1064,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     uidRemoteCall(questUID, uid, askedGold,
                     [=[
                         local playerUID, askedGold = ...
-                        setQuestState{uid=playeUID, fsm=fsmName_persuade_pharmacist, state='quest_purchase_with_agreed_price', args=askedGold}
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_wait_purchase', state='quest_purchase_with_agreed_price', args=askedGold}
                     ]=])
                 end,
             }
@@ -1064,7 +1074,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
     quest_purchase_with_free_price = function(uid, value)
         setupNPCQuestBehavior('毒蛇山谷_2', '金中医_1', uid,
         [[
-            getUID(), getQuestName()
+            return getUID(), getQuestName()
         ]],
         [[
             local questUID, questName = ...
@@ -1079,15 +1089,18 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                 end,
 
                 npc_say_thanks = function(uid, value)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_free_price', state='quest_purchased_tooth'}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath, '我是看药剂师的面子才免费的！东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！',
                     dialog.link(SYS_EXIT, '好的'))
 
                     uidRemoteCall(uid, [=[ addItem(getItemID('毒蛇牙齿'), 10) ]=])
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state='quest_purchased_tooth'}
-                    ]=])
                 end,
             }
         ]])
@@ -1124,6 +1137,14 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
             return
             {
                 [SYS_ENTER] = function(uid, value)
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchased_tooth', state=SYS_DONE}
+                    ]=]) then
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '您为病人们做了一件大好事！所以我会听从你的劝说加入王大人的比奇商会的，只好对不起崔大夫了！',
@@ -1136,7 +1157,6 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     [=[
                         local playerUID, mapName, npcName = ...
                         clearNPCQuestBehavior(mapName, npcName, playerUID)
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, state=SYS_DONE}
                     ]=])
                 end,
             }
@@ -1182,7 +1202,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '王大人_1'), getUID(), getQuestName
             uidRemoteCall(questUID, uid, value,
             [=[
                 local playerUID, accepted = ...
-                setQuestState{uid=playerUID, state=SYS_ENTER, args=accepted}
+                setQuestState{uid=playerUID, from=SYS_LUANIL, state=SYS_ENTER, args=(accepted == 'true')}
             ]=])
         end,
     })
