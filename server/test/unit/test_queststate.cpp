@@ -296,6 +296,28 @@ namespace
                 after(uid, 'other')
                 pause(SYS_POSINF)
             end,
+
+            t1 = function(uid, args)
+                local guard <close> = enter(uid, 't1')
+                local order <close> = setmetatable({}, {__close = function()
+                    trace(uid, 'exit t1')
+                end})
+                setQuestState{uid=uid, state='t2'}
+            end,
+
+            t2 = function(uid, args)
+                local guard <close> = enter(uid, 't2')
+                trace(uid, 'enter t2')
+                pause(SYS_POSINF)
+            end,
+
+            t3 = function(uid, args)
+                local guard <close> = enter(uid, 't3')
+                local order <close> = setmetatable({}, {__close = function()
+                    trace(uid, 'exit t3')
+                end})
+                pause(SYS_POSINF)
+            end,
         })
 
         setQuestFSMTable('sub',
@@ -752,6 +774,22 @@ namespace
         require(!f.alive("key_42_q") && f.isNil("afterSwitch_42") && f.alive("key_42_b") && f.inState(42, "SYS_QSTFSM", "'b'"), "state runner switching from its own state doesn't end");
     }
 
+    void testOldStateClosedFirst()
+    {
+        QuestFixture f;
+        f.drive("setQuestState{uid=50, state='t1'}");
+
+        require(f.str("trace_50") == "exit t1,enter t2,", "new state function runs before the <close> handlers of the state runner switching its own state");
+        require(!f.alive("key_50_t1") && f.isTrue("closed_50_t1") && f.alive("key_50_t2") && f.inState(50, "SYS_QSTFSM", "'t2'"), "state runner switching its own state doesn't end in the new state");
+
+        f.drive("setQuestState{uid=50, state='c'}");
+        require(!f.alive("key_50_t2") && f.isTrue("closed_50_t2") && f.alive("key_50_c"), "state runner started after the old one closed is not registered");
+
+        f.drive("setQuestState{uid=51, state='t3'}");
+        f.drive("setQuestState{uid=51, state='t2'}");
+        require(f.str("trace_51") == "exit t3,enter t2,", "new state function runs before the <close> handlers of the state runner closed by other thread");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -779,6 +817,7 @@ namespace
         testFallbackCatchesRemoteError();
         testQuestRuntimeVar();
         testSetStateFrom();
+        testOldStateClosedFirst();
     }
 }
 
@@ -810,7 +849,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, and switch from a given state.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, and old state closed before the new one starts.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

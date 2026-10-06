@@ -360,10 +360,12 @@ local function _RSVD_NAME_isCallerQuestStateRunner(uid, fsm)
 end
 
 -- runs func on a new thread, registered as the state runner of {uid, fsm}
-local function _RSVD_NAME_spawnQuestState(uid, fsm, func)
+-- afterSelfClose: the caller is the old state runner, it's closed first, and this never returns
+local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
     assertType(uid, 'integer')
     assertType(fsm, 'string')
     assertType(func, 'function')
+    assertType(afterSelfClose, 'boolean', 'nil')
 
     local key = rollKey()
 
@@ -373,7 +375,11 @@ local function _RSVD_NAME_spawnQuestState(uid, fsm, func)
     end
     _RSVD_NAME_questStateRunners[uid][fsm] = key
 
-    runThread(key, func)
+    if afterSelfClose then
+        closeThreadThenRun(key, func)
+    else
+        runThread(key, func)
+    end
 end
 
 -- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
@@ -381,6 +387,8 @@ end
 -- closes the old state runner, and runs the new state function on a new state runner
 -- called by the old state runner itself, it never returns, the old state runner ends right there
 -- called by any other thread, i.e. for another uid or another fsm, it returns true
+-- either way the <close> handlers of the old state runner run before the new state function
+-- unless the old state runner is on the C stack under the caller, i.e. it started the calling thread, then it's closed when the caller returns to it
 -- quest done, state SYS_DONE of SYS_QSTFSM, closes the state runners of all fsms of uid
 --
 -- from: a state, or an array of states, switches only if {uid, fsm} is in one of them now, else changes nothing and returns false
@@ -486,9 +494,10 @@ function setQuestState(fargs)
         _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_states', fsm, {state, fargs.args})
     end
 
-    -- selfKey: the caller is one of the closed state runners, closing itself never returns, so it starts the new state runner first
+    -- selfKey: the caller is one of the closed state runners, it closes itself last
     local selfKey = _RSVD_NAME_closeQuestState(uid, closeFSM)
 
+    -- never returns with selfKey: the new state runner starts after the caller is closed
     if hasQuestState(fsm, state) then
         _RSVD_NAME_spawnQuestState(uid, fsm, function()
             if fargs.fallback == nil then
@@ -522,10 +531,10 @@ function setQuestState(fargs)
             elseif fargs.exitfunc ~= nil then
                 fatalPrintf('Invalid exitfunc type: %s', type(fargs.exitfunc))
             end
-        end)
+        end, selfKey ~= nil)
     end
 
-    -- never returns, the old state runner ends right here
+    -- never returns, the old state runner ends right here, for a new state without state function, i.e. SYS_DONE
     if selfKey then
         closeThread(selfKey)
     end

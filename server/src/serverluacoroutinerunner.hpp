@@ -178,6 +178,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             // the timer of the timeout of the waitNotify() the thread waits in, see _RSVD_NAME_waitNotify
             std::optional<std::pair<uint64_t, uint64_t>> notifyTimer;
 
+            // the thread to start once this one is closed, see closeThreadThenRun() in serverluacoroutinerunner.lua
+            // a main_function, the function came from this thread, which can be freed by the time the new one starts
+            std::optional<std::pair<uint64_t, sol::main_function>> afterClose;
+
             // onStack       : thread has frames on the C stack, it can't be resumed, closing it only sets closeRequested
             // closeRequested: asked to close while onStack, resumeRunner() closes it at its next yield
             // closing       : lua_closethread() is running its <close> handlers
@@ -332,6 +336,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
     private:
         // resumes a thread waiting in waitNotify(), for a notify or for its timeout, whichever comes first
         void resumeNotifyWaiter(LuaThreadHandle *);
+
+    private:
+        // spawns func as runThread() in serverluacoroutinerunner.lua does, an error of the thread is only logged
+        std::pair<uint64_t, uint64_t> runThread(uint64_t, const sol::function &);
 
     private:
         // closeLuaThread(): lua side only, runs the <close> handlers

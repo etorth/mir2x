@@ -75,6 +75,22 @@ function runThread(key, func)
     return key, seqID
 end
 
+-- closes the calling thread as closeThread() on itself does, then runs func on a new thread under key as runThread() does
+-- func starts once the calling thread is closed, i.e. after its <close> handlers ran, from the code that resumed the calling thread
+--
+-- never returns, it raises and changes nothing if called from a coroutine created in the thread, or where the thread can't yield
+function closeThreadThenRun(key, func)
+    assertType(key, 'integer')
+    assertType(func, 'function')
+
+    _RSVD_NAME_closeThreadThenRun(key, func)
+
+    -- resumeRunner() closes this thread at this yield, the loop is only a guard
+    while true do
+        coroutine.yield()
+    end
+end
+
 function postNotify(addr, ...)
     assertType(addr, 'array')
 

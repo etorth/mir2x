@@ -1023,6 +1023,40 @@ namespace
         }
     }
 
+    void testCloseThenRun()
+    {
+        RunnerFixture f;
+
+        // the full GC frees the closed thread, the new thread's function came from it
+        f.runner.spawn(1160, std::string(R"###(
+            local guard <close> = setmetatable({}, {__close = function()
+                TEST.order = (TEST.order or '') .. 'closed,'
+            end})
+
+            closeThreadThenRun(1161, function()
+                collectgarbage('collect')
+                TEST.order = (TEST.order or '') .. 'started,'
+                TEST.startedKey = getThreadKey()
+                pause(SYS_POSINF)
+            end)
+            TEST.afterCloseThenRun = true
+        )###"));
+
+        require(!f.runner.hasKey(1160) && f.isNil("afterCloseThenRun"), "thread doesn't end at closeThreadThenRun()");
+        require(f.isString("order", "closed,started,"), "new thread starts before the <close> handlers of the closed thread");
+        require(f.runner.hasKey(1161) && f.isInteger("startedKey", 1161), "new thread doesn't run under its key");
+
+        f.runner.spawn(1162, std::string(R"###(
+            local ok, err = pcall(coroutine.wrap(function()
+                closeThreadThenRun(1163, function() TEST.wrongStart = true end)
+            end))
+            TEST.wrapRaised = not ok and string.find(err, 'closing itself from a coroutine created in it', 1, true) ~= nil
+            pause(SYS_POSINF)
+        )###"));
+
+        require(f.isTrue("wrapRaised") && f.runner.hasKey(1162) && !f.runner.hasKey(1163) && f.isNil("wrongStart"), "closeThreadThenRun() where the thread can't end doesn't raise, or changes something");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -1065,6 +1099,7 @@ namespace
         testCloseWhileCoopPending();
         testRemoteCallError();
         testWaitNotifyTimeout();
+        testCloseThenRun();
         testTeardown();
     }
 }
@@ -1097,7 +1132,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

@@ -134,24 +134,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     // closed: the new thread asked to close the calling thread, i.e. switched its quest state, the lua wrapper yields to end it
     bindFunction("_RSVD_NAME_runThread", [this](uint64_t key, sol::function func, sol::this_state s) -> std::tuple<uint64_t, bool>
     {
-        const auto [newKey, newSeqID] = spawn(key, func, [key, this](const sol::protected_function_result &pfr)
-        {
-            std::vector<std::string> error;
-            if(pfrCheck(pfr, [&error](const std::string &errLine){ error.push_back(errLine); })){
-                if(pfr.return_count() > 0){
-                    // drop quest state function result
-                }
-            }
-            else{
-                if(error.empty()){
-                    error.push_back(str_printf("unknown error for runThread: key %llu", to_llu(key)));
-                }
-
-                for(const auto &line: error){
-                    g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-                }
-            }
-        });
+        const auto [newKey, newSeqID] = runThread(key, func);
 
         // closing: the caller is a <close> handler of the calling thread, the ongoing close ends it
         if(m_currRunner && m_currRunner->closeRequested && !m_currRunner->closing){
@@ -161,6 +144,23 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             return {newSeqID, true};
         }
         return {newSeqID, false};
+    });
+
+    // backend of closeThreadThenRun() in serverluacoroutinerunner.lua
+    // the calling thread only gets closeRequested here, resumeRunner() closes it at its yield, then starts func
+    bindFunction("_RSVD_NAME_closeThreadThenRun", [this](uint64_t key, sol::main_function func, sol::this_state s)
+    {
+        if(!m_currRunner){
+            throw fflpanic("closeThreadThenRun() called outside any thread");
+        }
+
+        if(const auto reason = selfCloseError(s.lua_state())){
+            throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), reason);
+        }
+
+        fflassert(!m_currRunner->afterClose, m_currRunner->keyPair());
+        m_currRunner->afterClose = std::make_pair(key, std::move(func));
+        closeRunner(m_currRunner);
     });
 
     // true while lua_closethread() runs <close> handlers, setQuestState() refuses to run in them
@@ -539,6 +539,28 @@ void ServerLuaCoroutineRunner::resumeNotifyWaiter(LuaThreadHandle *runnerPtr)
         runnerPtr->onClose.pop();
     }
     resumeRunner(runnerPtr);
+}
+
+std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::runThread(uint64_t key, const sol::function &func)
+{
+    return spawn(key, func, [key, this](const sol::protected_function_result &pfr)
+    {
+        std::vector<std::string> error;
+        if(pfrCheck(pfr, [&error](const std::string &errLine){ error.push_back(errLine); })){
+            if(pfr.return_count() > 0){
+                // drop quest state function result
+            }
+        }
+        else{
+            if(error.empty()){
+                error.push_back(str_printf("unknown error for runThread: key %llu", to_llu(key)));
+            }
+
+            for(const auto &line: error){
+                g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+            }
+        }
+    });
 }
 
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::addTimer(uint64_t msec, std::function<void(bool)> fnOnTimer)
@@ -968,7 +990,13 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     if(yielded){
         // asked to close while it ran, i.e. it closed itself, close it now that it's suspended
         if(runnerPtr->closeRequested){
+            auto afterClose = std::exchange(runnerPtr->afterClose, std::nullopt);
             closeRunner(runnerPtr);
+
+            // see closeThreadThenRun(), started after the <close> handlers of the closed thread, and not on top of its C stack
+            if(afterClose){
+                runThread(afterClose->first, sol::function(getState().lua_state(), sol::ref_index(afterClose->second.registry_index())));
+            }
             return true;
         }
         return false;
