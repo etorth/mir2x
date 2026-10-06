@@ -306,10 +306,33 @@ function mondrop._runDropOnKill(playerUID, callID, monsterID)
     end
 end
 
+-- a logout takes the triggers on the player with it, their calls here go too, the login replays the states that add them again
+-- added by the first addDropTrigger(), not at load: map scripts require this module too, and they have no quest triggers
+local _RSVD_NAME_logoutTriggerAdded = false
+local function _RSVD_NAME_dropCallsAtLogout()
+    if _RSVD_NAME_logoutTriggerAdded then
+        return
+    end
+
+    addQuestTrigger(SYS_ON_OFFLINE, function(uid)
+        for callID, call in pairs(_RSVD_NAME_activeDropCalls) do
+            if call.uid == uid then
+                _RSVD_NAME_activeDropCalls[callID] = nil
+                if call.timerKey then
+                    closeThread(call.timerKey)
+                end
+            end
+        end
+    end)
+    _RSVD_NAME_logoutTriggerAdded = true
+end
+
 function mondrop.addDropTrigger(uid, dropList, opts)
     assertType(uid, 'integer')
     assertType(dropList, 'table')
     assertType(opts, 'table', 'nil')
+
+    _RSVD_NAME_dropCallsAtLogout()
 
     if opts then
         assertType(opts.timeout, 'integer', 'nil')

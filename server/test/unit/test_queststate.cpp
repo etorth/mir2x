@@ -1815,6 +1815,9 @@ namespace
             function getItemID(name) return 1 end
             function getMapID(name) return 1 end
 
+            -- the binding of the quest actor that subscribes it to a trigger type
+            _G['_RSVD_NAME_modifyQuestTriggerType' .. SYS_COOP] = function(triggerType, enable, onDone) onDone() end
+
             -- TEST.holdKill holds a kill in the check of its need, as a reply of the player would
             TEST.given = {}
             server.player =
@@ -1856,6 +1859,10 @@ namespace
         f.drive("setQuestState{uid=162, state='c'} TEST.holdKill = false");
         f.runner.resume(f.key("killKey_162"));
         require(!f.alive("killKey_162") && f.inState(162, "SYS_QSTFSM", "'c'") && f.runner.execRawString("TEST.race_162 = #TEST.given == 1").valid() && f.isTrue("race_162"), "a kill held while the quest moved on switches it back, or gives its item");
+
+        // a logout takes the trigger on the player with it, its call goes too, the replay at login adds another
+        f.drive("setQuestState{uid=163, state='run', args=TEST.dropCode} TEST.firstDrop_163 = TEST.drop_163 _RSVD_NAME_trigger(SYS_ON_OFFLINE, 163) TEST.mondrop._runDropOnKill(163, TEST.firstDrop_163, 11)");
+        require(f.runner.execRawString("TEST.logout_163 = (dbGetQuestState(163) == 'run') and (#TEST.given == 1)").valid() && f.isTrue("logout_163"), "a drop of a player who logged out still runs");
     }
 
     void testGridTriggerRollback()
@@ -2190,7 +2197,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, a from state the fsm doesn't have raises, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, monster drops live in the state that installed them, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, a from state the fsm doesn't have raises, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, monster drops live in the state that installed them till a logout, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
