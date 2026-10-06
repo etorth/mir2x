@@ -30,6 +30,12 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         return getQuest()->m_threadKey++;
     });
 
+    // saved with each quest context item, an item saved by another version of the script can run code that changed since
+    bindFunction("getQuestScriptHash", [this]() -> std::string
+    {
+        return getQuest()->m_scriptHash;
+    });
+
     bindFunction("_RSVD_NAME_setQuestDesp", [this](uint64_t uid, sol::object despTable, std::string fsm, sol::object desp)
     {
         fflassert(str_haschar(fsm));
@@ -143,7 +149,17 @@ corof::awaitable<> Quest::onActivate()
     };
     m_luaRunner->pfrCheck(m_luaRunner->execRawString(to_rawcstr(luaScript)));
 
-    m_luaRunner->spawn(m_mainScriptThreadKey, filesys::readFile(m_scriptName.c_str()));
+    // FNV-1a, std::hash isn't the same across builds
+    const auto script = filesys::readFile(m_scriptName.c_str());
+    uint64_t scriptHash = 14695981039346656037ULL;
+
+    for(const auto ch: script){
+        scriptHash ^= static_cast<unsigned char>(ch);
+        scriptHash *= 1099511628211ULL;
+    }
+
+    m_scriptHash = str_printf("%016llx", to_llu(scriptHash));
+    m_luaRunner->spawn(m_mainScriptThreadKey, script);
 }
 
 corof::awaitable<> Quest::onActorMsg(const ActorMsgPack &mpk)

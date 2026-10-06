@@ -111,6 +111,10 @@ namespace
             return 'queststate_test'
         end
 
+        function getQuestScriptHash()
+            return 'hash1'
+        end
+
         local function copy(value)
             if type(value) ~= 'table' then
                 return value
@@ -514,6 +518,56 @@ namespace
             const auto code = std::string("TEST.inState = dbGetQuestState(") + std::to_string(uid) + ", " + fsm + ") == " + state;
             require(runner.execRawString(code.c_str()).valid(), "failed to get quest state");
             return isTrue("inState");
+        }
+
+        // NPC actors as stubs, getNPCharUID() finds TEST.npcs[map .. '/' .. npc]
+        // a remote call takes effect in TEST.world[npcUID][playerUID] as it's sent, as the NPC handles its messages in order
+        // it's recorded in TEST.calls with the key pair of its caller, its reply waits while TEST.holdReplies, see reply()
+        // TEST.refuse makes the NPC side raise
+        void stubNPCs()
+        {
+            require(runner.execRawString(R"###(
+                TEST.npcs = {}
+                TEST.calls = {}
+                TEST.world = {}
+
+                function getNPCharUID(mapName, npcName)
+                    return TEST.npcs[mapName .. '/' .. npcName]
+                end
+
+                _G['_RSVD_NAME_remoteCall' .. SYS_COOP] = function(uid, code, args, onDone)
+                    local call = {uid = uid, onDone = onDone, key = getThreadKey(), seq = getThreadSeqID()}
+                    table.insert(TEST.calls, call)
+
+                    if TEST.refuse then
+                        call.result = {SYS_EXECERROR, 'refused by the npc'}
+                    else
+                        TEST.world[uid] = TEST.world[uid] or {}
+                        if string.find(code, 'setUIDQuestHandler', 1, true) then
+                            TEST.world[uid][args[1]] = args[3]
+                        elseif string.find(code, 'deleteUIDQuestHandler', 1, true) then
+                            TEST.world[uid][args[1]] = nil
+                        end
+                        call.result = {SYS_EXECDONE}
+                    end
+
+                    if not TEST.holdReplies then
+                        onDone(table.unpack(call.result))
+                    end
+                end
+            )###").valid(), "failed to stub NPCs");
+        }
+
+        // replies to the call-th remote call, and resumes its caller if it's still there
+        void reply(int call)
+        {
+            const auto code = "local call = TEST.calls[" + std::to_string(call) + "] call.onDone(table.unpack(call.result)) TEST.replyKey, TEST.replySeq = call.key, call.seq";
+            require(runner.execRawString(code.c_str()).valid(), "failed to reply");
+
+            const std::pair<uint64_t, uint64_t> kp{get("replyKey").as<uint64_t>(), get("replySeq").as<uint64_t>()};
+            if(runner.hasKeyPair(kp)){
+                runner.resume(kp);
+            }
         }
     };
 
@@ -1303,6 +1357,115 @@ namespace
         require(!f.runner.hasKeyPair(kp) && f.isTrue("done94"), "quest done doesn't finish");
     }
 
+    void testNPCBehaviorContext()
+    {
+        QuestFixture f;
+        f.stubNPCs();
+        f.drive("TEST.npcs['m/n'] = 9100");
+
+        // a quest not started: in the world and in runtime, never saved
+        f.drive(R"###(
+            setupNPCQuestBehavior('m', 'n', 100, 'code100')
+            TEST.ok100 = (TEST.world[9100][100] == 'code100') and (TEST.db[100] == nil) and (_RSVD_NAME_questContext.get(100, 'npc/m/n').target == 9100)
+        )###");
+        require(f.isTrue("ok100"), "an NPC behavior for a quest not started isn't installed, or is saved");
+
+        // the state runner: saved with its next switch, with what installs it again
+        f.drive(R"###(
+            setQuestState{uid=101, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'return 7', 'code101') ]]}
+            TEST.pending101 = (TEST.world[9100][101] == 'code101') and (TEST.db[101].fld_context == nil)
+
+            setQuestState{uid=101, state='b'}
+            local item = TEST.db[101].fld_context['npc/m/n']
+            TEST.saved101 = (item.type == 'npc') and (item.map == 'm') and (item.npc == 'n') and (item.argstr == 'return 7') and (item.code == 'code101') and (item.hash == 'hash1')
+        )###");
+        require(f.isTrue("pending101") && f.isTrue("saved101"), "an NPC behavior of the state runner isn't installed, or isn't saved with its next switch");
+
+        // another thread: saved at once, a clear removes it from the world and the database
+        f.drive(R"###(
+            setQuestState{uid=102, state='b'}
+            setupNPCQuestBehavior('m', 'n', 102, 'code102')
+            TEST.saved102 = (TEST.db[102].fld_context['npc/m/n'].code == 'code102') and (TEST.world[9100][102] == 'code102')
+
+            clearNPCQuestBehavior('m', 'n', 102)
+            TEST.cleared102 = (TEST.db[102].fld_context == nil) and (TEST.world[9100][102] == nil)
+        )###");
+        require(f.isTrue("saved102") && f.isTrue("cleared102"), "an NPC behavior of another thread isn't saved at once, or its clear doesn't remove it");
+
+        // a quest done: an install raises before anything is sent, a clear sends nothing
+        f.drive(R"###(
+            setQuestState{uid=103, state=SYS_DONE}
+            local calls = #TEST.calls
+            local ok, err = pcall(setupNPCQuestBehavior, 'm', 'n', 103, 'code103')
+            clearNPCQuestBehavior('m', 'n', 103)
+            TEST.done103 = (not ok) and (string.find(err, 'its quest is done', 1, true) ~= nil) and (#TEST.calls == calls)
+        )###");
+        require(f.isTrue("done103"), "an NPC behavior for a quest done is sent, or doesn't raise");
+    }
+
+    void testNPCBehaviorRefused()
+    {
+        QuestFixture f;
+        f.stubNPCs();
+
+        // the NPC refuses the new behavior, its record is undone, the old one is what the NPC still has
+        f.drive(R"###(
+            TEST.npcs['m/n'] = 9100
+            setQuestState{uid=104, state='b'}
+            setupNPCQuestBehavior('m', 'n', 104, 'old')
+
+            TEST.refuse = true
+            local ok, err = pcall(setupNPCQuestBehavior, 'm', 'n', 104, 'new')
+            TEST.refuse = false
+
+            local record = _RSVD_NAME_questContext.get(104, 'npc/m/n')
+            TEST.refused104 = (not ok) and (string.find(err, 'refused by the npc', 1, true) ~= nil)
+                and (record.item.code == 'old') and (TEST.db[104].fld_context['npc/m/n'].code == 'old') and (TEST.world[9100][104] == 'old')
+        )###");
+        require(f.isTrue("refused104"), "an NPC behavior the NPC refuses doesn't raise, or its record isn't undone");
+    }
+
+    void testNPCBehaviorTimelines()
+    {
+        QuestFixture f;
+        f.stubNPCs();
+        f.drive("TEST.npcs['m/n'] = 9100");
+
+        // T1: another thread switches while the state runner waits for the reply of its install, the switch saves the item
+        f.drive(R"###(
+            TEST.holdReplies = true
+            setQuestState{uid=105, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'code105') TEST.after105 = true ]]}
+
+            TEST.holdReplies = false
+            setQuestState{uid=105, state='b'}
+            TEST.t1 = TEST.db[105].fld_context['npc/m/n'].code == 'code105'
+        )###");
+        require(f.isTrue("t1") && f.isNil("after105"), "T1: a switch while the state runner waits for its install doesn't save the item, or the runner goes on");
+
+        // T3: quest done while an install by another thread waits for its reply, quest done removes the item
+        f.drive("setQuestState{uid=106, state='b'} TEST.holdReplies = true");
+        const auto kp = f.runner.spawn(f.driverKey++, std::string("setupNPCQuestBehavior('m', 'n', 106, 'code106') TEST.installed106 = true"));
+        require(f.runner.hasKeyPair(kp), "an install doesn't wait for its reply");
+
+        f.drive("TEST.installCall106 = #TEST.calls TEST.holdReplies = false setQuestState{uid=106, state=SYS_DONE}");
+        f.reply(f.get("installCall106").as<int>());
+        require(!f.runner.hasKeyPair(kp) && f.isTrue("installed106"), "an install doesn't finish after its reply");
+
+        f.drive("TEST.t3 = (TEST.world[9100][106] == nil) and (TEST.db[106].fld_context == nil) and (_RSVD_NAME_questContext.get(106, 'npc/m/n') == nil)");
+        require(f.isTrue("t3"), "T3: an item installed while quest done runs stays");
+
+        // 比奇商会.lua: the NPC callback clears the dialog the sub fsm installed, then ends the sub fsm, the dialog doesn't come back
+        f.drive(R"###(
+            setQuestState{uid=107, state='b'}
+            setQuestState{uid=107, fsm='sub', state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'questions') ]]}
+
+            clearNPCQuestBehavior('m', 'n', 107)
+            setQuestState{uid=107, fsm='sub', state=SYS_DONE}
+            TEST.owner107 = (TEST.db[107].fld_context == nil) and (TEST.world[9100][107] == nil)
+        )###");
+        require(f.isTrue("owner107"), "an NPC behavior cleared by another thread comes back with the commit of the fsm that installed it");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -1345,6 +1508,9 @@ namespace
         testContextUndo();
         testContextCommitWithSwitch();
         testQuestDoneWritesRowFirst();
+        testNPCBehaviorContext();
+        testNPCBehaviorRefused();
+        testNPCBehaviorTimelines();
     }
 }
 
@@ -1376,7 +1542,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, and quest done writing its row first.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, and the timelines T1 and T3.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

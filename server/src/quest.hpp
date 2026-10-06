@@ -20,6 +20,7 @@ class Quest final: public ServerObject
 
     private:
         const std::string m_scriptName;
+        /* */ std::string m_scriptHash;
 
     private:
         const uint64_t m_mainScriptThreadKey = 1;

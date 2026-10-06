@@ -150,15 +150,6 @@ function _RSVD_NAME_setupQuests()
         [[
             local playerUID = ...
 
-            local npcBehaviors = dbGetQuestField(playerUID, 'fld_npcbehaviors')
-            assertType(npcBehaviors, 'table', 'nil')
-
-            if npcBehaviors then
-                for _, v in pairs(npcBehaviors) do
-                    setupNPCQuestBehavior(v[1], v[2], playerUID, v[4], v[3])
-                end
-            end
-
             local gridTriggers = dbGetQuestField(playerUID, 'fld_gridtriggers')
             assertType(gridTriggers, 'table', 'nil')
 

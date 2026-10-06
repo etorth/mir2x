@@ -426,7 +426,7 @@ end
 --                  the next switch of F commits it, it's rolled back when the state of F raises or is replayed
 --     runtime      key -> record installed in the world now
 --
--- a record is {item = item, version = version}, every write of a key gets a new version, a reply or a notice about an older one is stale
+-- a record is {item = item, version = version, target = uid of the actor that has it}, every write of a key gets a new version, a reply or a notice about an older one is stale
 --
 -- who writes decides where it goes:
 --
@@ -474,10 +474,11 @@ end
 
 -- records a write of key by the calling thread, item, or false for a remove
 -- returns the version and what undoes it, nothing if nothing is recorded, i.e. a remove for a quest done
-local function _RSVD_NAME_writeQuestContext(uid, key, item)
+local function _RSVD_NAME_writeQuestContext(uid, key, item, target)
     assertType(uid, 'integer')
     assertType(key, 'string')
     assertType(item, 'table', 'boolean')
+    assertType(target, 'integer', 'nil')
 
     local state = dbGetQuestState(uid, SYS_QSTFSM)
     if state == SYS_DONE then
@@ -503,7 +504,7 @@ local function _RSVD_NAME_writeQuestContext(uid, key, item)
         end
     end
 
-    local record = item and {item = item, version = version} or nil
+    local record = item and {item = item, version = version, target = target} or nil
     context.versions[key] = version
     context.runtime[key] = record
 
@@ -530,9 +531,10 @@ local function _RSVD_NAME_writeQuestContext(uid, key, item)
     return version, undo
 end
 
-function _RSVD_NAME_questContext.install(uid, key, item)
+-- target: the uid of the actor the item goes to, its removal needs no lookup then
+function _RSVD_NAME_questContext.install(uid, key, item, target)
     assertType(item, 'table')
-    return _RSVD_NAME_writeQuestContext(uid, key, item)
+    return _RSVD_NAME_writeQuestContext(uid, key, item, target)
 end
 
 function _RSVD_NAME_questContext.remove(uid, key)
@@ -641,9 +643,62 @@ function _RSVD_NAME_questContext.drop(uid)
     return context and context.runtime or {}
 end
 
--- item type -> {remove = function(uid, key, record)}, how the world loses an item of the type
--- remove() is called in a critical section, it starts a thread that removes the item and doesn't yield itself
+-- item type -> how the world gets and loses an item of the type:
+--
+--     prepareInstall(uid, item)          the lookups of an install, they yield, returns the target uid and a function that sends the install
+--     prepareRemove(uid, item, target)   the same for a removal, target is nil when not known
+--     remove(uid, key, record)           for quest done, in its critical section, starts a thread that removes the item, never yields
+--
+-- a send function sends its remote call before it yields the first time, and raises if the remote side refuses
+-- the remote side installs and removes with no yield, so the messages of a quest to one actor take effect in the order they're sent
 _RSVD_NAME_questContext.types = {}
+
+-- a primitive installing item under key for uid: the lookups, which yield, then the record and the send with nothing between them
+-- a refused send raises, after the record is undone if no write of the key came since
+local function _RSVD_NAME_installQuestContextItem(uid, key, item)
+    local target, send = _RSVD_NAME_questContext.types[item.type].prepareInstall(uid, item)
+    local version, undo = nil, nil
+
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        version, undo = _RSVD_NAME_questContext.install(uid, key, item, target)
+    end
+
+    local ok, err = pcall(send)
+    if not ok then
+        do
+            local section <close> = _RSVD_NAME_criticalSection()
+            _RSVD_NAME_questContext.undo(uid, key, version, undo)
+        end
+        error(err, 0)
+    end
+end
+
+-- removes key of uid as _RSVD_NAME_installQuestContextItem() installs one, item has what finds it, i.e. {type, map, npc}
+-- does nothing for a quest done, quest done removed it
+local function _RSVD_NAME_removeQuestContextItem(uid, key, item)
+    local record = _RSVD_NAME_questContext.get(uid, key)
+    local _, send = _RSVD_NAME_questContext.types[item.type].prepareRemove(uid, item, record and record.target)
+    local version, undo = nil, nil
+
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        version, undo = _RSVD_NAME_questContext.remove(uid, key)
+    end
+
+    if not version then
+        return
+    end
+
+    local ok, err = pcall(send)
+    if not ok then
+        do
+            local section <close> = _RSVD_NAME_criticalSection()
+            _RSVD_NAME_questContext.undo(uid, key, version, undo)
+        end
+        error(err, 0)
+    end
+end
 
 -- switches {uid, fsm} to state, fargs: {uid, fsm, from, state, args, exitfunc, exitargs, fallback}
 --
@@ -742,12 +797,10 @@ function setQuestState(fargs)
     if (fsm == SYS_QSTFSM) and (state == SYS_DONE) then
         -- the done row first, then the removals: a crash or a raise in them leaves a quest done, not a quest in its old state missing items
         -- an install after the row raises, see _RSVD_NAME_questContext
-        local npcBehaviors = nil
         local gridTriggers = nil
 
         do
             local section <close> = _RSVD_NAME_criticalSection()
-            npcBehaviors = dbGetQuestField(uid, 'fld_npcbehaviors')
             gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
 
             -- the row keeps fld_states only
@@ -758,10 +811,6 @@ function setQuestState(fargs)
             for key, record in pairs(_RSVD_NAME_questContext.drop(uid)) do
                 _RSVD_NAME_questContext.types[record.item.type].remove(uid, key, record)
             end
-        end
-
-        for _, v in pairs(npcBehaviors or {}) do
-            uidRemoteCall(getNPCharUID(v[1], v[2]), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
         end
 
         if gridTriggers then
@@ -981,8 +1030,46 @@ function setQuestDesp(args)
     _RSVD_NAME_setQuestDesp(uid, newDespTable, fsm, desp)
 end
 
+-- NPC behaviors as quest context items, key npc/<map>/<npc>: one handler of a quest for a player on an NPC
+_RSVD_NAME_questContext.types.npc = {}
+
+function _RSVD_NAME_questContext.types.npc.prepareInstall(uid, item)
+    local npcUID = getNPCharUID(item.map, item.npc)
+    if not npcUID then
+        fatalPrintf('No NPC %s on map %s', asInitString(item.npc), asInitString(item.map))
+    end
+
+    -- argstr is evaluated at every install, it doesn't capture values of this server run
+    local args = item.argstr and table.pack(load(item.argstr)()) or table.pack()
+    args[args.n + 1] =
+    [[
+        local playerUID, questName, code = ...
+        setUIDQuestHandler(playerUID, questName, load(code)(select(4, ...)))
+    ]]
+
+    return npcUID, function()
+        uidRemoteCall(npcUID, uid, getQuestName(), item.code, table.unpack(args, 1, args.n + 1))
+    end
+end
+
+function _RSVD_NAME_questContext.types.npc.prepareRemove(uid, item, npcUID)
+    npcUID = npcUID or getNPCharUID(item.map, item.npc)
+    return npcUID, function()
+        if npcUID then
+            uidRemoteCall(npcUID, uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
+        end
+    end
+end
+
+function _RSVD_NAME_questContext.types.npc.remove(uid, key, record)
+    runQuestThread(function()
+        local _, send = _RSVD_NAME_questContext.types.npc.prepareRemove(uid, record.item, record.target)
+        send()
+    end)
+end
+
 -- setup NPC chat logics
--- also save to database for next time loading, usage:
+-- a quest context item, see _RSVD_NAME_questContext: saved with the state that installs it, usage:
 --
 --     setupNPCQuestBehavior('仓库_1_007', '大老板_1', uid,
 --     [[
@@ -1010,6 +1097,7 @@ end
 -- argstr shouldn't capture current environ's values
 -- argstr get evalulated everytime when when setup the NPC behavior
 --
+-- raises for a quest done, and if the NPC refuses the behavior, i.e. its code doesn't load
 function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     assertType(mapName, 'string')
     assertType(npcName, 'string')
@@ -1036,21 +1124,15 @@ function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
         fatalPrintf('Invalid arguments to setupNPCQuestBehavior(%s, %s, %d, ...)', asInitString(mapName), asInitString(npcName), uid)
     end
 
-    -- re-evalulate argstr to capture current environ's values
-    -- don't save the environ's specific value to database, which may causes error for next time loading
-
-    local args = argstr and table.pack(load(argstr)()) or table.pack()
-    args[args.n + 1] =
-    [[
-        local playerUID, questName, code = ...
-        setUIDQuestHandler(playerUID, questName, load(code)(select(4, ...)))
-    ]]
-
-    -- use array as {code, argstr}
-    -- argstr can be nil, put ahead may cause trouble
-
-    uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), code, table.unpack(args, 1, args.n + 1))
-    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), {mapName, npcName, code, argstr})
+    _RSVD_NAME_installQuestContextItem(uid, string.format('npc/%s/%s', mapName, npcName),
+    {
+        type   = 'npc',
+        map    = mapName,
+        npc    = npcName,
+        argstr = argstr,
+        code   = code,
+        hash   = getQuestScriptHash(),
+    })
 end
 
 -- setupNPCQuestBehavior against one map copy instead of a map name
@@ -1104,6 +1186,8 @@ function setupInstanceNPCBehavior(mapUID, npcName, uid, arg1, arg2)
     uidRemoteCall(npcUID, uid, getQuestName(), code, table.unpack(args, 1, args.n + 1))
 end
 
+-- removes the NPC behavior of this quest for uid, as a quest context item, see setupNPCQuestBehavior()
+-- does nothing for a quest done
 function clearNPCQuestBehavior(mapName, npcName, uid)
     assertType(mapName, 'string')
     assertType(npcName, 'string')
@@ -1111,8 +1195,7 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
     assertType(uid, 'integer')
     assert(uid > 0)
 
-    uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
-    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), nil)
+    _RSVD_NAME_removeQuestContextItem(uid, string.format('npc/%s/%s', mapName, npcName), {type = 'npc', map = mapName, npc = npcName})
 end
 
 local function parseUIDGridTriggerArgs(funcName, ...)
