@@ -1,1 +1,1 @@
-Player quest passed: restore loads the quest context first and goes on after a quest raised, and triggers go on after a quest raised.
+Player quest passed: restore loads the quest context first, goes on after a quest raised, and fires SYS_ON_ONLINE after it, and triggers go on after a quest raised.

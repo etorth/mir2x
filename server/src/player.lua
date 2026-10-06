@@ -176,6 +176,9 @@ function _RSVD_NAME_setupQuests()
     end
 
     _RSVD_NAME_reportQuestDespList(questDespList)
+
+    -- after the restores, a handler sees the quests as the login left them, i.e. abandons a trial state restored after a restart
+    _RSVD_NAME_trigger(SYS_ON_ONLINE)
 end
 
 function _RSVD_NAME_coth_runner(code)

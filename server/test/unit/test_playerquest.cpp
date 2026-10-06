@@ -103,7 +103,7 @@ namespace
     // quest A raises in its restore and in its trigger, as a quest with a saved NPC behavior that no longer loads would
     // the C++ side puts "local questA, questB = ..." in front of it
     constexpr const char *playerBindings = R"###(
-        TEST = {restored = {}, triggered = {}}
+        TEST = {restored = {}, triggered = {}, calls = {}}
 
         _G['_RSVD_NAME_queryQuestUIDList' .. SYS_COOP] = function(onDone)
             onDone({questA, questB})
@@ -121,6 +121,13 @@ namespace
             if restore then
                 local load = string.find(code, '_RSVD_NAME_loadQuestContext(playerUID)', 1, true)
                 TEST.loadFirst = (load ~= nil) and (load < restore) and (TEST.loadFirst ~= false)
+            end
+
+            -- the restores and the triggers in the order they're called, a trigger with its type
+            if restore then
+                table.insert(TEST.calls, 'restore')
+            elseif trigger then
+                table.insert(TEST.calls, 'trigger ' .. args[1])
             end
 
             if restore or trigger then
@@ -200,6 +207,9 @@ namespace
         require(f.check("TEST.calledBoth(TEST.restored)"), "restore stops at a quest that raised");
         require(f.check("TEST.loadFirst"), "the login doesn't load the quest context before it restores the states");
         require(f.check("TEST.listedBoth()"), "quest list misses a quest, or isn't reported, after a quest raised in its restore");
+
+        const auto online = std::string("'trigger ' .. SYS_ON_ONLINE");
+        require(f.check("(#TEST.calls == 4) and (TEST.calls[1] == 'restore') and (TEST.calls[2] == 'restore') and (TEST.calls[3] == " + online + ") and (TEST.calls[4] == " + online + ")"), "the login doesn't fire SYS_ON_ONLINE to every quest after their restores");
         require(capture.has("Quest QST_2 failed to restore player PLY_1") && capture.has("Remote call to QST_2 failed: quest A raised"), "restore error of a quest is not logged");
     }
 
@@ -248,7 +258,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Player quest passed: restore loads the quest context first and goes on after a quest raised, and triggers go on after a quest raised.\n");
+        std::printf("Player quest passed: restore loads the quest context first, goes on after a quest raised, and fires SYS_ON_ONLINE after it, and triggers go on after a quest raised.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
