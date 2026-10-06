@@ -244,6 +244,8 @@ namespace
 
                 if args == 'pause' then
                     pause(SYS_POSINF)
+                elseif args == 'return' then
+                    return
                 end
                 setQuestState{uid=uid, state='b'}
             end,
@@ -760,6 +762,23 @@ namespace
 
         f.drive("setQuestState{uid=11, state='c'}");
         require(!f.alive("key_11_b") && f.isTrue("closed_11_b") && f.alive("key_11_c"), "state runner started by a state runner closing itself is not registered");
+    }
+
+    void testCloseHandlerSwitchAtReturn()
+    {
+        // situation 1 of a <close> guard: the state function returns, the handler switches as the state runner, which can yield there
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=17, state='i', args='return', exitfunc=function() TEST.exit_17 = true end}");
+
+        require(f.alive("key_17_failed") && f.inState(17, "SYS_QSTFSM", "'failed'"), "<close> handler can't switch the state when its state function returns");
+        require(!f.alive("key_17_i") && f.isTrue("closed_17_i"), "state runner whose <close> handler switched at its return is not closed");
+        require(f.runner.execRawString("TEST.registered_17 = _RSVD_NAME_getQuestStateRunnerKey(17, SYS_QSTFSM) == TEST.key_17_failed").valid() && f.isTrue("registered_17"), "state runner started by a <close> handler at the return is not registered");
+        require(f.isNil("exit_17"), "exitfunc runs for a state whose <close> handler switched at its return");
+        require(!capture.has("Error in <close> handler") && !capture.has("is not allowed"), "state switch by a <close> handler at the return of its state is refused");
+
+        f.drive("setQuestState{uid=17, state='c'}");
+        require(!f.alive("key_17_failed") && f.isTrue("closed_17_failed") && f.alive("key_17_c"), "state runner started by a <close> handler at the return can't be switched");
     }
 
     void testNoStateSwitchInCloseByOther()
@@ -1939,6 +1958,7 @@ namespace
         testFinishedRunner();
         testRunnerClosedByThreadItStarts();
         testNoStateSwitchInSelfClose();
+        testCloseHandlerSwitchAtReturn();
         testNoStateSwitchInCloseByOther();
         testNoStateSwitchInQuestDone();
         testNoStateSwitchInRestore();
@@ -2014,7 +2034,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
