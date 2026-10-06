@@ -359,6 +359,18 @@ local function _RSVD_NAME_isCallerQuestStateRunner(uid, fsm)
     return false
 end
 
+-- uids whose quest done runs, it yields in its remote calls before it writes the done row
+-- a switch of the uid in there would be overwritten by the done row, or close the state runner doing the quest done, which never finishes it then
+local _RSVD_NAME_questDoneUIDs = {}
+
+-- marks quest done of uid running, the value returned drops the mark when it's closed, hold it in a <close> variable
+local function _RSVD_NAME_markQuestDone(uid)
+    _RSVD_NAME_questDoneUIDs[uid] = true
+    return setmetatable({}, {__close = function()
+        _RSVD_NAME_questDoneUIDs[uid] = nil
+    end})
+end
+
 -- runs func on a new thread, registered as the state runner of {uid, fsm}
 -- afterSelfClose: the caller is the old state runner, it's closed first, and this never returns
 local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
@@ -400,6 +412,7 @@ end
 -- raises before it changes anything if called while a thread is being closed, i.e. in a <close> handler
 -- or by a state runner switching its own state where it can't end, i.e. from a coroutine created in it
 -- or if the new state runner would start on top of too many threads on the C stack, i.e. state switches in a cycle with no yield
+-- or while quest done of uid runs, it yields in its remote calls, see _RSVD_NAME_questDoneUIDs
 function setQuestState(fargs)
     assertType(fargs, 'table')
     assertType(fargs.uid, 'integer')
@@ -448,6 +461,10 @@ function setQuestState(fargs)
         end
     end
 
+    if _RSVD_NAME_questDoneUIDs[uid] then
+        fatalPrintf('setQuestState() is not allowed while quest done of uid %d runs: fsm %s, state %s', uid, fsm, state)
+    end
+
     -- quest done drops the states of all fsms, so it closes the state runners of all of them
     local closeFSM = fsm
     if (fsm == SYS_QSTFSM) and (state == SYS_DONE) then
@@ -468,6 +485,9 @@ function setQuestState(fargs)
     if hasQuestState(fsm, state) then
         _RSVD_NAME_checkThreadDepth()
     end
+
+    -- other switches of uid are refused while quest done runs, till this call returns, raises, or the caller is closed
+    local questDoneMark <close> = ((fsm == SYS_QSTFSM) and (state == SYS_DONE)) and _RSVD_NAME_markQuestDone(uid) or nil
 
     -- don't save team member list here
     -- a player can be in a team but still start a single-role quest alone
@@ -554,6 +574,13 @@ function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
     assertType(uid, 'integer')
     assertType(fsm, 'string')
     assertType(state, 'string')
+
+    -- quest done of uid runs: a restore would close the state runner doing it, and run its state function again, i.e. give its rewards again
+    -- quest done closes all state runners of uid when it ends anyway
+    if _RSVD_NAME_questDoneUIDs[uid] then
+        addLog(LOGTYPE_WARNING, 'Quest done of uid %d runs, fsm %s is not restored', uid, fsm)
+        return
+    end
 
     _RSVD_NAME_closeQuestState(uid, fsm)
     _RSVD_NAME_spawnQuestState(uid, fsm, function()

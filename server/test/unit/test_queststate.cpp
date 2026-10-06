@@ -127,6 +127,14 @@ namespace
         function _RSVD_NAME_dbSetQuestStateDone(uid)
             TEST.db[uid] = {fld_states = {[SYS_QSTFSM] = {SYS_DONE}}}
         end
+
+        -- quest done looks up the map of a recorded grid trigger, it waits here till TEST.mapLoaded, as for a slow map, then finds no map
+        function loadBaseMap(mapName)
+            while not TEST.mapLoaded do
+                coroutine.yield()
+            end
+            return nil
+        end
     )###";
 
     // every state records the key of its state runner as TEST.key_<uid>_<state>, and sets TEST.closed_<uid>_<state> when its state runner is closed
@@ -811,6 +819,40 @@ namespace
         require(f.alive("key_52_c") && f.inState(52, "SYS_QSTFSM", "'c'"), "state change after a cycle of state switches stopped doesn't work");
     }
 
+    void testNoStateSwitchDuringQuestDone()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+
+        f.drive("setQuestState{uid=54, state='b'} TEST.db[54].fld_gridtriggers = {{'slowMap'}}");
+        const auto keyB = f.key("key_54_b");
+
+        const auto kp = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=54, state=SYS_DONE} TEST.done_54 = true"));
+        require(f.runner.hasKeyPair(kp) && f.isNil("done_54"), "quest done doesn't wait in its remote call");
+
+        f.drive("TEST.switchOK_54, TEST.switchErr_54 = pcall(setQuestState, {uid=54, state='c'})");
+        require(f.get("switchOK_54").is<bool>() && !f.isTrue("switchOK_54") && f.strHas("switchErr_54", "setQuestState() is not allowed while quest done of uid 54 runs"), "state switch while quest done runs doesn't raise");
+
+        f.drive("_RSVD_NAME_restoreQuestState(54, SYS_QSTFSM, 'b', nil)");
+        require(f.runner.hasKey(keyB) && f.key("key_54_b") == keyB, "restore while quest done runs closes or starts a state runner");
+        require(capture.has("Quest done of uid 54 runs, fsm "), "restore skipped while quest done runs is not logged");
+
+        require(f.runner.execRawString("TEST.mapLoaded = true").valid(), "failed to load the map");
+        f.runner.resume(kp);
+        require(!f.runner.hasKeyPair(kp) && f.isTrue("done_54"), "quest done doesn't finish");
+        require(!f.runner.hasKey(keyB) && f.isTrue("closed_54_b") && f.isNil("key_54_c") && f.inState(54, "SYS_QSTFSM", "SYS_DONE"), "quest done is undone, or doesn't close the state runner");
+
+        // a quest done whose caller is closed while it runs drops its mark too
+        require(f.runner.execRawString("TEST.mapLoaded = nil").valid(), "failed to make the map slow again");
+        f.drive("setQuestState{uid=55, state='b'} TEST.db[55].fld_gridtriggers = {{'slowMap'}}");
+
+        const auto kpClosed = f.runner.spawn(f.driverKey++, std::string("setQuestState{uid=55, state=SYS_DONE}"));
+        f.runner.close(kpClosed);
+
+        f.drive("setQuestState{uid=55, state='c'}");
+        require(f.alive("key_55_c") && f.inState(55, "SYS_QSTFSM", "'c'"), "quest done closed while it runs keeps refusing state switches");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -840,6 +882,7 @@ namespace
         testSetStateFrom();
         testOldStateClosedFirst();
         testSwitchCycleStops();
+        testNoStateSwitchDuringQuestDone();
     }
 }
 
@@ -871,7 +914,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, and state switches in a cycle with no yield stop.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, and no state switch or restore while quest done runs.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
