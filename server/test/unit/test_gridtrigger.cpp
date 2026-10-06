@@ -220,29 +220,6 @@ namespace
         require(f.check("getGridTriggerInfo(TEST.map) == nil and getGridTriggerInfo(TEST.uid1) == nil"), "deleted trigger keeps its record");
         require(f.check("TEST.same(getGridTriggerIDList(10, 10), {})"), "deleted trigger stays on its grid");
         require(f.check("getGridTriggerInfo(TEST.uid2) ~= nil and TEST.same(getGridTriggerIDList(11, 10), {TEST.uid2})"), "delete removes another trigger of the same player and quest");
-
-        f.run("_RSVD_NAME_clearQuestUIDGridTrigger(7, 'questA')");
-        require(f.check("getGridTriggerInfo(TEST.uid2) == nil and TEST.same(getGridTriggerIDList(11, 10), {})"), "per-quest clear after a delete misses a trigger");
-    }
-
-    void testQuestClear()
-    {
-        MapFixture f;
-        f.run(R"###(
-            TEST.questA = addQuestGridTrigger('questA', 10, 10, TEST.handler('questA', false))
-            TEST.uid7A  = addUIDGridTrigger(7, 'questA', 10, 10, TEST.handler('uid7A', false))
-            TEST.uid7A2 = addUIDGridTrigger(7, 'questA', 12, 10, TEST.handler('uid7A2', false))
-            TEST.uid7B  = addUIDGridTrigger(7, 'questB', 10, 10, TEST.handler('uid7B', false))
-            TEST.uid8A  = addUIDGridTrigger(8, 'questA', 10, 10, TEST.handler('uid8A', false))
-
-            _RSVD_NAME_clearQuestUIDGridTrigger(7, 'questA')
-        )###");
-
-        require(f.check("getGridTriggerInfo(TEST.uid7A) == nil and getGridTriggerInfo(TEST.uid7A2) == nil and TEST.same(getGridTriggerIDList(12, 10), {})"), "per-quest clear doesn't remove every per-player trigger of the player in the quest");
-        require(f.check("TEST.same(getGridTriggerIDList(10, 10), {TEST.questA, TEST.uid7B, TEST.uid8A})"), "per-quest clear removes a trigger of another quest, of another player, or an all-player one");
-
-        f.run("_RSVD_NAME_clearQuestUIDGridTrigger(7, 'questA')");
-        require(f.check("TEST.same(getGridTriggerIDList(10, 10), {TEST.questA, TEST.uid7B, TEST.uid8A})"), "second per-quest clear changes something");
     }
 
     void testDoor()
@@ -404,10 +381,11 @@ namespace
 
         f.run("_RSVD_NAME_deleteUIDGridTrigger(7, 'questA', 'door', 2) _RSVD_NAME_deleteUIDGridTrigger(7, 'questA', 'gate')");
         require(f.check("(getGridTriggerInfo(TEST.second) == nil) and (getGridTriggerInfo(TEST.other) == nil) and TEST.same(getGridTriggerIDList(10, 10), {TEST.otherQuest, TEST.otherUID})"), "a delete by name doesn't delete its trigger, or deletes another one");
+        require(f.check("pcall(_RSVD_NAME_deleteUIDGridTrigger, 7, 'questA', 'door', 2)"), "a delete by name of a trigger already deleted raises");
 
-        // the name is free again, and a per-quest clear removes named triggers too
-        f.run("TEST.again = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 6, 7001, 12, 10, TEST.handler('again', false)) _RSVD_NAME_clearQuestUIDGridTrigger(7, 'questA')");
-        require(f.check("(getGridTriggerInfo(TEST.again) == nil) and TEST.same(getGridTriggerIDList(12, 10), {})"), "a per-quest clear leaves a named trigger");
+        // the name is free again
+        f.run("TEST.again = _RSVD_NAME_setUIDGridTrigger(7, 'questA', 'door', 6, 7001, 12, 10, TEST.handler('again', false))");
+        require(f.check("(getGridTriggerInfo(TEST.again).name == 'door') and TEST.same(getGridTriggerIDList(12, 10), {TEST.again})"), "a name deleted can't be installed again");
     }
 
     void testRetireNotice()
@@ -432,7 +410,6 @@ namespace
     {
         testRegistration();
         testDelete();
-        testQuestClear();
         testDoor();
         testQuests();
         testSnapshot();
@@ -472,7 +449,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, per-quest clear, the door of a quest, several quests, snapshot, retire, let through, a raising handler, named triggers, and the retire notice.\n");
+        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, the door of a quest, several quests, snapshot, retire, let through, a raising handler, named triggers, and the retire notice.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

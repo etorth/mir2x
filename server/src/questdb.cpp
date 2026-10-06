@@ -35,8 +35,6 @@ void dbCreateQuestTable(const std::string &dbName)
         u8R"###(     fld_team         blob             null,                                 )###"
         u8R"###(     fld_vars         blob             null,                                 )###"
         u8R"###(     fld_desp         blob             null,                                 )###"
-        u8R"###(     fld_npcbehaviors blob             null,                                 )###"
-        u8R"###(     fld_gridtriggers blob             null,                                 )###"
         u8R"###(     fld_context      blob             null,                                 )###"
         u8R"###(                                                                             )###"
         u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade, )###"

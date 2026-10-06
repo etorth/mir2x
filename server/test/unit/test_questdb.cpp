@@ -95,12 +95,12 @@ namespace
         dbCreateQuestTable(questTable);
         dbCreateQuestTable(questTable);
 
-        bool hasContext = false;
+        std::vector<std::string> columns;
         auto query = g_dbPod->createQuery("pragma table_info(%s)", questTable);
         while(query.executeStep()){
-            hasContext = hasContext || (query.getColumn("name").getString() == "fld_context");
+            columns.push_back(query.getColumn("name").getString());
         }
-        require(hasContext, "quest table has no fld_context");
+        require(columns == std::vector<std::string>{"fld_dbid", "fld_timestamp", "fld_states", "fld_flags", "fld_team", "fld_vars", "fld_desp", "fld_context"}, "quest table doesn't have exactly the columns of the quest context");
     }
 
     void testWriteAndLoad()
@@ -206,7 +206,7 @@ int main()
         runTests();
         g_dbPod = nullptr;
 
-        std::printf("Quest database passed: table with fld_context, write and load, null fields, replace, atomic writes, field names, and lua field lists.\n");
+        std::printf("Quest database passed: table columns, write and load, null fields, replace, atomic writes, field names, and lua field lists.\n");
         return 0;
     }
     catch(const std::exception &e){

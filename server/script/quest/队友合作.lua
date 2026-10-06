@@ -91,9 +91,7 @@ setQuestFSMTable(
             ]])
 
             if playerUID ~= uid then
-                runQuestThread(function()
-                    setQuestState{uid=playerUID, state=SYS_DONE}
-                end)
+                setQuestState{uid=playerUID, state=SYS_DONE}
             end
         end
         setQuestState{uid=uid, state=SYS_DONE}

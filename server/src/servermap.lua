@@ -60,9 +60,6 @@ end
 -- a named SYS_EPUID trigger has name, and version and questUID if its quest saves it, see _RSVD_NAME_setUIDGridTrigger()
 local _RSVD_NAME_gridTriggers = {}
 
--- uid -> questName -> {gridTriggerId = true, ...}, the SYS_EPUID triggers of each player by quest
-local _RSVD_NAME_EPUID_questGridTriggers = {}
-
 -- uid -> questName -> name -> gridTriggerId, the SYS_EPUID triggers a quest named, see _RSVD_NAME_setUIDGridTrigger()
 local _RSVD_NAME_EPUID_namedGridTriggers = {}
 
@@ -129,28 +126,11 @@ function addQuestGridTrigger(questName, ...)
     return addGridTriggerRecord({type = SYS_EPDEF, quest = questName}, ...)
 end
 
--- one player, installed by quest questName
--- the quest removes them in bulk by _RSVD_NAME_clearQuestUIDGridTrigger() once the quest is done
+-- one player, installed by quest questName, a quest names its triggers, see _RSVD_NAME_setUIDGridTrigger()
 function addUIDGridTrigger(uid, questName, ...)
     assertType(uid, 'integer')
     assertType(questName, 'string')
-
-    local gridTriggerId = addGridTriggerRecord({type = SYS_EPUID, uid = uid, quest = questName}, ...)
-
-    local uidGridTriggerList = _RSVD_NAME_EPUID_questGridTriggers[uid]
-    if not uidGridTriggerList then
-        uidGridTriggerList = {}
-        _RSVD_NAME_EPUID_questGridTriggers[uid] = uidGridTriggerList
-    end
-
-    local questGridTriggerList = uidGridTriggerList[questName]
-    if not questGridTriggerList then
-        questGridTriggerList = {}
-        uidGridTriggerList[questName] = questGridTriggerList
-    end
-
-    questGridTriggerList[gridTriggerId] = true
-    return gridTriggerId
+    return addGridTriggerRecord({type = SYS_EPUID, uid = uid, quest = questName}, ...)
 end
 
 -- installs the trigger name of quest questName for uid, or replaces it, in one call with no yield, the grid is never without it
@@ -210,17 +190,6 @@ function deleteGridTrigger(gridTriggerId)
 
     _RSVD_NAME_gridTriggers[gridTriggerId] = nil
     if record.type == SYS_EPUID then
-        local questTriggerList = _RSVD_NAME_EPUID_questGridTriggers[record.uid]
-        if questTriggerList and questTriggerList[record.quest] then
-            questTriggerList[record.quest][gridTriggerId] = nil
-            if next(questTriggerList[record.quest]) == nil then
-                questTriggerList[record.quest] = nil
-            end
-            if next(questTriggerList) == nil then
-                _RSVD_NAME_EPUID_questGridTriggers[record.uid] = nil
-            end
-        end
-
         -- a replace installs the new trigger before it deletes the old one, the name stays with the new one
         local namedList = _RSVD_NAME_EPUID_namedGridTriggers[record.uid]
         if record.name and namedList and namedList[record.quest] and (namedList[record.quest][record.name] == gridTriggerId) then
@@ -232,26 +201,6 @@ function deleteGridTrigger(gridTriggerId)
                 _RSVD_NAME_EPUID_namedGridTriggers[record.uid] = nil
             end
         end
-    end
-end
-
-function _RSVD_NAME_clearQuestUIDGridTrigger(uid, questName)
-    assertType(uid, 'integer')
-    assertType(questName, 'string')
-
-    local questTriggerList = _RSVD_NAME_EPUID_questGridTriggers[uid]
-    local idList = questTriggerList and questTriggerList[questName]
-    if not idList then
-        return
-    end
-
-    local ids = {}
-    for gridTriggerId in pairs(idList) do
-        ids[#ids + 1] = gridTriggerId
-    end
-
-    for _, gridTriggerId in ipairs(ids) do
-        deleteGridTrigger(gridTriggerId)
     end
 end
 
