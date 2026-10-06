@@ -350,6 +350,23 @@ namespace
                 pause(SYS_POSINF)
             end,
 
+            -- its <close> handler switches the uid given as args
+            swOther = function(uid, args)
+                local guard <close> = enter(uid, 'swOther')
+                local switcher <close> = setmetatable({}, {__close = function()
+                    setQuestState{uid=args, state='b'}
+                end})
+                pause(SYS_POSINF)
+            end,
+
+            -- switches the uid given as args, as a team quest does
+            cross = function(uid, args)
+                local guard <close> = enter(uid, 'cross')
+                setQuestState{uid=args, state='c'}
+                after(uid, 'cross')
+                pause(SYS_POSINF)
+            end,
+
             closer = function(uid, args)
                 local guard <close> = enter(uid, 'closer')
                 local killer <close> = setmetatable({}, {__close = function()
@@ -594,7 +611,7 @@ namespace
         require(f.isNil("key_11_failed"), "<close> handler of a state runner closing itself switched state");
         require(f.alive("key_11_b") && f.inState(11, "SYS_QSTFSM", "'b'"), "state switch of a state runner closing itself is undone by its <close> handler");
         require(capture.has("Error in <close> handler while closing runner"), "error in <close> handler is not logged");
-        require(capture.has("setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid 11,"), "state switch in <close> handler doesn't raise");
+        require(capture.has("setQuestState() is not allowed while another switch of uid 11 runs"), "state switch in <close> handler doesn't raise");
 
         f.drive("setQuestState{uid=11, state='c'}");
         require(!f.alive("key_11_b") && f.isTrue("closed_11_b") && f.alive("key_11_c"), "state runner started by a state runner closing itself is not registered");
@@ -612,7 +629,7 @@ namespace
         require(f.isNil("key_12_failed"), "<close> handler of a state runner closed by other thread switched state");
         require(f.alive("key_12_c") && f.inState(12, "SYS_QSTFSM", "'c'"), "state switch by other thread is undone by <close> handler of the old state runner");
         require(capture.has("Error in <close> handler while closing runner"), "error in <close> handler is not logged");
-        require(capture.has("setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid 12,"), "state switch in <close> handler doesn't raise");
+        require(capture.has("setQuestState() is not allowed while another switch of uid 12 runs"), "state switch in <close> handler doesn't raise");
 
         f.drive("setQuestState{uid=12, state='b'}");
         require(!f.alive("key_12_c") && f.isTrue("closed_12_c") && f.alive("key_12_b"), "state runner started by other thread is not registered");
@@ -628,7 +645,21 @@ namespace
         f.drive("setQuestState{uid=13, state=SYS_DONE}");
         require(!f.alive("key_13_i") && f.isTrue("closed_13_i"), "quest done doesn't close state runner");
         require(f.isNil("key_13_failed") && f.inState(13, "SYS_QSTFSM", "SYS_DONE"), "quest done is undone by <close> handler of the old state runner");
-        require(capture.has("setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid 13,"), "state switch in <close> handler doesn't raise");
+        require(capture.has("setQuestState() is not allowed while another switch of uid 13 runs"), "state switch in <close> handler doesn't raise");
+    }
+
+    void testNoStateSwitchInRestore()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+        f.drive("setQuestState{uid=16, state='i', args='pause'}");
+        const auto oldKey = f.key("key_16_i");
+
+        // the restore at login closes the old state runner, its <close> handler tries to switch state
+        f.drive("_RSVD_NAME_restoreQuestState(16, SYS_QSTFSM, 'i', 'pause')");
+        require(!f.runner.hasKey(oldKey) && f.alive("key_16_i") && f.key("key_16_i") != oldKey, "restore doesn't start the state again");
+        require(f.isNil("key_16_failed") && f.inState(16, "SYS_QSTFSM", "'i'"), "<close> handler of the old state runner switched state during a restore");
+        require(capture.has("setQuestState() is not allowed while another switch of uid 16 runs"), "state switch in <close> handler during a restore doesn't raise");
     }
 
     void testNoStateSwitchAfterError()
@@ -641,7 +672,8 @@ namespace
         require(f.isNil("key_14_failed") && f.inState(14, "SYS_QSTFSM", "'k'"), "<close> handler of a state runner that raised switched state");
         require(capture.has("Runner error replaced by error in <close> handler"), "error replaced by <close> handler is not logged");
         require(capture.has("state k failed"), "original error is not logged");
-        require(capture.has("setQuestState() is not allowed while a thread is being closed, i.e. in a <close> handler: uid 14,"), "state switch in <close> handler doesn't raise");
+        // no switch of uid 14 runs, the state runner that raised can't end itself in its <close> handler
+        require(capture.has("switching its own state by setQuestState() where it can't yield: uid 14,"), "state switch in <close> handler doesn't raise");
 
         f.drive("setQuestState{uid=14, state='c'}");
         require(f.alive("key_14_c"), "state change after a state function raised doesn't work");
@@ -876,11 +908,11 @@ namespace
         require(f.runner.hasKeyPair(kp) && f.isNil("done_54"), "quest done doesn't wait in its remote call");
 
         f.drive("TEST.switchOK_54, TEST.switchErr_54 = pcall(setQuestState, {uid=54, state='c'})");
-        require(f.get("switchOK_54").is<bool>() && !f.isTrue("switchOK_54") && f.strHas("switchErr_54", "setQuestState() is not allowed while quest done of uid 54 runs"), "state switch while quest done runs doesn't raise");
+        require(f.get("switchOK_54").is<bool>() && !f.isTrue("switchOK_54") && f.strHas("switchErr_54", "setQuestState() is not allowed while another switch of uid 54 runs"), "state switch while quest done runs doesn't raise");
 
         f.drive("_RSVD_NAME_restoreQuestState(54, SYS_QSTFSM, 'b', nil)");
         require(f.runner.hasKey(keyB) && f.key("key_54_b") == keyB, "restore while quest done runs closes or starts a state runner");
-        require(capture.has("Quest done of uid 54 runs, fsm "), "restore skipped while quest done runs is not logged");
+        require(capture.has("Another switch of uid 54 runs, i.e. its quest done, fsm "), "restore skipped while quest done runs is not logged");
 
         require(f.runner.execRawString("TEST.mapLoaded = true").valid(), "failed to load the map");
         f.runner.resume(kp);
@@ -933,6 +965,26 @@ namespace
         require(f.isTrue("closed_53_closer") && f.inState(53, "SYS_QSTFSM", "SYS_DONE"), "state switch that closed its caller isn't done");
     }
 
+    void testCloseHandlerSwitchesOtherUID()
+    {
+        QuestFixture f;
+
+        // the <close> handler of the old state runner of uid 60 switches uid 61, the switch of uid 60 doesn't refuse it
+        f.drive("setQuestState{uid=60, state='swOther', args=61}");
+        f.drive("setQuestState{uid=60, state='c'}");
+
+        require(f.isTrue("closed_60_swOther") && f.alive("key_60_c") && f.inState(60, "SYS_QSTFSM", "'c'"), "state switch whose old state runner switches another uid in its <close> handler isn't done");
+        require(f.alive("key_61_b") && f.inState(61, "SYS_QSTFSM", "'b'"), "<close> handler of an old state runner can't switch another uid");
+
+        // the state runner of uid 63 switches uid 62, whose old state runner switches uid 63 in its <close> handler
+        f.drive("setQuestState{uid=62, state='swOther', args=63}");
+        f.drive("setQuestState{uid=63, state='cross', args=62}");
+
+        require(f.isNil("after_63_cross") && !f.alive("key_63_cross") && f.isTrue("closed_63_cross"), "state runner switched by a <close> handler of a state runner it closes goes on after its switch");
+        require(f.alive("key_63_b") && f.inState(63, "SYS_QSTFSM", "'b'"), "state switch by a <close> handler of a state runner of another uid isn't done");
+        require(f.alive("key_62_c") && f.inState(62, "SYS_QSTFSM", "'c'"), "state switch whose old state runner switched the caller isn't done");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -947,6 +999,7 @@ namespace
         testNoStateSwitchInSelfClose();
         testNoStateSwitchInCloseByOther();
         testNoStateSwitchInQuestDone();
+        testNoStateSwitchInRestore();
         testNoStateSwitchAfterError();
         testSelfCloseCheckedFirst();
         testFallbackOnRaise();
@@ -965,6 +1018,7 @@ namespace
         testNoStateSwitchDuringQuestDone();
         testRestoreReadsEachFSM();
         testClosedDuringSwitch();
+        testCloseHandlerSwitchesOtherUID();
     }
 }
 
@@ -996,7 +1050,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, and a caller closed by its switch ends.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, and a <close> handler switches another uid.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

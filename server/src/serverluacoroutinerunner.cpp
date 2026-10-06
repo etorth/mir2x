@@ -186,12 +186,6 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         checkThreadDepth();
     });
 
-    // true while lua_closethread() runs <close> handlers, setQuestState() refuses to run in them
-    bindFunction("_RSVD_NAME_hasClosingThread", [this]() -> bool
-    {
-        return m_closingRunner != nullptr;
-    });
-
     // lets setQuestState() check, before it changes anything, that the calling state runner can close itself at the end
     bindFunction("_RSVD_NAME_selfCloseError", [this](sol::this_state s) -> sol::object
     {
@@ -612,7 +606,6 @@ int ServerLuaCoroutineRunner::closeLuaThread(LuaThreadHandle *runnerPtr)
     runnerPtr->closing = true;
 
     const stdf::ValueKeeper keepCurrRunner(m_currRunner, runnerPtr);
-    const stdf::ValueKeeper keepClosingRunner(m_closingRunner, runnerPtr);
     return lua_closethread(runnerPtr->runner.thread_state(), nullptr);
 }
 

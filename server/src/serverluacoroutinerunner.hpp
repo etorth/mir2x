@@ -260,10 +260,6 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         LuaThreadHandle *m_currRunner = nullptr;
 
     private:
-        // the thread whose <close> handlers lua_closethread() is running, see closeLuaThread()
-        LuaThreadHandle *m_closingRunner = nullptr;
-
-    private:
         // threads running on top of each other on the C stack, each resumeRunner() counts one while it runs
         // lua doesn't count them, sol2 resumes a thread with no "from" thread, too many of them overflow the C stack and crash the process
         int m_threadDepth = 0;
