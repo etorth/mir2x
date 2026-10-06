@@ -700,6 +700,22 @@ namespace
         require(f.alive("key_30_failed") && f.inState(30, "SYS_QSTFSM", "'failed'"), "fallback doesn't switch state after a remote error");
     }
 
+    void testQuestRuntimeVar()
+    {
+        QuestFixture f;
+        f.drive("setQuestState{uid=31, state='b'} setQuestRuntimeVar(31, 'timer', 7) setQuestRuntimeVar(31, 'mapUID', 8) setQuestRuntimeVar(31, 'mapUID', nil) setQuestRuntimeVar(32, 'timer', 9)");
+
+        require(f.runner.execRawString("TEST.rtSet = getQuestRuntimeVar(31, 'timer') == 7 and getQuestRuntimeVar(31, 'mapUID') == nil and getQuestRuntimeVar(32, 'timer') == 9").valid(), "failed to read runtime vars");
+        require(f.isTrue("rtSet"), "runtime var doesn't keep its value, or setting nil doesn't remove it");
+
+        require(f.runner.execRawString("TEST.rtNotSaved = TEST.db[31] ~= nil and TEST.db[31].fld_vars == nil").valid(), "failed to read quest db");
+        require(f.isTrue("rtNotSaved"), "runtime var is saved in the quest db");
+
+        f.drive("setQuestState{uid=31, state=SYS_DONE}");
+        require(f.runner.execRawString("TEST.rtDone = getQuestRuntimeVar(31, 'timer') == nil and getQuestRuntimeVar(32, 'timer') == 9").valid(), "failed to read runtime vars");
+        require(f.isTrue("rtDone"), "quest done doesn't drop the runtime vars of its uid only");
+    }
+
     void runTests()
     {
         testRunnerGoesToNextState();
@@ -725,6 +741,7 @@ namespace
         testStateWithFallback();
         testFallbackNested();
         testFallbackCatchesRemoteError();
+        testQuestRuntimeVar();
     }
 }
 
@@ -756,7 +773,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), and fallback of a remote error.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, and runtime vars.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

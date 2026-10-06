@@ -160,20 +160,20 @@ local function stockFork(mapUID, fork)
 end
 
 local function forkUID(uid, index)
-    return dbGetQuestVar(uid, 'forkMapUID' .. index)
+    return getQuestRuntimeVar(uid, 'forkMapUID' .. index)
 end
 
 local function closeTrial(uid)
-    local timer = dbGetQuestVar(uid, 'trialTimer')
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
     if timer then
-        dbSetQuestVar(uid, 'trialTimer', nil)
+        setQuestRuntimeVar(uid, 'trialTimer', nil)
         closeThread(timer)
     end
 
     for index = #forks, 1, -1 do
         local mapUID = forkUID(uid, index)
         if mapUID then
-            dbSetQuestVar(uid, 'forkMapUID' .. index, nil)
+            setQuestRuntimeVar(uid, 'forkMapUID' .. index, nil)
             closeInstanceMap(mapUID, exitMap, exitX, exitY)
         end
     end
@@ -210,14 +210,14 @@ local function enterTrial(uid)
         end
 
         uidList[index] = mapUID
-        dbSetQuestVar(uid, 'forkMapUID' .. index, mapUID)
+        setQuestRuntimeVar(uid, 'forkMapUID' .. index, mapUID)
         stockFork(mapUID, fork)
     end
 
     dbSetQuestVar(uid, 'forkPath', nil)
 
     -- TimeRecall 10
-    dbSetQuestVar(uid, 'trialTimer', runQuestThread(function()
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
         server.player.postString(uid, '时间到了，你被送出了训练场。')
         setQuestState{uid = uid, state = 'quest_ready'}

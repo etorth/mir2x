@@ -42,15 +42,15 @@ end
 -- every way out goes through the FSM and the state entry calls this, so nothing here has to
 -- know which way it went
 local function closeTrial(uid)
-    local timer = dbGetQuestVar(uid, 'trialTimer')
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
     if timer then
-        dbSetQuestVar(uid, 'trialTimer', nil)
+        setQuestRuntimeVar(uid, 'trialTimer', nil)
         closeThread(timer)
     end
 
-    local mapUID = dbGetQuestVar(uid, 'trialMapUID')
+    local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
     if mapUID then
-        dbSetQuestVar(uid, 'trialMapUID', nil)
+        setQuestRuntimeVar(uid, 'trialMapUID', nil)
         closeInstanceMap(mapUID, exitMap, exitX, exitY)
     end
 end
@@ -74,7 +74,7 @@ local function enterTrial(uid)
         ]])
     end
 
-    dbSetQuestVar(uid, 'trialMapUID', mapUID)
+    setQuestRuntimeVar(uid, 'trialMapUID', mapUID)
 
     -- the NPC inside the copy only ever sees this copy's monsters, which is how legacy's
     -- checkmonmap worked
@@ -110,7 +110,7 @@ local function enterTrial(uid)
     server.player.postString(uid, '规定时间是3分钟，抓紧！')
 
     -- the clock. pause is cancellable, so clearing the timer on the way out stops it
-    dbSetQuestVar(uid, 'trialTimer', runQuestThread(function()
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialSeconds * 1000)
         server.player.postString(uid, '时间到了，你被送出了训练场。')
         setQuestState{uid = uid, state = 'quest_trial_failed'}

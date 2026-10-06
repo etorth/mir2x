@@ -85,16 +85,16 @@ local function stockMap(mapUID, spawnList)
 end
 
 local function closeTrial(uid)
-    local timer = dbGetQuestVar(uid, 'trialTimer')
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
     if timer then
-        dbSetQuestVar(uid, 'trialTimer', nil)
+        setQuestRuntimeVar(uid, 'trialTimer', nil)
         closeThread(timer)
     end
 
     for _, key in ipairs({'secondMapUID', 'firstMapUID'}) do
-        local mapUID = dbGetQuestVar(uid, key)
+        local mapUID = getQuestRuntimeVar(uid, key)
         if mapUID then
-            dbSetQuestVar(uid, key, nil)
+            setQuestRuntimeVar(uid, key, nil)
             closeInstanceMap(mapUID, exitMap, exitX, exitY)
         end
     end
@@ -117,8 +117,8 @@ local function enterTrial(uid)
     stockMap(firstUID, firstSpawns)
     stockMap(secondUID, secondSpawns)
 
-    dbSetQuestVar(uid, 'firstMapUID', firstUID)
-    dbSetQuestVar(uid, 'secondMapUID', secondUID)
+    setQuestRuntimeVar(uid, 'firstMapUID', firstUID)
+    setQuestRuntimeVar(uid, 'secondMapUID', secondUID)
 
     setupInstanceUIDGridTrigger(firstUID, gateGrids, uid,
     string.format([[ return %d, %d, %d ]], secondUID, secondX, secondY),
@@ -160,7 +160,7 @@ local function enterTrial(uid)
     ]])
 
     -- TimeRecall 5
-    dbSetQuestVar(uid, 'trialTimer', runQuestThread(function()
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
         server.player.postString(uid, '时间到了，你被送出了训练场。')
         setQuestState{uid = uid, state = 'quest_ready'}

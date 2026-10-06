@@ -138,16 +138,16 @@ local function stockRoom(mapUID, spawn)
     ]])
 end
 
--- the copies live in fld_vars as roomMapUID1..5
+-- the copies of this run, kept as quest runtime vars roomMapUID1..5
 local function roomUID(uid, index)
-    return dbGetQuestVar(uid, 'roomMapUID' .. index)
+    return getQuestRuntimeVar(uid, 'roomMapUID' .. index)
 end
 
 local function closeRooms(uid)
     for index = #rooms, 1, -1 do
         local mapUID = roomUID(uid, index)
         if mapUID then
-            dbSetQuestVar(uid, 'roomMapUID' .. index, nil)
+            setQuestRuntimeVar(uid, 'roomMapUID' .. index, nil)
             closeInstanceMap(mapUID, exitMap, exitX, exitY)
         end
     end
@@ -209,7 +209,7 @@ local function enterRooms(uid)
         end
 
         uidList[index] = mapUID
-        dbSetQuestVar(uid, 'roomMapUID' .. index, mapUID)
+        setQuestRuntimeVar(uid, 'roomMapUID' .. index, mapUID)
         stockRoom(mapUID, room.spawn)
     end
 

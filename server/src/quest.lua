@@ -55,6 +55,35 @@ function dbSetQuestVar(uid, key, value)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_vars', key, value)
 end
 
+-- quest vars kept in memory only, for values that are valid only in this server run, i.e. the key of a thread, the uid of a map copy
+-- never save those in quest vars: thread keys and map copy uids start over after a restart, a saved one names an unrelated thread or another player's map copy
+-- dropped at quest done, as the quest vars are
+local _RSVD_NAME_questRuntimeVars = {}
+
+function getQuestRuntimeVar(uid, key)
+    assertType(uid, 'integer')
+    return (_RSVD_NAME_questRuntimeVars[uid] or {})[key]
+end
+
+function setQuestRuntimeVar(uid, key, value)
+    assertType(uid, 'integer')
+
+    local vars = _RSVD_NAME_questRuntimeVars[uid]
+    if vars == nil then
+        if value == nil then
+            return
+        end
+
+        vars = {}
+        _RSVD_NAME_questRuntimeVars[uid] = vars
+    end
+
+    vars[key] = value
+    if tableEmpty(vars) then
+        _RSVD_NAME_questRuntimeVars[uid] = nil
+    end
+end
+
 function dbGetQuestState(uid, fsm)
     assertType(uid, 'integer')
     assertType(fsm, 'string', 'nil')
@@ -430,6 +459,7 @@ function setQuestState(fargs)
         end
         dbSetQuestField(uid, 'fld_gridtriggers', nil)
         _RSVD_NAME_dbSetQuestStateDone(uid)
+        _RSVD_NAME_questRuntimeVars[uid] = nil
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
             setQuestDesp{uid=uid, fsm=fsm, ''}

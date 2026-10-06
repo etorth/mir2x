@@ -135,14 +135,14 @@ local function stockCave(mapUID, spawnList)
 end
 
 local function caveUID(uid, index)
-    return dbGetQuestVar(uid, 'caveMapUID' .. index)
+    return getQuestRuntimeVar(uid, 'caveMapUID' .. index)
 end
 
 local function closeCaves(uid)
     for index = #caves, 1, -1 do
         local mapUID = caveUID(uid, index)
         if mapUID then
-            dbSetQuestVar(uid, 'caveMapUID' .. index, nil)
+            setQuestRuntimeVar(uid, 'caveMapUID' .. index, nil)
             closeInstanceMap(mapUID, exitMap, exitX, exitY)
         end
     end
@@ -176,7 +176,7 @@ local function enterCaves(uid)
         end
 
         uidList[index] = mapUID
-        dbSetQuestVar(uid, 'caveMapUID' .. index, mapUID)
+        setQuestRuntimeVar(uid, 'caveMapUID' .. index, mapUID)
         stockCave(mapUID, cave.spawn)
     end
 

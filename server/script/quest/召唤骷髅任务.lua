@@ -139,16 +139,16 @@ _G.punishMonster = '骷髅战将'
 _G.punishCount   = 2
 
 local function closeTrial(uid)
-    local timer = dbGetQuestVar(uid, 'trialTimer')
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
     if timer then
-        dbSetQuestVar(uid, 'trialTimer', nil)
+        setQuestRuntimeVar(uid, 'trialTimer', nil)
         closeThread(timer)
     end
 
     for _, key in ipairs({'duelMapUID', 'yardMapUID'}) do
-        local mapUID = dbGetQuestVar(uid, key)
+        local mapUID = getQuestRuntimeVar(uid, key)
         if mapUID then
-            dbSetQuestVar(uid, key, nil)
+            setQuestRuntimeVar(uid, key, nil)
             closeInstanceMap(mapUID, exitMap, exitX, exitY)
         end
     end
@@ -342,13 +342,13 @@ local function enterYard(uid)
         return
     end
 
-    dbSetQuestVar(uid, 'yardMapUID', yardUID)
+    setQuestRuntimeVar(uid, 'yardMapUID', yardUID)
 
     setupTalkers(uid, yardUID)
     setupMainSkel(uid, yardUID, dbGetQuestVar(uid, 'duelAccepted') == true)
 
     -- TimeRecall 10
-    dbSetQuestVar(uid, 'trialTimer', runQuestThread(function()
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
         server.player.postString(uid, '时间到了，你被送出了地牢空间。')
         setQuestState{uid = uid, state = 'quest_ready'}
@@ -487,7 +487,7 @@ setQuestFSMTable(
             return
         end
 
-        dbSetQuestVar(uid, 'duelMapUID', duelUID)
+        setQuestRuntimeVar(uid, 'duelMapUID', duelUID)
 
         uidRemoteCall(duelUID, duelX, duelY,
         [[
@@ -507,13 +507,13 @@ setQuestFSMTable(
     quest_duel_beaten = function(uid, args)
         setQuestDesp{uid=uid, '赢了决斗，回地牢空间找那个骷髅。'}
 
-        local duelUID = dbGetQuestVar(uid, 'duelMapUID')
+        local duelUID = getQuestRuntimeVar(uid, 'duelMapUID')
         if duelUID then
-            dbSetQuestVar(uid, 'duelMapUID', nil)
+            setQuestRuntimeVar(uid, 'duelMapUID', nil)
             closeInstanceMap(duelUID, exitMap, exitX, exitY)
         end
 
-        local yardUID = dbGetQuestVar(uid, 'yardMapUID')
+        local yardUID = getQuestRuntimeVar(uid, 'yardMapUID')
         if yardUID then
             local x, y = uidRemoteCall(yardUID, [[ return getRandLoc() ]])
             server.player.spaceMove(uid, yardUID, x, y)

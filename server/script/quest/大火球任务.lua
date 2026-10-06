@@ -50,15 +50,15 @@ _G.exitX   = 266
 _G.exitY   = 146
 
 local function closeTrial(uid)
-    local timer = dbGetQuestVar(uid, 'trialTimer')
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
     if timer then
-        dbSetQuestVar(uid, 'trialTimer', nil)
+        setQuestRuntimeVar(uid, 'trialTimer', nil)
         closeThread(timer)
     end
 
-    local mapUID = dbGetQuestVar(uid, 'trialMapUID')
+    local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
     if mapUID then
-        dbSetQuestVar(uid, 'trialMapUID', nil)
+        setQuestRuntimeVar(uid, 'trialMapUID', nil)
         closeInstanceMap(mapUID, exitMap, exitX, exitY)
     end
 end
@@ -85,7 +85,7 @@ local function enterTrial(uid)
         end
     ]])
 
-    dbSetQuestVar(uid, 'trialMapUID', mapUID)
+    setQuestRuntimeVar(uid, 'trialMapUID', mapUID)
 
     -- @upfireball_test, the copy of him inside counts this copy's monsters
     setupInstanceNPCBehavior(mapUID, trialNPC, uid,
@@ -124,7 +124,7 @@ local function enterTrial(uid)
     ]])
 
     -- TimeRecall 5
-    dbSetQuestVar(uid, 'trialTimer', runQuestThread(function()
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
         pause(trialMinutes * 60 * 1000)
         server.player.postString(uid, '时间到了，你被送出了训练场。')
         setQuestState{uid = uid, state = 'quest_ready'}
