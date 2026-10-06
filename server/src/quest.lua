@@ -841,6 +841,27 @@ local function _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, ...)
     return false
 end
 
+-- the fallback of a state given as code, see setQuestState(), the code gets uid, args, err by ...
+local function _RSVD_NAME_loadQuestFallback(code)
+    local fallback, err = load(code)
+    if not fallback then
+        fatalPrintf('Invalid fallback code: %s', err)
+    end
+    return fallback
+end
+
+-- runs the state function of {uid, fsm, state} on the calling state runner, and fallback(uid, args, err) if it raises
+-- returns false if it raised and fallback returned without switching state
+local function _RSVD_NAME_runQuestState(uid, fsm, state, args, fallback)
+    if fallback == nil then
+        _RSVD_NAME_enterQuestState(uid, fsm, state, args)
+        return true
+    end
+
+    local desc = string.format('uid %d, fsm %s, state %s', uid, fsm, state)
+    return _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, _RSVD_NAME_enterQuestState, uid, fsm, state, args)
+end
+
 -- wraps a state function with a fallback, fallback(uid, args, err) is called on the state runner if func raises:
 --
 --     a = stateWithFallback(function(uid, args)
@@ -852,7 +873,7 @@ end
 --         setQuestState{uid=uid, state='fail'}
 --     end),
 --
--- unlike the fallback argument of setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
+-- unlike a fallback function given to setQuestState(), it also works for a state entered by server.quest.setState() or restored at login
 --
 -- a fallback entering the same state again should pause() first
 -- otherwise each try runs on top of the C stack of the last one, and the tries end with an error after about 64 of them
@@ -936,8 +957,15 @@ end
 -- SYS_LUANIL stands for no state, the fsm isn't started: from = SYS_LUANIL starts a quest once, a second accept changes nothing
 -- every fsm of a quest done is SYS_DONE here, its row keeps the main fsm only
 --
--- fallback(uid, args, err) is called on the new state runner if the new state function raises
--- it's not saved, a state restored at login or entered by server.quest.setState() has none, see stateWithFallback()
+-- fallback(uid, args, err) is called on the new state runner if the new state function raises, a function or its code:
+--
+--     fallback = [[
+--         local uid, args, err = ...
+--         setQuestState{uid=uid, state='failed'}
+--     ]]
+--
+-- code is saved with the state, a replay at login runs it too, and server.quest.setState() can send it
+-- a function is for this run of the state only, see stateWithFallback()
 --
 -- raises before it changes anything while another switch of uid runs, i.e. in a <close> handler of its old state runner, see _RSVD_NAME_switchMarks
 -- or by a state runner switching its own state where it can't end, i.e. from a coroutine created in it
@@ -949,7 +977,7 @@ function setQuestState(fargs)
     assertType(fargs.from, 'string', 'array', 'nil')
     assertType(fargs.state, 'string')
     assertType(fargs.exitfunc, 'function', 'string', 'nil')
-    assertType(fargs.fallback, 'function', 'nil')
+    assertType(fargs.fallback, 'function', 'string', 'nil')
 
     if type(fargs.exitfunc) == 'string' then
         assertType(fargs.exitargs, 'string', 'table', 'nil')
@@ -967,6 +995,11 @@ function setQuestState(fargs)
 
     if (fargs.fallback ~= nil) and (not hasQuestState(fsm, state)) then
         fatalPrintf('Invalid arguments: fallback given to fsm %s, state %s, which has no state function', fsm, state)
+    end
+
+    local fallback = fargs.fallback
+    if type(fallback) == 'string' then
+        fallback = _RSVD_NAME_loadQuestFallback(fallback)
     end
 
     -- checked before anything changes, nothing yields from here till the state is written
@@ -1044,7 +1077,7 @@ function setQuestState(fargs)
         local section <close> = _RSVD_NAME_criticalSection()
         local states = dbGetQuestField(uid, 'fld_states') or {}
 
-        states[fsm] = {state, fargs.args}
+        states[fsm] = {state, fargs.args, (type(fargs.fallback) == 'string') and fargs.fallback or nil}
         _RSVD_NAME_questContext.commit(uid, fsm, {fld_states = states})
     end
 
@@ -1054,14 +1087,9 @@ function setQuestState(fargs)
     local body = nil
     if hasQuestState(fsm, state) then
         body = function()
-            if fargs.fallback == nil then
-                _RSVD_NAME_enterQuestState(uid, fsm, state, fargs.args)
-            else
-                local desc = string.format('uid %d, fsm %s, state %s', uid, fsm, state)
-                if not _RSVD_NAME_xpcallQuestState(desc, fargs.fallback, uid, fargs.args, _RSVD_NAME_enterQuestState, uid, fsm, state, fargs.args) then
-                    -- fallback returned without switching state, skip exitfunc as a raise without fallback does
-                    return
-                end
+            if not _RSVD_NAME_runQuestState(uid, fsm, state, fargs.args, fallback) then
+                -- fallback returned without switching state, skip exitfunc as a raise without fallback does
+                return
             end
 
             if type(fargs.exitfunc) == 'function' then
@@ -1121,10 +1149,16 @@ end
 -- the quest keeps running while the player is offline, the old state runner can still be alive, it's closed first
 -- its pending items are rolled back then, the state starts from what is committed, as a replay must
 -- returns false if another switch of uid runs, i.e. its quest done, nothing is restored then
-function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
+-- fallback is the code saved with the state, see setQuestState()
+function _RSVD_NAME_restoreQuestState(uid, fsm, state, args, fallback)
     assertType(uid, 'integer')
     assertType(fsm, 'string')
     assertType(state, 'string')
+    assertType(fallback, 'string', 'nil')
+
+    if fallback then
+        fallback = _RSVD_NAME_loadQuestFallback(fallback)
+    end
 
     -- a restore would close the state runner doing the quest done, and run its state function again, i.e. give its rewards again
     -- quest done closes all state runners of uid when it ends anyway
@@ -1142,7 +1176,7 @@ function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
 
     mark:drop()
     _RSVD_NAME_spawnQuestState(uid, fsm, function()
-        _RSVD_NAME_enterQuestState(uid, fsm, state, args)
+        _RSVD_NAME_runQuestState(uid, fsm, state, args, fallback)
     end)
     return true
 end
@@ -1163,7 +1197,8 @@ function _RSVD_NAME_restoreQuestStates(uid)
         return
     end
 
-    assertType(states[SYS_QSTFSM], 'array')
+    -- an entry is {state, args, fallback code}, with a hole at [2] if it has fallback code and no args, see setQuestState()
+    assertType(states[SYS_QSTFSM], 'table')
     assertType(states[SYS_QSTFSM][1], 'string')
 
     local fsmList = {}
@@ -1188,11 +1223,11 @@ function _RSVD_NAME_restoreQuestStates(uid)
             break
         end
 
-        local state, args = dbGetQuestState(uid, fsm)
+        local entry = (_RSVD_NAME_dbGetQuestStateList(uid) or {})[fsm] or {}
         local key = (_RSVD_NAME_questStateRunners[uid] or {})[fsm]
 
-        if (state ~= nil) and (state ~= SYS_DONE) and (key == runnersAtStart[fsm]) then
-            if not _RSVD_NAME_restoreQuestState(uid, fsm, state, args) then
+        if (entry[1] ~= nil) and (entry[1] ~= SYS_DONE) and (key == runnersAtStart[fsm]) then
+            if not _RSVD_NAME_restoreQuestState(uid, fsm, entry[1], entry[2], entry[3]) then
                 break
             end
         end

@@ -984,6 +984,53 @@ namespace
         require(f.alive("key_30_failed") && f.inState(30, "SYS_QSTFSM", "'failed'"), "fallback doesn't switch state after a remote error");
     }
 
+    void testFallbackCode()
+    {
+        // fallback as code: run as a function is, saved with the state, run by the replay at login too
+        QuestFixture f;
+        CoutCapture capture;
+
+        const std::string fallback = R"###([=[
+            local uid, args, err = ...
+            TEST['fbUID_' .. uid], TEST['fbArgs_' .. uid], TEST['fbErr_' .. uid] = uid, args, err
+            setQuestState{uid=uid, state='failed'}
+        ]=])###";
+
+        f.drive("setQuestState{uid=33, state='l', args='x', fallback=" + fallback + "}");
+        require(f.alive("key_33_failed") && f.inState(33, "SYS_QSTFSM", "'failed'"), "fallback code doesn't run when its state raises");
+        require(f.runner.execRawString("TEST.got_33 = (TEST.fbUID_33 == 33) and (TEST.fbArgs_33 == 'x') and (string.find(TEST.fbErr_33, 'state l failed', 1, true) ~= nil)").valid() && f.isTrue("got_33"), "fallback code doesn't get uid, args and the error");
+
+        // the state raises only in its replay, when TEST.raise_34 is set
+        f.drive("setQuestState{uid=34, state='run', fallback=" + fallback + ", args=[[ if TEST.raise_34 then error('replayed run failed') end ]]}");
+        require(f.inState(34, "SYS_QSTFSM", "'run'") && f.runner.execRawString("TEST.saved_34 = type(TEST.db[34].fld_states[SYS_QSTFSM][3]) == 'string'").valid() && f.isTrue("saved_34"), "fallback code isn't saved with its state");
+
+        f.drive("TEST.raise_34 = true _RSVD_NAME_restoreQuestStates(34)");
+        require(f.inState(34, "SYS_QSTFSM", "'failed'") && f.alive("key_34_failed") && f.strHas("fbErr_34", "replayed run failed"), "replay doesn't run the fallback code saved with its state");
+
+        // no args leaves a hole in the saved entry, the replay still finds the state and the code
+        f.drive("TEST.db[35] = {fld_states = {[SYS_QSTFSM] = {'l', nil, " + fallback + "}}} _RSVD_NAME_restoreQuestStates(35)");
+        require(f.inState(35, "SYS_QSTFSM", "'failed'") && f.alive("key_35_failed"), "replay of a state saved with fallback code and no args doesn't run the code");
+
+        f.drive(R"###(
+            setQuestState{uid=36, state='b', fallback=function() end}
+            TEST.notSaved_36 = TEST.db[36].fld_states[SYS_QSTFSM][3] == nil
+            local ok, err = pcall(setQuestState, {uid=36, state='c', fallback='local = 1'})
+            TEST.badCode_36 = (not ok) and (string.find(err, 'Invalid fallback code', 1, true) ~= nil)
+        )###");
+        require(f.isTrue("notSaved_36"), "fallback function is saved with its state");
+        require(f.isTrue("badCode_36") && f.alive("key_36_b") && f.isNil("key_36_c") && f.inState(36, "SYS_QSTFSM", "'b'"), "fallback code that doesn't load is accepted, or changes something");
+
+        // server.quest.setState() sends code, a remote call can't carry a function
+        require(f.runner.execRawString("_G['_RSVD_NAME_remoteCall' .. SYS_COOP] = function(uid, code, args, onDone) TEST.sentFallback = args[1].fallback onDone(SYS_EXECDONE, true) end").valid(), "failed to stub remote call");
+        f.drive(std::string(R"###(
+            local questUID = )###") + std::to_string(uidf::getQuestUID(2)) + R"###(
+            local ok, err = pcall(server.quest.setState, questUID, {uid=37, state='b', fallback=function() end})
+            TEST.apiFunc_37 = (not ok) and (string.find(err, 'Can not give a function as fallback by remote call', 1, true) ~= nil)
+            TEST.apiCode_37 = pcall(server.quest.setState, questUID, {uid=37, state='b', fallback='return'}) and (TEST.sentFallback == 'return')
+        )###");
+        require(f.isTrue("apiFunc_37") && f.isTrue("apiCode_37"), "server.quest.setState() doesn't send fallback code, or sends a function");
+    }
+
     void testQuestRuntimeVar()
     {
         QuestFixture f;
@@ -2018,6 +2065,7 @@ namespace
         testStateWithFallback();
         testFallbackNested();
         testFallbackCatchesRemoteError();
+        testFallbackCode();
         testQuestRuntimeVar();
         testSetStateFrom();
         testSetStateFromNotStarted();
@@ -2081,7 +2129,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state or from no state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
