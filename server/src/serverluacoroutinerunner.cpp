@@ -118,8 +118,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     {
         const bool selfClose = m_currRunner && m_currRunner->key == key && (seqID == 0 || m_currRunner->seqID == seqID);
         if(selfClose){
-            if(const auto reason = selfCloseError(s.lua_state())){
-                throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), reason);
+            if(const auto error = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), selfCloseErrorString(error));
             }
         }
 
@@ -139,8 +139,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         // closing: the caller is a <close> handler of the calling thread, the ongoing close ends it
         if(m_currRunner && m_currRunner->closeRequested && !m_currRunner->closing){
-            if(const auto reason = selfCloseError(s.lua_state())){
-                throw fflpanic("thread {}:{} closed during runThread() of thread {}:{}, but it can't end there, runThread() is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), to_llu(newKey), to_llu(newSeqID), reason);
+            if(const auto error = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closed during runThread() of thread {}:{}, but it can't end there, runThread() is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), to_llu(newKey), to_llu(newSeqID), selfCloseErrorString(error));
             }
             return {newSeqID, true};
         }
@@ -155,8 +155,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             throw fflpanic("closeThreadThenRun() called outside any thread");
         }
 
-        if(const auto reason = selfCloseError(s.lua_state())){
-            throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), reason);
+        if(const auto error = selfCloseError(s.lua_state())){
+            throw fflpanic("thread {}:{} closing itself {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), selfCloseErrorString(error));
         }
 
         // func starts in the resumeRunner() of the calling thread, on top of the same threads as a runThread() here
@@ -172,8 +172,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     bindFunction("_RSVD_NAME_closeRequested", [this](std::string what, sol::this_state s) -> bool
     {
         if(m_currRunner && m_currRunner->closeRequested && !m_currRunner->closing){
-            if(const auto reason = selfCloseError(s.lua_state())){
-                throw fflpanic("thread {}:{} closed during {}, but it can't end there, {} is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), what, what, reason);
+            if(const auto error = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closed during {}, but it can't end there, {} is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), what, what, selfCloseErrorString(error));
             }
             return true;
         }
@@ -194,8 +194,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             return sol::make_object(sv, "outside any thread");
         }
 
-        if(const auto reason = selfCloseError(s.lua_state())){
-            return sol::make_object(sv, reason);
+        if(const auto error = selfCloseError(s.lua_state())){
+            return sol::make_object(sv, selfCloseErrorString(error));
         }
         return sol::make_object(sv, sol::lua_nil);
     });
@@ -609,19 +609,28 @@ int ServerLuaCoroutineRunner::closeLuaThread(LuaThreadHandle *runnerPtr)
     return lua_closethread(runnerPtr->runner.thread_state(), nullptr);
 }
 
-const char *ServerLuaCoroutineRunner::selfCloseError(lua_State *callerState) const
+ServerLuaCoroutineRunner::SelfCloseErrorType ServerLuaCoroutineRunner::selfCloseError(lua_State *callerState) const
 {
     fflassert(m_currRunner);
 
     // a yield there goes back to the code that resumed the coroutine, not to resumeRunner()
     if(callerState != m_currRunner->runner.thread_state()){
-        return "from a coroutine created in it";
+        return SELFCLOSE_COROUTINE;
     }
 
     if(!lua_isyieldable(callerState)){
-        return "where it can't yield";
+        return SELFCLOSE_NOTYIELDABLE;
     }
-    return nullptr;
+    return SELFCLOSE_NONE;
+}
+
+const char *ServerLuaCoroutineRunner::selfCloseErrorString(SelfCloseErrorType error)
+{
+    switch(error){
+        case SELFCLOSE_COROUTINE   : return "from a coroutine created in it";
+        case SELFCLOSE_NOTYIELDABLE: return "where it can't yield";
+        default                    : throw fflvalue(error);
+    }
 }
 
 void ServerLuaCoroutineRunner::closeRunner(LuaThreadHandle *runnerPtr)
@@ -701,7 +710,8 @@ bool ServerLuaCoroutineRunner::doSpawn(std::pair<uint64_t, uint64_t> kp, const s
     // because resumeRunner() may erase p from m_runnerList
 }
 
-template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::evalImpl(uint64_t key, Args && ... args)
+// by value: the coroutine starts when it's awaited, a temporary the caller passed can be gone by then
+template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLuaCoroutineRunner::evalImpl(uint64_t key, Args... args)
 {
     std::vector<luaf::luaVar> result {};
     std::vector<std::string>  errors {};
@@ -732,7 +742,7 @@ template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLua
     };
 
     const auto closed = std::make_shared<bool>(true);
-    const auto done = doSpawn({key, m_seqID++}, std::forward<Args>(args)..., [&fnOnThreadDone, closed, key, this](const sol::protected_function_result &pfr)
+    const auto done = doSpawn({key, m_seqID++}, std::move(args)..., [&fnOnThreadDone, closed, key, this](const sol::protected_function_result &pfr)
     {
         *closed = false;
         std::vector<std::string> errors;
@@ -974,7 +984,6 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
             // thread raised, its <close> handlers haven't run yet, run them before the owner gets the error
             // sol2 has added the traceback to the error, so the handlers get the same error as the owner
             lua_State * const co = runnerPtr->runner.thread_state();
-            const auto errStatus = pfr.status();
 
             std::vector<std::string> errLines;
             pfrCheck(pfr, [&errLines](const std::string &s){ errLines.push_back(s); });
@@ -982,21 +991,10 @@ bool ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
             // lua_closethread() resets the stack pfr refers to, without abandon() the pfr dtor would pop slots that no longer exist
             pfr.abandon();
 
-            auto closeStatus = closeLuaThread(runnerPtr);
-            if(closeStatus == LUA_OK){
-                // lua_closethread() sees no error only if lua_resume() refused to run the thread, i.e. "C stack overflow"
-                // can't happen here, kept as a guard so the owner still gets the error
-                std::string errStr;
-                for(const auto &line: errLines){
-                    if(!errStr.empty()){
-                        errStr += '\n';
-                    }
-                    errStr += line;
-                }
-
-                lua_pushlstring(co, errStr.data(), errStr.size());
-                closeStatus = static_cast<int>(errStatus);
-            }
+            // lua_closethread() sees no error only if lua_resume() refused to run the thread: it wasn't suspended, the asserts above rule that out
+            // or "C stack overflow", which needs a "from" thread, sol2 gives none
+            const auto closeStatus = closeLuaThread(runnerPtr);
+            fflassert(closeStatus != LUA_OK, kp);
 
             // the final error at index 1, a <close> handler that raised replaces the original one, same as coroutine.close()
             const sol::protected_function_result errPfr(co, 1, 1, 1, static_cast<sol::call_status>(closeStatus));

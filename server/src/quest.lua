@@ -248,34 +248,37 @@ end
 -- a file local, not a global: a global assigned in a lua thread only goes to the sandbox of that thread
 local _RSVD_NAME_questStateRunners = {}
 
+-- fsm -> key of the state runners of {uid, fsm}, or of all fsms of uid if fsm is nil, the ones a switch of fsm closes
+local function _RSVD_NAME_selectQuestStateRunners(uid, fsm)
+    local selected = {}
+    for runnerFSM, key in pairs(_RSVD_NAME_questStateRunners[uid] or {}) do
+        if (fsm == nil) or (runnerFSM == fsm) then
+            selected[runnerFSM] = key
+        end
+    end
+    return selected
+end
+
 -- unregisters and closes the state runners of {uid, fsm}, or of all fsms of uid if fsm is nil
 -- the calling thread is not closed, its key is returned instead, the caller closes itself as its very last step
 local function _RSVD_NAME_closeQuestState(uid, fsm)
     assertType(uid, 'integer')
     assertType(fsm, 'string', 'nil')
 
-    local fsmRunners = _RSVD_NAME_questStateRunners[uid]
-    if not fsmRunners then
-        return nil
-    end
-
     -- unregister all before closing any, the <close> handlers of a closed state runner see it unregistered
-    local keys = {}
-    for runnerFSM, key in pairs(fsmRunners) do
-        if (fsm == nil) or (runnerFSM == fsm) then
-            table.insert(keys, key)
-            fsmRunners[runnerFSM] = nil
-        end
+    local selected = _RSVD_NAME_selectQuestStateRunners(uid, fsm)
+    for runnerFSM in pairs(selected) do
+        _RSVD_NAME_questStateRunners[uid][runnerFSM] = nil
     end
 
-    if tableEmpty(fsmRunners) then
+    if tableEmpty(_RSVD_NAME_questStateRunners[uid] or {}) then
         _RSVD_NAME_questStateRunners[uid] = nil
     end
 
     local currKey = getThreadKey()
     local selfKey = nil
 
-    for _, key in ipairs(keys) do
+    for _, key in pairs(selected) do
         if key == currKey then
             selfKey = key
         else
@@ -292,18 +295,28 @@ local function _RSVD_NAME_isCallerQuestStateRunner(uid, fsm)
     assertType(uid, 'integer')
     assertType(fsm, 'string', 'nil')
 
-    local fsmRunners = _RSVD_NAME_questStateRunners[uid]
-    if not fsmRunners then
-        return false
-    end
-
     local currKey = getThreadKey()
-    for runnerFSM, key in pairs(fsmRunners) do
-        if ((fsm == nil) or (runnerFSM == fsm)) and (key == currKey) then
+    for _, key in pairs(_RSVD_NAME_selectQuestStateRunners(uid, fsm)) do
+        if key == currKey then
             return true
         end
     end
     return false
+end
+
+-- closeThread() of serverluacoroutinerunner.lua, refusing a state runner: its fsm would stay in its state with no state runner
+-- a state runner ends with its state, by setQuestState()
+local _RSVD_NAME_closeAnyThread = closeThread
+function closeThread(key, seqID)
+    assertType(key, 'integer')
+    for uid, fsmRunners in pairs(_RSVD_NAME_questStateRunners) do
+        for fsm, runnerKey in pairs(fsmRunners) do
+            if runnerKey == key then
+                fatalPrintf('closeThread() is not allowed for state runner %d of uid %d, fsm %s, setQuestState() ends it', key, uid, fsm)
+            end
+        end
+    end
+    return _RSVD_NAME_closeAnyThread(key, seqID)
 end
 
 -- _RSVD_NAME_switchMarks[uid] = the mark of the state switch of uid that runs, from its first change till its new state runner starts

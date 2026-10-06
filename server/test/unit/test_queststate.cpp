@@ -1147,6 +1147,23 @@ namespace
         require(f.alive("key_62_c") && f.inState(62, "SYS_QSTFSM", "'c'"), "state switch whose old state runner switched the caller isn't done");
     }
 
+    void testCloseThreadOfStateRunner()
+    {
+        // a state runner ends with its state, closeThread() of its key raises before it closes anything, other threads it closes as before
+        QuestFixture f;
+        f.drive("setQuestState{uid=18, state='b'}");
+        f.drive(R"###(
+            local ok, err = pcall(closeThread, TEST.key_18_b)
+            TEST.refused_18 = (not ok) and (string.find(err, 'closeThread() is not allowed for state runner', 1, true) ~= nil)
+            TEST.registered_18 = _RSVD_NAME_getQuestStateRunnerKey(18, SYS_QSTFSM) == TEST.key_18_b
+            TEST.timerClosed_18 = closeThread(runQuestThread(function() pause(SYS_POSINF) end))
+        )###");
+
+        require(f.isTrue("refused_18"), "closeThread() of a state runner doesn't raise");
+        require(f.alive("key_18_b") && f.isNil("closed_18_b") && f.isTrue("registered_18"), "closeThread() of a state runner closes or unregisters it");
+        require(f.isTrue("timerClosed_18"), "closeThread() of a thread that isn't a state runner doesn't close it");
+    }
+
     void testMapGridTriggerQuest()
     {
         QuestFixture f;
@@ -1981,6 +1998,7 @@ namespace
         testRestoreReadsEachFSM();
         testClosedDuringSwitch();
         testCloseHandlerSwitchesOtherUID();
+        testCloseThreadOfStateRunner();
         testMapGridTriggerQuest();
         testContextWriters();
         testContextOwner();
@@ -2034,7 +2052,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

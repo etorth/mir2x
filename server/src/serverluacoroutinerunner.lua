@@ -83,6 +83,12 @@ function pause(msec)
     return getTime() - oldTime
 end
 
+-- the calling thread is asked to close, resumeRunner() closes it at this yield, a resume after it is a bug of the runner and raises
+local function _RSVD_NAME_yieldToClose()
+    coroutine.yield()
+    error(string.format('thread %d:%d resumed after it was asked to close', getThreadKey(), getThreadSeqID()))
+end
+
 -- close thread {key, seqID}, or every thread under key if seqID is nil or 0, returns true if any thread is found
 -- a thread sitting in pause() is what a lua timer is, so this is how a timer gets cancelled
 --
@@ -97,10 +103,7 @@ function closeThread(key, seqID)
 
     local found, selfClose = _RSVD_NAME_closeThread(key, seqID or 0)
     if selfClose then
-        -- resumeRunner() closes this thread at this yield, the loop is only a guard
-        while true do
-            coroutine.yield()
-        end
+        _RSVD_NAME_yieldToClose()
     end
 
     _RSVD_NAME_endIfCloseRequested('closeThread()')
@@ -112,10 +115,7 @@ end
 -- raises if the thread can't end there, what names the call
 function _RSVD_NAME_endIfCloseRequested(what)
     if _RSVD_NAME_closeRequested(what) then
-        -- resumeRunner() closes this thread at this yield, the loop is only a guard
-        while true do
-            coroutine.yield()
-        end
+        _RSVD_NAME_yieldToClose()
     end
 end
 
@@ -128,10 +128,7 @@ function runThread(key, func)
 
     local seqID, closed = _RSVD_NAME_runThread(key, func)
     if closed then
-        -- resumeRunner() closes this thread at this yield, the loop is only a guard
-        while true do
-            coroutine.yield()
-        end
+        _RSVD_NAME_yieldToClose()
     end
     return key, seqID
 end
@@ -145,11 +142,7 @@ function closeThreadThenRun(key, func)
     assertType(func, 'function')
 
     _RSVD_NAME_closeThreadThenRun(key, func)
-
-    -- resumeRunner() closes this thread at this yield, the loop is only a guard
-    while true do
-        coroutine.yield()
-    end
+    _RSVD_NAME_yieldToClose()
 end
 
 function postNotify(addr, ...)

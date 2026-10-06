@@ -207,6 +207,12 @@ namespace
         done = true;
     }
 
+    corof::awaitable<> awaitEval(corof::awaitable<std::vector<luaf::luaVar>> pending, std::vector<luaf::luaVar> &result, bool &done)
+    {
+        result = co_await std::move(pending);
+        done = true;
+    }
+
     void testYieldResumeFinish()
     {
         RunnerFixture f;
@@ -582,6 +588,20 @@ namespace
             require(!done, "eval() returns before its runner finishes");
             f.runner.close(1083);
             require(done && isExecClose(result), "eval() of a closed runner doesn't return SYS_EXECCLOSE");
+        }
+
+        // awaited after the temporaries it got are gone, the buffer of the code string freed and taken again
+        {
+            bool done = false;
+            std::vector<luaf::luaVar> result;
+
+            const std::string code = "return 'the code of an eval() longer than a small string'";
+            auto pending = f.runner.eval(1084, std::string(code), luaf::luaVar{});
+            const std::string reuse(code.size(), '-');
+
+            awaitEval(std::move(pending), result, done).resume();
+            const auto p = result.size() == 1 ? std::get_if<std::string>(&result[0]) : nullptr;
+            require(done && p && (*p == "the code of an eval() longer than a small string"), "eval() awaited after its arguments are gone runs something else");
         }
     }
 
@@ -1190,6 +1210,29 @@ namespace
         require(f.isTrue("afterSections") && !f.runner.hasKeyPair(kp), "a thread doesn't go on after its critical sections ended");
     }
 
+    void testResumeAfterClose()
+    {
+        // the binding reports a self close but doesn't close, as a broken runner would: the thread raises when resumed, instead of parking again
+        RunnerFixture f;
+        require(f.runner.execRawString("_RSVD_NAME_closeThread = function(key, seqID) return true, true end").valid(), "failed to stub _RSVD_NAME_closeThread");
+
+        std::string error;
+        const auto kp = f.runner.spawn(1200, std::string(R"###(
+            closeThread(getThreadKey())
+            TEST.wentOn = true
+        )###"), {}, [&error](const sol::protected_function_result &pfr)
+        {
+            if(!pfr.valid()){
+                error = errorString(pfr);
+            }
+        });
+
+        require(f.runner.hasKeyPair(kp), "a thread closing itself doesn't yield");
+        f.runner.resume(kp);
+        require(!f.runner.hasKeyPair(kp) && (error.find("resumed after it was asked to close") != std::string::npos), "a thread resumed after it asked to close doesn't raise");
+        require(f.isNil("wentOn"), "a thread resumed after it asked to close goes on");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -1236,6 +1279,7 @@ namespace
         testNestingLimit();
         testClosedDuringCloseThread();
         testCriticalSection();
+        testResumeAfterClose();
         testTeardown();
     }
 }
@@ -1268,7 +1312,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), critical sections, and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), critical sections, a resume after a close request, and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

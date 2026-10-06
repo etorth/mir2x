@@ -276,7 +276,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         bool doSpawn(std::pair<uint64_t, uint64_t>, const sol::function &,               std::function<void(const sol::protected_function_result &)>, std::function<void()>);
 
     private:
-        template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> evalImpl(uint64_t, Args && ...);
+        template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> evalImpl(uint64_t, Args...);
 
     public:
         // start a thread to run lua code
@@ -355,8 +355,17 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void eraseRunner   (const std::pair<uint64_t, uint64_t> &);
 
     private:
-        // nullptr if the lua code running on the given state can end m_currRunner by a yield, else why not
-        const char *selfCloseError(lua_State *) const;
+        enum SelfCloseErrorType: int
+        {
+            SELFCLOSE_NONE = 0,
+            SELFCLOSE_COROUTINE,
+            SELFCLOSE_NOTYIELDABLE,
+        };
+
+    private:
+        // why the lua code running on the given state can't end m_currRunner by a yield, SELFCLOSE_NONE if it can
+        SelfCloseErrorType selfCloseError(lua_State *) const;
+        static const char *selfCloseErrorString(SelfCloseErrorType);
 
     private:
         static std::string concatCode(const std::string &code)
