@@ -608,6 +608,20 @@ namespace
             )###").valid(), "failed to stub NPCs");
         }
 
+        // the quest database as lua code, a new fixture loading it stands for the quest after a server restart: the same database,
+        // no thread, nothing installed in the world
+        std::string saveDB()
+        {
+            require(runner.execRawString("TEST.dbCode = 'return ' .. asInitString(TEST.db)").valid(), "failed to save the quest database");
+            return get("dbCode").as<std::string>();
+        }
+
+        void loadDB(const std::string &dbCode)
+        {
+            runner.getState()["TEST"]["dbCode"] = dbCode;
+            require(runner.execRawString("TEST.db = load(TEST.dbCode)()").valid(), "failed to load the quest database");
+        }
+
         // replies to the call-th remote call, and resumes its caller if it's still there
         void reply(int call)
         {
@@ -1753,6 +1767,129 @@ namespace
         require(f.isTrue("t4"), "T4: the install of a state runner closed by the login stays in the world or the context, or the state isn't replayed");
     }
 
+    // a quest before and after a server restart: the first fixture runs it and saves its database, the second one logs the player in
+    void testRestartAtomicity()
+    {
+        std::string db;
+        {
+            QuestFixture f;
+            f.stubActors();
+            f.drive("TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.npcs['m/t'] = 9102");
+
+            // C3: the switch saves the items of the state that ends, the server stops while the next state runs
+            // T1: an install whose reply is still on its way when another thread switches is saved with the switch
+            f.drive(R"###(
+                setQuestState{uid=150, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'first') ]]}
+                setQuestState{uid=150, state='run', args=[[ setupNPCQuestBehavior('m', 'o', ..., 'second') ]]}
+
+                TEST.holdReplies = true
+                setQuestState{uid=151, state='run', args=[[ setupNPCQuestBehavior('m', 't', ..., 'inflight') ]]}
+                TEST.holdReplies = false
+                setQuestState{uid=151, state='b'}
+            )###");
+            db = f.saveDB();
+        }
+
+        QuestFixture f;
+        f.stubActors();
+        f.loadDB(db);
+
+        f.drive(R"###(
+            TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.npcs['m/t'] = 9102
+            TEST.saved150 = (TEST.db[150].fld_context['npc/m/n'].code == 'first') and (TEST.db[150].fld_context['npc/m/o'] == nil)
+
+            _RSVD_NAME_loadQuestContext(150)
+            _RSVD_NAME_restoreQuestStates(150)
+            TEST.world150 = (TEST.world[9100][150] == 'first') and (TEST.world[9101][150] == 'second') and (#TEST.calls == 2)
+
+            _RSVD_NAME_loadQuestContext(151)
+            _RSVD_NAME_restoreQuestStates(151)
+            TEST.t1 = TEST.world[9102][151] == 'inflight'
+        )###");
+        require(f.isTrue("saved150"), "C3: the state that ran when the server stopped saved its items, or the one before it didn't");
+        require(f.isTrue("world150"), "C3, C8: after a restart the world doesn't have the saved items and the replayed state's, each installed once");
+        require(f.isTrue("t1"), "T1: an install saved by a switch made while its reply was on its way isn't installed after a restart");
+    }
+
+    void testRestartExact()
+    {
+        std::string db;
+        {
+            QuestFixture f;
+            f.stubActors();
+            f.drive("TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.maps['m1'] = 9200");
+
+            // C5: a state clears what an earlier one installed, its switch saves the clear
+            // C6: a committed trigger retires itself, it's deleted at once
+            f.drive(R"###(
+                setQuestState{uid=152, state='run', args=[[
+                    local uid = ...
+                    setupNPCQuestBehavior('m', 'o', uid, 'cleared later')
+                    setupMapUIDGridTrigger{uid = uid, name = 'door', map = 'm1', x = 3, y = 4, code = 'retired later'}
+                ]]}
+
+                setQuestState{uid=152, state='run', args=[[
+                    local uid = ...
+                    setupNPCQuestBehavior('m', 'n', uid, 'kept')
+                    clearNPCQuestBehavior('m', 'o', uid)
+                ]]}
+
+                setQuestState{uid=152, state='b'}
+                _RSVD_NAME_retireQuestGridTrigger(152, 'door', _RSVD_NAME_questContext.version(152, 'grid/door'))
+            )###");
+            db = f.saveDB();
+        }
+
+        QuestFixture f;
+        f.stubActors();
+        f.loadDB(db);
+
+        f.drive(R"###(
+            TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.maps['m1'] = 9200
+            _RSVD_NAME_loadQuestContext(152)
+            _RSVD_NAME_restoreQuestStates(152)
+
+            TEST.exact152 = (TEST.world[9100][152] == 'kept') and (TEST.world[9101] == nil) and (TEST.world[9200] == nil) and (#TEST.calls == 1)
+        )###");
+        require(f.isTrue("exact152"), "C5, C6: after a restart the world doesn't hold exactly the committed items, a cleared or retired one is back");
+    }
+
+    void testRestartQuestDone()
+    {
+        std::string db;
+        {
+            QuestFixture f;
+            f.stubActors();
+            f.drive("TEST.npcs['m/n'] = 9100 TEST.maps['m1'] = 9200");
+
+            // C7: quest done removes everything, from the world and from the database
+            f.drive(R"###(
+                setQuestState{uid=153, state='b'}
+                setupNPCQuestBehavior('m', 'n', 153, 'behavior')
+                setupMapUIDGridTrigger{uid = 153, name = 'door', map = 'm1', x = 3, y = 4, code = 'door'}
+                setQuestState{uid=153, state=SYS_DONE}
+
+                TEST.removed153 = (TEST.world[9100][153] == nil) and (TEST.world[9200]['153/door'] == nil)
+            )###");
+            require(f.isTrue("removed153"), "C7: quest done leaves an item in the world");
+            db = f.saveDB();
+        }
+
+        QuestFixture f;
+        f.stubActors();
+        f.loadDB(db);
+
+        f.drive(R"###(
+            TEST.npcs['m/n'] = 9100 TEST.maps['m1'] = 9200
+            _RSVD_NAME_loadQuestContext(153)
+            _RSVD_NAME_restoreQuestStates(153)
+
+            local row = TEST.db[153]
+            TEST.done153 = (#TEST.calls == 0) and (row.fld_context == nil) and (row.fld_states[SYS_QSTFSM][1] == SYS_DONE) and (next(row.fld_states, next(row.fld_states)) == nil)
+        )###");
+        require(f.isTrue("done153"), "C7: after a restart a quest done installs an item, or its row keeps more than its done state");
+    }
+
     void testGridTriggerRetire()
     {
         QuestFixture f;
@@ -1843,6 +1980,9 @@ namespace
         testGridTriggerRollback();
         testLoadOnce();
         testRestoreRollsBack();
+        testRestartAtomicity();
+        testRestartExact();
+        testRestartQuestDone();
     }
 }
 
@@ -1874,7 +2014,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, and the rollback before a replay (T4).\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;
