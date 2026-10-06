@@ -1692,6 +1692,67 @@ namespace
         require(f.isTrue("back137"), "a rollback of a moved grid trigger doesn't put it back on its map, or keeps the moved copy");
     }
 
+    void testLoadOnce()
+    {
+        QuestFixture f;
+        CoutCapture capture;
+
+        f.stubActors();
+        f.drive("TEST.npcs['m/n'] = 9100 TEST.npcs['m/o'] = 9101 TEST.maps['m1'] = 9200");
+
+        // the first login installs the committed items, a later one nothing
+        f.drive(R"###(
+            TEST.db[140] = {fld_states = {[SYS_QSTFSM] = {'b'}}, fld_context = {
+                ['npc/m/n'] = {type = 'npc', map = 'm', npc = 'n', code = 'saved', hash = 'hash1'},
+                ['grid/door'] = {type = 'grid', name = 'door', map = 'm1', rects = {{3, 4, 1, 1}}, code = 'door', hash = 'hash1'},
+            }}
+
+            _RSVD_NAME_loadQuestContext(140)
+            TEST.loaded140 = (TEST.world[9100][140] == 'saved') and (TEST.world[9200]['140/door'].code == 'door')
+                and (_RSVD_NAME_questContext.get(140, 'npc/m/n').target == 9100) and (_RSVD_NAME_questContext.get(140, 'grid/door').target == 9200)
+
+            local calls = #TEST.calls
+            _RSVD_NAME_loadQuestContext(140)
+            TEST.once140 = #TEST.calls == calls
+        )###");
+        require(f.isTrue("loaded140"), "the first login doesn't install the committed items");
+        require(f.isTrue("once140"), "a later login installs the committed items again");
+
+        // a key written while the player was offline keeps what it got, here pending, the committed item is older
+        // an item of another version of the script is logged
+        f.drive(R"###(
+            TEST.db[141] = {fld_states = {[SYS_QSTFSM] = {'b'}}, fld_context = {
+                ['npc/m/n'] = {type = 'npc', map = 'm', npc = 'n', code = 'saved', hash = 'hash1'},
+                ['npc/m/o'] = {type = 'npc', map = 'm', npc = 'o', code = 'oldScript', hash = 'old'},
+            }}
+
+            setQuestState{uid=141, state='run', args=[[ setupNPCQuestBehavior('m', 'n', ..., 'offline') ]]}
+            _RSVD_NAME_loadQuestContext(141)
+            TEST.offline141 = (TEST.world[9100][141] == 'offline') and (TEST.world[9101][141] == 'oldScript')
+        )###");
+        require(f.isTrue("offline141"), "the first login installs a committed item over a write made while the player was offline, or misses another one");
+        require(capture.has("Quest context of uid 141 has 1 saved items installed by another version of the quest script"), "an item saved by another version of the quest script isn't logged");
+    }
+
+    void testRestoreRollsBack()
+    {
+        QuestFixture f;
+        f.stubActors();
+        f.drive("TEST.npcs['m/n'] = 9100");
+
+        // T4: the old state runner sent an install and waits, the login closes it, rolls its install back, and replays the state
+        f.drive(R"###(
+            TEST.holdReplies = true
+            setQuestState{uid=143, state='run', args=[[ if not TEST.ran143 then TEST.ran143 = true setupNPCQuestBehavior('m', 'n', ..., 'inflight') end ]]}
+
+            TEST.holdReplies = false
+            _RSVD_NAME_restoreQuestStates(143)
+            TEST.t4 = (TEST.world[9100][143] == nil) and (_RSVD_NAME_questContext.get(143, 'npc/m/n') == nil) and (TEST.db[143].fld_context == nil)
+                and (_RSVD_NAME_getQuestStateRunnerKey(143, SYS_QSTFSM) ~= nil)
+        )###");
+        require(f.isTrue("t4"), "T4: the install of a state runner closed by the login stays in the world or the context, or the state isn't replayed");
+    }
+
     void testGridTriggerRetire()
     {
         QuestFixture f;
@@ -1780,6 +1841,8 @@ namespace
         testGridTriggerContext();
         testGridTriggerRetire();
         testGridTriggerRollback();
+        testLoadOnce();
+        testRestoreRollsBack();
     }
 }
 
@@ -1811,7 +1874,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, and grid triggers as context items, moved, on map copies, retired, and rolled back.\n");
+        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, runtime vars, switch from a given state, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, the load once at the first login, and the rollback before a replay (T4).\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

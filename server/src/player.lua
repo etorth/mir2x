@@ -149,6 +149,7 @@ function _RSVD_NAME_setupQuests()
         local restored, restoreErr = pcall(uidRemoteCall, questUID, getUID(),
         [[
             local playerUID = ...
+            _RSVD_NAME_loadQuestContext(playerUID)
             _RSVD_NAME_restoreQuestStates(playerUID)
         ]])
 

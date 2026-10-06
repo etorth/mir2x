@@ -113,9 +113,15 @@ namespace
             onDone({questA, questB})
         end
 
+        -- TEST.loadFirst: every restore loads the quest context before it restores the states
         _G['_RSVD_NAME_remoteCall' .. SYS_COOP] = function(uid, code, args, onDone)
-            local restore = string.find(code, '_RSVD_NAME_restoreQuestState', 1, true) ~= nil
+            local restore = string.find(code, '_RSVD_NAME_restoreQuestState', 1, true)
             local trigger = string.find(code, '_RSVD_NAME_trigger', 1, true) ~= nil
+
+            if restore then
+                local load = string.find(code, '_RSVD_NAME_loadQuestContext(playerUID)', 1, true)
+                TEST.loadFirst = (load ~= nil) and (load < restore) and (TEST.loadFirst ~= false)
+            end
 
             if restore or trigger then
                 table.insert(restore and TEST.restored or TEST.triggered, uid)
@@ -192,6 +198,7 @@ namespace
         f.drive("_RSVD_NAME_setupQuests()");
 
         require(f.check("TEST.calledBoth(TEST.restored)"), "restore stops at a quest that raised");
+        require(f.check("TEST.loadFirst"), "the login doesn't load the quest context before it restores the states");
         require(f.check("TEST.listedBoth()"), "quest list misses a quest, or isn't reported, after a quest raised in its restore");
         require(capture.has("Quest QST_2 failed to restore player PLY_1") && capture.has("Remote call to QST_2 failed: quest A raised"), "restore error of a quest is not logged");
     }
@@ -241,7 +248,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Player quest passed: restore goes on after a quest raised, and triggers go on after a quest raised.\n");
+        std::printf("Player quest passed: restore loads the quest context first and goes on after a quest raised, and triggers go on after a quest raised.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

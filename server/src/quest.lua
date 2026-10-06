@@ -596,6 +596,34 @@ function _RSVD_NAME_questContext.finalize(uid, key, version)
     return true
 end
 
+-- the committed items of uid to install, those whose key has no write in this server run: load once
+-- the first load writes every key it installs, a later one finds none to install
+-- the quest actor never dies and base maps are never unloaded, the items installed at the first login stay over logouts
+-- a key written in this server run, i.e. while the player was offline, has what it got then
+--
+-- returns key -> {item, version} as rollback() returns, and how many items an older version of the quest script saved
+function _RSVD_NAME_questContext.load(uid)
+    assertType(uid, 'integer')
+
+    local context = _RSVD_NAME_getQuestContext(uid)
+    local changes = {}
+    local stale = 0
+
+    for key, item in pairs(dbGetQuestField(uid, 'fld_context') or {}) do
+        if context.versions[key] == nil then
+            local version = _RSVD_NAME_nextQuestContextVersion()
+            context.versions[key] = version
+            context.runtime[key] = {item = item, version = version}
+            changes[key] = {item = item, version = version}
+        end
+
+        if item.hash ~= getQuestScriptHash() then
+            stale = stale + 1
+        end
+    end
+    return changes, stale
+end
+
 -- drops the context of uid at its quest done, returns its runtime records, what the world has to lose
 function _RSVD_NAME_questContext.drop(uid)
     assertType(uid, 'integer')
@@ -722,17 +750,8 @@ local function _RSVD_NAME_applyQuestContextChange(uid, key, change)
     end
 end
 
--- error = abort: the state of fsm raised, its pending items go back to committed, then the world follows, a thread for each key
--- a key whose actor is known needs no lookup, its thread sends before this returns
--- the context is back before the caller goes on, i.e. before a fallback, which can write the same keys again
--- it doesn't yield, it's called in the <close> handler of a state runner that raised too
-local function _RSVD_NAME_abortQuestState(uid, fsm)
-    local changes = nil
-    do
-        local section <close> = _RSVD_NAME_criticalSection()
-        changes = _RSVD_NAME_questContext.rollback(uid, fsm)
-    end
-
+-- a thread for each key, a key whose actor is known needs no lookup, its thread sends before this returns
+local function _RSVD_NAME_applyQuestContextChanges(uid, changes)
     for key, change in pairs(changes) do
         if change.item or change.current then
             runQuestThread(function()
@@ -743,6 +762,36 @@ local function _RSVD_NAME_abortQuestState(uid, fsm)
             end)
         end
     end
+end
+
+-- the pending items of fsm go back to committed, then the world follows
+-- error = abort when the state of fsm raised, and the restore at login before it starts the state again
+-- the context is back before the caller goes on, i.e. before a fallback, which can write the same keys again
+-- it doesn't yield, it's called in the <close> handler of a state runner that raised too
+local function _RSVD_NAME_rollbackQuestState(uid, fsm)
+    local changes = nil
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        changes = _RSVD_NAME_questContext.rollback(uid, fsm)
+    end
+    _RSVD_NAME_applyQuestContextChanges(uid, changes)
+end
+
+-- installs the committed items of uid at its first login in this server run, see _RSVD_NAME_questContext.load()
+-- an item saved by another version of the quest script runs the code saved with it, that's logged
+function _RSVD_NAME_loadQuestContext(uid)
+    assertType(uid, 'integer')
+
+    local changes, stale = nil, nil
+    do
+        local section <close> = _RSVD_NAME_criticalSection()
+        changes, stale = _RSVD_NAME_questContext.load(uid)
+    end
+
+    if stale > 0 then
+        addLog(LOGTYPE_WARNING, 'Quest context of uid %d has %d saved items installed by another version of the quest script', uid, stale)
+    end
+    _RSVD_NAME_applyQuestContextChanges(uid, changes)
 end
 
 -- calls func(...) on the calling state runner, and fallback(uid, args, err) if func raises
@@ -775,7 +824,7 @@ local function _RSVD_NAME_xpcallQuestState(desc, fallback, uid, args, func, ...)
 
     local fsm = _RSVD_NAME_getCallerQuestStateFSM(uid)
     if fsm then
-        _RSVD_NAME_abortQuestState(uid, fsm)
+        _RSVD_NAME_rollbackQuestState(uid, fsm)
     end
 
     fallback(uid, args, err)
@@ -812,7 +861,7 @@ end
 -- afterSelfClose: the caller is the old state runner, it's closed first, and this never returns
 --
 -- when func ends, by a return, a raise or a close, the state runner is unregistered if it still is the registered one
--- a raise rolls the pending items of fsm back then, error = abort, see _RSVD_NAME_abortQuestState()
+-- a raise rolls the pending items of fsm back then, error = abort, see _RSVD_NAME_rollbackQuestState()
 -- a state runner a switch unregistered goes on for a while if it's on the C stack, its raise then is none of its fsm's business
 local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
     assertType(uid, 'integer')
@@ -842,7 +891,7 @@ local function _RSVD_NAME_spawnQuestState(uid, fsm, func, afterSelfClose)
             end
 
             if err ~= nil then
-                _RSVD_NAME_abortQuestState(uid, fsm)
+                _RSVD_NAME_rollbackQuestState(uid, fsm)
             end
         end})
         func()
@@ -1053,6 +1102,7 @@ end
 
 -- restarts the saved state of {uid, fsm} when the player logs in, see _RSVD_NAME_restoreQuestStates()
 -- the quest keeps running while the player is offline, the old state runner can still be alive, it's closed first
+-- its pending items are rolled back then, the state starts from what is committed, as a replay must
 -- returns false if another switch of uid runs, i.e. its quest done, nothing is restored then
 function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
     assertType(uid, 'integer')
@@ -1069,6 +1119,9 @@ function _RSVD_NAME_restoreQuestState(uid, fsm, state, args)
     -- the <close> handlers of the old state runner run in the close, a switch of uid there would be overridden by the restore
     local mark <close> = _RSVD_NAME_markSwitch(uid)
     _RSVD_NAME_closeQuestState(uid, fsm)
+
+    -- an install the old state runner sent before it was closed reaches its actor before the removal sent here
+    _RSVD_NAME_rollbackQuestState(uid, fsm)
 
     mark:drop()
     _RSVD_NAME_spawnQuestState(uid, fsm, function()
