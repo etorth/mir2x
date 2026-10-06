@@ -442,7 +442,8 @@ namespace
                 TEST.finishCloseCount = (TEST.finishCloseCount or 0) + 1
             end})
 
-            TEST.finishCloseRet = closeThread(1063)
+            -- the binding, as C++ code closing a running thread does, closeThread() would end this thread right here
+            TEST.finishCloseRet = _RSVD_NAME_closeThread(1063, 0)
             return 'finished anyway'
         )###"), {}, [&doneString](const sol::protected_function_result &pfr)
         {
@@ -1079,6 +1080,48 @@ namespace
         require(nestErr.is<std::string>() && nestErr.as<std::string>().find("threads run on top of each other on the C stack") != std::string::npos, "nested runThread() over the limit doesn't raise");
     }
 
+    void testClosedDuringCloseThread()
+    {
+        RunnerFixture f;
+
+        // the <close> handler of the thread closed closes the thread closing it
+        f.runner.spawn(1181, std::string(R"###(
+            local guard <close> = setmetatable({}, {__close = function()
+                closeThread(1180)
+            end})
+            pause(SYS_POSINF)
+        )###"));
+
+        f.runner.spawn(1180, std::string(R"###(
+            closeThread(1181)
+            TEST.afterCloseThread = true
+            pause(SYS_POSINF)
+        )###"));
+
+        require(!f.runner.hasKey(1180) && !f.runner.hasKey(1181), "thread closed by a <close> handler of a thread it closes doesn't end");
+        require(f.isNil("afterCloseThread"), "thread closed by a <close> handler of a thread it closes goes on after closeThread()");
+
+        // where it can't end, closeThread() raises after the close, and the thread ends at its next yield
+        f.runner.spawn(1183, std::string(R"###(
+            local guard <close> = setmetatable({}, {__close = function()
+                closeThread(1182)
+            end})
+            pause(SYS_POSINF)
+        )###"));
+
+        f.runner.spawn(1182, std::string(R"###(
+            local ok, err = pcall(table.sort, {2, 1}, function(x, y)
+                closeThread(1183)
+                return x < y
+            end)
+            TEST.sortRaised = not ok and string.find(err, 'closed during closeThread(), but it can', 1, true) ~= nil and string.find(err, "closeThread() is called where it can't yield", 1, true) ~= nil
+            pause(SYS_POSINF)
+            TEST.afterSortPause = true
+        )###"));
+
+        require(f.isTrue("sortRaised") && !f.runner.hasKey(1182) && !f.runner.hasKey(1183) && f.isNil("afterSortPause"), "closeThread() closing its caller where it can't end doesn't raise, or the caller doesn't end at its next yield");
+    }
+
     void testTeardown()
     {
         bool handlerRan = false;
@@ -1123,6 +1166,7 @@ namespace
         testWaitNotifyTimeout();
         testCloseThenRun();
         testNestingLimit();
+        testClosedDuringCloseThread();
         testTeardown();
     }
 }
@@ -1155,7 +1199,7 @@ int main()
         g_server = &server;
 
         runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, and teardown.\n");
+        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), and teardown.\n");
 
         g_server = nullptr;
         g_mir2xLog = nullptr;

@@ -45,6 +45,9 @@ end
 --
 -- closing the calling thread itself never returns, the thread ends right there like exit()
 -- it raises, and closes nothing, if called from a coroutine created in the thread, or where the thread can't yield
+--
+-- nor does closing a thread whose <close> handlers close the calling thread, the calling thread ends right after the close
+-- it raises then, after the close, if called where the calling thread can't end
 function closeThread(key, seqID)
     assertType(key, 'integer')
     assertType(seqID, 'integer', 'nil')
@@ -56,7 +59,21 @@ function closeThread(key, seqID)
             coroutine.yield()
         end
     end
+
+    _RSVD_NAME_endIfCloseRequested('closeThread()')
     return found
+end
+
+-- ends the calling thread here if it was asked to close while it ran, i.e. by a <close> handler of a thread it closed
+-- a call that runs code of other threads, and goes on after them, ends with this, as runThread() does
+-- raises if the thread can't end there, what names the call
+function _RSVD_NAME_endIfCloseRequested(what)
+    if _RSVD_NAME_closeRequested(what) then
+        -- resumeRunner() closes this thread at this yield, the loop is only a guard
+        while true do
+            coroutine.yield()
+        end
+    end
 end
 
 -- run func on a new thread under key right away, returns when the new thread yields the first time or ends

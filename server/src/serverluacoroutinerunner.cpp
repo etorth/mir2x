@@ -167,6 +167,19 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         closeRunner(m_currRunner);
     });
 
+    // true if the calling thread was asked to close while it ran, i.e. by a <close> handler of a thread it closed, the lua code yields to end it
+    // raises if it can't end there, what names the call it's in
+    bindFunction("_RSVD_NAME_closeRequested", [this](std::string what, sol::this_state s) -> bool
+    {
+        if(m_currRunner && m_currRunner->closeRequested && !m_currRunner->closing){
+            if(const auto reason = selfCloseError(s.lua_state())){
+                throw fflpanic("thread {}:{} closed during {}, but it can't end there, {} is called {}", to_llu(m_currRunner->key), to_llu(m_currRunner->seqID), what, what, reason);
+            }
+            return true;
+        }
+        return false;
+    });
+
     // lets setQuestState() check, before it changes anything, that it can start the new state runner
     bindFunction("_RSVD_NAME_checkThreadDepth", [this]()
     {

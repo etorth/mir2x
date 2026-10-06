@@ -334,7 +334,9 @@ local function _RSVD_NAME_closeQuestState(uid, fsm)
         if key == currKey then
             selfKey = key
         else
-            closeThread(key)
+            -- not closeThread(), which ends the caller right here if a <close> handler closed it, in the middle of a switch
+            -- setQuestState() ends it at its end instead
+            _RSVD_NAME_closeThread(key, 0)
         end
     end
     return selfKey
@@ -399,6 +401,7 @@ end
 -- closes the old state runner, and runs the new state function on a new state runner
 -- called by the old state runner itself, it never returns, the old state runner ends right there
 -- called by any other thread, i.e. for another uid or another fsm, it returns true
+-- unless the switch closed the caller too, i.e. by a <close> handler of the old state runner, then it never returns
 -- either way the <close> handlers of the old state runner run before the new state function
 -- unless the old state runner is on the C stack under the caller, i.e. it started the calling thread, then it's closed when the caller returns to it
 -- quest done, state SYS_DONE of SYS_QSTFSM, closes the state runners of all fsms of uid
@@ -565,6 +568,9 @@ function setQuestState(fargs)
     if selfKey then
         closeThread(selfKey)
     end
+
+    -- the closes above ran <close> handlers, which can have closed the caller, it ends here then, after the switch is done
+    _RSVD_NAME_endIfCloseRequested('setQuestState()')
     return true
 end
 
