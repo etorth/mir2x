@@ -20,6 +20,7 @@
 #include "processrun.hpp"
 #include "cerealf.hpp"
 #include "imeboard.hpp"
+#include "minimapboard.hpp"
 #include "gui/controlboard/controlboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
 #include "gui/auctionboard/auctionboard.hpp"
@@ -161,6 +162,7 @@ void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)
         m_actionBlocker.clear();
         getMyHero()->flushForcedMotion();
         loadMap(smA.mapUID, smA.action.x, smA.action.y);
+        dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))->onSwitchMap();
 
         // directly assign a stand motion
         // this need to skip all location validation

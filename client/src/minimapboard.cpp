@@ -384,38 +384,58 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 }
 
-void MiniMapBoard::flipAlpha()
+void MiniMapBoard::flipAlpha(std::optional<bool> alphaOpt)
 {
-    m_alphaOn = !m_alphaOn;
-    m_buttonAlpha     .setOff();
-    m_buttonExtend    .setOff();
-    m_buttonAutoCenter.setOff();
+    if(!alphaOpt.has_value() || alphaOpt.value() != m_alphaOn){
+        m_alphaOn = !m_alphaOn;
+        m_buttonAlpha     .setOff();
+        m_buttonExtend    .setOff();
+        m_buttonAutoCenter.setOff();
+    }
 }
 
-void MiniMapBoard::flipExtended()
+void MiniMapBoard::flipExtended(std::optional<bool> extendedOpt)
 {
-    m_extended = !m_extended;
-    m_buttonAlpha     .setOff();
-    m_buttonExtend    .setOff();
-    m_buttonAutoCenter.setOff();
+    if(!extendedOpt.has_value() || extendedOpt.value() != m_extended){
+        m_extended = !m_extended;
+        m_buttonAlpha     .setOff();
+        m_buttonExtend    .setOff();
+        m_buttonAutoCenter.setOff();
 
+        if(!m_autoCenter){
+            fixMapImagePLoc();
+            m_autoCenter = true;
+        }
+    }
+}
+
+void MiniMapBoard::flipAutoCenter(std::optional<bool> autoCenterOpt)
+{
+    if(!autoCenterOpt.has_value() || autoCenterOpt.value() != m_autoCenter){
+        if(m_autoCenter){
+            m_mapImage_dx = m_mapImage.dx();
+            m_mapImage_dy = m_mapImage.dy();
+        }
+
+        m_autoCenter = !m_autoCenter;
+        m_buttonAlpha     .setOff();
+        m_buttonExtend    .setOff();
+        m_buttonAutoCenter.setOff();
+    }
+}
+
+void MiniMapBoard::setZoomFactor(double zoomFactor)
+{
+    m_zoomFactor = std::clamp<double>(zoomFactor, 0.1, 10.0);
     if(!m_autoCenter){
         fixMapImagePLoc();
-        m_autoCenter = true;
     }
 }
 
-void MiniMapBoard::flipAutoCenter()
+void MiniMapBoard::onSwitchMap()
 {
-    if(m_autoCenter){
-        m_mapImage_dx = m_mapImage.dx();
-        m_mapImage_dy = m_mapImage.dy();
-    }
-
-    m_autoCenter = !m_autoCenter;
-    m_buttonAlpha     .setOff();
-    m_buttonExtend    .setOff();
-    m_buttonAutoCenter.setOff();
+    flipAutoCenter(true);
+    setZoomFactor(1.0);
 }
 
 void MiniMapBoard::drawCanvas(int drawDstX, int drawDstY)

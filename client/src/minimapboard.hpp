@@ -63,9 +63,15 @@ class MiniMapBoard: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void flipAlpha();
-        void flipExtended();
-        void flipAutoCenter();
+        void flipAlpha(std::optional<bool> = std::nullopt);
+        void flipExtended(std::optional<bool> = std::nullopt);
+        void flipAutoCenter(std::optional<bool> = std::nullopt);
+
+    public:
+        void setZoomFactor(double);
+
+    public:
+        void onSwitchMap();
 
     public:
         SDL_Texture *getMiniMapTexture() const;
