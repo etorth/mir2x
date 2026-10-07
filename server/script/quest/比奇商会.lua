@@ -1215,14 +1215,16 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         return
                     end
 
+                    -- @GIVE_TOOTH_3, checkjob warrior; legacy's text says 金创药 to everyone
+                    local warrior = server.player.hasJob(uid, '战士')
                     dialog.post(uid, questPath,
                     {
                         '您为病人们做了一件大好事！所以我会听从你的劝说加入王大人的比奇商会的，只好对不起崔大夫了！',
-                        '啊！对了，这是金创药，收下这个吧！急匆匆地走了这么远的路累坏了吧！喝了这个可以补充一下元气。',
+                        string.format('啊！对了，这是%s，收下这个吧！急匆匆地走了这么远的路累坏了吧！喝了这个可以补充一下元气。', warrior and '金创药' or '魔法药'),
                     },
                     dialog.link(SYS_EXIT, '谢谢！'))
 
-                    uidRemoteCall(uid, [=[ addItem(getItemID('金创药（特）'), 8) ]=])
+                    server.player.addItem(uid, warrior and '金创药（特）' or '魔法药（特）', 8)
                     uidRemoteCall(questUID, uid, getNPCMapName(false), getNPCName(false),
                     [=[
                         local playerUID, mapName, npcName = ...
