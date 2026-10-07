@@ -482,7 +482,33 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     end
                 end,
 
+                -- @INVITE_GUARD1_3, the soju first, given back if the switch is refused
                 npc_give_soju = function(uid, value)
+                    if not server.player.removeItem(uid, '烧酒', 1) then
+                        dialog.post(uid, questPath,
+                        {
+                            '难道已经喝光了吗？',
+                            '真扫兴！',
+                        },
+                        dialog.link(SYS_EXIT, '退出'))
+                        return
+                    end
+
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        if hasQuestFlag(playerUID, 'flag_done_query_guard_1') then
+                            return false
+                        end
+
+                        -- the flag first, the state it switches to reads it
+                        addQuestFlag(playerUID, 'flag_done_query_guard_1')
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={'quest_give_guard_1_soju', 'quest_wait_guard_1_and_guard_2_done'}, state='quest_wait_guard_1_and_guard_2_done'}
+                    ]=]) then
+                        server.player.addItem(uid, '烧酒', 1)
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '啊哈哈哈，真是谢谢你！',
@@ -514,16 +540,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
                 npc_ask_more_info = function(uid, value)
                     dialog.post(uid, questPath, '看在烧酒的面子上，我知道的就这些啦！想知道的更多，你也可以去问问其他的卫士。',
-                    dialog.link('npc_done_query_guard_1', '好的！', {close = true}))
-                end,
-
-                npc_done_query_guard_1 = function(uid, value)
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        addQuestFlag(playerUID, 'flag_done_query_guard_1')
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={'quest_give_guard_1_soju', 'quest_wait_guard_1_and_guard_2_done'}, state='quest_wait_guard_1_and_guard_2_done'}
-                    ]=])
+                    dialog.link(SYS_EXIT, '好的！'))
                 end,
             }
         ]])
@@ -601,16 +618,30 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     dialog.link('npc_guard_3_give_info', '请以后买点酒喝什么的吧！'))
                 end,
 
+                -- @INVITE_GUARD3_4_1, short of the gold he takes offence, as at 1000
                 npc_guard_3_give_info = function(uid, value)
-                    uidRemoteCall(questUID, uid,
+                    if not server.player.removeGold(uid, 100) then
+                        uidRemoteCall(questUID, uid, questName,
+                        [=[
+                            local playerUID, questName = ...
+                            setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_100_gold', state='quest_give_guard_3_1000_gold', exitfunc=function()
+                                runNPCEventHandler(getNPCharUID('比奇县_0', '休班卫士_3'), playerUID, {SYS_EPUID, questName}, SYS_ENTER)
+                            end}
+                        ]=])
+                        return
+                    end
+
+                    if not uidRemoteCall(questUID, uid,
                     {
                         [=[<par>哦？是嘛，哈哈哈！好吧，我来讲给你听。</par>]=],
                         [=[<par>唔<t wrap="0">···</t>这已经是我所知道的全部故事啦！</par>]=],
                     },
                     [=[
                         local playerUID, texts = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_100_gold', state='quest_guard_3_give_info', args=texts}
-                    ]=])
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_100_gold', state='quest_guard_3_give_info', args=texts}
+                    ]=]) then
+                        server.player.addItem(uid, SYS_GOLDNAME, 100)
+                    end
                 end,
             }
         ]])
@@ -655,12 +686,15 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     dialog.link('npc_guard_3_angry_4', '好吧<t wrap="0">···</t>', {close = true}))
                 end,
 
+                -- @INVITE_GUARD3_13, give 金币 1
                 npc_guard_3_angry_4 = function(uid, value)
-                    uidRemoteCall(questUID, uid,
+                    if uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_1000_gold', state='quest_give_guard_3_soju'}
-                    ]=])
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_1000_gold', state='quest_give_guard_3_soju'}
+                    ]=]) then
+                        server.player.addItem(uid, SYS_GOLDNAME, 1)
+                    end
                 end,
             }
         ]])
@@ -704,16 +738,24 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     end
                 end,
 
+                -- @INVITE_GUARD3_20
                 npc_guard_3_give_info = function(uid, value)
-                    uidRemoteCall(questUID, uid,
+                    if not server.player.removeItem(uid, '烧酒', 5) then
+                        runEventHandler(uid, questPath, SYS_ENTER)
+                        return
+                    end
+
+                    if not uidRemoteCall(questUID, uid,
                     {
                         [=[<par>好吧，我来讲给你听。</par>]=],
                         [=[<par>唔<t wrap="0">···</t>这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>]=],
                     },
                     [=[
                         local playerUID, texts = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_soju', state='quest_guard_3_give_info', args=texts}
-                    ]=])
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_give_guard_3_soju', state='quest_guard_3_give_info', args=texts}
+                    ]=]) then
+                        server.player.addItem(uid, '烧酒', 5)
+                    end
                 end,
             }
         ]])
@@ -929,7 +971,26 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     })
                 end,
 
+                -- @BUY_TOOTH_3, short of the gold legacy gives the teeth for free, here it goes as a short agreed price does
                 npc_pay_full_price = function(uid, value)
+                    if not server.player.removeGold(uid, 1000) then
+                        uidRemoteCall(questUID, uid,
+                        [=[
+                            local playerUID = ...
+                            setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_ENTER, state='quest_purchase_with_agreed_price', args=1000}
+                        ]=])
+                        return
+                    end
+
+                    if not uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_ENTER, state='quest_purchased_tooth'}
+                    ]=]) then
+                        server.player.addItem(uid, SYS_GOLDNAME, 1000)
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '很着急的样子啊！',
@@ -937,11 +998,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     },
                     dialog.link(SYS_EXIT, '好的'))
 
-                    uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from=SYS_ENTER, state='quest_purchased_tooth'}
-                    ]=])
+                    server.player.addItem(uid, '毒蛇牙齿', 10)
                 end,
 
                 npc_ask_for_discount = function(uid, value)
@@ -1006,7 +1063,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     [=[
                         local playerUID, questPath = ...
                         setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_purchase_with_free_price', exitfunc=function()
-                            runEventHandler(playerUID, questPath, SYS_ENTER)
+                            runNPCEventHandler(getNPCharUID('毒蛇山谷_2', '金中医_1'), playerUID, questPath, SYS_ENTER)
                         end}
                     ]=])
 
@@ -1131,17 +1188,30 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
         ]],
         [[
             local questUID, questName = ...
-            local questPath = {SYS_EPQST, questName}
+            local questPath = {SYS_EPUID, questName}
             local dialog = require('include.dialog')
 
             return
             {
+                -- @GIVE_TOOTH
                 [SYS_ENTER] = function(uid, value)
+                    if not server.player.removeItem(uid, '毒蛇牙齿', 10) then
+                        dialog.post(uid, questPath,
+                        {
+                            '啊？怎么回事？',
+                            '见了金中医为什么没带回所要的东西？',
+                            '情况紧急，要抓紧时间啊！',
+                        },
+                        dialog.link(SYS_EXIT, '退出'))
+                        return
+                    end
+
                     if not uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
                         return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchased_tooth', state=SYS_DONE}
                     ]=]) then
+                        server.player.addItem(uid, '毒蛇牙齿', 10)
                         return
                     end
 
