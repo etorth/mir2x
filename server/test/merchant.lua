@@ -430,7 +430,7 @@ for _, element in ipairs(jeweler.RUST_ELEMENTS) do
             contains(reward)
             assert(not state.xml:find('<event', 1, true))
         else
-            contains(base .. '(' .. element.name .. ').')
+            contains(reward .. '\u{3002}')
             contains('id="' .. SYS_EXIT .. '"')
         end
         call(element.tag)
