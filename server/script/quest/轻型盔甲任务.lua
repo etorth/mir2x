@@ -65,7 +65,23 @@ setQuestFSMTable(
 
             return
             {
+                -- @give_iron, the ore first, given back if the switch is refused
+                -- legacy also wants the ore pure enough, checkduraeva 铁矿 13, mir2x ore has no purity
                 [SYS_ENTER] = function(uid, args)
+                    if not server.player.removeItem(uid, '铁矿', 5) then
+                        dialog.post(uid, questPath, '还没有带来我要的铁矿啊！',
+                        {
+                            dialog.link('npc_where_to_get_iron', '去哪儿才能找到铁矿呢？'),
+                            dialog.link(SYS_EXIT, '结束'),
+                        })
+                        return
+                    end
+
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_got_iron', state=SYS_DONE}) then
+                        server.player.addItem(uid, '铁矿', 5)
+                        return
+                    end
+
                     dialog.post(uid, questPath,
                     {
                         '拿来铁矿了啊！嘻嘻，现在不用担心原料不足，可以稳定的供应顾客的需求啦！',
@@ -74,7 +90,18 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, from='quest_got_iron', state=SYS_DONE})
+                    server.player.addItem(uid, server.player.getGender(uid) and '耐久轻型盔甲（男）' or '耐久轻型盔甲（女）', 1)
+                end,
+
+                npc_where_to_get_iron = function(uid, args)
+                    dialog.post(uid, questPath,
+                    {
+                        '不知道就说不知道嘛！嗨<t wrap="0">···</t>',
+                        '先去武器店或铁匠铺买把鹤嘴锄，再去矿山就可以挖到各种矿石。',
+                        '从中挑出5个纯度在13以上的铁矿带给我就行。',
+                        '离这里最近的矿山是比奇矿区，可能去764:206附近就能找到入口。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
