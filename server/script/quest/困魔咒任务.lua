@@ -356,11 +356,13 @@ setQuestFSMTable(
 
     -- standing on the door with the first stone in hand
     quest_open_rooms = function(uid, args)
-        if not server.player.removeItem(uid, rooms[1].stone, 1) then
+        if not server.player.hasItem(uid, rooms[1].stone, 1) then
             server.player.postString(uid, rooms[1].need)
             setQuestState{uid = uid, state = SYS_ENTER}
             return
         end
+
+        server.player.removeItem(uid, rooms[1].stone, 1)
 
         if not enterRooms(uid) then
             setQuestState{uid = uid, state = SYS_ENTER}

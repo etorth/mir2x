@@ -145,26 +145,8 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    -- both materials in one call to the player, nothing comes between their check and their take
-                    if not uidRemoteCall(uid,
-                    [=[
-                        if not (hasItem(getItemID('牛毛'), 0, 1) and hasItem(getItemID('竹棍'), 0, 1)) then
-                            return false
-                        end
-
-                        removeItem(getItemID('牛毛'), 0, 1)
-                        removeItem(getItemID('竹棍'), 0, 1)
-                        return true
-                    ]=]) then
-                        dialog.post(uid, questPath, '找到苍蝇拍的材料的话我就会帮你做苍蝇拍！苍蝇拍所需的材料是牛毛和竹棍。牛毛可以从牛身上弄到，竹棍或许能从钉耙猫那儿弄到！',
-                        dialog.link(SYS_EXIT, '结束'))
-                        return
-                    end
-
                     -- the switch first, the 苍蝇拍 only for the visit that made it
                     if not server.quest.setState(questUID, {uid=uid, from='quest_complete_collection', state='quest_get_fly_swatter'}) then
-                        server.player.addItem(uid, '牛毛', 1)
-                        server.player.addItem(uid, '竹棍', 1)
                         return
                     end
 
@@ -179,6 +161,8 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '牛毛', 1)
+                    server.player.removeItem(uid, '竹棍', 1)
                     server.player.addItem(uid, getItemID('苍蝇拍'), 1)
                 end,
             }
@@ -199,9 +183,8 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    if server.player.removeItem(uid, getItemID('苍蝇拍'), 0, 1) then
+                    if server.player.hasItem(uid, getItemID('苍蝇拍'), 0, 1) then
                         if not server.quest.setState(questUID, {uid=uid, from='quest_get_fly_swatter', state=SYS_DONE}) then
-                            server.player.addItem(uid, getItemID('苍蝇拍'), 1)
                             return
                         end
 
@@ -212,7 +195,8 @@ setQuestFSMTable(
                         },
                         dialog.link(SYS_EXIT, '结束'))
 
-                        server.player.addItem(uid, getItemID('蝉翼刀'), 1)
+                        server.player.removeItem(uid, getItemID('苍蝇拍'), 0, 1)
+                        server.player.   addItem(uid, getItemID('蝉翼刀'), 1)
                     else
                         dialog.post(uid, questPath, '你给我带的苍蝇拍呢？',
                         dialog.link(SYS_EXIT, '结束'))

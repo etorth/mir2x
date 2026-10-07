@@ -412,18 +412,18 @@ setQuestFSMTable(
 
                 -- the 书信 to 皇甫 goes with the armour and the switch, a click on npc_hand_over again gives none
                 npc_take_armor = function(uid, value)
-                    if not server.player.removeItem(uid, '诺玛石', 5) then
+                    if not server.player.hasItem(uid, '诺玛石', 5) then
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_find_stones', state = 'quest_carry_reply'}) then
-                        server.player.addItem(uid, '诺玛石', 5)
                         return
                     end
 
                     dialog.post(uid, questPath, '就到这里，请上路吧！要走的路还很远哟。',
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '诺玛石', 5)
                     server.player.addItem(uid, server.player.getGender(uid) and '诺玛重盔甲（男）' or '诺玛重盔甲（女）', 1)
                     server.player.addItem(uid, '书信', 1)
                 end,

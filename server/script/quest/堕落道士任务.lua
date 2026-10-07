@@ -1009,23 +1009,11 @@ setQuestFSMTable(
                 end,
 
                 npc_take_charm = function(uid, args)
-                    -- both bones in one call to the player, nothing comes between their check and their take
-                    if not uidRemoteCall(uid,
-                    [=[
-                        if not (hasItem(getItemID('僧侣僵尸骨'), 0, 1) and hasItem(getItemID('雷电僵尸骨'), 0, 1)) then
-                            return false
-                        end
-
-                        removeItem(getItemID('僧侣僵尸骨'), 0, 1)
-                        removeItem(getItemID('雷电僵尸骨'), 0, 1)
-                        return true
-                    ]=]) then
+                    if not (server.player.hasItem(uid, '僧侣僵尸骨', 1) and server.player.hasItem(uid, '雷电僵尸骨', 1)) then
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_collect_bones', state='quest_final_fight'}) then
-                        server.player.addItem(uid, '僧侣僵尸骨', 1)
-                        server.player.addItem(uid, '雷电僵尸骨', 1)
                         return
                     end
 
@@ -1036,6 +1024,8 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '僧侣僵尸骨', 1)
+                    server.player.removeItem(uid, '雷电僵尸骨', 1)
                     server.player.addItem(uid, '毁灭护身符', 1)
                 end,
             }
@@ -1194,14 +1184,13 @@ setQuestFSMTable(
                 end,
 
                 npc_hand_token = function(uid, args)
-                    if not server.player.removeItem(uid, '不死牌', 1) then
+                    if not server.player.hasItem(uid, '不死牌', 1) then
                         dialog.post(uid, questPath, '不用担心不死牌也行啊！被我放在城内安全的保管着呢！',
                         dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_return_token', state=SYS_DONE}) then
-                        server.player.addItem(uid, '不死牌', 1)
                         return
                     end
 
@@ -1213,6 +1202,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '不死牌', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 20000)
                 end,
             }

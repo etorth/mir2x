@@ -96,7 +96,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_wesu_next4, take the plain book and hand back the 秘籍
         npc_take_book = function(uid, value)
             -- he checks again, you could have dropped it during the talk
-            if not server.player.removeItem(uid, bookName, 1) then
+            if not server.player.hasItem(uid, bookName, 1) then
                 dialog.post(uid, questPath, '有了<t color="red">基本剑术魔法书</t>，我就可以教你魔法。',
                 dialog.link(SYS_EXIT, '结束'))
                 return
@@ -104,13 +104,13 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- the switch first, a second click while this one runs gets nothing
             if not server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_DONE}) then
-                server.player.addItem(uid, bookName, 1)
                 return
             end
 
             dialog.post(uid, questPath, '你现在已经有基本剑术秘籍了，以前不理解的部分也可以理解了。',
             dialog.link(SYS_EXIT, '结束'))
 
+            server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)
         end,
     })

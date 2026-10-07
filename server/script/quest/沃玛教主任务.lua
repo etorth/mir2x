@@ -340,14 +340,8 @@ setQuestFSMTable(
                 end,
 
                 npc_sold_it = function(uid, args)
-                    if not server.player.removeItem(uid, '无名日志', 1) then
-                        runEventHandler(uid, questPath, SYS_ENTER)
-                        return
-                    end
-
                     -- the switch first, the rest only for the click that made it
                     if not server.quest.setState(questUID, {uid=uid, from='quest_find_hermit', state='quest_ask_wang'}) then
-                        server.player.addItem(uid, '无名日志', 1)
                         return
                     end
 
@@ -359,6 +353,8 @@ setQuestFSMTable(
                     '那可是非常重要的东西啊！' ..
                     '你只要能把它找来的话就会有除掉沃玛教主的办法了！',
                     dialog.link(SYS_EXIT, '结束'))
+
+                    server.player.removeItem(uid, '无名日志', 1)
                 end,
             }
         ]])
@@ -740,12 +736,11 @@ setQuestFSMTable(
                 end,
 
                 npc_show_bell = function(uid, args)
-                    if not server.player.removeItem(uid, '地狱神钟', 1) then
+                    if not server.player.hasItem(uid, '地狱神钟', 1) then
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_trade_bell', state='quest_hunt_orb'}) then
-                        server.player.addItem(uid, '地狱神钟', 1)
                         return
                     end
 
@@ -756,6 +751,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '地狱神钟', 1)
                     server.player.addItem(uid, '沃玛金牌', 1)
                 end,
             }
@@ -974,13 +970,7 @@ setQuestFSMTable(
                 end,
 
                 npc_tricked = function(uid, args)
-                    if not server.player.removeItem(uid, '灵魂明珠', 1) then
-                        runEventHandler(uid, questPath, 'npc_hand_orb')
-                        return
-                    end
-
                     if not server.quest.setState(questUID, {uid=uid, from='quest_meet_priest', state='quest_fight_escort'}) then
-                        server.player.addItem(uid, '灵魂明珠', 1)
                         return
                     end
 
@@ -990,6 +980,8 @@ setQuestFSMTable(
                         '呵呵呵<t wrap="0">···</t>弟兄们啊！收拾了这个家伙吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
+
+                    server.player.removeItem(uid, '灵魂明珠', 1)
                 end,
             }
         ]])

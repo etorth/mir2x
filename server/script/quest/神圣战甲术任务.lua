@@ -191,14 +191,13 @@ setQuestFSMTable(
 
                 -- @mugong_Upac_test_next, take 起爆石, then next3 or next4 on gender
                 npc_take_book = function(uid, value)
-                    if not server.player.removeItem(uid, '起爆石', 1) then
+                    if not server.player.hasItem(uid, '起爆石', 1) then
                         postLostStone(uid, '你丢了<t color="red">起爆石</t>？那我可没办法让你修炼神圣战甲术<t wrap="0">···</t>')
                         return
                     end
 
                     -- the switch first, the reward only for the click that made it
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_stone', state = SYS_DONE}) then
-                        server.player.addItem(uid, '起爆石', 1)
                         return
                     end
 
@@ -211,6 +210,7 @@ setQuestFSMTable(
                         dialog.link(SYS_EXIT, '结束'))
                     end
 
+                    server.player.removeItem(uid, '起爆石', 1)
                     server.player.addItem(uid, '神圣战甲术（秘籍）', 1)
                     server.player.addItem(uid, server.player.getGender(uid) and '神奇灵魂战衣（男）' or '神奇灵魂战衣（女）', 1)
                     server.player.addItem(uid, '八面太极戒指', 1)

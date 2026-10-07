@@ -580,14 +580,13 @@ setQuestFSMTable(
                 end,
 
                 npc_open_bottle = function(uid, args)
-                    if not server.player.removeItem(uid, '灵魂护卫', 1) then
+                    if not server.player.hasItem(uid, '灵魂护卫', 1) then
                         dialog.post(uid, questPath, '咦？那个葫芦瓶呢？',
                         dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_got_bottle', state='quest_liling_awake'}) then
-                        server.player.addItem(uid, '灵魂护卫', 1)
                         return
                     end
 
@@ -600,6 +599,7 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
+                    server.player.removeItem(uid, '灵魂护卫', 1)
                     server.player.addItem(uid, '牛肉', 5)
                     server.player.addItem(uid, SYS_GOLDNAME, 10000)
                 end,
