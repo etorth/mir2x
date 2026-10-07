@@ -205,7 +205,7 @@ setQuestFSMTable(
                             '真不错，那就用制魔宝玉交换吧！不过，那个童子形状的寿石你一定要小心，那里好像蕴藏了一些让人无从知晓的秘密。',
                         },
                         {
-                            dialog.link('npc_exchange_by_stone', '好嘞！'),
+                            dialog.link('npc_exchange_by_stone', '好嘞！', {close = true}),
                             dialog.link('npc_exchange_refuse', '我不想把这个给你。'),
                         })
                     else
@@ -219,11 +219,38 @@ setQuestFSMTable(
                     dialog.link('npc_exchange_by_money', '好嘞！'))
                 end,
 
+                -- @SOKMO_WONSENG_3_4, the payment first, given back if the switch is refused
+                npc_exchange_by_stone = function(uid, args)
+                    if not server.player.removeItem(uid, '制魔宝玉', 1) then
+                        runEventHandler(uid, questPath, 'npc_check_exchange')
+                        return
+                    end
+
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_buy_kid_stone', state='quest_got_kid_statue'}) then
+                        server.player.addItem(uid, '制魔宝玉', 1)
+                        return
+                    end
+
+                    server.player.addItem(uid, '童子像', 1)
+                end,
+
+                -- @SOKMO_WONSENG_3_4_1
                 npc_exchange_by_money = function(uid, args)
+                    if not server.player.removeGold(uid, 3000) then
+                        dialog.post(uid, questPath, '我倒是真有心想便宜卖给你，可你连钱都没有。你要真想要那个寿石，要么拿个稀罕玩意儿来，要么就拿<t color="red">3000金币</t>来。',
+                        dialog.link(SYS_EXIT, '结束'))
+                        return
+                    end
+
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_buy_kid_stone', state='quest_got_kid_statue'}) then
+                        server.player.addItem(uid, SYS_GOLDNAME, 3000)
+                        return
+                    end
+
                     dialog.post(uid, questPath, '真是大甩卖了。你到底知不知道那东西的价值啊？那玩意儿不是普通的东西，是蕴含着灵气的。你小心点弄它吧。',
                     dialog.link(SYS_EXIT, '知道了'))
 
-                    server.quest.setState(questUID, {uid=uid, from='quest_buy_kid_stone', state='quest_got_kid_statue'})
+                    server.player.addItem(uid, '童子像', 1)
                 end,
             }
         ]])
@@ -259,11 +286,23 @@ setQuestFSMTable(
 
             return
             {
+                -- @SOKMO_COMPLETE
                 [SYS_ENTER] = function(uid, args)
+                    if not server.player.removeItem(uid, '童子像', 1) then
+                        dialog.post(uid, questPath, '还没有找到我的孩子吗？',
+                        dialog.link(SYS_EXIT, '结束'))
+                        return
+                    end
+
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_got_kid_statue', state=SYS_DONE}) then
+                        server.player.addItem(uid, '童子像', 1)
+                        return
+                    end
+
                     dialog.post(uid, questPath, '啊啊，终于找回我的孩子了，真是太感谢了！这个虽然微薄，但也是我的一片心意！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, from='quest_got_kid_statue', state=SYS_DONE})
+                    server.player.addItem(uid, SYS_GOLDNAME, 3000)
                 end,
             }
         ]])

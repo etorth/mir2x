@@ -88,6 +88,25 @@ npc_take_book = function(uid, value)
 end,
 ```
 
+A payment, gold or an item the quest takes, goes before the switch and back if
+the switch was refused: taken after it, it could be spent by then, and the
+switch made for nothing.
+
+```lua
+npc_buy = function(uid, value)
+    if not server.player.removeGold(uid, 3000) then
+        return
+    end
+
+    if not server.quest.setState(questUID, {uid=uid, from='quest_buy', state='quest_bought'}) then
+        server.player.addItem(uid, SYS_GOLDNAME, 3000)
+        return
+    end
+
+    server.player.addItem(uid, '童子像', 1)
+end,
+```
+
 From code sent to the quest, return the result: `return setQuestState{...}`.
 A switch that runs a state function reading something the callback writes,
 i.e. a quest flag, writes it first. A reward with no switch gets a quest flag,
