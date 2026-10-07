@@ -122,12 +122,13 @@ setQuestFSMTable(
 
                 -- @mugong_asword_complete_next1, set [505]
                 npc_pour_wine = function(uid, value)
-                    if not server.player.hasItem(uid, '沃玛角', 1) then
+                    if not server.player.removeItem(uid, '沃玛角', 1) then
                         return
                     end
 
                     -- the switch first, the 战酒 only for the click that made it
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_horn', state = 'quest_got_wine'}) then
+                        server.player.addItem(uid, '沃玛角', 1)
                         return
                     end
 
@@ -140,7 +141,6 @@ setQuestFSMTable(
                     '没有什么特殊的理由。',
                     dialog.link(SYS_EXIT, '喝了战酒。'))
 
-                    server.player.removeItem(uid, '沃玛角', 1)
                     server.player.addItem(uid, '战酒', 1)
                 end,
             }

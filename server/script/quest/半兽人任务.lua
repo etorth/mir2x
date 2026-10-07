@@ -617,7 +617,7 @@ setQuestFSMTable(
                 end,
 
                 npc_hand_hammer = function(uid, args)
-                    if not server.player.hasItem(uid, '王铁匠的铁锤', 1) then
+                    if not server.player.removeItem(uid, '王铁匠的铁锤', 1) then
                         dialog.post(uid, questPath, '我的铁锤可能被这附近的其中一个半兽人拿着呢<t wrap="0">···</t>',
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -625,6 +625,7 @@ setQuestFSMTable(
 
                     -- the switch first, the reward only for the click that made it
                     if not server.quest.setState(questUID, {uid=uid, from='quest_got_hammer', state='quest_find_horn'}) then
+                        server.player.addItem(uid, '王铁匠的铁锤', 1)
                         return
                     end
 
@@ -635,7 +636,6 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '王铁匠的铁锤', 1)
                     server.player.addItem(uid, '青铜斧', 1)
                 end,
             }
@@ -899,18 +899,17 @@ setQuestFSMTable(
                 end,
 
                 npc_hand_half = function(uid, args)
-                    if not server.player.hasItem(uid, '半块不死牌', 1) then
+                    if not server.player.removeItem(uid, '半块不死牌', 1) then
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_return_token', state='quest_fetch_scholar'}) then
+                        server.player.addItem(uid, '半块不死牌', 1)
                         return
                     end
 
                     dialog.post(uid, questPath, '快去把云发先生带来！',
                     dialog.link(SYS_EXIT, '结束'))
-
-                    server.player.removeItem(uid, '半块不死牌', 1)
                 end,
             }
         ]])
@@ -1297,7 +1296,7 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '呈交不死牌',
                 [SYS_ENTER] = function(uid, args)
-                    if not server.player.hasItem(uid, '不死牌', 1) then
+                    if not server.player.removeItem(uid, '不死牌', 1) then
                         dialog.post(uid, questPath,
                         {
                             '你说处死了骷髅精灵，可是却没有找到不死牌？',
@@ -1308,6 +1307,7 @@ setQuestFSMTable(
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_final', state=SYS_DONE}) then
+                        server.player.addItem(uid, '不死牌', 1)
                         return
                     end
 
@@ -1320,7 +1320,6 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '不死牌', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 30000)
                 end,
             }

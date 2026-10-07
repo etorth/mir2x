@@ -213,7 +213,7 @@ setQuestFSMTable(
                 end,
 
                 npc_hand_gall = function(uid, args)
-                    if not server.player.hasItem(uid, '千年毒蛇胆汁', 1) then
+                    if not server.player.removeItem(uid, '千年毒蛇胆汁', 1) then
                         dialog.post(uid, questPath, '咦？你说的药呢？',
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -221,6 +221,7 @@ setQuestFSMTable(
 
                     -- the switch first, the 镯子 only for the click that made it
                     if not server.quest.setState(questUID, {uid=uid, from='quest_got_gall', state=SYS_DONE}) then
+                        server.player.addItem(uid, '千年毒蛇胆汁', 1)
                         return
                     end
 
@@ -231,7 +232,6 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '千年毒蛇胆汁', 1)
                     server.player.addItem(uid, '波纹手镯', 1)
                 end,
             }

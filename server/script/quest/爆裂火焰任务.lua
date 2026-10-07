@@ -131,19 +131,19 @@ setQuestFSMTable(
 
                 -- @mugong_fireware_complete_next, SET [528]
                 npc_brew = function(uid, value)
-                    if not server.player.hasItem(uid, '七点白蛇胆', 1) then
+                    if not server.player.removeItem(uid, '七点白蛇胆', 1) then
                         return
                     end
 
                     -- the switch first, the potion only for the click that made it
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_gall', state = 'quest_got_potion'}) then
+                        server.player.addItem(uid, '七点白蛇胆', 1)
                         return
                     end
 
                     dialog.post(uid, questPath, '喂，这里有药水。这个药水是用你拿来的<t color="red">胆汁制成的</t>。你吃药的过程中，我将准备武功秘籍。',
                     dialog.link(SYS_EXIT, '下一步'))
 
-                    server.player.removeItem(uid, '七点白蛇胆', 1)
                     server.player.addItem(uid, '胆汁', 1)
                 end,
             }

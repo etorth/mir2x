@@ -115,10 +115,18 @@ local function setupTailor(uid)
             -- @mugong_lightline_suzi_man1 / _wman1: the 树脂 in your pack and the robe on your
             -- back, both, and the man branch calls you by name where the woman branch does not
             npc_coat = function(uid, value)
-                local worn = server.player.getWLItem(uid, WLG_DRESS)
-                local wearingRobe = worn ~= nil and worn.itemID == getItemID(robeName)
+                -- both go in whether or not it works, in one call to the player: nothing comes between their check and their take
+                if not uidRemoteCall(uid, getItemID(robeName),
+                [=[
+                    local robeID = ...
+                    local worn = getWLItem(WLG_DRESS)
+                    if not (worn and worn.itemID == robeID and hasItem(getItemID('树脂'), 0, 1)) then
+                        return false
+                    end
 
-                if not (server.player.hasItem(uid, '树脂', 1) and wearingRobe) then
+                    removeItem(getItemID('树脂'), 0, 1)
+                    return removeWearItem(WLG_DRESS)
+                ]=]) then
                     if server.player.getGender(uid) then
                         dialog.post(uid, questPath,
                         {
@@ -141,12 +149,10 @@ local function setupTailor(uid)
                 -- SET [523] 0 sends you back to the caves for another 树脂, SET [524] goes on
                 local coated = (math.random(2) == 1)
                 if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_resin', state = coated and 'quest_find_stone' or SYS_ENTER}) then
+                    server.player.addItem(uid, '树脂', 1)
+                    server.player.addItem(uid, robeName, 1)
                     return
                 end
-
-                -- both go in whether or not it works
-                server.player.removeItem(uid, '树脂', 1)
-                server.player.removeWearItem(uid, WLG_DRESS)
 
                 if not coated then
                     dialog.post(uid, questPath, '这个怎么办<t wrap="0">···</t>涂树脂的过程中<t color="red">将衣服破坏了<t wrap="0">···</t></t>这如何是好<t wrap="0">···</t>对不起<t wrap="0">···</t>如果重新再找到的话，我再给你做。',
@@ -269,19 +275,19 @@ setQuestFSMTable(
 
                 -- @mugong_lightline_test_next1 and next2
                 npc_take_book = function(uid, value)
-                    if not server.player.hasItem(uid, '闪电石', 1) then
+                    if not server.player.removeItem(uid, '闪电石', 1) then
                         postLostStone(uid)
                         return
                     end
 
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_stone', state = SYS_DONE}) then
+                        server.player.addItem(uid, '闪电石', 1)
                         return
                     end
 
                     dialog.post(uid, questPath, '辛苦了！这里有疾光电影秘籍，请看着练习就可以了。以后要修炼的武功还很多，别骄傲，请继续练习！',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '闪电石', 1)
                     server.player.addItem(uid, '疾光电影（秘籍）', 1)
                     server.player.deliverGold(uid, 26000)
                     server.player.addItem(uid, '月光石手镯', 1)

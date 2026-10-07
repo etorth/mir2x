@@ -1033,28 +1033,23 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
         [[
             local playerUID, askedGold, questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
-            local currGold = uidRemoteCall(playerUID, [=[ return getGold() ]=])
             local dialog = require('include.dialog')
 
-            if currGold >= askedGold then
+            if server.player.removeGold(playerUID, askedGold) then
                 -- the switch first, a replay of this state at login meanwhile doesn't buy twice
                 if not uidRemoteCall(questUID, playerUID,
                 [=[
                     local playerUID = ...
                     return setQuestState{uid=playerUID, fsm=fsmName_persuade_pharmacist, from='quest_purchase_with_agreed_price', state='quest_purchased_tooth'}
                 ]=]) then
+                    server.player.addItem(playerUID, SYS_GOLDNAME, askedGold)
                     return
                 end
 
                 dialog.post(playerUID, '东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！',
                 dialog.link(SYS_EXIT, '好的'))
 
-                uidRemoteCall(playerUID, askedGold,
-                [=[
-                    local askedGold = ...
-                    removeItem(getItemID(SYS_GOLDNAME), 0, askedGold)
-                    addItem(getItemID('毒蛇牙齿'), 10)
-                ]=])
+                server.player.addItem(playerUID, '毒蛇牙齿', 10)
 
             else
                 local rand = math.random(0, 100)

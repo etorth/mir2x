@@ -97,20 +97,20 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_fireball_next4, take the plain book and hand back the 秘籍
         npc_take_book = function(uid, value)
-            if not server.player.hasItem(uid, bookName, 1) then
+            if not server.player.removeItem(uid, bookName, 1) then
                 postNeedBook(uid)
                 return
             end
 
             -- the switch first, a second click while this one runs gets nothing
             if not server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_DONE}) then
+                server.player.addItem(uid, bookName, 1)
                 return
             end
 
             dialog.post(uid, questPath, '现在你已经有了火球术秘籍，以前不理解的地方现在都可以理解了。',
             dialog.link(SYS_EXIT, '结束'))
 
-            server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)
         end,
     })

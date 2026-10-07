@@ -125,19 +125,19 @@ setQuestFSMTable(
 
                 -- @mugong_hangma_getring_next, take 灵珠 / give 无名药, SET [511]
                 npc_brew = function(uid, value)
-                    if not server.player.hasItem(uid, '灵珠', 1) then
+                    if not server.player.removeItem(uid, '灵珠', 1) then
                         return
                     end
 
                     -- the switch first, the potion only for the click that made it
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_got_pearl', state = 'quest_got_potion'}) then
+                        server.player.addItem(uid, '灵珠', 1)
                         return
                     end
 
                     dialog.post(uid, questPath, '好的，请喝<t color="red">药水</t>。这个药是用你拿来的灵珠和其它灵验的药材一起加工制成的珍贵药。这个药可以大力提高内力，吃了这个药，在修炼武功的时候不会发生走火入魔的事情。',
                     dialog.link(SYS_EXIT, '不，如何承受得了这种辛苦？'))
 
-                    server.player.removeItem(uid, '灵珠', 1)
                     server.player.addItem(uid, '无名药', 1)
                 end,
             }

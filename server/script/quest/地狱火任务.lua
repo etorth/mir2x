@@ -247,7 +247,7 @@ setQuestFSMTable(
 
                 -- @mugong_fireline_complete_next, and the checkbaggage of next1
                 npc_take_book = function(uid, value)
-                    if not server.player.hasItem(uid, '新火镜', 1) then
+                    if not server.player.removeItem(uid, '新火镜', 1) then
                         dialog.post(uid, questPath, '我把非常辛苦找到的新火镜放在哪儿了？',
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -255,6 +255,7 @@ setQuestFSMTable(
 
                     -- the switch first, the reward only for the click that made it
                     if not server.quest.setState(questUID, {uid = uid, from = 'quest_trial_passed', state = SYS_DONE}) then
+                        server.player.addItem(uid, '新火镜', 1)
                         return
                     end
 
@@ -265,7 +266,6 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '新火镜', 1)
                     server.player.addItem(uid, '地狱火（秘籍）', 1)
                     server.player.addItem(uid, '焰火手镯', 1)
                     server.player.deliverGold(uid, 16000)
