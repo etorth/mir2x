@@ -114,7 +114,7 @@ corof::awaitable<> Player::net_CM_REQUESTADDHP(uint8_t, const uint8_t *buf, size
 corof::awaitable<> Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRAE = ClientMsg::conv<CMRequestAddExp>(buf);
-    gainExp(to_d(cmRAE.addExp));
+    gainExp(cmRAE.addExp);
     return {};
 }
 
@@ -1306,7 +1306,7 @@ corof::awaitable<> Player::net_CM_QUERYRANKING(uint8_t, const uint8_t *buf, size
         sdRL.entries.push_back(SDRankingEntry
         {
             .dbid  = check_cast<uint32_t>(query.getColumn("fld_dbid").getInt64()),
-            .level = to_u32(SYS_LEVEL(check_cast<size_t>(query.getColumn("fld_exp").getInt64()))),
+            .level = std::get<0>(SYS_LEVEL(check_cast<size_t>(query.getColumn("fld_exp").getInt64()))),
             .gold  = check_cast<uint32_t>(query.getColumn("fld_gold").getInt64()),
             .name  = query.getColumn("fld_name").getString(),
         });

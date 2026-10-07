@@ -77,7 +77,7 @@ struct SDInitPlayer
     int hp = 0;
     int mp = 0;
 
-    int exp = 0;
+    size_t exp = 0;
     int gold = 0;
     bool gender = true;
     int job = 0;

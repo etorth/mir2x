@@ -53,7 +53,7 @@ class Player final: public BattleObject
         std::optional<uint32_t> m_channID;
 
     protected:
-        uint32_t m_exp;
+        size_t m_exp;
 
     protected:
         bool m_gender;
@@ -128,7 +128,7 @@ class Player final: public BattleObject
         corof::awaitable<> onActivate() override;
 
     protected:
-        uint32_t exp() const
+        size_t exp() const
         {
             return m_exp;
         }
@@ -140,7 +140,7 @@ class Player final: public BattleObject
 
         uint32_t level() const
         {
-            return to_u32(SYS_LEVEL(exp()));
+            return std::get<0>(SYS_LEVEL(exp()));
         }
 
         std::string name() const
@@ -397,7 +397,7 @@ class Player final: public BattleObject
         }
 
     protected:
-        void gainExp(int);
+        void gainExp(size_t);
 
     protected:
         bool CanPickUp(uint32_t, uint32_t);

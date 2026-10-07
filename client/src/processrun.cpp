@@ -1303,11 +1303,17 @@ void ProcessRun::RegisterUserCommand()
     {
         if(parms.size() >= 2){
             if(const auto addLevel = std::stoi(parms.at(1)); addLevel > 0){
-                requestAddExp(to_u64(SYS_SUMEXP(getMyHero()->getLevel() + addLevel) - getMyHero()->getExp()));
-                return 0;
+                if(const auto newLevel = getMyHero()->getLevel() + to_u32(addLevel); newLevel <= SYS_MAXLEVEL){
+                    requestAddExp(to_u64(SYS_SUMEXP(newLevel) - getMyHero()->getExp()));
+                    return 0;
+                }
+                else{
+                    addCBLog(CBLOG_ERR, u8"Invalid level: %d", to_d(newLevel));
+                    return 1;
+                }
             }
             else{
-                addCBLog(CBLOG_ERR, u8"Invalid level: %s", parms.at(1).c_str());
+                addCBLog(CBLOG_ERR, u8"Invalid argument: %s", parms.at(1).c_str());
                 return 1;
             }
         }

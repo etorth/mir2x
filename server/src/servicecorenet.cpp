@@ -85,7 +85,7 @@ corof::awaitable<> ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, cons
     smQCOK.name.assign((std::string)(queryChar.getColumn("fld_name")));
     smQCOK.gender = queryChar.getColumn("fld_gender");
     smQCOK.job = queryChar.getColumn("fld_job");
-    smQCOK.exp = queryChar.getColumn("fld_exp");
+    smQCOK.exp = to_uz(queryChar.getColumn("fld_exp").getInt64());
     m_actorPod->postNet(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK), respID);
     return {};
 }
@@ -132,7 +132,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .y         = mapY,
         .hp        = queryChar.getColumn("fld_hp"),
         .mp        = queryChar.getColumn("fld_mp"),
-        .exp       = queryChar.getColumn("fld_exp"),
+        .exp       = to_uz(queryChar.getColumn("fld_exp").getInt64()),
         .gold      = queryChar.getColumn("fld_gold"),
         .gender    = queryChar.getColumn("fld_gender").getUInt() > 0,
         .job       = queryChar.getColumn("fld_job"),

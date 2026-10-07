@@ -358,7 +358,8 @@ corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
         m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(mpk.from())));
     }
 
-    gainExp(amE.exp);
+    fflassert(amE.exp >= 0, amE.exp);
+    gainExp(to_uz(amE.exp));
     return {};
 }
 

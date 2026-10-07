@@ -203,7 +203,7 @@ void ProcessSelectChar::drawCharName() const
         std::u8string xmlStr;
         xmlStr += str_printf(u8R"###( <layout> )###""\n");
         xmlStr += str_printf(u8R"###(     <par color='RGB(237,226,200)'>角色：%s</par> )###""\n", to_cstr(name));
-        xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(SYS_LEVEL(exp)));
+        xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(std::get<0>(SYS_LEVEL(exp))));
         for(const auto jobStr: jobf::jobName(m_smChar.value().job)){
             xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobStr));
         }

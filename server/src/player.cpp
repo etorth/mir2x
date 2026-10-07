@@ -497,7 +497,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
 Player::Player(const SDInitPlayer &initParam)
     : BattleObject(uidf::getPlayerUID(initParam.dbid), initParam.mapUID, initParam.x, initParam.y, DIR_DOWN)
-    , m_exp(initParam.exp)
+    , m_exp(std::min<size_t>(initParam.exp, SYS_SUMEXP(SYS_MAXLEVEL)))
     , m_gender(initParam.gender)
     , m_job(initParam.job)
     , m_name(initParam.name)
@@ -1832,18 +1832,21 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
     }
 }
 
-void Player::gainExp(int addedExp)
+void Player::gainExp(size_t addedExp)
 {
-    if(addedExp <= 0){
+    const auto maxExp = SYS_SUMEXP(SYS_MAXLEVEL);
+    if(addedExp == 0 || m_exp >= maxExp){
         return;
     }
+
+    addedExp = std::min<size_t>(addedExp, maxExp - m_exp);
 
     const auto oldLevel = level();
     const auto oldMaxHP = maxHP();
     const auto oldMaxMP = maxMP();
 
     m_exp += addedExp;
-    m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINEXP, %d)", addedExp));
+    m_luaRunner->spawn(m_threadKey++, std::format("_RSVD_NAME_trigger(SYS_ON_GAINEXP, {})", addedExp));
 
     const auto addedMaxHP = std::max<int>(maxHP() - oldMaxHP, 0);
     const auto addedMaxMP = std::max<int>(maxMP() - oldMaxMP, 0);
@@ -1852,7 +1855,7 @@ void Player::gainExp(int addedExp)
     postExp();
 
     if(level() > oldLevel){
-        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())));
+        m_luaRunner->spawn(m_threadKey++, std::format("_RSVD_NAME_trigger(SYS_ON_LEVELUP, {}, {})", oldLevel, level()));
     }
 
     if(addedMaxHP > 0 || addedMaxMP > 0){

@@ -8,7 +8,7 @@
 class MyHero: public Hero
 {
     private:
-        uint32_t m_exp = 0;
+        size_t m_exp = 0;
 
     private:
         std::unordered_map<uint32_t, uint64_t> m_lastCastTime;
@@ -68,12 +68,12 @@ class MyHero: public Hero
         void clearActionQueue();
 
     public:
-        uint32_t getExp() const
+        size_t getExp() const
         {
             return m_exp;
         }
 
-        void setExp(uint32_t exp)
+        void setExp(size_t exp)
         {
             m_exp = exp;
         }
@@ -91,17 +91,13 @@ class MyHero: public Hero
     public:
         uint32_t getLevel() const
         {
-            return SYS_LEVEL(getExp());
+            return std::get<0>(SYS_LEVEL(getExp()));
         }
 
         double getLevelRatio() const
         {
-            if(const auto level = getLevel(); level == 0){
-                return to_df(getExp()) / SYS_EXP(0);
-            }
-            else{
-                return to_df(getExp() - SYS_SUMEXP(level - 1)) / SYS_EXP(level);
-            }
+            const auto level = SYS_LEVEL(getExp());
+            return to_df(std::get<1>(level)) / std::get<2>(level);
         }
 
     public:

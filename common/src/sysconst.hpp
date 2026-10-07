@@ -1,7 +1,10 @@
 #pragma once
-#include <vector>
 #include <cstdint>
 #include <cstddef>
+#include <tuple>
+#include <vector>
+#include <ranges>
+#include <algorithm>
 #include <type_traits>
 
 #ifdef MIR2X_DEBUG_MODE
@@ -186,30 +189,44 @@ constexpr char SYS_FLAGVAL[] = "_RSVD_NAME_FLAG_VAL_8192362390";
 constexpr char SYS_AFRESP[] = "_RSVD_NAME_AFRESP_8368138412597";
 constexpr char SYS_DELIVERY[] = "_RSVD_NAME_DELIVERY_5639021748316";
 
-constexpr inline size_t SYS_SUMEXP(uint32_t level)
+constexpr uint32_t SYS_MAXLEVEL = 1024;
+constexpr size_t SYS_SUMEXP(uint32_t level) // how much exp is needed to reach level from 0
 {
-    const size_t a =  100;
-    const size_t b =  100;
-    const size_t c =  100;
-    const size_t d = 1000;
+    if(level == 0){
+        return 0;
+    }
 
+    constexpr size_t a =  100;
+    constexpr size_t b =  100;
+    constexpr size_t c =  100;
+    constexpr size_t d = 1000;
     return a * level * level * level + b * level * level + c * level + d;
 }
 
-constexpr size_t SYS_EXP(uint32_t level)
-{
-    if(level == 0){
-        return SYS_SUMEXP(level);
-    }
-    return SYS_SUMEXP(level) - SYS_SUMEXP(level - 1);
-}
+static_assert(SYS_SUMEXP(SYS_MAXLEVEL    ) <= SIZE_MAX);
+static_assert(SYS_SUMEXP(SYS_MAXLEVEL + 1) <= SIZE_MAX);
 
-constexpr inline uint32_t SYS_LEVEL(size_t exp)
+constexpr std::tuple<uint32_t, size_t, size_t> SYS_LEVEL(size_t exp)
 {
-    for(uint32_t level = 0;; ++level){
-        if(SYS_SUMEXP(level) > exp){
-            return level;
-        }
+    if(const auto maxExp = SYS_SUMEXP(SYS_MAXLEVEL); exp >= maxExp){
+        return
+        {
+            SYS_MAXLEVEL,
+            0,
+            SYS_SUMEXP(SYS_MAXLEVEL + 1) - maxExp,
+        };
     }
-    return 0;
+
+    auto levelView = std::views::iota(UINT32_C(0), SYS_MAXLEVEL + 1);
+    auto levelIter = std::ranges::upper_bound(levelView, exp, {}, SYS_SUMEXP);
+
+    const auto level = (levelIter == levelView.begin()) ? UINT32_C(0) : (*levelIter - 1);
+    const auto base = SYS_SUMEXP(level);
+
+    return
+    {
+        level,
+        exp                   - base,
+        SYS_SUMEXP(level + 1) - base,
+    };
 }

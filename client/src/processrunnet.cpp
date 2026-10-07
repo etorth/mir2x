@@ -370,7 +370,7 @@ void ProcessRun::on_SM_DEADFADEOUT(const uint8_t *bufPtr, size_t)
 void ProcessRun::on_SM_EXP(const uint8_t *buf, size_t)
 {
     const auto smExp = ServerMsg::conv<SMExp>(buf);
-    const uint32_t currExp = getMyHero()->getExp();
+    const auto currExp = getMyHero()->getExp();
 
     getMyHero()->setExp(smExp.exp);
     if((smExp.exp > currExp) && (currExp > 0)){

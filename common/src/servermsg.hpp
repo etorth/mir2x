@@ -142,7 +142,7 @@ struct SMQueryCharOK
     StaticBuffer<SYS_NAMESIZE> name;
     uint8_t gender;
     uint8_t job;
-    uint32_t exp;
+    uint64_t exp;
 };
 
 struct SMQueryCharError
@@ -232,7 +232,7 @@ struct SMDeadFadeOut
 
 struct SMExp
 {
-    uint32_t exp;
+    uint64_t exp;
 };
 
 struct SMBuff
