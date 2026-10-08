@@ -47,7 +47,7 @@ corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     // when CO initially sends a message to NPC, we assume its UID is the callStackUID
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
-    if(false
+    if(!utf8f::valid(sdNPCE.event) // caused by repeat-clicks
             || sdNPCE.event == SYS_EXIT
             || sdNPCE.event == SYS_NPCERROR){
         m_luaRunner->close(mpk.from());
