@@ -1,41 +1,62 @@
+-- These merchants call BackGround/bichun.txt @BackLog_BC_M1 in the original scripts.
+local merchantList =
+{
+    '金氏_1',
+    '肉店老板_1',
+    '阿康_1',
+    '老张_1',
+    '怡美_1',
+    '慧媛_1',
+    '药店老板_1',
+    '恩英_1',
+    '药剂师_1',
+    '杂货商_1',
+    '世玉_1',
+    '酒娘_1',
+    '太俊_1',
+}
+
 setQuestFSMTable(
 {
     [SYS_ENTER] = function(uid, args)
-        setupNPCQuestBehavior('比奇县_0', '世玉_1', uid,
-        [[
-            return getUID(), getQuestName()
-        ]],
-        [[
-            local questUID, questName = ...
-            local questPath = {SYS_EPUID, questName}
-            local dialog = require('include.dialog')
+        for _, merchant in ipairs(merchantList) do
+            setupNPCQuestBehavior('比奇县_0', merchant, uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                local dialog = require('include.dialog')
 
-            return
-            {
-                [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '对不起，本店不接受这种证书。',
-                    dialog.link('npc_ask', '为什么？'))
-                end,
+                return
+                {
+                    [SYS_ENTER] = function(uid, args)
+                        dialog.post(uid, questPath, '对不起，本店不接受这种证书。',
+                        dialog.link('npc_ask', '为什么？'))
+                    end,
 
-                npc_ask = function(uid, args)
-                    dialog.post(uid, questPath,
-                    '看来你不了解给你证书的人。' ..
-                    '洪气霖一生坎坷，他家经营的店铺原本在比奇县一带很有名望，但自从他们家的货船失事以后，他们家族就没落了。' ..
-                    '虽然我知道洪家的处境很艰难，但我们也不能因此而蒙受损失啊，所以我们不能接受这种证书。',
-                    dialog.link('npc_who_accept', '那这证书怎么办？'))
-                end,
+                    npc_ask = function(uid, args)
+                        dialog.post(uid, questPath,
+                        '看来你不了解给你证书的人。' ..
+                        '洪气霖一生坎坷，他家经营的店铺原本在比奇县一带很有名望，但自从他们家的货船失事以后，他们家族就没落了。' ..
+                        '虽然我知道洪家的处境很艰难，但我们也不能因此而蒙受损失啊，所以我们不能接受这种证书。',
+                        dialog.link('npc_who_accept', '那这证书怎么办？'))
+                    end,
 
-                npc_who_accept = function(uid, args)
-                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>首饰店所蒙受的损失少一点，说不定他们会接受。',
-                    dialog.link(SYS_EXIT, '结束'))
+                    npc_who_accept = function(uid, args)
+                        dialog.post(uid, questPath, '嗯<t wrap="0">···</t>首饰店所蒙受的损失少一点，说不定他们会接受。',
+                        dialog.link(SYS_EXIT, '结束'))
 
-                    server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_ask_jewelry'})
-                end,
-            }
-        ]])
+                        server.quest.setState(questUID, {uid=uid, from=SYS_ENTER, state='quest_ask_jewelry'})
+                    end,
+                }
+            ]])
+        end
     end,
 
     quest_ask_jewelry = function(uid, args)
+        setQuestDesp{uid=uid, '听比奇商人的话，去找首饰店恩实。'}
         setupNPCQuestBehavior('比奇县_0', '恩实_1', uid,
         [[
             return getUID(), getQuestName()
@@ -54,7 +75,7 @@ setQuestFSMTable(
                         '那么你知道关于洪气霖这个人的事儿吗？' ..
                         '真是越想越觉得蹊跷！' ..
                         '抛弃好好的家，过着四处流浪的生活。' ..
-                        '好不容易遇到知己，结为百年好合<t wrap="0">···</t>但是因为这家伙是土匪和妻子分手了。' ..
+                        '好不容易遇到知己，结为百年好合<t wrap="0">···</t>但是因为这家伙却因为家乡闹土匪和妻子分开了。' ..
                         '两个人分手的时候约定在比奇省这儿见面，于是就遵照约定这样一直在这儿等下去<t wrap="0">···</t>啧啧<t wrap="0">···</t>',
                     },
                     dialog.link('npc_ask_more', '那么还知道关于这个人其他的什么事儿吗？'))
@@ -177,7 +198,18 @@ setQuestFSMTable(
                 end,
 
                 npc_give_ring = function(uid, args)
+                    if server.quest.getState(questUID, {uid=uid}) ~= 'quest_ask_husband' then
+                        return
+                    end
+
+                    if not server.player.removeItem(uid, '玉指环', 1) then
+                        dialog.post(uid, questPath, '没有带着玉指环吗？请把指环带来还给我吧。',
+                        dialog.link(SYS_EXIT, '结束'))
+                        return
+                    end
+
                     if not server.quest.setState(questUID, {uid=uid, from='quest_ask_husband', state=SYS_DONE}) then
+                        server.player.addItem(uid, '玉指环', 1)
                         return
                     end
 
@@ -213,24 +245,30 @@ setQuestFSMTable(
     end,
 })
 
-uidRemoteCall(getNPCharUID('比奇县_0', '世玉_1'), getUID(), getQuestName(),
-[[
-    local questUID, questName = ...
-    setQuestHandler(questName,
-    {
-        [SYS_CHECKACTIVE] = function(uid)
-            if not server.player.hasItem(uid, getItemID('气霖证书'), 0, 1) then
-                return false
-            end
+for _, merchant in ipairs(merchantList) do
+    uidRemoteCall(getNPCharUID('比奇县_0', merchant), getUID(), getQuestName(),
+    [[
+        local questUID, questName = ...
+        setQuestHandler(questName,
+        {
+            [SYS_CHECKACTIVE] = function(uid)
+                if server.player.getLevel(uid) < 5
+                    or server.player.getQuestState(uid, '乞丐任务') ~= SYS_DONE
+                    or not server.player.dbHasFlag(uid, 'done_quest_乞丐任务_pay_on_behalf')
+                    or not server.player.hasItem(uid, '气霖证书', 1) then
+                    return false
+                end
 
-            return server.quest.getState(questUID, {uid=uid, fsm=SYS_QSTFSM}) == nil
-        end,
+                return server.quest.getState(questUID, {uid=uid, fsm=SYS_QSTFSM}) == nil
+            end,
 
-        [SYS_ENTER] = function(uid, args)
-            server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER, exitargs=table.pack(getUID(), uid, questName), exitfunc=[=[
-                local npcUID, playerUID, questName = ...
-                runNPCEventHandler(npcUID, playerUID, {SYS_EPUID, questName}, SYS_ENTER)
-            ]=]})
-        end,
-    })
-]])
+            [SYS_ENTER] = function(uid, args)
+                server.quest.setState(questUID, {uid=uid, from=SYS_LUANIL, state=SYS_ENTER, exitargs=table.pack(getUID(), uid, questName), exitfunc=
+                [=[
+                    local npcUID, playerUID, questName = ...
+                    runNPCEventHandler(npcUID, playerUID, {SYS_EPUID, questName}, SYS_ENTER)
+                ]=]})
+            end,
+        })
+    ]])
+end
