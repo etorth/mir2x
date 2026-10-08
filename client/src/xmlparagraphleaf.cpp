@@ -63,7 +63,6 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
                   }
           }
       }())
-    , m_event(BEVENT_OFF)
 {
     if(type() == LEAF_UTF8STR){
         m_utf8CharOff = utf8f::buildUTF8Off(utf8Text());
@@ -101,15 +100,48 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     }
 }
 
-int XMLParagraphLeaf::markEvent(int event)
+void XMLParagraphLeaf::setState(int newState)
 {
-    switch(event){
+    switch(newState){
         case BEVENT_ON:
         case BEVENT_OFF:
         case BEVENT_DOWN:
             {
-                std::swap(m_event, event);
-                return event;
+                m_state = newState;
+                return;
+            }
+        default:
+            {
+                throw fflpanic("invalid state: {}", newState);
+            }
+    }
+}
+
+std::pair<bool, int> XMLParagraphLeaf::transitState(int newState)
+{
+    if(m_state != newState){
+        const auto oldState = m_state;
+        feedEvent(bevent::to_event(oldState, newState));
+        return {true, oldState};
+    }
+    return {false, m_state};
+}
+
+void XMLParagraphLeaf::feedEvent(int event)
+{
+    m_eventCount[event]++;
+    m_state = bevent::to_state(event);
+}
+
+size_t XMLParagraphLeaf::eventCount(int event) const
+{
+    switch(event){
+        case BEVENT_ENTER:
+        case BEVENT_LEAVE:
+        case BEVENT_PRESS:
+        case BEVENT_RELEASE:
+            {
+                return m_eventCount[event];
             }
         default:
             {
@@ -138,11 +170,11 @@ std::optional<uint32_t> XMLParagraphLeaf::color() const
     }
 
     if(hasEvent()){
-        switch(m_event){
-            case BEVENT_ON  : return colorf::GREEN   + colorf::A_SHF(255);
-            case BEVENT_OFF : return colorf::YELLOW  + colorf::A_SHF(255);
-            case BEVENT_DOWN: return colorf::MAGENTA + colorf::A_SHF(255);
-            default: throw fflpanic("invalid leaf event: {}", m_event);
+        switch(m_state){
+            case BEVENT_OFF : return (singleClick() ? colorf::GOLD  : colorf::YELLOW  ) + colorf::A_SHF((eventCount(BEVENT_PRESS) > 0 || eventCount(BEVENT_RELEASE) > 0) ? 192 : 255);
+            case BEVENT_ON  : return (singleClick() ? colorf::BROWN : colorf::GREEN   ) + colorf::A_SHF((eventCount(BEVENT_PRESS) > 0 || eventCount(BEVENT_RELEASE) > 0) ? 192 : 255);
+            case BEVENT_DOWN: return (singleClick() ? colorf::PINK  : colorf::MAGENTA ) + colorf::A_SHF((eventCount(BEVENT_PRESS) > 0 || eventCount(BEVENT_RELEASE) > 0) ? 192 : 255);
+            default: throw fflpanic("invalid state: {}", m_state);
         }
     }
     return {};

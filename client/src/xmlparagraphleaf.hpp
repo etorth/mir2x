@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <tinyxml2.h>
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 constexpr int LEAF_UTF8STR = 0;
@@ -37,15 +38,29 @@ class XMLParagraphLeaf
         std::optional<uint32_t> m_fontBGColor;
 
     private:
-        int m_event;
+        int m_state = BEVENT_OFF;
+        std::array<size_t, 6> m_eventCount {};
 
     public:
         explicit XMLParagraphLeaf(tinyxml2::XMLNode *);
 
     public:
+        void                     setState(int);
+        void                    feedEvent(int);
+        std::pair<bool, int> transitState(int);
+
+    public:
+        size_t eventCount(int) const;
+
+    public:
         int type() const
         {
             return m_type;
+        }
+
+        int state() const
+        {
+            return m_state;
         }
 
         tinyxml2::XMLNode *xmlNode(this auto && self)
@@ -101,9 +116,6 @@ class XMLParagraphLeaf
         uint32_t peekUTF8Code(int) const;
 
     public:
-        int markEvent(int);
-
-    public:
         std::optional<bool> wrap() const;
 
     public:
@@ -125,6 +137,18 @@ class XMLParagraphLeaf
         const std::unordered_map<std::string, std::string> *hasEvent() const
         {
             return m_attrListOpt.has_value() ? std::addressof(m_attrListOpt.value()) : nullptr;
+        }
+
+        bool singleClick() const
+        {
+            if(const auto eventList = hasEvent()){
+                if(const auto p = eventList->find("single"); p != eventList->end()){
+                    if(to_parsedbool(p->second)){
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
     public:

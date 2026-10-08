@@ -12,13 +12,15 @@ function dialog.link(id, label, opts)
         is_close = (id == SYS_EXIT)
     end
 
-    local args_attr  = opts.args  ~= nil and string.format(' args="%s"', opts.args)  or ''
-    local wrap_attr  = opts.wrap  ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
-    local close_attr = is_close and ' close="1"' or ''
+    local   args_attr = opts.args   ~= nil and string.format(' args="%s"', opts.args)  or ''
+    local   wrap_attr = opts.wrap   ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
+    local single_attr = opts.single ~= nil and string.format(' single="%s"', tostring(opts.single)) or ''
+    local  close_attr = is_close and ' close="1"' or ''
+
     local prefix = opts.prefix or ''
     local suffix = opts.suffix or ''
 
-    return string.format('%s<event id="%s"%s%s%s>%s</event>%s', prefix, id, args_attr, wrap_attr, close_attr, label, suffix)
+    return string.format('%s<event id="%s"%s%s%s%s>%s</event>%s', prefix, id, args_attr, wrap_attr, single_attr, close_attr, label, suffix)
 end
 
 local function renderPar(line)

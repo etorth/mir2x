@@ -723,17 +723,17 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
         case SDL_EVENT_MOUSE_BUTTON_UP:
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                const auto newEvent = [&event]
+                const auto newState = [&event]
                 {
                     if(event.type == SDL_EVENT_MOUSE_MOTION) return (event.motion.state & SDL_BUTTON_LMASK)     ? BEVENT_DOWN : BEVENT_ON;
                     else                                     return (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) ? BEVENT_DOWN : BEVENT_ON;
                 }();
 
                 const auto [eventPX, eventPY] = SDLDeviceHelper::getEventPLoc(event).value();
-                const auto fnHandleEvent = [&event, newEvent, eventPX, eventPY, m, this](ParNode *node, bool currValid) -> bool
+                const auto fnHandleEvent = [&event, newState, eventPX, eventPY, m, this](ParNode *node, bool currValid) -> bool
                 {
                     if(!currValid){
-                        node->tpset->clearEvent(-1);
+                        node->tpset->clearEvent();
                         return false;
                     }
 
@@ -743,31 +743,29 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     const auto [tokenX, tokenY] = node->tpset->locToken(xOff, yOff, true, true);
 
                     if(!node->tpset->tokenLocValid(tokenX, tokenY)){
-                        node->tpset->clearEvent(-1);
+                        node->tpset->clearEvent();
                         return false;
                     }
 
                     const auto leafID = node->tpset->getToken(tokenX, tokenY)->leaf;
-                    const auto oldEvent = node->tpset->markLeafEvent(leafID, newEvent);
+                    const auto attrList = node->tpset->leafEvent(leafID);
+                    const auto transitRes = node->tpset->transitLeafState(leafID, newState);
 
-                    const static std::map<std::pair<int, int>, int> buttonState2Event
-                    {
-                        {{BEVENT_OFF , BEVENT_ON  }, BEVENT_ENTER  },
-                        {{BEVENT_ON  , BEVENT_OFF }, BEVENT_LEAVE  },
-                        {{BEVENT_ON  , BEVENT_DOWN}, BEVENT_PRESS  },
-                        {{BEVENT_DOWN, BEVENT_ON  }, BEVENT_RELEASE},
-                        {{BEVENT_ON  , BEVENT_ON  }, BEVENT_HOVER  },
-                    };
+                    if(attrList && transitRes.first && m_eventCB){
+                        const auto event = bevent::to_event(transitRes.second, newState);
+                        const auto click = (event == BEVENT_PRESS || event == BEVENT_RELEASE);
 
-                    const auto attrListPtr = node->tpset->leafEvent(leafID);
-                    if(attrListPtr && m_eventCB){
-                        if(auto eventiter = buttonState2Event.find({oldEvent, newEvent}); eventiter != buttonState2Event.end()){
-                            m_eventCB(*attrListPtr, eventiter->second);
+                        if(click
+                                && node->tpset->leafSingleClick(leafID)
+                                && node->tpset->leafEventCount(leafID, event) > 1){ // skip
+                        }
+                        else{
+                            m_eventCB(*attrList, event);
                         }
                     }
 
                     node->tpset->clearEvent(leafID);
-                    if(!attrListPtr && event.type == SDL_EVENT_MOUSE_MOTION){
+                    if(!attrList && event.type == SDL_EVENT_MOUSE_MOTION){
                         // it's not an event text, and no click happens
                         // don't take the event
                         return false;

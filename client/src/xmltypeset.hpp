@@ -287,14 +287,14 @@ class XMLTypeset // means XMLParagraph typeset
         {
             for(int leafIndex = 0; leafIndex < m_paragraph->leafCount(); ++leafIndex){
                 if(leafIndex != currLeaf){
-                    m_paragraph->leaf(leafIndex).markEvent(BEVENT_OFF);
+                    m_paragraph->leaf(leafIndex).setState(BEVENT_OFF);
                 }
             }
         }
 
-        int markLeafEvent(int leafIndex, int event)
+        std::pair<bool, int> transitLeafState(int leafIndex, int state)
         {
-            return m_paragraph->leaf(leafIndex).markEvent(event);
+            return m_paragraph->leaf(leafIndex).transitState(state);
         }
 
     public:
@@ -350,6 +350,16 @@ class XMLTypeset // means XMLParagraph typeset
         const auto leafEvent(int leafID) const
         {
             return m_paragraph->leaf(leafID).hasEvent();
+        }
+
+        const auto leafSingleClick(int leafID) const
+        {
+            return m_paragraph->leaf(leafID).singleClick();
+        }
+
+        const auto leafEventCount(int leafID, int event) const
+        {
+            return m_paragraph->leaf(leafID).eventCount(event);
         }
 
     private:
