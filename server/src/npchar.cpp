@@ -26,7 +26,7 @@ extern ServerPasswordWindow *g_serverPasswordWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 NPChar::AESHelper::AESHelper(const NPChar *npc, uint64_t uid)
-    : aesf::AES(g_serverPasswordWindow->getPassword(), reinterpret_cast<uintptr_t>(to_cvptr(npc)) ^ ~uid, npc->getXMLSeqID(uid).value())
+    : aesf::AES(g_serverPasswordWindow->getPassword(), reinterpret_cast<uintptr_t>(to_cvptr(npc)) ^ ~uid, npc->getXMLSeqID(uid).value_or(0)) // if nullopt then use wrong decode key (0) than throw
 {}
 
 std::string NPChar::AESHelper::encode(const char *s)
