@@ -12,10 +12,16 @@ function dialog.link(id, label, opts)
         is_close = (id == SYS_EXIT)
     end
 
-    local   args_attr = opts.args   ~= nil and string.format(' args="%s"', opts.args)  or ''
-    local   wrap_attr = opts.wrap   ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
-    local single_attr = opts.single ~= nil and string.format(' single="%s"', tostring(opts.single)) or ''
-    local  close_attr = is_close and ' close="1"' or ''
+    local is_single = opts.single
+    if is_single == nil then
+        is_single = true -- default to single, prevent repeat-clicks
+    end
+
+    local args_attr = opts.args ~= nil and string.format(' args="%s"', opts.args)  or ''
+    local wrap_attr = opts.wrap ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
+
+    local single_attr = is_single and ' single="1"' or ''
+    local  close_attr = is_close  and  ' close="1"' or ''
 
     local prefix = opts.prefix or ''
     local suffix = opts.suffix or ''

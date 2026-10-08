@@ -15,7 +15,7 @@ while true do
     if suffixDigits == nil then
         if monsterName ~= '未知' then
             local tagName = string.format('goto_tag_%d', monsterID)
-            monsterNameList[#monsterNameList + 1] = dialog.link(tagName, monsterName .. '，', {wrap = false, single=true})
+            monsterNameList[#monsterNameList + 1] = dialog.link(tagName, monsterName .. '，', {wrap = false})
 
             eventHandlerTable[tagName] = function(uid, value)
                 addMonster(monsterName)
