@@ -138,6 +138,7 @@ setQuestFSMTable(
                     end
 
                     server.quest.setDesp(questUID, {uid=uid, '告诉客栈店员已完成任务，替洪气霖支付了赊账的住宿费。'})
+                    server.player.dbAddFlag(uid, 'done_quest_乞丐任务_pay_on_behalf')
                     server.player.addItem(uid, '银手镯', 1)
 
                     dialog.post(uid, questPath, '谢谢啦！还有这个略表一下我的谢意吧！',
