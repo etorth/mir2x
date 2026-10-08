@@ -1,4 +1,5 @@
 #include "mathf.hpp"
+#include "utf8f.hpp"
 #include "npchar.hpp"
 #include "dbcomid.hpp"
 #include "servermsg.hpp"
