@@ -41,6 +41,7 @@ corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 
     if(!sdNPCE.event.empty() && sdNPCE.event != SYS_ENTER){
         sdNPCE.event = AESHelper(this, mpk.from()).decode(sdNPCE.event.c_str());
+        // rollXMLSeqID(mpk.from()); // roll the seqID to prevent repeat-clicks
         // m_xmlLayoutSeqIDList.erase(mpk.from());
     }
 
