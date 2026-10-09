@@ -51,7 +51,8 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
-    if not mapUID then
+    -- ilgang1/2 are registered on 1_012 only. a monster takes no remote call, the killer stands where it fell
+    if not mapUID or uidRemoteCall(uid, [[ return getMapUID() ]]) ~= mapUID then
         return
     end
 
@@ -254,6 +255,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- stays up before the quest and after it. while it runs the EPUID behavior installed by
         -- the FSM hides this entry, npchar drops an EPQST entry whose quest has one
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid = uid})
             return (state == nil) or (state == SYS_DONE)
         end,
