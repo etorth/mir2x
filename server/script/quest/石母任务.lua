@@ -1,6 +1,11 @@
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '把童子像交给了石母。'}
+    end,
+
     [SYS_ENTER] = function(uid, args)
+        setQuestDesp{uid=uid, '接受比奇城石母恳求寻找她失去的孩子，据说石母的孩子由夜市的老生带着。'}
         setupNPCQuestBehavior('比奇县_0_003', '石母_1', uid,
         [[
             return getQuestName()
@@ -31,6 +36,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
+                    -- @dolumi_16 and @dolumi_17 have identical dialogue, in both night and daylight.
                     dialog.post(uid, questPath, '深更半夜的什么事啊？你来找我有什么事？',
                     {
                         dialog.link('npc_ask_where_is_kid', '我来找比奇省的一名妇人的孩子'),
@@ -49,6 +55,7 @@ setQuestFSMTable(
     end,
 
     quest_ask_book_store = function(uid, args)
+        setQuestDesp{uid=uid, '老生说他没有绑架过孩子，看来需要更多调查，请跟其他人进行了解吧。'}
         setupNPCQuestBehavior('比奇县_0', '老生_1', uid,
         [[
             return getQuestName()
@@ -95,6 +102,7 @@ setQuestFSMTable(
     end,
 
     quest_tell_mom = function(uid, args)
+        setQuestDesp{uid=uid, '书房店员告诉你老生得到了一个很珍贵的神铁，那个神铁的样子很像小孩子，快把这个消息告诉石母吧。'}
         setupNPCQuestBehavior('比奇县_0_003', '石母_1', uid,
         [[
             return getUID(), getQuestName()
@@ -136,6 +144,7 @@ setQuestFSMTable(
     end,
 
     quest_buy_kid_stone = function(uid, args)
+        setQuestDesp{uid=uid, '石母认为那个很像小孩子的神铁就是自己的孩子，去找老生把童子像买回来，成全石母吧。'}
         setupNPCQuestBehavior('比奇县_0_003', '石母_1', uid,
         [[
             return getQuestName()
@@ -257,6 +266,7 @@ setQuestFSMTable(
     end,
 
     quest_got_kid_statue = function(uid, args)
+        setQuestDesp{uid=uid, '从老生那里得到童子像，快交给石母吧。'}
         setupNPCQuestBehavior('比奇县_0', '老生_1', uid,
         [[
             return getUID(), getQuestName()
@@ -323,6 +333,9 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
     setQuestHandler(questName,
     {
         [SYS_ENTER] = function(uid, args)
+            if server.player.getLevel(uid) < 7 then
+                return
+            end
             dialog.post(uid, questPath, '这位侠客，请一定要帮帮我啊！',
             {
                 dialog.link('npc_leave', '假装没听见，我走了！'),
