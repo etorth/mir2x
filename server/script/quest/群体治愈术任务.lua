@@ -669,7 +669,7 @@ setQuestFSMTable(
                     })
                 end,
 
-                -- @mugong_massheal_complete7_1, and he gives the charm straight back
+                -- @mugong_massheal_complete7_1, the source action consumes the charm and grants the ring and gold
                 npc_return_charm = function(uid, value)
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
                         dialog.post(uid, questPath, '噢，听说年轻朋友想笼络老人<t wrap="0">···</t>你没有威魂深怨护身符吗？',
@@ -685,7 +685,7 @@ setQuestFSMTable(
                     },
                     dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))
 
-                    -- take then give, so the charm ends up back with you either way
+                    -- the second line says the charm comes back, the action takes it for the ring and the gold, both kept as legacy has them
                     if settleCharm(uid) then
                         server.player.removeItem(uid, '威魂深怨护身符', 1)
                         server.player.addItem(uid, '神圣铂金戒指', 1)
@@ -800,6 +800,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼群体治愈术',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,
