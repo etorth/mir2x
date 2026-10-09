@@ -94,8 +94,9 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
+    -- a monster takes no remote call, the killer stands where it fell
     local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
-    if not mapUID then
+    if not mapUID or uidRemoteCall(uid, [[ return getMapUID() ]]) ~= mapUID then
         return
     end
 
