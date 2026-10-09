@@ -285,6 +285,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼施毒术',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,
