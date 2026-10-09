@@ -13,6 +13,10 @@ _G.prequestName  = '半兽人任务'
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '丽灵小姐被锁在小瓶的时候听到了邪恶道士的计划，邪恶道士偷走不死牌之前快去找比奇城城主。'}
+    end,
+
     -- 王大人 has sent you to his relative 王小二
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '王大人拜托你去帮他的远房亲戚王小二，去比奇省西北城门外357:273找他吧。'}
