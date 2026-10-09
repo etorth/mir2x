@@ -18,6 +18,8 @@ state function on a new thread, the state runner of `{uid, fsm}`:
 - a switch by any other thread returns true, and false when `from=` refused it
 - quest done, `state=SYS_DONE` of the main fsm, closes the state runners of all
   fsms of the player and drops their states, its row keeps the done state only
+- a `[SYS_DONE]` function in the fsm table runs once after that, never replayed:
+  the place to `setQuestDesp()` the closing description, which the login shows
 
 ## A login replays the current states
 
