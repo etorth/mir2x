@@ -371,6 +371,12 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
+    -- soulSkel.txt is registered on 1_014 only. a monster takes no remote call, the killer stands where it fell
+    local duelUID = getQuestRuntimeVar(uid, 'duelMapUID')
+    if not duelUID or uidRemoteCall(uid, [[ return getMapUID() ]]) ~= duelUID then
+        return
+    end
+
     setQuestState{uid = uid, from = 'quest_in_duel', state = 'quest_duel_beaten'}
 end)
 
@@ -616,6 +622,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼召唤骷髅',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,
