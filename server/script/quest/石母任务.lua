@@ -398,7 +398,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '母子石像_1'), getUID(), getQuestN
         [SYS_CHECKACTIVE] = false,
         [SYS_ENTER] = function(uid, args)
             server.player.spaceMove(uid, '比奇县_0_003', 28, 35)
-            server.npc.runHandler(getNPCharUID('比奇县_0_003', '石母_1'), uid, {SYS_EPQST, questName}, 'npc_extra')
+            server.npc.runHandler(getNPCharUID('比奇县_0_003', '石母_1'), uid, questPath, 'npc_extra')
         end,
     })
 
