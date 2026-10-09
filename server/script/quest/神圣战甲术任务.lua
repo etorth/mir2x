@@ -17,7 +17,8 @@
 -- 神圣战甲术空间_D420_001 instead. no MapQuest.txt line ever calls it, so it is dead in the
 -- legacy data and D420_001 goes unused
 --
--- @mugong_Upac never checks the job, only the level and the magic. kept that way
+-- @mugong_Upac never checks the job, only the level and the magic. 清明子's menu does: a non-taoist
+-- gets @chung_other_class in 15Magic_DoGwan-1_002.txt, which offers no 武功, hence SYS_CHECKACTIVE
 
 _G.minQuestLevel = 25
 
@@ -233,6 +234,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼神圣战甲术',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,
