@@ -10,6 +10,9 @@ local mondrop = require('quest.include.mondrop')
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '还好及时送药救活了毒蛇山谷的珍珍姑娘。'}
+    end,
     -- accepted, but nobody knows yet what bit her
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '答应了蛇谷老太要为珍珍找解药，先去找毒蛇山谷的金中医问问是什么毒吧。'}
