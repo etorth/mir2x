@@ -608,14 +608,14 @@ corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
     }
 }
 
-std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
+std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &item) const
 {
     return
     {
         SDCostItem
         {
             .itemID = DBCOM_ITEMID(u8"金币（小）"),
-            .count  = to_uz(mathf::rand(90, 111)),
+            .count  = std::max<size_t>(DBCOM_ITEMRECORD(item.itemID).price, 1), // zero price actually means not-sellable
         },
     };
 }
