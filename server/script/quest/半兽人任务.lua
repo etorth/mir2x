@@ -11,7 +11,7 @@
 -- carried the 角笛, here it is a grid trigger on the entrance, see setupSealedRoom below
 
 _G.minQuestLevel = 11
-_G.prequestName  = '王大人任务'
+_G.prequestName  = '比奇商会'
 
 _G.sealedRoomMap = '半兽洞穴1层_D001'
 _G.sealedRoomX   = 303
@@ -46,6 +46,9 @@ end
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '不死牌的事情看来可以告一段落了。'}
+    end,
     -- go and look, the point of this stage is to walk into the sealed door
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '接受了比奇城城主的委托，去半兽洞穴(65:174)1层附近(303:65)调查半兽人的异常征兆。'}
@@ -519,7 +522,7 @@ setQuestFSMTable(
         {
             {
                 monster  = '半兽人',
-                kills    = 10,
+                counterMode = {threshold=10, initial=3, incrementChance=2, randomFrom=9},
                 give     = '王铁匠的铁锤',
                 setState = 'quest_got_hammer',
                 say      = '（这好像就是铁匠被抢走的锤子）',
@@ -692,7 +695,7 @@ setQuestFSMTable(
         {
             {
                 monster  = '半兽战士',
-                kills    = 5,
+                counterMode = {threshold=5, initial=3, incrementChance=2, randomFrom=4},
                 give     = '角笛',
                 setState = 'quest_hunt_warrior',
                 say      = '（虽然不知道是什么动物的犄角制成的这分明不是一件寻常的东西）',
@@ -794,6 +797,7 @@ setQuestFSMTable(
                 take     = '角笛',
                 give     = {{'半块不死牌', 1}, {SYS_GOLDNAME, 5000}},
                 setState = 'quest_return_token',
+                moveTo   = {'半兽洞穴1层_D001', 303, 70},
                 say      = '（艰难的战斗。无论如何，我们掌握了能使沃玛遗骨复活的魔法的精华部分）',
             },
         })
@@ -1341,7 +1345,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQue
         end,
 
         [SYS_ENTER] = function(uid, args)
-            if server.player.getQuestState(uid, prequestName) ~= SYS_DONE then
+            if not server.player.dbHasFlag(uid, 'done_wang_coc') then
                 dialog.post(uid, questPath,
                 {
                     '本官的事儿，可不是随便什么人都能插手的。',

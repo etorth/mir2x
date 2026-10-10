@@ -90,6 +90,12 @@ local function runDrop(playerUID, drop, fromState)
         end
     end
 
+    for _, item in ipairs(drop.exclude) do
+        if server.player.hasItem(playerUID, item[1], item[2]) then
+            return false
+        end
+    end
+
     -- can't hand out a second copy of something the player is still carrying
     if drop.once then
         for _, item in ipairs(drop.give) do
@@ -103,7 +109,27 @@ local function runDrop(playerUID, drop, fromState)
         return false
     end
 
-    if drop.kills > 1 then
+    if drop.counterMode then
+        local mode = drop.counterMode
+        local count = dbGetQuestVar(playerUID, drop.counter) or 0
+        if mode.completed and count >= mode.completed then
+            return false
+        end
+        if count <= mode.threshold then
+            if count < mode.initial then
+                count = mode.initial
+            elseif not mode.randomFrom or count >= mode.randomFrom then
+                if not mode.incrementChance or mode.incrementChance == 1 or math.random(mode.incrementChance) == 1 then
+                    count = count + 1
+                end
+            else
+                count = count + 1
+            end
+            dbSetQuestVar(playerUID, drop.counter, count)
+            return false
+        end
+        dbSetQuestVar(playerUID, drop.counter, mode.completed)
+    elseif drop.kills > 1 then
         local count = bumpKillCount(dbGetQuestVar(playerUID, drop.counter) or 0, drop.kills)
         if count <= drop.kills then
             dbSetQuestVar(playerUID, drop.counter, count)
@@ -151,9 +177,16 @@ end
 --             monster  = '千年毒蛇',          -- name, or list of names
 --             map      = '沃玛神殿_D022',      -- optional, only on these maps
 --             kills    = 10,                 -- optional, roughly how many kills it takes
+--             counterMode = {threshold = 10, initial = 3},
+--                                            -- optional, source's strict pre-increment large check;
+--                                            -- replaces kills; incrementChance defaults to 1,
+--                                            -- randomFrom optionally starts random increments later
+--                                            -- completed optionally latches the source counter
+--                                            -- after a drop, even if the item is later lost
 --             chance   = 2,                  -- optional, 1/chance per kill instead
 --             once     = true,               -- optional, don't hand out a second copy
 --             need     = '角笛',              -- optional, must be carrying this
+--             exclude  = {'诺玛石', 5},      -- optional, must not be carrying this many
 --             give     = '千年毒蛇胆汁',       -- optional, 'name' / {'name', count} / list
 --             take     = '角笛',              -- optional, same shapes as give
 --             setState = 'quest_got_gall',   -- optional, state to move to afterwards
@@ -178,6 +211,20 @@ local function buildDropListByMonster(dropList)
         assertType(drop.say, 'string', 'nil')
         assertType(drop.moveTo, 'table', 'nil')
         assertType(drop.setState, 'string', 'nil')
+        assertType(drop.counterMode, 'table', 'nil')
+
+        if drop.counterMode then
+            local mode = drop.counterMode
+            assertType(mode.threshold, 'integer')
+            assertType(mode.initial, 'integer')
+            assertType(mode.incrementChance, 'integer', 'nil')
+            assertType(mode.randomFrom, 'integer', 'nil')
+            assertType(mode.completed, 'integer', 'nil')
+            assert(mode.threshold >= 0 and mode.initial >= 1)
+            assert(not mode.incrementChance or mode.incrementChance >= 1)
+            assert(not mode.completed or mode.completed > mode.threshold)
+            assert(not drop.kills, 'Monster drop takes kills or counterMode, not both')
+        end
 
         if drop.kills and drop.chance then
             fatalPrintf('Monster drop takes kills or chance, not both')
@@ -189,6 +236,7 @@ local function buildDropListByMonster(dropList)
         {
             map      = drop.map and asNameList(drop.map) or {},
             need     = asItemList(drop.need),
+            exclude  = asItemList(drop.exclude),
             give     = asItemList(drop.give),
             take     = asItemList(drop.take),
             kills    = drop.kills or 1,
@@ -197,6 +245,7 @@ local function buildDropListByMonster(dropList)
             say      = drop.say,
             moveTo   = drop.moveTo,
             setState = drop.setState,
+            counterMode = drop.counterMode,
 
             -- keyed on the monsters so the count survives a restart, legacy used one
             -- counter per monster script
@@ -213,7 +262,7 @@ local function buildDropListByMonster(dropList)
             fatalPrintf('Monster drop moves to unknown quest state %s', parsed.setState)
         end
 
-        for _, list in ipairs({parsed.need, parsed.give, parsed.take}) do
+        for _, list in ipairs({parsed.need, parsed.exclude, parsed.give, parsed.take}) do
             for _, item in ipairs(list) do
                 if getItemID(item[1]) <= 0 then
                     fatalPrintf('Monster drop refers to unknown item %s', item[1])

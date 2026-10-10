@@ -138,6 +138,9 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
                         });
                     }
                 }
+                else if(to_u8sv(ir.type) == u8"矿石" || to_u8sv(ir.type) == u8"肉"){
+                    itemList.append_range(SDItem::buildItemList(dropItem.itemID, to_uz(dropItem.count)));
+                }
                 else if(ir.packable()){
                     itemList.push_back(SDItem
                     {

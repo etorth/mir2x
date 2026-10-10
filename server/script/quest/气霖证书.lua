@@ -18,6 +18,11 @@ local merchantList =
 
 setQuestFSMTable(
 {
+    -- [258]
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '将苏百花所在的地方告诉洪气霖，他送你制魔宝玉以表谢意。'}
+    end,
+
     [SYS_ENTER] = function(uid, args)
         for _, merchant in ipairs(merchantList) do
             setupNPCQuestBehavior('比奇县_0', merchant, uid,
@@ -69,6 +74,11 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
+                    if not server.player.hasItem(uid, '气霖证书', 1) then
+                        dialog.post(uid, questPath, '没有带着气霖证书来啊！我也是很忙的人，请不要和我开玩笑。',
+                        dialog.link(SYS_EXIT, '结束'))
+                        return
+                    end
                     dialog.post(uid, questPath,
                     {
                         '嗯<t wrap="0">···</t>这个是洪气霖那个人的证书啊！对不起，我们也不能收下这证书！',
@@ -98,6 +108,7 @@ setQuestFSMTable(
     end,
 
     quest_ask_wife = function(uid, args)
+        setQuestDesp{uid=uid, '从恩实那里听到了苏百花的故事，去找服饰店苏百花。'}
         setupNPCQuestBehavior('比奇县_0', '洪气霖_1', uid,
         [[
             return getUID(), getQuestName()
@@ -125,9 +136,29 @@ setQuestFSMTable(
             local questPath = {SYS_EPUID, questName}
             local dialog = require('include.dialog')
 
+            local function exchangeCertificate(uid, message)
+                if not server.player.removeItem(uid, '气霖证书', 1) then
+                    dialog.post(uid, questPath, '来找我有什么事儿吗？',
+                    dialog.link(SYS_EXIT, '结束'))
+                    return
+                end
+                if not server.quest.setState(questUID, {uid=uid, from='quest_ask_wife', state='quest_ask_husband'}) then
+                    server.player.addItem(uid, '气霖证书', 1)
+                    return
+                end
+                server.player.addItem(uid, '玉指环', 1)
+                dialog.post(uid, questPath, message,
+                dialog.link(SYS_EXIT, '结束'))
+            end
+
             return
             {
                 [SYS_ENTER] = function(uid, args)
+                    if not server.player.hasItem(uid, '气霖证书', 1) then
+                        dialog.post(uid, questPath, '来找我有什么事儿吗？',
+                        dialog.link(SYS_EXIT, '结束'))
+                        return
+                    end
                     dialog.post(uid, questPath, '来找我有什么事儿吗？哦？这证书的字体？！',
                     dialog.link('npc_ask', '您见过的字体吗？'))
                 end,
@@ -143,25 +174,25 @@ setQuestFSMTable(
                         '你说那个人姓洪名奇莲？啊<t wrap="0">···</t>他还活着啊！自从流离失散之后，虽然觉得很难活下去<t wrap="0">···</t>但一直认为只要还活着的话总会有一天能见上一面的，所以一直在这儿苦苦等候<t wrap="0">···</t>终于没有白等啊！',
                         '拜托侠客您一件事！请您把这个玉指环拿给他，告诉他苏白花还活着！并告诉他如果他依然还爱我的话，就让他来这里接我吧！',
                     },
-                    dialog.link('npc_ask_why_not_go_directly', '为什么不直接去找他呢？'))
+                    {
+                        dialog.link('npc_ask_why_not_go_directly', '为什么不直接去找他呢？'),
+                        dialog.link('npc_accept_ring', '好的！'),
+                    })
                 end,
 
-                -- the 玉指环 goes with the switch, a click on npc_where_from again gives none
                 npc_ask_why_not_go_directly = function(uid, args)
-                    if not server.quest.setState(questUID, {uid=uid, from='quest_ask_wife', state='quest_ask_husband'}) then
-                        return
-                    end
+                    exchangeCertificate(uid, '只能这样啊！万一他已经有了别的妻子，我就会妨碍他们的！所以请你替我去打听一下他的心意啊！')
+                end,
 
-                    dialog.post(uid, questPath, '只能这样啊！万一他已经有了别的妻子，我就会妨碍他们的！所以请你替我去打听一下他的心意啊！',
-                    dialog.link(SYS_EXIT, '结束'))
-
-                    server.player.addItem(uid, getItemID('玉指环'), 1)
+                npc_accept_ring = function(uid, args)
+                    exchangeCertificate(uid, '真的太感谢了！')
                 end,
             }
         ]])
     end,
 
     quest_ask_husband = function(uid, args)
+        setQuestDesp{uid=uid, '与苏百花进行谈话，看来洪气霖找的人就是她了，快去告诉洪气霖。'}
         setupNPCQuestBehavior('比奇县_0', '洪气霖_1', uid,
         [[
             return getUID(), getQuestName()

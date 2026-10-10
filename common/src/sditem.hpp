@@ -130,6 +130,8 @@ struct SDItem
     /**/ // only a script can force it off, which is how a quest reclaims the item it lent out
     /**/ _MACRO_ADD_EA_TYPE(EA_BIND, bool)
     /**/
+    /**/ _MACRO_ADD_EA_TYPE(EA_QUALITY, int) // ore purity / meat quality
+    /**/
     /**/ // end of extra-attributes
     /**/ // any extra-attributes should be put inside above region
 

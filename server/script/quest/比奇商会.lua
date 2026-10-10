@@ -1,14 +1,664 @@
 -- requires:
 --      1. dbHasFlag('done_wang_book')
 -- when done:
---      1. dbAddFlag('done_wang_coc')
---      2.
+--      1. done_wang_coc is original flag 168, awarded with the first 5000 gold.
+--      2. done_wang_coc_expansion is flag 169, awarded with the final 25000 gold.
+-- Start the optional expansion through 世玉 before claiming the first-stage reward.
+--
+-- the expansion, legacy wang.txt, keeps these as it is:
+--      1. @INVITE_JABSANG sends a refused grocer ([154]) to @INVITE_JABSANG_21, a label that doesn't exist, _19 to _22
+--         are missing; here he goes on to @INVITE_JABSANG_23, the talk that follows. [538] set there is never read.
+--      2. @INVITE_JABSANG_25 checks 30000 gold but takes 20000.
+--      3. 世玉's wang_22, for a pharmacist paid in full ([167]), is wang_21 reworded; how the teeth were paid isn't
+--         recorded here, wang_21 serves both, as one line serves 王大人's wang_9 and wang_10.
+--      4. 怡美 asks to be helped first: legacy sends [168] without [170] into the 轻型盔甲 quest itself
+--         (@Guyonggap_start), here that quest has an entry of its own and she says the opening of kyunggap_5 only.
+--         kyunggap_27, her answer while the grocer hasn't joined, shows in legacy only with [236] of 堕落道士.
 
 _G.fsmName_persuade_librarian  = '劝说图书管理人加入比奇商会'
 _G.fsmName_persuade_pharmacist = '劝说药剂师加入比奇商会'
+_G.fsmName_expand_coc = '比奇商会势力扩张'
+
+-- the quest flags of the expansion stand for the legacy ones:
+--      grocery_friend [153], grocery_refused [154], merchant_grocery [155]
+--      jeweler_request [156], merchant_jeweler [157], outfitter_request [158], merchant_outfitter [159]
+
+-- 杂货商, Market_Def/07Grocery_Bichon-0.txt: @INVITE_JABSANG and @JOIN_JABSANG
+local function setupExpansionGrocer(uid)
+    setupNPCQuestBehavior('比奇县_0', '杂货商_1', uid,
+    [[
+        return getUID(), getQuestName()
+    ]],
+    [[
+        local questUID, questName = ...
+        local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
+
+        local function getProgress(uid)
+            return uidRemoteCall(questUID, uid,
+            [=[
+                local playerUID = ...
+                return
+                {
+                    friend  = hasQuestFlag(playerUID, 'grocery_friend'),
+                    refused = hasQuestFlag(playerUID, 'grocery_refused'),
+                    joined  = hasQuestFlag(playerUID, 'merchant_grocery'),
+                }
+            ]=])
+        end
+
+        local function addFlag(uid, flag, desp)
+            uidRemoteCall(questUID, uid, flag, desp or false,
+            [=[
+                local playerUID, flag, desp = ...
+                addQuestFlag(playerUID, flag)
+                if desp then
+                    setQuestDesp{uid=playerUID, fsm=fsmName_expand_coc, desp}
+                end
+            ]=])
+        end
+
+        local function join(uid, texts)
+            addFlag(uid, 'merchant_grocery', '杂货商人加入商会成功。')
+            dialog.post(uid, questPath, texts,
+            dialog.link(SYS_EXIT, '结束'))
+        end
+
+        -- checkgold, take, set [155], or set [154] short of the gold
+        local function pay(uid, checkGold, takeGold, joinTexts, failTexts)
+            if server.player.getGold(uid) < checkGold then
+                addFlag(uid, 'grocery_refused')
+                dialog.post(uid, questPath, failTexts,
+                dialog.link(SYS_EXIT, '结束'))
+                return
+            end
+
+            server.player.removeGold(uid, takeGold)
+            join(uid, joinTexts)
+        end
+
+        return
+        {
+            [SYS_ENTER] = function(uid, value)
+                local progress = getProgress(uid)
+
+                -- @JOIN_JABSANG
+                if progress.joined then
+                    dialog.post(uid, questPath, '替我向王大人转达我的意思吧！',
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @INVITE_JABSANG_23, see the header
+                elseif progress.refused then
+                    dialog.post(uid, questPath,
+                    {
+                        '什么事儿？还是来劝我加入比奇商会吗？',
+                        '我没有离开传奇商会的打算，你还是赶紧回去吧！',
+                    },
+                    dialog.link('npc_reconsider', '再好好考虑一下吧！'))
+
+                -- @INVITE_JABSANG_14
+                elseif progress.friend then
+                    if server.player.hasItem(uid, '烧酒', 1) then
+                        server.player.removeItem(uid, '烧酒', 1)
+                        dialog.post(uid, questPath, '嗯？这是什么？',
+                        dialog.link('npc_drink', '先喝一杯，边喝边说。'))
+                    else
+                        dialog.post(uid, questPath,
+                        {
+                            '什么事儿？还是来劝我加入比奇商会吗？',
+                            '虽然跟你很投缘<t wrap="0">···</t>但是毕竟还要讲讲道义啊！我不能就这样抛弃这段时间对我的有恩的崔大夫啊！',
+                            '我没有离开传奇商会的打算，你还是赶紧回去吧！',
+                            '心一急，嗓子就有点干<t wrap="0">···</t>',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+                    end
+
+                -- @INVITE_JABSANG_1
+                else
+                    dialog.post(uid, questPath,
+                    {
+                        '让我去加入比奇商会？呵呵！人啊！要讲信义才行。',
+                        '难道能因为最近王大人的比奇商会发展的好就背叛一直以来帮助我们的崔大夫？你是无论如何都不能用钱收买我的。',
+                        '人的信义是比钱更重要的，我最近虽然想摆脱街头小贩的出身，开一家像样儿的店铺很需要钱，但是也不能因为一点钱就出卖了自己的良心啊！',
+                    },
+                    dialog.link('npc_think', '再好好的想一下吧！'))
+                end
+            end,
+
+            -- @INVITE_JABSANG_2
+            npc_think = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '“钱”不是重要的，“钱”算什么啊！<t wrap="0">···</t>',
+                    '把我看成什么了<t wrap="0">···</t>哼？',
+                },
+                {
+                    dialog.link('npc_money', '<t wrap="0">···</t>多少才行呢？'),
+                    dialog.link('npc_leave', '既然您如此固执，那我也没办法。'),
+                })
+            end,
+
+            -- @INVITE_JABSANG_3
+            npc_money = function(uid, value)
+                dialog.post(uid, questPath, '.........',
+                dialog.link('npc_suggest', '嗯<t wrap="0">···</t>听起来也是个不错的建议。'))
+            end,
+
+            -- @INVITE_JABSANG_4
+            npc_suggest = function(uid, value)
+                dialog.post(uid, questPath, '...............',
+                dialog.link('npc_offer', '那么告诉我你需要多少钱吧！'))
+            end,
+
+            -- @INVITE_JABSANG_5
+            npc_offer = function(uid, value)
+                dialog.post(uid, questPath, '咳<t wrap="0">···</t>唔! 1万5千钱左右怎么样<t wrap="0">···</t>',
+                {
+                    dialog.link('npc_pay15000', '好，给你1万5千钱。'),
+                    dialog.link('npc_pay12000', '1万2千钱吧！'),
+                    dialog.link('npc_refuse', '1万钱就足够了吧！.....'),
+                })
+            end,
+
+            -- @INVITE_JABSANG_6
+            npc_pay15000 = function(uid, value)
+                pay(uid, 15000, 15000,
+                {
+                    '明白了，那么我会加入比奇商会的。',
+                    '但是可要先说清楚了，我绝对不是被你的钱所收买的。',
+                    '所谓识时务者为俊杰嘛！我只不过是人在江湖身不由己啊！呵呵呵！',
+                },
+                {
+                    '你不是在跟我开玩笑吧。',
+                    '钱有那么了不起吗，为了这点钱就出卖信义？',
+                    '刚才我不知怎么回事头脑好像有点发晕。',
+                    '但是我说多少你就给多少，这种豪爽的性格的确出乎我的意料啊！',
+                    '和你这个朋友很投缘啊<t wrap="0">···</t>',
+                })
+            end,
+
+            -- @INVITE_JABSANG_7
+            npc_pay12000 = function(uid, value)
+                pay(uid, 12000, 12000,
+                {
+                    '我想通了<t wrap="0">···</t>，嗨！没法子啊 ！那么我会加入比奇商会的！',
+                    '但是可要先说清楚了，我绝对不是被你的钱所收买的。',
+                    '所谓识时务者为俊杰嘛！我只不过是人在江湖身不由己啊！呵呵呵！',
+                },
+                {
+                    '你不是在跟我开玩笑吧？',
+                    '钱有那么了不起吗，为了这点钱就出卖信义？',
+                    '刚才我不知怎么头脑好像有点发晕。',
+                })
+            end,
+
+            -- @INVITE_JABSANG_8
+            npc_refuse = function(uid, value)
+                addFlag(uid, 'grocery_refused')
+                dialog.post(uid, questPath,
+                {
+                    '为了这点钱可不能出卖良心啊！',
+                    '你好像很瞧不起人啊!',
+                    '不要再和我提起这件事儿了！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+
+            -- @INVITE_JABSANG_9
+            npc_leave = function(uid, value)
+                dialog.post(uid, questPath, '哦<t wrap="0">···</t>那么<t wrap="0">···</t>你要走？',
+                {
+                    dialog.link('npc_bargain', '我也没有办法<t wrap="0">···</t>既然你那么讨厌钱。'),
+                    dialog.link('npc_friend', '可不是嘛！人的信义是用钱买不到的。'),
+                })
+            end,
+
+            -- @INVITE_JABSANG_10
+            npc_bargain = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '好<t wrap="0">···</t>是个比想象中还要精明的朋友。',
+                    '没法子<t wrap="0">···</t>1万2千钱吧！怎么样？',
+                },
+                {
+                    dialog.link('npc_pay10000', '好啊！给你1万钱。'),
+                    dialog.link('npc_refuse_7000', '7千钱吧！'),
+                })
+            end,
+
+            -- @INVITE_JABSANG_11
+            npc_pay10000 = function(uid, value)
+                pay(uid, 10000, 10000,
+                {
+                    '明白了，那么我会加入比奇商会的。不过<t wrap="0">···</t>',
+                    '但是可要先说清楚了，我绝对不是被你的钱所收买的。',
+                    '所谓识时务者为俊杰嘛！我只不过是人在江湖身不由己啊！呵呵呵！',
+                },
+                {
+                    '你不是在跟我开玩笑吧？',
+                    '钱有那么了不起吗，为了这点钱就出卖信义？',
+                    '刚才我不知怎么头脑好像有点发晕。',
+                    '赶紧让开！',
+                })
+            end,
+
+            -- @INVITE_JABSANG_12
+            npc_refuse_7000 = function(uid, value)
+                addFlag(uid, 'grocery_refused')
+                dialog.post(uid, questPath,
+                {
+                    '为了这点钱不能出卖良心啊！',
+                    '你好像很瞧不起人啊!',
+                    '不要再和我提起这件事儿。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+
+            -- @INVITE_JABSANG_13
+            npc_friend = function(uid, value)
+                addFlag(uid, 'grocery_friend')
+                dialog.post(uid, questPath,
+                {
+                    '咳! 唔... 人的信义是不能用钱收买的。',
+                    '但是现在世上很难有向你这样的正人君子啊！',
+                    '跟我这样的商人之辈说那样的话<t wrap="0">···</t>呵呵呵。',
+                    '和你这个朋友很投缘啊<t wrap="0">···</t>',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+
+            -- @INVITE_JABSANG_16
+            npc_drink = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '正好嗓子有点干<t wrap="0">···</t>',
+                    '谢谢了，咕噜<t wrap="0">···</t>咕噜<t wrap="0">···</t>',
+                },
+                dialog.link('npc_drink_done', '现在舒服点了吗？'))
+            end,
+
+            -- @INVITE_JABSANG_17
+            npc_drink_done = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '咕噜<t wrap="0">···</t>嗯<t wrap="0">···</t>不错，好多啦！',
+                    '真是意气相通的朋友啊！',
+                    '刚刚向要喝酒，就拿着酒来了，呵呵<t wrap="0">···</t>',
+                },
+                dialog.link('npc_join', '哈哈<t wrap="0">···</t>真是意气相投啊！'))
+            end,
+
+            -- @INVITE_JABSANG_18
+            npc_join = function(uid, value)
+                join(uid,
+                {
+                    '呵呵呵<t wrap="0">···</t>好就没有笑得这么痛快了！',
+                    '你连我这样的杂货商人都没有嫌弃，还这么亲切的对我，我的心也开始摇摆不定了！',
+                    '那么我就会加入比奇商会的。',
+                })
+            end,
+
+            -- @INVITE_JABSANG_24
+            npc_reconsider = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '唔<t wrap="0">···</t>真是没办法！',
+                    '好吧！你能给我多少钱？',
+                },
+                dialog.link('npc_pay20000', '我会给你3万钱'))
+            end,
+
+            -- @INVITE_JABSANG_25, see the header; short of the gold he stays refused
+            npc_pay20000 = function(uid, value)
+                pay(uid, 30000, 20000,
+                {
+                    '两万钱就足够了。那么我现在会加入比奇商会的。',
+                    '但是可要先说清楚了，我绝对不是被你的钱所收买的。',
+                    '所谓识时务者为俊杰嘛！我只不过是人在江湖身不由己啊！呵呵呵！',
+                },
+                {
+                    '你不是在跟我开玩笑吧？',
+                    '钱有那么了不起吗，为了这点钱就出卖信义？',
+                    '你好像很瞧不起人啊!',
+                    '立刻给我滚开！',
+                })
+            end,
+        }
+    ]])
+end
+
+-- 恩实, Market_Def/08Accessory_Bichon-0.txt: @GO_WANG_EUNSIL, @INVITE_EUNSIL1, @INVITE_EUNSIL2, @SHOW_BULSA and @JOIN_EUNSIL
+local function setupExpansionJeweler(uid)
+    setupNPCQuestBehavior('比奇县_0', '恩实_1', uid,
+    [[
+        return getUID(), getQuestName()
+    ]],
+    [[
+        local questUID, questName = ...
+        local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
+
+        -- firstReward: 王大人 paid the first reward, [168]
+        local function getProgress(uid)
+            return uidRemoteCall(questUID, uid,
+            [=[
+                local playerUID = ...
+                return
+                {
+                    grocer      = hasQuestFlag(playerUID, 'merchant_grocery'),
+                    requested   = hasQuestFlag(playerUID, 'jeweler_request'),
+                    joined      = hasQuestFlag(playerUID, 'merchant_jeweler'),
+                    firstReward = dbGetQuestState(playerUID) == 'quest_first_stage_done',
+                }
+            ]=])
+        end
+
+        local function addFlag(uid, flag, desp)
+            uidRemoteCall(questUID, uid, flag, desp,
+            [=[
+                local playerUID, flag, desp = ...
+                addQuestFlag(playerUID, flag)
+                setQuestDesp{uid=playerUID, fsm=fsmName_expand_coc, desp}
+            ]=])
+        end
+
+        -- @SHOW_BULSA looks for them in this order, she only looks at it
+        local curiosities =
+        {
+            {'角笛',
+            {
+                '啊？这个到底是什么呢？',
+                '地位很高的半兽人战士在指挥半兽人们时使用的笛子，虽然外表很难看，但是却可以发出非常好听的声音！',
+                '真是太美妙了！没想到会看见这种东西<t wrap="0">···</t>',
+            }},
+
+            {'不死牌',
+            {
+                '啊？这个到底是什么呢？',
+                '很有古香古色神秘的感觉。',
+                '天哪！你说这是从古代流传下来的有着佛师魔法的东西？',
+                '真是太美妙了！没想到会看见这种东西<t wrap="0">···</t>',
+            }},
+
+            {'灵魂护卫',
+            {
+                '啊？这个到底是什么呢？',
+                '这是能够摄人魂魄的妖怪携带的东西？那么能用这个盛装灵魂？这个实在是太神奇太让我吃惊了！',
+            }},
+
+            {'毁灭护身符',
+            {
+                '啊？这个到底是什么呢？',
+                '你说这是能够借助器物的力量突破所设困魔咒的那种叫做不死牌的护身符？现在亲眼见到后，果然能感觉到这股神圣的力量！',
+                '真是太美妙了！没想到会看见这种东西<t wrap="0">···</t>',
+            }},
+
+            {'沃玛金牌',
+            {
+                '啊？这个到底是什么呢？',
+                '你说什么？连你都不知道这是什么？呵呵呵<t wrap="0">···</t>',
+                '不过你说这是在沃玛寺庙找到的东西，所以一定也不会是平常的东西！这里面好像藏着什么大秘密。令我心里七上八下的。',
+            }},
+
+            {'地狱神钟',
+            {
+                '啊？这个到底是什么呢？',
+                '过去沃玛教徒们使用过的东西？天哪！这是什么时候的事儿啦<t wrap="0">···</t>',
+                '能看到只在传说种听说过的沃玛教遗物我真是太幸运了！',
+            }},
+
+            {'灵魂明珠',
+            {
+                '啊？这个到底是什么呢？',
+                '是盛着很久以前牺牲的人们灵魂的玉石？哦！真是听起来让人惋惜的事儿<t wrap="0">···</t>',
+                '但是这玉石实在是太漂亮了！我还是头一次见到这种散射出若隐若现光芒的玉石呢<t wrap="0">···</t>',
+            }},
+        }
+
+        return
+        {
+            [SYS_ENTER] = function(uid, value)
+                local progress = getProgress(uid)
+
+                -- @JOIN_EUNSIL
+                if progress.joined then
+                    dialog.post(uid, questPath, '那么，请你去转告王大人我会加入比奇商会的！',
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @SHOW_BULSA
+                elseif progress.requested then
+                    for _, curiosity in ipairs(curiosities) do
+                        if server.player.hasItem(uid, curiosity[1], 1) then
+                            dialog.post(uid, questPath, curiosity[2],
+                            dialog.link('npc_join', '那么加入比奇商会的事儿<t wrap="0">···</t>'))
+                            return
+                        end
+                    end
+
+                    dialog.post(uid, questPath, '这不是什么新鲜玩艺儿啊！你在耍我吗？',
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @INVITE_EUNSIL2_1
+                elseif progress.grocer then
+                    dialog.post(uid, questPath,
+                    {
+                        '是来说服我加入比奇商会的吧！',
+                        '嗯<t wrap="0">···</t>我没有这个打算。',
+                    },
+                    dialog.link('npc_discuss', '商界的形势已经开始向一边倾斜了。'))
+
+                -- @INVITE_EUNSIL1
+                elseif progress.firstReward then
+                    dialog.post(uid, questPath, string.format('尽管比奇商会的势力大大增加，但仍不能信任还没能收买<t color="red">杂货商</t>的 <t color="red">%s</t> 啊！', server.player.getName(uid)),
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @GO_WANG_EUNSIL
+                else
+                    dialog.post(uid, questPath,
+                    {
+                        '要我加入比奇商会？',
+                        '跟我说这样的话之前，没有什么想先去找王大人跟他说的话吗？',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+                end
+            end,
+
+            -- @INVITE_EUNSIL2_2
+            npc_discuss = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '你是说杂货商已经加入到比奇商会了？',
+                    '呵呵呵，不要以为我和杂货商是一类人！',
+                    '现在这个店铺规模也很大，生意也不错！',
+                    '可不是和那种小商贩一样能够随便收买得了的。',
+                },
+                dialog.link('npc_request', '但是<t wrap="0">···</t>？'))
+            end,
+
+            -- @INVITE_EUNSIL2_3
+            npc_request = function(uid, value)
+                addFlag(uid, 'jeweler_request', '饰品店恩实小姐答应加入商会，但是有条件向你要神奇的东西。')
+                dialog.post(uid, questPath,
+                {
+                    '这个生意一直以来都是靠有不同新花样的新鲜玩艺儿来维持的，可是进来却很难看到新鲜的东西，实在是很郁闷！',
+                    '可是又不能扔下店里事情去外面采购些新的货物<t wrap="0">···</t>',
+                    '所以你要是能替我找来些一眼就能相中的<t color="red">新鲜玩艺儿</t> 的话，我就会加入比奇商会。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+
+            -- @SHOW_BULSA_3
+            npc_join = function(uid, value)
+                addFlag(uid, 'merchant_jeweler', '把神奇的东西带给恩实，成功加入商会。')
+                dialog.post(uid, questPath,
+                {
+                    '好的！你帮我搜集到了这么多奇珍异宝，我应该听从你的劝说！',
+                    '崔大夫？嗯，管它呢！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+        }
+    ]])
+end
+
+-- 怡美, Market_Def/03Armor_Bichon-0.txt: @GO_WANG_IBBUN, @INVITE_IBBUN, @GIVE_CHOGONG and @JOIN_IBBUN
+-- she joins only after 轻型盔甲任务, legacy offers @INVITE_IBBUN with [170] only, see the header
+local function setupExpansionOutfitter(uid)
+    setupNPCQuestBehavior('比奇县_0', '怡美_1', uid,
+    [[
+        return getUID(), getQuestName()
+    ]],
+    [[
+        local questUID, questName = ...
+        local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
+
+        -- firstReward: 王大人 paid the first reward, [168]
+        local function getProgress(uid)
+            return uidRemoteCall(questUID, uid,
+            [=[
+                local playerUID = ...
+                return
+                {
+                    grocer      = hasQuestFlag(playerUID, 'merchant_grocery'),
+                    requested   = hasQuestFlag(playerUID, 'outfitter_request'),
+                    joined      = hasQuestFlag(playerUID, 'merchant_outfitter'),
+                    firstReward = dbGetQuestState(playerUID) == 'quest_first_stage_done',
+                }
+            ]=])
+        end
+
+        local function addFlag(uid, flag, desp)
+            uidRemoteCall(questUID, uid, flag, desp,
+            [=[
+                local playerUID, flag, desp = ...
+                addQuestFlag(playerUID, flag)
+                setQuestDesp{uid=playerUID, fsm=fsmName_expand_coc, desp}
+            ]=])
+        end
+
+        return
+        {
+            [SYS_ENTER] = function(uid, value)
+                local progress = getProgress(uid)
+
+                -- @JOIN_IBBUN
+                if progress.joined then
+                    dialog.post(uid, questPath, '如果你去王大人那里的话，就替我转告他我会加入比奇商会的！',
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @GIVE_CHOGONG
+                elseif progress.requested then
+                    if server.player.hasItem(uid, '回城卷', 6) then
+                        server.player.removeItem(uid, '回城卷', 6)
+                        addFlag(uid, 'merchant_outfitter', '把回城卷带给怡美，成功加入比奇商会。')
+                        dialog.post(uid, questPath,
+                        {
+                            '谢谢，现在有了回城卷我就不会像以前那样再遇到那么危险的状况了。',
+                            '既然这样我会遵守诺言加入比奇商会的。',
+                            '替我转告王大人一声吧！',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+                    else
+                        dialog.post(uid, questPath, '嗯，如果能给我<t color="red">回城卷 6个</t>，我就会听从你的劝说。',
+                        dialog.link(SYS_EXIT, '结束'))
+                    end
+
+                -- @GO_WANG_IBBUN
+                elseif not progress.firstReward then
+                    local name = server.player.getName(uid)
+                    if server.player.getLevel(uid) >= 11 then
+                        dialog.post(uid, questPath,
+                        {
+                            string.format('您就是最近一直为比奇商会四处游说的<t color="red">%s</t> 吧！ ！久仰久仰！', name),
+                            '看起来你也是来劝说我加入比奇商会的吧！',
+                            '但是首先我有点拜托你去办的事儿。加入比奇商会的事儿下次再说吧！',
+                            string.format('先去<t color="red">王大人</t>那儿看看怎么样？王大人好像对 <t color="red">%s</t> 您积极的活动非常高兴啊！', name),
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+                    else
+                        dialog.post(uid, questPath,
+                        {
+                            '让我加我比奇商会吗？',
+                            '不过好像跟你这种等级还没有达到11的后生小子没什么可说的。',
+                            string.format('不管怎么样还是先去<t color="red">王大人</t>看看如何？王大人好像对 <t color="red">%s</t> 您积极的活动非常高兴啊！', name),
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+                    end
+
+                -- kyunggap_5 of @Guyonggap_start, see the header
+                elseif server.player.getQuestState(uid, '轻型盔甲任务') ~= SYS_DONE then
+                    dialog.post(uid, questPath,
+                    {
+                        '让我加入比奇商会？',
+                        '我都要忙死了，你还来跟我说什么话啊！这是比奇省唯一的一家棉布店，你没有看到现在忙的团团转吗？',
+                        '要是真的有话和我说就先帮我一把<t wrap="0">···</t>',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- kyunggap_27 of @Guyonggap_complete, see the header
+                elseif not progress.grocer then
+                    dialog.post(uid, questPath,
+                    {
+                        '又是来劝我加入比奇商会的吧！',
+                        string.format('虽说我可以为了 <t color="red">%s</t> 您可以这么做，但是我也是有面子的人啊，连 <t color="red">杂货商</t>都还没有加入比奇商会，我就先加入，这样可不太好吧！', server.player.getName(uid)),
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+
+                -- @INVITE_IBBUN_0
+                else
+                    dialog.post(uid, questPath,
+                    {
+                        '又是来劝我加入比奇商会的吧<t wrap="0">···</t>',
+                        string.format('看来由于 <t color="red">%s</t> 的活动，比奇省的商权现在确实将要全部揽到王大人的手中啊！', server.player.getName(uid)),
+                        '如果连我都加入比奇商会的话，崔大夫的传奇商会将彻底瓦解了！',
+                    },
+                    dialog.link('npc_discuss', '这是大势所趋，你还是作出明智的选择吧！'))
+                end
+            end,
+
+            -- @INVITE_IBBUN_3
+            npc_discuss = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '就像其它商人一样，我也有个条件。',
+                    '如果你答应我的条件的话，我就会加入比奇商会。',
+                },
+                dialog.link('npc_condition', '什么条件呢？'))
+            end,
+
+            -- @INVITE_IBBUN_4
+            npc_condition = function(uid, value)
+                dialog.post(uid, questPath,
+                {
+                    '像我们这样的普通人由于怪物们的威胁不能在城以外的地方自由活动。',
+                    '不久之前我在城外遇到了怪物，使用地牢逃脱卷不但没能逃会城里，反而渐渐到了更加奇怪的地方，差点儿丢了性命。',
+                },
+                dialog.link('npc_request', '看来你没有回城卷啊！'))
+            end,
+
+            -- @INVITE_IBBUN_5
+            npc_request = function(uid, value)
+                addFlag(uid, 'outfitter_request', '布衣店怡美要求带给她回城卷，可安全移动。')
+                dialog.post(uid, questPath,
+                {
+                    '是啊！我要是有能够使我安全回到城里的回城卷的话我就不会经历那种可怕的事情了。',
+                    '所以我的条件就是给我一包回城卷。如果你能找来<t color="red">回城卷 6个</t>给我的话，我就会加入比奇商会。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end,
+        }
+    ]])
+end
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid, args)
+        local expanded = args == 'expanded' or server.player.dbHasFlag(uid, 'done_wang_coc_expansion')
+        setQuestDesp{uid=uid}
+        setQuestDesp{uid=uid, expanded and '王大人召集了所有比奇商人，掌握了比奇商界。' or
+            '王大人召集有势力的商人加入比奇商会，比奇商业结构会有所改变，由于王大人为你说话，图书管理员很信任你。'}
+    end,
     [SYS_ENTER] = function(uid, value)
         uidRemoteCall(getNPCharUID('比奇县_0', '王大人_1'), uid, value,
         [[
@@ -84,6 +734,7 @@ setQuestFSMTable(
     end,
 
     quest_persuade_pharmacist_and_librarian = function(uid, value)
+        setQuestDesp{uid=uid, '王大人为了掌握比奇省的商业大权，请你说服图书管理员（473，429）和药剂师（412，410）加入比奇商会。'}
         setupNPCQuestBehavior('比奇县_0', '王大人_1', uid,
         [[
             return getUID(), getQuestName()
@@ -145,16 +796,19 @@ setQuestFSMTable(
                     if not uidRemoteCall(questUID, uid,
                     [=[
                         local playerUID = ...
-                        return setQuestState{uid=playerUID, from='quest_wait_done', state=SYS_DONE}
+                        local expanding = dbGetQuestState(playerUID, fsmName_expand_coc) ~= nil
+                        return setQuestState{uid=playerUID, from='quest_wait_done', state=expanding and 'quest_first_stage_done' or SYS_DONE}
                     ]=]) then
                         return
                     end
 
-                    dialog.post(uid, questPath, '真没想到啊！不知不觉中就把传奇商会的商家拉拢到我们这一方啦！真是手腕精明啊！由于你的活动终于使我们比奇商会统一了比奇地区商权。这是为了报答你的功劳准备的一点小小礼物，请不要谦让务必收下。',
-                    dialog.link(SYS_EXIT, '退出'))
+                    -- @WANG_COMPLETE_5
+                    dialog.post(uid, questPath, '这个虽然菲薄但是我的诚意，请收下吧！',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     -- a flag of the player, dbAddFlag() is in player.lua, the quest actor has none
                     uidRemoteCall(uid, [=[ dbAddFlag('done_wang_coc') ]=])
+                    server.player.addItem(uid, SYS_GOLDNAME, 5000)
                 end,
             }
         ]])
@@ -303,11 +957,184 @@ setQuestFSMTable(
         -- then fsm stops in quest_persuade_pharmacist_and_librarian, and which setups npc behaviors
         -- but npc behavior is also been set in other fsm, it may overwrite
     end,
+
+    -- the first reward is paid and the expansion goes on, 王大人 pays again when the three merchants joined
+    quest_first_stage_done = function(uid)
+        setQuestDesp{uid=uid, '王大人召集有势力的商人加入比奇商会，比奇商业结构会有所改变，由于王大人为你说话，图书管理员很信任你。'}
+        setupNPCQuestBehavior('比奇县_0', '王大人_1', uid,
+        [[
+            return getUID(), getQuestName()
+        ]],
+        [[
+            local questUID, questName = ...
+            local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
+
+            return
+            {
+                -- @WANG_H_COMPLETE
+                [SYS_ENTER] = function(uid, value)
+                    local progress = uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        return
+                        {
+                            grocer    = hasQuestFlag(playerUID, 'merchant_grocery'),
+                            jeweler   = hasQuestFlag(playerUID, 'merchant_jeweler'),
+                            outfitter = hasQuestFlag(playerUID, 'merchant_outfitter'),
+                        }
+                    ]=])
+
+                    if not progress.grocer then
+                        dialog.post(uid, questPath, '嗯<t wrap="0">···</t>现在那个姓崔的家伙的传奇商会就要完蛋啦！呵<t wrap="0">···</t>呵<t wrap="0">···</t>',
+                        dialog.link(SYS_EXIT, '结束'))
+
+                    elseif not progress.jeweler then
+                        dialog.post(uid, questPath,
+                        {
+                            '听说<t wrap="0">···</t>你最近<t wrap="0">···</t>',
+                            '罢了<t wrap="0">···</t>',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+
+                    elseif not progress.outfitter then
+                        dialog.post(uid, questPath,
+                        {
+                            '听说<t wrap="0">···</t>你最近<t wrap="0">···</t>',
+                            '算了<t wrap="0">···</t>',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+
+                    -- @WANG_H_COMPLETE_3
+                    elseif server.quest.setState(questUID, {uid=uid, from='quest_first_stage_done', state=SYS_DONE, args='expanded'}) then
+                        dialog.post(uid, questPath,
+                        {
+                            '噢！你来啦！',
+                            '真没想到啊！不知不觉中就把传奇商会的商家拉拢到我们这一方啦！',
+                            '真是手腕精明啊！由于你的活动终于使我们比奇商会统一了比奇地区商权。',
+                            '这是为了报答你的功劳准备的一点小小礼物，请不要谦让务必收下。',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
+
+                        server.player.dbAddFlag(uid, 'done_wang_coc_expansion')
+                        server.player.addItem(uid, SYS_GOLDNAME, 25000)
+                    end
+                end,
+            }
+        ]])
+    end,
 })
+
+setQuestFSMTable(fsmName_expand_coc,
+{
+    [SYS_ENTER] = function(uid)
+        setQuestDesp{uid=uid, fsm=fsmName_expand_coc, '从卖彩卷的商人那里听到了比奇的商界，快请杂货商人，饰品店恩实小姐，布衣店怡美小姐也加入商会。'}
+        setupExpansionGrocer(uid)
+        setupExpansionJeweler(uid)
+        setupExpansionOutfitter(uid)
+        setQuestState{uid=uid, fsm=fsmName_expand_coc, state='quest_expansion_active'}
+    end,
+    quest_expansion_active = function() end,
+})
+
+-- 世玉, Market_Def/09Reinstatement_Bichon-0.txt: the news of 比奇省商界 is how one learns of the expansion
+uidRemoteCall(getNPCharUID('比奇县_0', '世玉_1'), getUID(), getQuestName(), fsmName_expand_coc,
+[[
+    local questUID, questName, expansionFSM = ...
+    local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
+
+    -- @main_root_1: 'expansion' from its start till its reward, [152] till [169]
+    -- 'news' once the librarian or the pharmacist joined, till the first reward, [165], [166] or [167] without [168]
+    local function getNews(uid)
+        return uidRemoteCall(questUID, uid,
+        [=[
+            local playerUID = ...
+            if dbGetQuestState(playerUID, fsmName_expand_coc) ~= nil then
+                return 'expansion'
+            end
+
+            if dbGetQuestState(playerUID) ~= 'quest_wait_done' then
+                return nil
+            end
+
+            local librarian  = dbGetQuestState(playerUID, fsmName_persuade_librarian ) == SYS_DONE
+            local pharmacist = dbGetQuestState(playerUID, fsmName_persuade_pharmacist) == SYS_DONE
+
+            if librarian or pharmacist then
+                return 'news', librarian, pharmacist
+            end
+        ]=])
+    end
+
+    setQuestHandler(questName,
+    {
+        -- @NPC_Main_1 and @NPC_Main_2
+        [SYS_LABEL] = function(uid)
+            return (getNews(uid) == 'expansion') and '传奇商会' or '比奇省商界'
+        end,
+
+        [SYS_CHECKACTIVE] = function(uid)
+            return getNews(uid) ~= nil
+        end,
+
+        [SYS_ENTER] = function(uid, value)
+            local news, librarian, pharmacist = getNews(uid)
+            if news == 'news' and librarian and pharmacist then
+                -- @BICHUN_SANGGE1_3, set [152]
+                if server.quest.setState(questUID, {uid=uid, fsm=expansionFSM, from=SYS_LUANIL, state=SYS_ENTER}) then
+                    dialog.post(uid, questPath,
+                    {
+                        '好像是个从乡下来的人帮助了王大人扩大了比奇商会的势力。',
+                        '由于原本拥有绝对优势的崔大夫的传奇商会受到了重大的打击，商权逐渐萎缩，没多久比奇地区的商权就将出现空白的。',
+                        '在比奇省中新加入比奇商会的商家除了书店和药剂师之外，还有精肉店、武器商、铁匠铺。',
+                        '传奇商会 主要核心成员是<t color="red">布商</t>、<t color="red">首饰店</t>、 <t color="red">杂货商</t>。',
+                        '我与其它的商家不同，因为我接受官府的统治保持中立，所以现在是两方势力对等的局面。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+                    return
+                end
+                news = 'expansion'
+            end
+
+            -- @BICHUN_SANGGE2
+            if news == 'expansion' then
+                dialog.post(uid, questPath,
+                {
+                    '这次由于比奇商会的势力扩张，崔大夫的传奇商会受到重创，现在两个商会的势力呈对等局面。',
+                    '如果它的核心成员<t color="red">布商</t>、<t color="red">古董店</t>、 <t color="red">杂货商</t> 也加入到比奇商会的话，崔大夫的传奇商会就名存实亡了。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+
+            -- @BICHUN_SANGGE1_1_1
+            elseif news == 'news' and librarian then
+                dialog.post(uid, questPath,
+                {
+                    '荣阵阁图书管理人已经加入了比奇商会！',
+                    '如果连药剂师也加入比奇商会的话，估计传奇商会其它商人的心也会开始动摇吧！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+
+            -- @BICHUN_SANGGE1_2, see the header for wang_22
+            elseif news == 'news' then
+                dialog.post(uid, questPath,
+                {
+                    '听说一小会儿之前，药剂师也加入了比奇商会。',
+                    '要是连图书管理人也加入比奇商会的话，那么传奇商会里剩下的商人们也都该改变自己的想法了<t wrap="0">···</t>',
+                },
+                dialog.link(SYS_EXIT, '结束'))
+            end
+        end,
+    })
+]])
 
 setQuestFSMTable(fsmName_persuade_librarian,
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '把从所有休班卫士那里听到的比奇历史资料转达给图书管理员，图书管理员承诺加入比奇商会。'}
+    end,
     [SYS_ENTER] = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '图书管理员正在搜集史书资料，请和三个休班卫士讲话，再把他们说的故事转达给图书管理员。'}
         setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
         [[
             local dialog = require('include.dialog')
@@ -451,6 +1278,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
     end,
 
     quest_give_guard_1_soju = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '休班卫士嗓子有点干，拿烧酒给他，再打听比奇省的历史。'}
         setupNPCQuestBehavior('比奇县_0', '休班卫士_1', uid,
         [[
             return getUID(), getQuestName()
@@ -547,6 +1375,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
     end,
 
     quest_wait_guard_1_and_guard_2_done = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '请从所有休班卫士那里听到比奇历史的故事，再转达给图书管理员。'}
         local done_guard_1 = hasQuestFlag(uid, 'flag_done_query_guard_1')
         local done_guard_2 = hasQuestFlag(uid, 'flag_done_query_guard_2')
 
@@ -603,6 +1432,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
     end,
 
     quest_give_guard_3_100_gold = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '再去问第三位休班卫士，听听比奇省的历史。'}
         setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
         [[
             return getUID(), getQuestName()
@@ -762,6 +1592,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
     end,
 
     quest_guard_3_give_info = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '听到了关于比奇历史的故事，如果从所有休班卫士那里听到相关内容，就赶快找图书管理员把内容转达给他。'}
         uidRemoteCall(getNPCharUID('比奇县_0', '休班卫士_3'), uid, value,
         [[
             local playerUID, texts = ...
@@ -802,6 +1633,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
     end,
 
     quest_answer_librarian_questions = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '把休班卫士说的故事转达给图书管理员，回答他的提问。'}
         setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
         [[
             return getUID(), getQuestName()
@@ -888,6 +1720,11 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             local playerUID, mapName, npcName = ...
                             if setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_answer_librarian_questions', state=SYS_DONE} then
                                 clearNPCQuestBehavior(mapName, npcName, playerUID)
+
+                                -- the guards go back to their own talk, legacy's replay at [146] ends with [165]
+                                for _, guard in ipairs({'休班卫士_1', '休班卫士_2', '休班卫士_3'}) do
+                                    clearNPCQuestBehavior('比奇县_0', guard, playerUID)
+                                end
                             end
                         ]=])
                     else
@@ -895,6 +1732,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     end
                 end,
 
+                -- @BICHUN_TEST1_4_3, set [146]
                 npc_wrong_answer = function(uid, value)
                     dialog.post(uid, questPath,
                     {
@@ -902,6 +1740,104 @@ setQuestFSMTable(fsmName_persuade_librarian,
                         '请再去打听一下吧！',
                     },
                     dialog.link(SYS_EXIT, '退出'))
+
+                    uidRemoteCall(questUID, uid,
+                    [=[
+                        local playerUID = ...
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_answer_librarian_questions', state='quest_player_answer_incorrectly'}
+                    ]=])
+                end,
+            }
+        ]])
+    end,
+
+    -- [146], a wrong answer: the guards tell their stories again (@REPLAY_GUARD1..3), the librarian asks again (@BICHUN_TEST2)
+    quest_player_answer_incorrectly = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_librarian, '你没能回答图书管理员的问题，再去找所有休班卫士听他们的故事吧。'}
+
+        -- @BICHUN_TEST2 starts at the first question
+        setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
+        [[
+            return getUID(), getQuestName()
+        ]],
+        [[
+            local questUID, questName = ...
+            return
+            {
+                [SYS_ENTER] = function(uid, value)
+                    uidRemoteCall(questUID, uid, questName,
+                    [=[
+                        local playerUID, questName = ...
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from='quest_player_answer_incorrectly', state='quest_answer_librarian_questions', exitfunc=function()
+                            runNPCEventHandler(getNPCharUID('比奇县_0', '图书管理员_1'), playerUID, {SYS_EPUID, questName}, 'npc_question_1')
+                        end}
+                    ]=])
+                end,
+            }
+        ]])
+
+        -- @REPLAY_GUARD1
+        setupNPCQuestBehavior('比奇县_0', '休班卫士_1', uid,
+        [[
+            return getQuestName()
+        ]],
+        [[
+            local questName = ...
+            local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
+            return
+            {
+                [SYS_ENTER] = function(uid, value)
+                    dialog.post(uid, questPath,
+                    {
+                        '不要总是在开玩笑啦！',
+                        '看来你是要从我这里知道些什么吧！但是没那么容易啦！',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+                end,
+            }
+        ]])
+
+        -- @REPLAY_GUARD2, the story of npc_guard_2_give_info again
+        setupNPCQuestBehavior('比奇县_0', '休班卫士_2', uid,
+        [[
+            return getQuestName()
+        ]],
+        [[
+            local questName = ...
+            local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
+            return
+            {
+                [SYS_ENTER] = function(uid, value)
+                    dialog.post(uid, questPath,
+                    {
+                        '累得要命，你可要仔细听好并记住啊！',
+                        '知道吗？我们的祖先就是讨伐半兽人族地区而派遣出的远征队啊！我们的祖先经过残酷的战斗终于击溃了怪物们。一想到只要再继续坚持战斗一下就可以把怪物们斩草除根，然后可以回到故乡，就都非常高兴。',
+                        '可是没想到这时突然发生了始料未及的灾难。这里发生了大地震。原本可以翻过山脉回到家乡的路由于这次大地震导致地壳变动，完全的被隔断了！有的人痛哭流涕，有的人茫然失措。所有人都慌了手脚。',
+                        '但是一位优秀的将领重新振作精神，开始在这个地区寻找求生之路。他指挥着他的部下们在赶走半兽人族的地区找到了一片肥沃的土地建立了新的城市。这就是现在的比奇省。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
+                end,
+            }
+        ]])
+
+        -- @REPLAY_GUARD3: quest_guard_3_give_info again, its args are the lines around the story, it goes back to the questions
+        -- installed here only, so it stays after the librarian asked again
+        setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
+        [[
+            return getUID()
+        ]],
+        [[
+            local questUID = ...
+            return
+            {
+                [SYS_ENTER] = function(uid, value)
+                    uidRemoteCall(questUID, uid, {[=[<par>哦？那我就再给你讲一遍吧！</par>]=]},
+                    [=[
+                        local playerUID, texts = ...
+                        setQuestState{uid=playerUID, fsm=fsmName_persuade_librarian, from={'quest_player_answer_incorrectly', 'quest_answer_librarian_questions'}, state='quest_guard_3_give_info', args=texts}
+                    ]=])
                 end,
             }
         ]])
@@ -910,7 +1846,11 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
 setQuestFSMTable(fsmName_persuade_pharmacist,
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_pharmacist, '将毒蛇牙齿送给药剂师，药剂师同意加入比奇商会。'}
+    end,
     [SYS_ENTER] = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_pharmacist, '药剂师因找不到能治疗传染病的药而苦恼，主要药材毒蛇牙齿能在蛇谷金中医那里找到。'}
         setupNPCQuestBehavior('比奇县_0', '药剂师_1', uid,
         [[
             return getQuestName()
@@ -1164,6 +2104,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
     end,
 
     quest_purchased_tooth = function(uid, value)
+        setQuestDesp{uid=uid, fsm=fsmName_persuade_pharmacist, '在蛇谷找到的毒蛇牙齿就是专门治疗最近流行传染病的药，快把毒蛇牙齿转给比奇药剂师吧。'}
         setupNPCQuestBehavior('毒蛇山谷_2', '金中医_1', uid,
         [[
             return getQuestName()

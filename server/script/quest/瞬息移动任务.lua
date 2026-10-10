@@ -5,7 +5,7 @@
 -- a maze of five forks. each of the five maps has a 沙漠树魔 blocking the left way out and
 -- another blocking the right, and killing one is how you pick that direction and move on. after
 -- the fifth choice the whole path is judged at once: get it right and you are out, get it wrong
--- and the forks are wiped and restocked and you start over, with ten minutes for all of it
+-- and the forks are wiped and restocked and you start over, with a fresh ten-minute timer
 --
 -- 霹雳尊者 will give you one of three hints about which way to go, and they are riddles about
 -- how the choices relate rather than the directions themselves
@@ -14,7 +14,7 @@
 -- mir2x has no numbered variants, so 沙漠树魔 is the right-hand one here and 沙漠树魔0 the
 -- left — the same monster to look at, and the names are what the hooks tell apart
 --
--- four things in the legacy data that do not work, all of them left as they are:
+-- five things in the legacy data that do not work, the first four left as they are:
 --
 --   @mugong_fly_check3 wants [507] and [508] both set, and those are the two directions of the
 --   same fork, so it can never match. only two of the three paths are really valid
@@ -25,6 +25,10 @@
 --   如此没有运气吗？ line for when no hint comes out. that line is used here
 --
 --   the level branch offers <好像有些勉强。/@mugong_fly_next2_2> but the label is next1_2
+--
+--   @mugong_fly_failure's reset [505] 9 clears [505]..[513] and not [514], so after a wrong path
+--   chosen right at fork five, legacy judges fork five at the first kill there. not reproduced:
+--   a restart here starts the whole path over
 --
 -- flags: [751] done, [504] sent to the maze, [505]..[514] two per fork, [515] path was right
 
@@ -56,12 +60,14 @@ _G.exitY   = 145
 
 -- the five forks and what else is standing around on each of them, from @mugong_fly_next8_1
 -- onwards. fork five doubles up on the blockers
+-- refill: @mugong_fly_restart1_5 and restart4_4 put one fewer back than next8_5 and next11_4
 _G.forks =
 {
     {
         map      = '试练场_02_010',
         blockers = 1,
         filler   = {{17, 51, {{'骷髅精灵', 4}}}, {58, 8, {{'掷斧骷髅', 2}}}, {36, 29, {{'骷髅战士', 2}}}},
+        refill   = {{17, 51, {{'骷髅精灵', 4}}}, {58, 8, {{'掷斧骷髅', 2}}}, {36, 29, {{'骷髅战士', 1}}}},
     },
     {
         map      = '试练场_02_011',
@@ -77,6 +83,7 @@ _G.forks =
         map      = '试练场_02_013',
         blockers = 1,
         filler   = {{17, 51, {{'沃玛勇士', 4}}}, {58, 8, {{'沃玛勇士', 4}}}, {36, 29, {{'火焰沃玛', 3}}}},
+        refill   = {{17, 51, {{'沃玛勇士', 4}}}, {58, 8, {{'沃玛勇士', 3}}}, {36, 29, {{'火焰沃玛', 3}}}},
     },
     {
         map      = '试练场_02_014',
@@ -94,9 +101,6 @@ _G.pickLines =
     {'(第四次选择左侧。)', '(第四次选择右侧<t wrap="0">···</t>)'},
     {'（最后第五次选择左侧<t wrap="0">···</t>现在有2头怪兽拦着路）', '（最后第五次选择右侧<t wrap="0">···</t>现在有2头怪兽拦着路）'},
 }
-
--- @MapQuest_move_5to0L and 5to0R, for killing the other blocker after you already chose
-_G.alreadyChose = {'（既然已经选择了左边<t wrap="0">···</t>就往那儿走吧。）', '（既然选择了右边<t wrap="0">···</t>就往那儿走吧。）'}
 
 -- @mugong_fly_check1 and check2. check3 can not match, see the note at the top
 _G.goodPaths =
@@ -129,24 +133,27 @@ _G.hints =
     },
 }
 
-local function stockFork(mapUID, fork)
-    uidRemoteCall(mapUID, rightMonster, fork.blockers, rightAt[1], rightAt[2],
-    [[
-        local name, count, x, y = ...
-        for _ = 1, count do
-            addMonster(name, x, y, false)
-        end
-    ]])
+-- returns the uids of the blockers: a kill counts on the fork the blocker stood on, a monster takes no remote call
+-- and the killer may be on the next fork by the time a kill on this one comes in
+local function stockFork(mapUID, fork, filler)
+    local blockers = {}
+    for _, blocker in ipairs({{rightMonster, rightAt}, {leftMonster, leftAt}}) do
+        local uidList = uidRemoteCall(mapUID, blocker[1], fork.blockers, blocker[2][1], blocker[2][2],
+        [[
+            local name, count, x, y = ...
+            local uidList = {}
+            for _ = 1, count do
+                table.insert(uidList, addMonster(name, x, y, false))
+            end
+            return uidList
+        ]])
 
-    uidRemoteCall(mapUID, leftMonster, fork.blockers, leftAt[1], leftAt[2],
-    [[
-        local name, count, x, y = ...
-        for _ = 1, count do
-            addMonster(name, x, y, false)
+        for _, monsterUID in ipairs(uidList) do
+            blockers[monsterUID] = true
         end
-    ]])
+    end
 
-    for _, cluster in ipairs(fork.filler) do
+    for _, cluster in ipairs(filler) do
         uidRemoteCall(mapUID, cluster[1], cluster[2], cluster[3],
         [[
             local x, y, entryList = ...
@@ -157,6 +164,7 @@ local function stockFork(mapUID, fork)
             end
         ]])
     end
+    return blockers
 end
 
 local function forkUID(uid, index)
@@ -171,6 +179,7 @@ local function closeTrial(uid)
     end
 
     for index = #forks, 1, -1 do
+        setQuestRuntimeVar(uid, 'forkBlockers' .. index, nil)
         local mapUID = forkUID(uid, index)
         if mapUID then
             setQuestRuntimeVar(uid, 'forkMapUID' .. index, nil)
@@ -181,6 +190,19 @@ local function closeTrial(uid)
     dbSetQuestVar(uid, 'forkPath', nil)
 end
 
+local function renewTrialTimer(uid)
+    local timer = getQuestRuntimeVar(uid, 'trialTimer')
+    if timer then
+        closeThread(timer)
+    end
+    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
+        pause(trialMinutes * 60 * 1000)
+        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
+            server.player.postString(uid, '时间到了，你被送出了训练场。')
+        end
+    end))
+end
+
 -- @mugong_fly_restart0 onwards: wipe every fork and put them back the way they were
 local function restockForks(uid)
     dbSetQuestVar(uid, 'forkPath', nil)
@@ -189,7 +211,7 @@ local function restockForks(uid)
         local mapUID = forkUID(uid, index)
         if mapUID then
             uidRemoteCall(mapUID, [[ clearMonster() ]])
-            stockFork(mapUID, fork)
+            setQuestRuntimeVar(uid, 'forkBlockers' .. index, stockFork(mapUID, fork, fork.refill or fork.filler))
         end
     end
 end
@@ -211,18 +233,13 @@ local function enterTrial(uid)
 
         uidList[index] = mapUID
         setQuestRuntimeVar(uid, 'forkMapUID' .. index, mapUID)
-        stockFork(mapUID, fork)
+        setQuestRuntimeVar(uid, 'forkBlockers' .. index, stockFork(mapUID, fork, fork.filler))
     end
 
     dbSetQuestVar(uid, 'forkPath', nil)
 
     -- TimeRecall 10
-    setQuestRuntimeVar(uid, 'trialTimer', runQuestThread(function()
-        pause(trialMinutes * 60 * 1000)
-        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_ready'} then
-            server.player.postString(uid, '时间到了，你被送出了训练场。')
-        end
-    end))
+    renewTrialTimer(uid)
 
     server.player.spaceMove(uid, uidList[1], forkX, forkY)
     setQuestState{uid = uid, state = 'quest_in_trial'}
@@ -259,19 +276,24 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     local path = dbGetQuestVar(uid, 'forkPath') or {}
-    local index = #path + 1
+    local finalChosen = #path == #forks
+    local index = math.min(#path + 1, #forks)
 
-    -- the last fork doubles the blockers, so killing the other kind after you have chosen just
-    -- gets you @MapQuest_move_5to0L's ELSESAY
-    if index > #forks then
-        server.player.postString(uid, alreadyChose[(path[#forks] == 'L') and 1 or 2])
+    local blockers = getQuestRuntimeVar(uid, 'forkBlockers' .. index)
+    if not (blockers and blockers[monsterUID]) then
         return
     end
 
-    path[index] = side
-    dbSetQuestVar(uid, 'forkPath', path)
+    -- [513]/[514] record the first kill; either side's second kill checks the path.
+    if #path < #forks then
+        path[index] = side
+        dbSetQuestVar(uid, 'forkPath', path)
+        server.player.postString(uid, pickLines[index][(side == 'L') and 1 or 2])
+    end
 
-    server.player.postString(uid, pickLines[index][(side == 'L') and 1 or 2])
+    if index == #forks and not finalChosen then
+        return
+    end
 
     -- forks one to four just open onto the next one
     if index < #forks then
@@ -294,6 +316,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     -- @mugong_fly_failure, reset [505] 9 and put every fork back
     server.player.postString(uid, '（嗯<t wrap="0">···</t>有些混淆，无论如何好像需要重新开始）。')
     restockForks(uid)
+    renewTrialTimer(uid)
 
     local firstUID = forkUID(uid, 1)
     if firstUID then
@@ -484,6 +507,9 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼瞬息移动',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '法师') then
+                return false
+            end
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,

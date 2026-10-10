@@ -49,7 +49,7 @@ setQuestFSMTable(
             {
                 monster  = '七点白蛇',
                 map      = gallMap,
-                kills    = gallKills,
+                counterMode = {threshold = gallKills, initial = 3},
                 once     = true,
                 give     = gallName,
                 setState = 'quest_got_gall',

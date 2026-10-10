@@ -31,6 +31,9 @@ local npcbattle = require('quest.include.npcbattle')
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '署箭想利用不死牌修炼不老不死之魔法的阴谋告以失败，但是他的贪婪和野心伤害到了很多人。'}
+    end,
     -- the 城主 has just found the 不死牌 missing
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '不死牌被盗，比奇城城主要你去道馆找执客院住持书堂玄震道士打听盗贼的下落。'}
@@ -953,7 +956,7 @@ setQuestFSMTable(
         {
             {
                 monster = '僧侣僵尸',
-                kills   = 3,
+                counterMode = {threshold=3, initial=3, completed=5},
                 once    = true,
                 give    = '僧侣僵尸骨',
                 say     = '（这是僧侣僵尸的骨头吗？）',
@@ -964,7 +967,7 @@ setQuestFSMTable(
         {
             {
                 monster = '雷电僵尸',
-                kills   = 3,
+                counterMode = {threshold=3, initial=3, completed=5},
                 once    = true,
                 give    = '雷电僵尸骨',
                 say     = '（这是雷电僵尸骨吗？）',
@@ -1024,8 +1027,9 @@ setQuestFSMTable(
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.removeItem(uid, '僧侣僵尸骨', 1)
-                    server.player.removeItem(uid, '雷电僵尸骨', 1)
+                    -- Source checks one but takes ten; partial removal assumes legacy take semantics.
+                    server.player.removeUpToItem(uid, '僧侣僵尸骨', 10)
+                    server.player.removeUpToItem(uid, '雷电僵尸骨', 10)
                     server.player.addItem(uid, '毁灭护身符', 1)
                 end,
             }
@@ -1204,6 +1208,8 @@ setQuestFSMTable(
 
                     server.player.removeItem(uid, '不死牌', 1)
                     server.player.addItem(uid, SYS_GOLDNAME, 20000)
+                    server.player.addItem(uid, '白虎剑', 1)
+                    server.player.addItem(uid, '战神油', 2)
                 end,
             }
         ]])

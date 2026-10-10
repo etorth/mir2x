@@ -72,6 +72,36 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
     return count;
 }
 
+std::optional<std::vector<SDItem>> SDInventory::getQualityItemList(uint32_t itemID, int minQuality, size_t count) const
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    fflassert(ir);
+    fflassert(!ir.isGold());
+    fflassert(minQuality >= 0);
+    fflassert(count > 0);
+
+    std::vector<SDItem> result;
+    for(const auto &item: m_list){
+        if(item.itemID != itemID){
+            continue;
+        }
+
+        const auto quality = item.getExtAttr<SDItem::EA_QUALITY_t>();
+        if(!quality.has_value() || quality.value() < minQuality){
+            continue;
+        }
+
+        auto selected = item;
+        selected.count = std::min<size_t>(count, item.count);
+        count -= selected.count;
+        result.push_back(std::move(selected));
+        if(count == 0){
+            return result;
+        }
+    }
+    return {};
+}
+
 const SDItem *SDInventory::find(uint32_t itemID, uint32_t seqID) const
 {
     const auto &ir = DBCOM_ITEMRECORD(itemID);

@@ -168,7 +168,7 @@ function _RSVD_NAME_setupQuests()
         assertType(questDesp,  'table' , 'nil')
 
         if questState == SYS_DONE then
-            questDespList[questName] = {[SYS_QSTFSM] = '任务已完成'}
+            questDespList[questName] = questDesp or {[SYS_QSTFSM] = '任务已完成'}
 
         elseif questState then
             questDespList[questName] = questDesp or {}

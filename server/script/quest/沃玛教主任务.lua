@@ -24,6 +24,9 @@ local npcbattle = require('quest.include.npcbattle')
 
 setQuestFSMTable(
 {
+    [SYS_DONE] = function(uid, args)
+        setQuestDesp{uid=uid, args == 'declined' and '沃玛教主任务失败。' or '无名老人终于实现了一直以来的愿望，重重奖赏你。'}
+    end,
     -- 王铁匠 has told you these relics are worth money, go and turn one up
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '沃玛神殿的古董能卖上价钱，去猎杀沃玛战士找一件出来。'}
@@ -32,7 +35,6 @@ setQuestFSMTable(
         {
             {
                 monster  = '沃玛战士',
-                kills    = 5,
                 once     = true,
                 give     = '沃玛金牌',
                 setState = 'quest_sell_medal',
@@ -143,12 +145,12 @@ setQuestFSMTable(
                     end
 
                     -- he pays more to someone who has already worked for 比奇商会
-                    if server.player.getQuestState(uid, '比奇商会') == SYS_DONE then
+                    if server.player.dbHasFlag(uid, 'done_wang_coc_expansion') then
                         dialog.post(uid, questPath, '您为了我们比奇商会做了很多事情，一定会给你个高价来买的，这样吧！收下这15万钱，不<t wrap="0">···</t>20万钱！',
                         dialog.link('npc_thanks', '谢谢！'))
                         server.player.addItem(uid, SYS_GOLDNAME, 200000)
 
-                    elseif server.player.getQuestState(uid, '比奇商会') ~= nil then
+                    elseif server.player.dbHasFlag(uid, 'done_wang_coc') then
                         dialog.post(uid, questPath, '您为了我们比奇商会做了很多事情，一定会给你个高价来买的，这样吧！收下这10万钱！',
                         dialog.link('npc_thanks', '谢谢！'))
                         server.player.addItem(uid, SYS_GOLDNAME, 100000)
@@ -187,7 +189,7 @@ setQuestFSMTable(
         {
             {
                 monster = '沃玛卫士',
-                kills   = 5,
+                counterMode = {threshold=12, initial=3, incrementChance=2, randomFrom=11},
                 once    = true,
                 give    = '无名日志',
                 say     = '（一本被血浸透的旧日志，字迹还认得出来）',
@@ -813,7 +815,6 @@ setQuestFSMTable(
         {
             {
                 monster  = '沃玛护卫',
-                kills    = 5,
                 give     = '灵魂明珠',
                 setState = 'quest_break_orb',
                 say      = '（一颗温热的明珠，里面像是有什么东西在动）',
@@ -1160,18 +1161,8 @@ setQuestFSMTable(
                     })
                 end,
 
-                -- no switch goes with this gold, a quest flag gives it once, checked and set in one call
                 npc_decline_job = function(uid, args)
-                    if not uidRemoteCall(questUID, uid,
-                    [=[
-                        local playerUID = ...
-                        if hasQuestFlag(playerUID, 'gold_declined_job') then
-                            return false
-                        end
-
-                        addQuestFlag(playerUID, 'gold_declined_job')
-                        return true
-                    ]=]) then
+                    if not server.quest.setState(questUID, {uid=uid, from='quest_smash_orb', state=SYS_DONE, args='declined'}) then
                         return
                     end
 
@@ -1179,11 +1170,12 @@ setQuestFSMTable(
                     {
                         '<t wrap="0">···</t>',
                         '你已经为我做了足够的事情了，看来我这个老家伙太贪心了啊！这是辛苦费，请您收下吧！唉<t wrap="0">···</t>沃玛教主的事儿该怎么办呢<t wrap="0">···</t>',
-                        '那么请慢走啊!',
+                        '那么请慢走啊！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.addItem(uid, SYS_GOLDNAME, 30000)
+                    local weapon = server.player.hasJob(uid, '战士') and '修罗' or (server.player.hasJob(uid, '法师') and '偃月' or '降魔')
+                    server.player.addItem(uid, weapon, 1)
                 end,
 
                 npc_take_job = function(uid, args)
@@ -1197,10 +1189,6 @@ setQuestFSMTable(
                         string.format('如果觉得一个人有点儿吃力的话，就和朋友们协力对付吧！一定要让沃玛教主死在<t color="red">%s</t>您和您的朋友手里啊！', server.player.getName(uid)),
                     },
                     dialog.link(SYS_EXIT, '结束'))
-
-                    server.player.addItem(uid, '修罗', 1)
-                    server.player.addItem(uid, '偃月', 1)
-                    server.player.addItem(uid, '降魔', 1)
                 end,
             }
         ]])
@@ -1276,9 +1264,8 @@ setQuestFSMTable(
                     dialog.post(uid, questPath, '谢谢了！我死去的弟弟也不会忘记您的恩德的！真的太谢谢您能帮我这个罪孽深重的老家伙完成夙愿了！现在这个对我来说已经用不着了，如果您能够派上用场的话就好了。',
                     dialog.link(SYS_EXIT, '结束'))
 
-                    server.player.addItem(uid, '沃玛修罗', 1)
-                    server.player.addItem(uid, '沃玛偃月', 1)
-                    server.player.addItem(uid, '沃玛降魔', 1)
+                    local weapon = server.player.hasJob(uid, '战士') and '沃玛修罗' or (server.player.hasJob(uid, '法师') and '沃玛偃月' or '沃玛降魔')
+                    server.player.addItem(uid, weapon, 1)
                 end,
             }
         ]])

@@ -2,19 +2,13 @@ _G.minQuestLevel = 11
 
 setQuestFSMTable(
 {
-    [SYS_ENTER] = function(uid, args)
-        uidRemoteCall(uid, uid, getUID(),
-        [[
-            local playerUID, questUID = ...
-            addTrigger(SYS_ON_GAINITEM, function(itemID, seqID)
-                if hasItem(getItemID('铁矿'), 0, 5) then
-                    postString('已经收集到5块铁矿了，快回去找怡美吧！')
-                    server.quest.setState(questUID, {uid=playerUID, from=SYS_ENTER, state='quest_got_iron'})
-                    return true
-                end
-            end)
-        ]])
+    -- [170], phrased as a promise in 001.txt although it is set at the hand-in, kept as written
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '如果帮怡美找到她要的铁矿石，她会回报你一件比一般轻型盔甲持久性更强的特制轻型盔甲。'}
+    end,
 
+    [SYS_ENTER] = function(uid, args)
+        setQuestDesp{uid=uid, '比奇布衣店怡美说制作防御服的铁矿材料不足，请给她纯度13以上的铁矿5个。'}
         setupNPCQuestBehavior('比奇县_0', '怡美_1', uid,
         [[
             return getQuestName()
@@ -51,9 +45,26 @@ setQuestFSMTable(
                 end,
             }
         ]])
+
+        if server.player.hasItemQuality(uid, '铁矿', 13, 5) then
+            setQuestState{uid=uid, state='quest_got_iron'}
+        end
+        uidRemoteCall(uid, uid, getUID(),
+        [[
+            local playerUID, questUID = ...
+            addTrigger(SYS_ON_GAINITEM, function(itemID)
+                -- runs in the player actor: server.player.* would remote-call the player itself, which raises
+                if hasItemQuality(getItemID('铁矿'), 13, 5) then
+                    postString('已经收集到5块纯度13以上的铁矿了，快回去找怡美吧！')
+                    server.quest.setState(questUID, {uid=playerUID, from=SYS_ENTER, state='quest_got_iron'})
+                    return true
+                end
+            end)
+        ]])
     end,
 
     quest_got_iron = function(uid, args)
+        setQuestDesp{uid=uid, '已经找到纯度13以上的铁矿5个，把它们交给怡美吧。'}
         setupNPCQuestBehavior('比奇县_0', '怡美_1', uid,
         [[
             return getUID(), getQuestName()
@@ -65,10 +76,8 @@ setQuestFSMTable(
 
             return
             {
-                -- @give_iron, the ore first, given back if the switch is refused
-                -- legacy also wants the ore pure enough, checkduraeva 铁矿 13, mir2x ore has no purity
                 [SYS_ENTER] = function(uid, args)
-                    if not server.player.removeItem(uid, '铁矿', 5) then
+                    if not server.player.hasItemQuality(uid, '铁矿', 13, 5) then
                         dialog.post(uid, questPath, '还没有带来我要的铁矿啊！',
                         {
                             dialog.link('npc_where_to_get_iron', '去哪儿才能找到铁矿呢？'),
@@ -78,9 +87,9 @@ setQuestFSMTable(
                     end
 
                     if not server.quest.setState(questUID, {uid=uid, from='quest_got_iron', state=SYS_DONE}) then
-                        server.player.addItem(uid, '铁矿', 5)
                         return
                     end
+                    server.player.removeItemQuality(uid, '铁矿', 13, 5)
 
                     dialog.post(uid, questPath,
                     {
@@ -117,7 +126,8 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
     setQuestHandler(questName,
     {
         [SYS_CHECKACTIVE] = function(uid)
-            return server.quest.getState(questUID, {uid=uid}) == nil
+            return server.player.dbHasFlag(uid, 'done_wang_coc')
+                and server.quest.getState(questUID, {uid=uid}) == nil
         end,
 
         [SYS_ENTER] = function(uid, args)
@@ -143,7 +153,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                         dialog.link('npc_ask_when_not_interested', '不感兴趣。'),
                     })
 
-                elseif string.match(dressName, '布衣。+') then
+                elseif dressName == '布衣（男）' or dressName == '布衣（女）' then
                     dialog.post(uid, questPath,
                     {
                         string.format('您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！', server.player.getName(uid)),
@@ -155,7 +165,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                         dialog.link('npc_ask_when_not_interested', '不感兴趣。'),
                     })
 
-                elseif string.match(dressName, '轻型盔甲。+') then
+                elseif dressName == '轻型盔甲（男）' or dressName == '轻型盔甲（女）' then
                     dialog.post(uid, questPath,
                     {
                         string.format('您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！', server.player.getName(uid)),

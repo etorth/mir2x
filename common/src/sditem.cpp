@@ -1,6 +1,7 @@
 #include "totype.hpp"
 #include "sditem.hpp"
 #include "serdesmsg.hpp"
+#include "mathf.hpp"
 
 std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params, SDItem::SDItemXMLLayoutType layoutType) const
 {
@@ -37,6 +38,10 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
                 }
             }();
             xmlStr += str_printf(u8R"###( <par>【持久】<t color='%s'>%zu/%zu/%d</t></par> )###""\n", duraColorStr, duration[0], duration[1], ir.equip.duration);
+        }
+
+        if(const auto quality = getExtAttr<EA_QUALITY_t>(); quality.has_value()){
+            xmlStr += str_printf(u8R"###( <par>【%s】%d</par> )###""\n", to_u8sv(ir.type) == u8"矿石" ? u8"纯度" : u8"品质", quality.value());
         }
 
         xmlStr += str_printf(u8R"###( <par></par> )###""\n");
@@ -183,6 +188,9 @@ std::vector<SDItem> SDItem::buildItemList(uint32_t itemID, size_t count)
                 to_uz(std::max<int>(0, ir.equip.duration)),
             },
         });
+        if(to_u8sv(ir.type) == u8"矿石" || to_u8sv(ir.type) == u8"肉"){
+            itemList.back().extAttrList.insert(build_EA_QUALITY(mathf::rand<int>(1, 21)));
+        }
         count -= itemCount;
     }
     return itemList;

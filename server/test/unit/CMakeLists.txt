@@ -41,3 +41,13 @@ mir2x_add_unit_test(
     LIBS server_objs
     WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/server
 )
+
+find_program(MIR2X_LUA_EXECUTABLE NAMES lua5.5 lua)
+if(MIR2X_LUA_EXECUTABLE)
+    foreach(quest_test IN ITEMS questscripts magicquests taoistquests worldquests)
+        add_test(
+            NAME ${quest_test}
+            COMMAND ${MIR2X_LUA_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_${quest_test}.lua ${PROJECT_SOURCE_DIR}
+        )
+    endforeach()
+endif()

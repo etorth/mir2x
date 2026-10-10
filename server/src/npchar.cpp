@@ -744,6 +744,11 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             },
         };
     }
+    else if(to_u8sv(ir.type) == u8"矿石" || to_u8sv(ir.type) == u8"肉"){
+        auto item = SDItem::buildItemList(itemID, 1).front();
+        item.seqID = seqID;
+        return item;
+    }
     else{
         return SDItem
         {

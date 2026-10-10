@@ -113,6 +113,7 @@ namespace
         const auto stackID = findItemID([](const auto &ir){ return ir.packable() && !ir.isGold(); });
         const auto weaponID = findItemID([](const auto &ir){ return ir.isWeapon(); });
         const auto goldID = findItemID([](const auto &ir){ return ir.isGold(); });
+        const auto ironID = DBCOM_ITEMID(u8"铁矿");
 
         SDItem weapon
         {
@@ -125,6 +126,7 @@ namespace
             weapon,
             SDItem{.itemID = stackID, .count = 5},
             SDItem{.itemID = goldID, .count = 37},
+            SDItem{.itemID = ironID, .extAttrList{SDItem::build_EA_QUALITY(13)}},
         };
 
         const auto grant = cerealf::deserialize<SDGrantItemList>(cerealf::serialize(SDGrantItemList
@@ -150,6 +152,8 @@ namespace
         weapon.seqID = 2;
         const auto grantedWeapon = result->inventory.find(weaponID, 2);
         require(grantedWeapon && sameItem(*grantedWeapon, weapon), "weapon durability or attributes changed");
+        const auto grantedIron = result->inventory.find(ironID, 1);
+        require(grantedIron && grantedIron->getExtAttr<SDItem::EA_QUALITY_t>() == 13, "ore purity was not persisted");
         require(countRows("tbl_delivery") == 0 && countRows("tbl_chatmessage") == 0, "inventory success created fallback mail");
         require(!dbGrantItemList(3, items).has_value(), "missing recipient accepted a grant");
 

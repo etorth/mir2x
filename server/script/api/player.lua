@@ -166,6 +166,38 @@ function player.removeUpToItem(uid, item, count)
     return uidRemoteCall(uid, item, count, [[ return removeUpToItem(...) ]])
 end
 
+-- Ore purity / meat quality, inclusive threshold; missing quality never qualifies.
+function player.hasItemQuality(uid, item, minQuality, count)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+    assertType(item, 'string', 'integer')
+    if type(item) == 'string' then
+        item = getItemID(item)
+    end
+    assert(item > 0)
+    assertType(minQuality, 'integer')
+    assert(minQuality >= 0)
+    assertType(count, 'integer')
+    assert(count > 0)
+    return uidRemoteCall(uid, item, minQuality, count, [[ return hasItemQuality(...) ]])
+end
+
+-- All-or-nothing; only the qualifying copies identified by their seqIDs are removed.
+function player.removeItemQuality(uid, item, minQuality, count)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+    assertType(item, 'string', 'integer')
+    if type(item) == 'string' then
+        item = getItemID(item)
+    end
+    assert(item > 0)
+    assertType(minQuality, 'integer')
+    assert(minQuality >= 0)
+    assertType(count, 'integer')
+    assert(count > 0)
+    return uidRemoteCall(uid, item, minQuality, count, [[ return removeItemQuality(...) ]])
+end
+
 function player.hasItem(uid, item, arg1, arg2)
     assertType(uid, 'integer')
     assert(isPlayer(uid))

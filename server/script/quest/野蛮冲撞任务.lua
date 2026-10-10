@@ -22,8 +22,10 @@
 --
 --   two places call 黄河大侠 皇甫 instead. kept as written
 --
---   the drop is hooked on legacy maps 41, 42, 43, 44, 4 and 6. mir2x has 诺玛村庄_41, 绿洲_4
---   and 沙漠_6, and no counterpart for 42, 43 or 44, so those three are simply not there
+--   the stone drop follows the original six desert map registrations
+--
+--   the letter and stone checkbaggage gates cannot be reproduced: mir2x has no
+--   inventory-capacity API and its inventory accepts items without a size limit
 
 local minQuestLevel = 27
 
@@ -38,7 +40,7 @@ local smithNPC = '王铁匠_1'
 
 -- random 2 in MonQuest/mute.txt
 local stoneChance = 2
-local stoneMaps   = {'诺玛村庄_41', '绿洲_4', '沙漠_6'}
+local stoneMaps   = {'诺玛村庄_41', '沙漠_42', '沙漠_43', '沙漠_44', '绿洲_4', '沙漠_6'}
 
 -- @mugong_mute_explan_mugi, the five who sell weapons
 local weaponShops =
@@ -115,7 +117,7 @@ end
 
 local mondrop = require('quest.include.mondrop')
 
-setQuestFSMTable(
+local questFSM =
 {
     -- set [508], one of the ten has pointed you at 黄河大侠
     [SYS_ENTER] = function(uid, args)
@@ -322,14 +324,15 @@ setQuestFSMTable(
                 chance   = stoneChance,
 
                 -- the step's own line only comes out when this is the stone you are missing,
-                -- which is what legacy's descending checkitem chain does
+                -- which is what legacy's descending checkitem chain does. The upper
+                -- bound ensures only one branch can roll random 2 on this kill.
                 need     = (step > 1) and {stoneName, step - 1} or nil,
+                exclude  = {stoneName, step},
                 give     = stoneName,
                 say      = stoneLines[step],
 
-                -- reinstall the trigger for every step but the last, there is nothing left
-                -- to catch once the fifth stone is in hand
-                setState = (step < stoneCount) and 'quest_find_stones' or nil,
+                -- [511] ends the drops after the fifth stone.
+                setState = (step < stoneCount) and 'quest_find_stones' or 'quest_found_stones',
             })
         end
 
@@ -339,7 +342,19 @@ setQuestFSMTable(
             dropList[i], dropList[#dropList + 1 - i] = dropList[#dropList + 1 - i], dropList[i]
         end
 
-        mondrop.addDropTrigger(uid, dropList)
+        if dbGetQuestState(uid) == 'quest_find_stones' then
+            mondrop.addDropTrigger(uid, dropList)
+        else
+            mondrop.addDropTrigger(uid,
+            {
+                {
+                    monster = '诺玛法老',
+                    map = stoneMaps,
+                    say = '(要快点回去了<t wrap="0">···</t>)',
+                    setState = 'quest_found_stones',
+                },
+            })
+        end
 
         setupNPCQuestBehavior(smithMap, smithNPC, uid,
         [[
@@ -416,7 +431,7 @@ setQuestFSMTable(
                         return
                     end
 
-                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_find_stones', state = 'quest_carry_reply'}) then
+                    if not server.quest.setState(questUID, {uid = uid, from = {'quest_find_stones', 'quest_found_stones'}, state = 'quest_carry_reply'}) then
                         return
                     end
 
@@ -435,16 +450,6 @@ setQuestFSMTable(
     quest_carry_reply = function(uid, args)
         setQuestDesp{uid=uid, '带着王铁匠的书信回边境城市，交给黄河大侠。'}
         setupShopNag(uid)
-
-        -- and the [511] branch, which just tells you to get moving
-        mondrop.addDropTrigger(uid,
-        {
-            {
-                monster = '诺玛法老',
-                map     = stoneMaps,
-                say     = '(要快点回去了<t wrap="0">···</t>)',
-            },
-        })
 
         setupNPCQuestBehavior(smithMap, smithNPC, uid,
         [[
@@ -530,7 +535,10 @@ setQuestFSMTable(
             }
         ]])
     end,
-})
+}
+-- [511] stops further stones even if the player later loses one.
+questFSM.quest_found_stones = questFSM.quest_find_stones
+setQuestFSMTable(questFSM)
 
 -- @mugong_mutebo, the entry 黄河大侠 offers. he will not open up until a shopkeeper has
 -- mentioned him, which is the ELSESAY of his [508] check
@@ -587,6 +595,10 @@ local weaponShopCode =
                 return false
             end
 
+            if server.player.hasMagic(uid, '野蛮冲撞') then
+                return false
+            end
+
             if server.player.getLevel(uid) < minQuestLevel then
                 return false
             end
@@ -633,6 +645,10 @@ local armorShopCode =
 
         [SYS_CHECKACTIVE] = function(uid)
             if not server.player.hasJob(uid, '战士') then
+                return false
+            end
+
+            if server.player.hasMagic(uid, '野蛮冲撞') then
                 return false
             end
 

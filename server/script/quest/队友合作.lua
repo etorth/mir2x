@@ -77,7 +77,12 @@ setQuestFSMTable(
                 deleteTrigger(triggerKey)
                 postString([=[30秒已过，你超时了，挑战失败。]=])
             ]])
+            setQuestState{uid=uid, state='quest_failed'}
         end
+    end,
+
+    quest_failed = function(uid, args)
+        setQuestDesp{uid=uid, '挑战超时，任务失败。可以找士官重新挑战。'}
     end,
 
     quest_abort_by_die = function(uid, args)
@@ -124,7 +129,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 dialog.post(uid, questPath, '你已经完成挑战任务。',
                 dialog.link(SYS_EXIT, '退出'))
 
-            elseif currState ~= nil then
+            elseif currState ~= nil and currState ~= 'quest_failed' then
                 dialog.post(uid, questPath, '请继续你的挑战任务。',
                 dialog.link(SYS_EXIT, '退出'))
 
@@ -174,7 +179,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 uidRemoteCall(questUID, teamRole,
                 [=[
                     local teamRole = ...
-                    setQuestState{uid=teamRole, from=SYS_LUANIL, state=SYS_ENTER}
+                    setQuestState{uid=teamRole, from={SYS_LUANIL, 'quest_failed'}, state=SYS_ENTER}
                 ]=])
             end
         end,

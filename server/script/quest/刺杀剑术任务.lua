@@ -83,7 +83,7 @@ setQuestFSMTable(
             {
                 monster  = '沃玛战士',
                 map      = hornMaps,
-                kills    = hornKills,
+                counterMode = {threshold = hornKills, initial = 3},
                 once     = true,
                 give     = hornName,
                 setState = 'quest_got_horn',

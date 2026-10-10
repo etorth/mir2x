@@ -12,9 +12,8 @@
 --   book. 火焰沃玛62 maps to 火焰沃玛, so the marked one is 火焰沃玛 and the other three stay
 --   火焰沃玛61. the two records are byte-identical, so this is only a name to tell them apart by
 --
---   legacy hooks the pass on [GetItem] 新火镜, so the book hit the ground and you had to grab
---   it while the rest of the room was still on you. the book goes straight into your pack on
---   the kill here and the trial ends there, which is where legacy's pickup ended it too
+--   legacy hooks the pass on [GetItem] 新火镜: the marked monster drops it on the ground,
+--   and picking it up while still in the trial ends the test
 --
 --   @mugong_fireline_complete_next1 does a checkbaggage before paying out and turns you away
 --   with 背囊里没有位置了，整理出位置后，请再来！. mir2x has no inventory-full check to hang
@@ -52,7 +51,14 @@ local function spawnOn(mapUID, name, count)
     [[
         local name, count, x, y = ...
         for _ = 1, count do
-            addMonster(name, x, y, false)
+            local monsterUID = addMonster(name, x, y, false)
+            -- MonItems/火焰沃玛62.txt drops the book and nothing else
+            if name == '火焰沃玛' and monsterUID ~= 0 then
+                require('quest.include.mondrop').setDieDrop(monsterUID,
+                {
+                    {item = '新火镜', odds = 1},
+                })
+            end
         end
     ]])
 end
@@ -104,19 +110,15 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
+    -- a monster takes no remote call, the killer stands where it fell
     local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
-    if not mapUID then
+    if not mapUID or uidRemoteCall(uid, [[ return getMapUID() ]]) ~= mapUID then
         return
     end
 
     local monsterName = getMonsterName(getMonsterID(monsterUID))
 
     if monsterName == markedMonster then
-        -- switch first, the book only goes with a pass that happened, not with one the clock beat
-        if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'} then
-            server.player.addItem(uid, bookName, 1)
-            server.player.postString(uid, '（嘿，终于通过了学习地狱火的测试。）')
-        end
         return
     end
 
@@ -131,6 +133,21 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     else
         server.player.postString(uid, '哦<t wrap="0">···</t>（这家伙，在瞎说。根本没有什么嘛）')
         spawnOn(mapUID, plainMonster, 1)
+    end
+end)
+
+addQuestTrigger(SYS_ON_GAINITEM, function(uid, itemID)
+    if itemID ~= getItemID(bookName) or dbGetQuestState(uid) ~= 'quest_in_trial' then
+        return
+    end
+
+    local mapUID = getQuestRuntimeVar(uid, 'trialMapUID')
+    if not mapUID or uidRemoteCall(uid, [[ return getMapUID() ]]) ~= mapUID then
+        return
+    end
+
+    if setQuestState{uid = uid, from = 'quest_in_trial', state = 'quest_trial_passed'} then
+        server.player.postString(uid, '（嘿，终于通过了学习地狱火的测试。）')
     end
 end)
 

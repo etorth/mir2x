@@ -138,7 +138,11 @@ namespace
                     onDone(SYS_EXECDONE)
                 end
             else
-                onDone(SYS_EXECDONE, 'quest_' .. uid, 'running', {[SYS_QSTFSM] = 'desp'})
+                if TEST.completed then
+                    onDone(SYS_EXECDONE, 'quest_' .. uid, SYS_DONE, TEST.completedDesp)
+                else
+                    onDone(SYS_EXECDONE, 'quest_' .. uid, 'running', {[SYS_QSTFSM] = 'desp'})
+                end
             end
         end
 
@@ -223,10 +227,23 @@ namespace
         require(capture.has("Quest QST_2 failed to run trigger ") && capture.has("Remote call to QST_2 failed: quest A raised"), "trigger error of a quest is not logged");
     }
 
+    void testCompletedDescriptions()
+    {
+        PlayerFixture f;
+        CoutCapture capture;
+        const auto questName = "'quest_" + std::to_string(uidf::getQuestUID(3)) + "'";
+        f.drive("TEST.completed = true; TEST.completedDesp = {[SYS_QSTFSM] = '完成了原来的委托。'}; _RSVD_NAME_setupQuests()");
+        require(f.check("TEST.despList[" + questName + "][SYS_QSTFSM] == '完成了原来的委托。'"), "login replaces the completed quest description");
+
+        f.drive("TEST.completedDesp = nil; _RSVD_NAME_setupQuests()");
+        require(f.check("TEST.despList[" + questName + "][SYS_QSTFSM] == '任务已完成'"), "completed quest without a description loses its default");
+    }
+
     void runTests()
     {
         testRestoreGoesOn();
         testTriggerGoesOn();
+        testCompletedDescriptions();
     }
 }
 

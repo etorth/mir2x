@@ -1,6 +1,6 @@
 local dialog = require('include.dialog')
-_G.questName_basic    = '初级任务'
 
+-- the names are the legacy guide's labels, most are also the quest's name, quest = names the quest behind a label that isn't
 _G.questName_mujun    = '乞丐任务'
 _G.questName_pariche  = '苍蝇拍任务'
 _G.questName_dolumi   = '石母任务'
@@ -103,7 +103,12 @@ local quest_config = {
         end,
     },
 
+    -- NQ_HELP/area/wang.txt: needs [164], 王大人 took the 古籍, done at [168], the first reward, the expansion can go on after it
     [questName_wang] = {
+        quest = '比奇商会',
+        preFlag = 'done_wang_book',
+        doneFlag = 'done_wang_coc',
+
         level = 9,
         level_failure = function(uid)
             dialog.post(uid,
@@ -116,7 +121,6 @@ local quest_config = {
             dialog.link('npc_show_quest_list', '前一步'))
         end,
 
-        prequest = questName_basic,
         prequest_failure = function(uid)
             dialog.post(uid,
             {
@@ -159,7 +163,8 @@ local quest_config = {
             dialog.link('npc_show_quest_list', '前一步'))
         end,
 
-        prequest = questName_wang,
+        -- NQ_HELP/area/kyunggap.txt checks [168]
+        preFlag = 'done_wang_coc',
         prequest_failure = function(uid)
             dialog.post(uid,
             {
@@ -203,7 +208,8 @@ local quest_config = {
             dialog.link('npc_show_quest_list', '前一步'))
         end,
 
-        prequest = questName_wang,
+        -- NQ_HELP/area/oma.txt checks [168]
+        preFlag = 'done_wang_coc',
         prequest_failure = function(uid)
             dialog.post(uid,
             {
@@ -436,7 +442,8 @@ setEventHandler(
             dialog.post(uid, string.format('我对<t color="red">%s</t>一无所知。', args),
             dialog.link('npc_show_quest_list', '前一步'))
 
-        elseif quest_config[args].prequest and server.player.getQuestState(uid, quest_config[args].prequest) ~= SYS_DONE then
+        elseif (quest_config[args].prequest and server.player.getQuestState(uid, quest_config[args].prequest) ~= SYS_DONE)
+            or (quest_config[args].preFlag and not server.player.dbHasFlag(uid, quest_config[args].preFlag)) then
             if quest_config[args].prequest_failure then
                 quest_config[args].prequest_failure(uid)
 
@@ -450,12 +457,17 @@ setEventHandler(
                 quest_config[args].level_failure(uid)
 
             else
-                dialog.post(uid, string.format('你还没有达到<t color="red">%d</t>级呢！', quest_config[args].leve),
+                dialog.post(uid, string.format('你还没有达到<t color="red">%d</t>级呢！', quest_config[args].level),
                 dialog.link('npc_show_quest_list', '前一步'))
             end
 
         else
-            local questState = server.player.getQuestState(uid, args)
+            local questName = quest_config[args].quest or args
+            local questState = server.player.getQuestState(uid, questName)
+            if quest_config[args].doneFlag and server.player.dbHasFlag(uid, quest_config[args].doneFlag) then
+                questState = SYS_DONE
+            end
+
             if questState == nil then
                 if quest_config[args].on_start then
                     quest_config[args].on_start(uid, args)
@@ -475,7 +487,7 @@ setEventHandler(
                 end
 
             else
-                runEventHandler(uid, {SYS_EPUID, args}, SYS_ENTER)
+                runEventHandler(uid, {SYS_EPUID, questName}, SYS_ENTER)
             end
         end
     end,

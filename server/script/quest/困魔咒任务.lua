@@ -250,14 +250,35 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
+    -- holy2 is registered on 1_019 only. a monster takes no remote call, the killer stands where it fell
+    if uidRemoteCall(uid, [[ return getMapUID() ]]) ~= lastUID then
+        return
+    end
+
     -- checkmonmap 1_019 1
     if uidRemoteCall(lastUID, [[ return getMonsterCount() ]]) > 0 then
         server.player.postString(uid, '(这里还没有彻底净化<t wrap="0">···</t>)')
         return
     end
 
-    -- the remote call above yields, the run can have ended meanwhile, i.e. by a logout
-    if setQuestState{uid = uid, from = 'quest_in_rooms', state = 'quest_rooms_done'} then
+    -- quest done drops the runtime vars, closeRooms() after it would find no room to close
+    local roomUIDs = {}
+    for index = 1, #rooms do
+        roomUIDs[index] = roomUID(uid, index)
+    end
+
+    -- the remote calls above yield, the run can have ended meanwhile, i.e. by a logout
+    -- holy2 hands the book, the ring and the gold over in the room
+    if setQuestState{uid = uid, from = 'quest_in_rooms', state = SYS_DONE} then
+        for index = #rooms, 1, -1 do
+            if roomUIDs[index] then
+                closeInstanceMap(roomUIDs[index], exitMap, exitX, exitY)
+            end
+        end
+
+        server.player.addItem(uid, '困魔咒（秘籍）', 1)
+        server.player.addItem(uid, '黑除魔戒指', 1)
+        server.player.deliverGold(uid, 28000)
         server.player.postString(uid, '(终于找到了困魔咒秘籍<t wrap="0">···</t>)')
     end
 end)
@@ -376,43 +397,6 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '在困魔咒空间里，按顺序用困魔石通过五个房间，最后把里面的怪兽全部清掉。'}
     end,
 
-    -- holy2's payout, collected from him rather than handed over on the spot
-    quest_rooms_done = function(uid, args)
-        closeRooms(uid)
-        setQuestDesp{uid=uid, '困魔咒都复原了，回道馆找大悲善僧。'}
-
-        setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
-        [[
-            return getUID(), getQuestName()
-        ]],
-        [[
-            local questUID, questName = ...
-            local questPath = {SYS_EPUID, questName}
-            local dialog = require('include.dialog')
-
-            return
-            {
-                [SYS_LABEL] = '领困魔咒秘籍',
-
-                -- @MapQuest_holycircle_complete_book, and the [726] branch of the main entry
-                -- is what he says afterwards
-                [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。',
-                    dialog.link('npc_take_book', '结束', {close = true}))
-                end,
-
-                npc_take_book = function(uid, value)
-                    if not server.quest.setState(questUID, {uid = uid, from = 'quest_rooms_done', state = SYS_DONE}) then
-                        return
-                    end
-
-                    server.player.addItem(uid, '困魔咒（秘籍）', 1)
-                    server.player.addItem(uid, '黑除魔戒指', 1)
-                    server.player.deliverGold(uid, 28000)
-                end,
-            }
-        ]])
-    end,
 })
 
 -- @MapQuest_holycircle_moveTo1's [726] / checkmagic / not-[522] branches. the quest's own
@@ -444,6 +428,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_LABEL] = '修炼困魔咒',
 
         [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '道士') then
+                return false
+            end
+
             local state = server.quest.getState(questUID, {uid=uid})
             return (state == nil) or (state == SYS_DONE)
         end,

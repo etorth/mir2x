@@ -4,6 +4,11 @@ _G.minQuestLevel = 5
 
 setQuestFSMTable(
 {
+    -- [271]
+    [SYS_DONE] = function(uid)
+        setQuestDesp{uid=uid, '把苍蝇拍给了金氏，得到了奖赏。'}
+    end,
+
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '按照比奇城肉店金氏的嘱托，去找杂货商人吧。'}
         setupNPCQuestBehavior('比奇县_0', '金氏_1', uid,
@@ -65,6 +70,17 @@ setQuestFSMTable(
 
     quest_start_collection = function(uid, args)
         setQuestDesp{uid=uid, '杂货商希望你帮他找到制作苍蝇拍的材料竹棍和牛毛，这些东西可以从钉耙猫和牛身上找到。'}
+
+        if server.player.hasItem(uid, '牛毛', 1) and server.player.hasItem(uid, '竹棍', 1) then
+            setQuestState{uid=uid, state='quest_complete_collection'}
+        end
+
+        if server.player.hasItem(uid, '牛毛', 1) then
+            setQuestDesp{uid=uid, '获得了牛毛，再去找竹棍，一起送给杂货商。'}
+        elseif server.player.hasItem(uid, '竹棍', 1) then
+            setQuestDesp{uid=uid, '获得了竹棍，再去找牛毛，一起送给杂货商。'}
+        end
+
         uidRemoteCall(uid, uid, getUID(),
         [[
             local playerUID, questUID = ...
@@ -113,7 +129,7 @@ setQuestFSMTable(
         {
             {
                 monster = '牛',
-                kills   = 3,
+                counterMode = {threshold = 3, initial = 3, completed = 5},
                 once    = true,
                 give    = '牛毛',
                 say     = '（这好像是牛毛。）',
@@ -124,7 +140,7 @@ setQuestFSMTable(
         {
             {
                 monster = '钉耙猫',
-                kills   = 3,
+                counterMode = {threshold = 3, initial = 3, completed = 5},
                 once    = true,
                 give    = '竹棍',
                 say     = '（这个好像是竹棍）',
@@ -133,6 +149,7 @@ setQuestFSMTable(
     end,
 
     quest_complete_collection = function(uid, args)
+        setQuestDesp{uid=uid, '已经收集到制作苍蝇拍所需要的竹棍和牛毛，把它们交给杂货商吧。'}
         setupNPCQuestBehavior('比奇县_0', '杂货商_1', uid,
         [[
             return getUID(), getQuestName()
@@ -144,14 +161,25 @@ setQuestFSMTable(
 
             return
             {
+                -- @PARICHE_JABSANG_3, 牛毛 checked first
                 [SYS_ENTER] = function(uid, args)
-                    -- the switch first, the 苍蝇拍 only for the visit that made it
+                    local hasHair = server.player.hasItem(uid, '牛毛', 1)
+                    if not (hasHair and server.player.hasItem(uid, '竹棍', 1)) then
+                        if not hasHair then
+                            dialog.post(uid, questPath, '年轻人真是磨蹭啊！材料是从<t color="red">牛</t>身上弄到的<t color="red">牛毛</t>和从<t color="red">钉耙猫</t>那儿弄到的<t color="red">竹棍</t>。',
+                            dialog.link(SYS_EXIT, '结束'))
+                        else
+                            dialog.post(uid, questPath, '好像已经找到了<t color="red">牛毛</t>，那么再去从<t color="red">钉耙猫</t>那儿弄到<t color="red">竹棍</t>再来吧！',
+                            dialog.link(SYS_EXIT, '结束'))
+                        end
+                        server.quest.setState(questUID, {uid=uid, from='quest_complete_collection', state='quest_start_collection'})
+                        return
+                    end
                     if not server.quest.setState(questUID, {uid=uid, from='quest_complete_collection', state='quest_get_fly_swatter'}) then
                         return
                     end
 
                     dialog.post(uid, questPath, '哦！材料全部找到了啊！请稍等一下<t wrap="0">···</t>')
-
                     pause(500)
 
                     dialog.post(uid, questPath,

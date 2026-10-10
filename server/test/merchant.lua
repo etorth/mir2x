@@ -147,6 +147,7 @@ local playerAPI = require('api.player')
 server.player.getLevel = playerAPI.getLevel
 server.player.getJobList = playerAPI.getJobList
 server.player.hasJob = playerAPI.hasJob
+server.player.hasMagic = playerAPI.hasMagic
 server.quest = require('api.quest')
 
 -- Native runners can supply the actual Sol binding instead of the Lua fixture.
@@ -170,6 +171,7 @@ function uidRemoteCall(uid, ...)
             end
             return jobs
         end,
+        hasMagic = function(name) return state.magic == name end,
         dbGetQuestState = function(uid, fsm) return state.questState end,
         removeGold = function(gold) return server.player.removeGold(uid, gold) end,
         hasItem = function(id, seq, count) return server.player.hasItem(uid, getItemName(id), count) end,
@@ -186,16 +188,18 @@ end
 
 local dialog = require('include.dialog')
 for _, id in ipairs({'npc_next', SYS_EXIT}) do
+    -- single="1" by default, against repeat clicks, see dialog.link()
     local defaultClose = id == SYS_EXIT and ' close="1"' or ''
-    local link = string.format('<event id="%s"%s>label</event>', id, defaultClose)
+    local link = string.format('<event id="%s" single="1"%s>label</event>', id, defaultClose)
     assert(dialog.link(id, 'label') == link)
     assert(dialog.link(id, 'label', {}) == link)
     assert(dialog.link(id, 'label', {prefix = 'before '}) == 'before ' .. link)
     assert(dialog.link(id, 'label', {suffix = ' after'}) == link .. ' after')
     assert(dialog.link(id, 'label', {prefix = '', suffix = ''}) == link)
+    assert(dialog.link(id, 'label', {single = false}) == string.format('<event id="%s"%s>label</event>', id, defaultClose))
     for _, close in ipairs({true, false}) do
         local opts = {close = close, prefix = 'before 100% ', suffix = ' after 100%'}
-        local expected = string.format('before 100%% <event id="%s"%s>label</event> after 100%%',
+        local expected = string.format('before 100%% <event id="%s" single="1"%s>label</event> after 100%%',
             id, close and ' close="1"' or '')
         assert(dialog.link(id, 'label', opts) == expected)
     end
@@ -283,14 +287,14 @@ for _, contract in ipairs(contracts) do
     build(contract.name, spec)
     call(SYS_ENTER)
     contains('greeting 100%')
-    contains('topic prefix <event id="npc_topic">topic</event> topic suffix')
+    contains('topic prefix <event id="npc_topic" single="1">topic</event> topic suffix')
     assert((state.goods ~= nil) == (contract.buy or false))
     for operation, enabled in pairs({buy = contract.buy or false, sell = contract.sell or false,
         repair = contract.repair or false, special_repair = contract.special or false}) do
         assert((handler['npc_' .. operation] ~= nil) == enabled, contract.name .. ': ' .. operation)
         if enabled then
             local label = operation == 'special_repair' and 'special' or operation
-            contains('id="npc_' .. operation .. '">' .. label .. '</event> ' .. label .. ' suffix')
+            contains('id="npc_' .. operation .. '" single="1">' .. label .. '</event> ' .. label .. ' suffix')
         end
     end
 
@@ -340,7 +344,7 @@ for _, contract in ipairs(contracts) do
     contains('topic return')
     call('npc_today')
     contains('daily fallback')
-    contains('id="' .. SYS_EXIT .. '" close="1">done')
+    contains('id="' .. SYS_EXIT .. '" single="1" close="1">done')
     assert(not state.xml:find('id="' .. SYS_ENTER .. '"', 1, true))
 
     state.red = true
@@ -569,6 +573,7 @@ assert(questRegistrations[yimeiNPC], 'missing Yimei quest registration')
 local warrior = '\u{6218}\u{58eb}'
 local wizard = '\u{6cd5}\u{5e08}'
 local taoist = '\u{9053}\u{58eb}'
+local mute = '\u{91ce}\u{86ee}\u{51b2}\u{649e}'
 local questEntryCases =
 {
     {jobs = {},                level = 27, visible = false},
@@ -579,6 +584,7 @@ local questEntryCases =
     {jobs = {wizard, warrior}, level = 27, visible = true},
     {jobs = {warrior},         level = 27, visible = false, questState = SYS_DONE},
     {jobs = {warrior},         level = 27, visible = false, questState = SYS_ENTER},
+    {jobs = {warrior},         level = 27, visible = false, magic = mute},
 }
 
 local npcCount = 0
@@ -675,7 +681,7 @@ for _, path in ipairs(arg) do
             assert(load(registration[registration.n], 'NPC quest registration', 't', _G))(
                 table.unpack(registration, 1, registration.n - 1))
             for _, case in ipairs(questEntryCases) do
-                state.jobs, state.level, state.questState = case.jobs, case.level, case.questState
+                state.jobs, state.level, state.questState, state.magic = case.jobs, case.level, case.questState, case.magic
                 call(SYS_ENTER)
                 local questPath = 'path="' .. SYS_EPQST .. '/' .. questName .. '"'
                 assert((state.xml:find(questPath, 1, true) ~= nil) == case.visible, path)

@@ -302,6 +302,26 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->hasInventoryItem(to_u32(itemID), to_u32(seqID), count);
     });
 
+    bindFunction("hasItemQuality", [this](uint32_t itemID, int minQuality, size_t count) -> bool
+    {
+        return getPlayer()->m_sdItemStorage.inventory.getQualityItemList(itemID, minQuality, count).has_value();
+    });
+
+    bindFunction("removeItemQuality", [this](uint32_t itemID, int minQuality, size_t count) -> bool
+    {
+        const auto items = getPlayer()->m_sdItemStorage.inventory.getQualityItemList(itemID, minQuality, count);
+        if(!items.has_value()){
+            return false;
+        }
+
+        // Preflight and removal run in one actor call: never consume lower-quality copies.
+        for(const auto &item: items.value()){
+            const auto removed = getPlayer()->removeInventoryItem(item.itemID, item.seqID, item.count);
+            fflassert(removed == item.count, removed, item.count);
+        }
+        return true;
+    });
+
     bindFunction("dbGetVar", [this](std::string var, sol::this_state s)
     {
         return luaf::buildLuaObj(sol::state_view(s), getPlayer()->dbGetVar(var));
@@ -1287,12 +1307,10 @@ corof::awaitable<> Player::onCMActionMine(CMAction stCMA)
             {
                 if(DBCOM_ITEMRECORD(m_sdItemStorage.wear.getWLItem(WLG_WEAPON)).equip.weapon.mine){
                     dispatchAction(mine);
-                    addInventoryItem(SDItem
-                    {
-                        .itemID = DBCOM_ITEMID(u8"黑铁矿"),
-                        .seqID  = 1,
-                        .count  = 1,
-                    }, false);
+                    // Original mining odds are not supplied by the source data.
+                    const std::array oreNames{u8"铁矿", u8"铜矿", u8"银矿", u8"金矿", u8"黑铁矿"};
+                    const auto oreID = DBCOM_ITEMID(oreNames.at(mathf::rand<size_t>(0, oreNames.size())));
+                    addInventoryItem(SDItem::buildItemList(oreID, 1).front(), false);
                 }
                 break;
             }

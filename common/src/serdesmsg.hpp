@@ -560,6 +560,9 @@ class SDInventory final
     public:
         size_t has(uint32_t, uint32_t) const;
 
+        // Exact copies totaling count, or nullopt without mutation if too few qualify.
+        std::optional<std::vector<SDItem>> getQualityItemList(uint32_t, int, size_t) const;
+
         const SDItem *find(uint32_t, uint32_t) const;
         /* */ SDItem *find(uint32_t, uint32_t);
 
