@@ -130,7 +130,7 @@ class SliderBase: public Widget
         void addValue(float, bool);
 
     protected:
-        float pixel2Value(int) const;
+        float pixel2Value(float) const; // converted mouse deltas can be fractional under logical presentation
 
     public:
         Widget::ROI getBarROI(int, int) const;

@@ -140,10 +140,10 @@ bool SliderBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         if(const auto newValue = std::clamp<float>(getValue() + [&event, this]() -> float
                         {
                             if(vbar()){
-                                return pixel2Value(to_d(event.motion.yrel));
+                                return pixel2Value(event.motion.yrel);
                             }
                             else{
-                                return pixel2Value(to_d(event.motion.xrel));
+                                return pixel2Value(event.motion.xrel);
                             }
                         }(), 0.0f, 1.0f);
 
@@ -190,7 +190,7 @@ void SliderBase::addValue(float diff, bool triggerCallback)
     setValue(m_value + diff, triggerCallback);
 }
 
-float SliderBase::pixel2Value(int pixel) const
+float SliderBase::pixel2Value(float pixel) const
 {
     return pixel * 1.0f / std::max<int>(vbar() ? (m_bar.h() - 1) : (m_bar.w() - 1), 1);
 }
