@@ -1,7 +1,7 @@
-#include <cstdio>
+#include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <sol/sol.hpp>
 #include "argf.hpp"
@@ -45,9 +45,8 @@ namespace
 {
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     class CoutCapture final
@@ -2105,107 +2104,360 @@ namespace
         require(f.isTrue("retired135"), "a retired committed trigger isn't deleted at once");
     }
 
-    void runTests()
+
+    class CoutBufferRestore
     {
-        testRunnerGoesToNextState();
-        testOtherThreadChangesState();
-        testRunnerSetsOtherUID();
-        testSynchronousChain();
-        testQuestDoneClosesAllFSM();
-        testSubFSMRunnerSetsQuestDone();
-        testRestoreClosesOldRunner();
-        testFinishedRunner();
-        testRunnerClosedByThreadItStarts();
-        testNoStateSwitchInSelfClose();
-        testCloseHandlerSwitchAtReturn();
-        testNoStateSwitchInCloseByOther();
-        testNoStateSwitchInQuestDone();
-        testNoStateSwitchInRestore();
-        testNoStateSwitchAfterError();
-        testSelfCloseCheckedFirst();
-        testFallbackOnRaise();
-        testFallbackNotCalled();
-        testFallbackNoSwitch();
-        testFallbackCatchesBadSwitch();
-        testFallbackNeedsStateFunction();
-        testCloseHandlerSwitchBeforeFallback();
-        testStateWithFallback();
-        testFallbackNested();
-        testFallbackCatchesRemoteError();
-        testFallbackCode();
-        testQuestRuntimeVar();
-        testSetStateFrom();
-        testSetStateFromNotStarted();
-        testOldStateClosedFirst();
-        testSwitchCycleStops();
-        testNoStateSwitchDuringQuestDone();
-        testRestoreReadsEachFSM();
-        testClosedDuringSwitch();
-        testCloseHandlerSwitchesOtherUID();
-        testCloseThreadOfStateRunner();
-        testMapGridTriggerQuest();
-        testContextWriters();
-        testContextOwner();
-        testContextCommit();
-        testContextRollback();
-        testContextUndo();
-        testContextCommitWithSwitch();
-        testQuestDoneWritesRowFirst();
-        testNPCBehaviorContext();
-        testNPCBehaviorRefused();
-        testNPCBehaviorTimelines();
-        testErrorAbort();
-        testErrorAbortOnlyRaise();
-        testErrorAbortStale();
-        testGridTriggerContext();
-        testGridTriggerRetire();
-        testMonDrop();
-        testGridTriggerRollback();
-        testLoadOnce();
-        testRestoreRollsBack();
-        testRestartAtomicity();
-        testRestartExact();
-        testRestartQuestDone();
-    }
+        private:
+            std::ostream &m_stream;
+            std::streambuf * const m_saved;
+
+        public:
+            CoutBufferRestore(std::ostream &stream, std::streambuf *replacement)
+                : m_stream(stream)
+                , m_saved(stream.rdbuf(replacement))
+            {}
+
+            ~CoutBufferRestore()
+            {
+                m_stream.rdbuf(m_saved);
+            }
+    };
+    struct ServerTestEnvironment
+    {
+        char arg0[32] = "queststate_test";
+        char arg1[16] = "--slave";
+        char arg2[32] = "--master-ip=127.0.0.1";
+        char *argv[4]{arg0, arg1, arg2, nullptr};
+        std::unique_ptr<argf::parser> parser;
+        std::unique_ptr<ServerArgParser> serverArgs;
+        std::ostringstream logBannerDiscard;
+        std::unique_ptr<Log> log;
+        std::unique_ptr<Server> server;
+
+        struct ResetGlobals
+        {
+            ~ResetGlobals()
+            {
+                g_server = nullptr;
+                g_mir2xLog = nullptr;
+                g_serverArgParser = nullptr;
+            }
+        } resetGlobals;
+
+        ServerTestEnvironment()
+        {
+            parser = std::make_unique<argf::parser>(3, argv);
+            serverArgs = std::make_unique<ServerArgParser>(*parser);
+            serverArgs->setSharedConfig(ServerArgParser::MasterSharedConfig
+            {
+                .logicalFPS = 1,
+                .summonCount = 1,
+            });
+            g_serverArgParser = serverArgs.get();
+
+            {
+                CoutBufferRestore redirect(std::cout, logBannerDiscard.rdbuf());
+                log = std::make_unique<Log>("mir2x-queststate-test");
+            }
+            g_mir2xLog = log.get();
+
+            server = std::make_unique<Server>();
+            g_server = server.get();
+        }
+    };
 }
 
-int main()
+TEST_CASE_METHOD(ServerTestEnvironment, "Runner Goes To Next State", "[unit][queststate]")
 {
-    try{
-        char arg0[] = "queststate_test";
-        char arg1[] = "--slave";
-        char arg2[] = "--master-ip=127.0.0.1";
-        char *argv[] = {arg0, arg1, arg2, nullptr};
+    testRunnerGoesToNextState();
+}
 
-        const argf::parser parser(3, argv);
-        ServerArgParser serverArgs(parser);
-        serverArgs.setSharedConfig(ServerArgParser::MasterSharedConfig
-        {
-            .logicalFPS = 1,
-            .summonCount = 1,
-        });
-        g_serverArgParser = &serverArgs;
+TEST_CASE_METHOD(ServerTestEnvironment, "Other Thread Changes State", "[unit][queststate]")
+{
+    testOtherThreadChangesState();
+}
 
-        // Log's constructor prints a banner with the pid and the log file path, which a gold file can't match
-        std::ostringstream logBannerDiscard;
-        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
-        Log log("mir2x-queststate-test");
-        std::cout.rdbuf(savedCoutBuf);
-        g_mir2xLog = &log;
+TEST_CASE_METHOD(ServerTestEnvironment, "Runner Sets Other UID", "[unit][queststate]")
+{
+    testRunnerSetsOtherUID();
+}
 
-        Server server;
-        g_server = &server;
+TEST_CASE_METHOD(ServerTestEnvironment, "Synchronous Chain", "[unit][queststate]")
+{
+    testSynchronousChain();
+}
 
-        runTests();
-        std::printf("Quest state runner passed: go to next state, state changed by other thread, set state of other uid, synchronous chain, quest done closes all FSMs, sub FSM sets quest done, restore, finished state, runner closed by a thread it starts, no state switch while closing, a <close> handler switching at the return of its state, self close checked before any change, fallback of setQuestState() and stateWithFallback(), fallback of a remote error, fallback code saved with its state, runtime vars, switch from a given state or from no state, a from state the fsm doesn't have raises, old state closed before the new one starts, state switches in a cycle with no yield stop, no state switch or restore while quest done runs, restore reads each fsm again, a caller closed by its switch ends, a <close> handler switches another uid, closeThread() refuses a state runner, setupMapGridTrigger() installs a trigger of its quest, the writers, owners, commit, rollback and undo of the quest context, its commit with a switch, quest done writing its row first, and NPC behaviors as context items, refused ones, the timelines T1 and T3, error = abort with and without a fallback, only for a raise, giving way to a newer write, grid triggers as context items, moved, on map copies, retired, and rolled back, monster drops live in the state that installed them till a logout, the load once at the first login, the rollback before a replay (T4), and the quest across a restart: atomicity, exact restore, retirement and quest done.\n");
+TEST_CASE_METHOD(ServerTestEnvironment, "Quest Done Closes All FSM", "[unit][queststate]")
+{
+    testQuestDoneClosesAllFSM();
+}
 
-        g_server = nullptr;
-        g_mir2xLog = nullptr;
-        g_serverArgParser = nullptr;
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+TEST_CASE_METHOD(ServerTestEnvironment, "Sub FSM Runner Sets Quest Done", "[unit][queststate]")
+{
+    testSubFSMRunnerSetsQuestDone();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restore Closes Old Runner", "[unit][queststate]")
+{
+    testRestoreClosesOldRunner();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Finished Runner", "[unit][queststate]")
+{
+    testFinishedRunner();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Runner Closed By Thread It Starts", "[unit][queststate]")
+{
+    testRunnerClosedByThreadItStarts();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch In Self Close", "[unit][queststate]")
+{
+    testNoStateSwitchInSelfClose();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Handler Switch At Return", "[unit][queststate]")
+{
+    testCloseHandlerSwitchAtReturn();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch In Close By Other", "[unit][queststate]")
+{
+    testNoStateSwitchInCloseByOther();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch In Quest Done", "[unit][queststate]")
+{
+    testNoStateSwitchInQuestDone();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch In Restore", "[unit][queststate]")
+{
+    testNoStateSwitchInRestore();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch After Error", "[unit][queststate]")
+{
+    testNoStateSwitchAfterError();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Self Close Checked First", "[unit][queststate]")
+{
+    testSelfCloseCheckedFirst();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback On Raise", "[unit][queststate]")
+{
+    testFallbackOnRaise();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Not Called", "[unit][queststate]")
+{
+    testFallbackNotCalled();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback No Switch", "[unit][queststate]")
+{
+    testFallbackNoSwitch();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Catches Bad Switch", "[unit][queststate]")
+{
+    testFallbackCatchesBadSwitch();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Needs State Function", "[unit][queststate]")
+{
+    testFallbackNeedsStateFunction();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Handler Switch Before Fallback", "[unit][queststate]")
+{
+    testCloseHandlerSwitchBeforeFallback();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "State With Fallback", "[unit][queststate]")
+{
+    testStateWithFallback();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Nested", "[unit][queststate]")
+{
+    testFallbackNested();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Catches Remote Error", "[unit][queststate]")
+{
+    testFallbackCatchesRemoteError();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Fallback Code", "[unit][queststate]")
+{
+    testFallbackCode();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Quest Runtime Var", "[unit][queststate]")
+{
+    testQuestRuntimeVar();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Set State From", "[unit][queststate]")
+{
+    testSetStateFrom();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Set State From Not Started", "[unit][queststate]")
+{
+    testSetStateFromNotStarted();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Old State Closed First", "[unit][queststate]")
+{
+    testOldStateClosedFirst();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Switch Cycle Stops", "[unit][queststate]")
+{
+    testSwitchCycleStops();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "No State Switch During Quest Done", "[unit][queststate]")
+{
+    testNoStateSwitchDuringQuestDone();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restore Reads Each FSM", "[unit][queststate]")
+{
+    testRestoreReadsEachFSM();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Closed During Switch", "[unit][queststate]")
+{
+    testClosedDuringSwitch();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Handler Switches Other UID", "[unit][queststate]")
+{
+    testCloseHandlerSwitchesOtherUID();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Thread Of State Runner", "[unit][queststate]")
+{
+    testCloseThreadOfStateRunner();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Map Grid Trigger Quest", "[unit][queststate]")
+{
+    testMapGridTriggerQuest();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Writers", "[unit][queststate]")
+{
+    testContextWriters();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Owner", "[unit][queststate]")
+{
+    testContextOwner();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Commit", "[unit][queststate]")
+{
+    testContextCommit();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Rollback", "[unit][queststate]")
+{
+    testContextRollback();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Undo", "[unit][queststate]")
+{
+    testContextUndo();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Context Commit With Switch", "[unit][queststate]")
+{
+    testContextCommitWithSwitch();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Quest Done Writes Row First", "[unit][queststate]")
+{
+    testQuestDoneWritesRowFirst();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "NPC Behavior Context", "[unit][queststate]")
+{
+    testNPCBehaviorContext();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "NPC Behavior Refused", "[unit][queststate]")
+{
+    testNPCBehaviorRefused();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "NPC Behavior Timelines", "[unit][queststate]")
+{
+    testNPCBehaviorTimelines();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Error Abort", "[unit][queststate]")
+{
+    testErrorAbort();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Error Abort Only Raise", "[unit][queststate]")
+{
+    testErrorAbortOnlyRaise();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Error Abort Stale", "[unit][queststate]")
+{
+    testErrorAbortStale();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Grid Trigger Context", "[unit][queststate]")
+{
+    testGridTriggerContext();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Mon Drop", "[unit][queststate]")
+{
+    testMonDrop();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Grid Trigger Rollback", "[unit][queststate]")
+{
+    testGridTriggerRollback();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Load Once", "[unit][queststate]")
+{
+    testLoadOnce();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restore Rolls Back", "[unit][queststate]")
+{
+    testRestoreRollsBack();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restart Atomicity", "[unit][queststate]")
+{
+    testRestartAtomicity();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restart Exact", "[unit][queststate]")
+{
+    testRestartExact();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Restart Quest Done", "[unit][queststate]")
+{
+    testRestartQuestDone();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Grid Trigger Retire", "[unit][queststate]")
+{
+    testGridTriggerRetire();
 }

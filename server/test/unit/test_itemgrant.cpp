@@ -1,5 +1,5 @@
+#include <catch2/catch_test_macros.hpp>
 #include <climits>
-#include <cstdio>
 #include <stdexcept>
 #include <string>
 #include "actormsg.hpp"
@@ -44,9 +44,8 @@ namespace
 {
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     bool sameItem(const SDItem &lhs, const SDItem &rhs)
@@ -99,7 +98,8 @@ namespace
         }
     }
 
-    void runTests()
+
+    void testItemGrant()
     {
         const auto findItemID = [](const auto &predicate) -> uint32_t
         {
@@ -219,22 +219,29 @@ namespace
         require(failed, "mail persistence failure was not propagated");
         require(countRows("tbl_delivery") == 1 && countRows("tbl_chatmessage") == 1, "failed mail left an orphaned attachment");
 
-        std::puts("Item grants passed: serialization, inventory, attributes, atomic rejection, database failures, and offline attachments.");
     }
+
+    struct DatabaseTestEnvironment
+    {
+        DBPod database;
+
+        struct ResetGlobal
+        {
+            ~ResetGlobal()
+            {
+                g_dbPod = nullptr;
+            }
+        } resetGlobal;
+
+        DatabaseTestEnvironment()
+        {
+            g_dbPod = &database;
+            setupDatabase();
+        }
+    };
 }
 
-int main()
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Item grant serialization, inventory, and offline delivery", "[unit][itemgrant]")
 {
-    try{
-        DBPod database;
-        g_dbPod = &database;
-        setupDatabase();
-        runTests();
-        g_dbPod = nullptr;
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+    testItemGrant();
 }

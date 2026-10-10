@@ -1,7 +1,7 @@
-#include <cstdio>
+#include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <sol/sol.hpp>
 #include "argf.hpp"
@@ -45,9 +45,8 @@ namespace
 {
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     class TestMapObject final: public ServerObject
@@ -406,58 +405,115 @@ namespace
         )###"), "a retire isn't reported to its quest with the player, name and version, or a trigger the quest doesn't save is reported");
     }
 
-    void runTests()
+
+    class CoutBufferRestore
     {
-        testRegistration();
-        testDelete();
-        testDoor();
-        testQuests();
-        testSnapshot();
-        testRetire();
-        testLetThrough();
-        testRaise();
-        testNamed();
-        testRetireNotice();
-    }
+        private:
+            std::ostream &m_stream;
+            std::streambuf * const m_saved;
+
+        public:
+            CoutBufferRestore(std::ostream &stream, std::streambuf *replacement)
+                : m_stream(stream)
+                , m_saved(stream.rdbuf(replacement))
+            {}
+
+            ~CoutBufferRestore()
+            {
+                m_stream.rdbuf(m_saved);
+            }
+    };
+    struct ServerTestEnvironment
+    {
+        char arg0[32] = "gridtrigger_test";
+        char arg1[16] = "--slave";
+        char arg2[32] = "--master-ip=127.0.0.1";
+        char *argv[4]{arg0, arg1, arg2, nullptr};
+        std::unique_ptr<argf::parser> parser;
+        std::unique_ptr<ServerArgParser> serverArgs;
+        std::ostringstream logBannerDiscard;
+        std::unique_ptr<Log> log;
+        std::unique_ptr<Server> server;
+
+        struct ResetGlobals
+        {
+            ~ResetGlobals()
+            {
+                g_server = nullptr;
+                g_mir2xLog = nullptr;
+                g_serverArgParser = nullptr;
+            }
+        } resetGlobals;
+
+        ServerTestEnvironment()
+        {
+            parser = std::make_unique<argf::parser>(3, argv);
+            serverArgs = std::make_unique<ServerArgParser>(*parser);
+            serverArgs->setSharedConfig(ServerArgParser::MasterSharedConfig
+            {
+                .logicalFPS = 1,
+                .summonCount = 1,
+            });
+            g_serverArgParser = serverArgs.get();
+
+            {
+                CoutBufferRestore redirect(std::cout, logBannerDiscard.rdbuf());
+                log = std::make_unique<Log>("mir2x-gridtrigger-test");
+            }
+            g_mir2xLog = log.get();
+
+            server = std::make_unique<Server>();
+            g_server = server.get();
+        }
+    };
 }
 
-int main()
+TEST_CASE_METHOD(ServerTestEnvironment, "Registration", "[unit][gridtrigger]")
 {
-    try{
-        char arg0[] = "gridtrigger_test";
-        char arg1[] = "--slave";
-        char arg2[] = "--master-ip=127.0.0.1";
-        char *argv[] = {arg0, arg1, arg2, nullptr};
+    testRegistration();
+}
 
-        const argf::parser parser(3, argv);
-        ServerArgParser serverArgs(parser);
-        serverArgs.setSharedConfig(ServerArgParser::MasterSharedConfig
-        {
-            .logicalFPS = 1,
-            .summonCount = 1,
-        });
-        g_serverArgParser = &serverArgs;
+TEST_CASE_METHOD(ServerTestEnvironment, "Delete", "[unit][gridtrigger]")
+{
+    testDelete();
+}
 
-        // Log's constructor prints a banner with the pid and the log file path, which a gold file can't match
-        std::ostringstream logBannerDiscard;
-        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
-        Log log("mir2x-gridtrigger-test");
-        std::cout.rdbuf(savedCoutBuf);
-        g_mir2xLog = &log;
+TEST_CASE_METHOD(ServerTestEnvironment, "Door", "[unit][gridtrigger]")
+{
+    testDoor();
+}
 
-        Server server;
-        g_server = &server;
+TEST_CASE_METHOD(ServerTestEnvironment, "Quests", "[unit][gridtrigger]")
+{
+    testQuests();
+}
 
-        runTests();
-        std::printf("Grid trigger passed: registration with type, player and quest, delete of any kind, the door of a quest, several quests, snapshot, retire, let through, a raising handler, named triggers, and the retire notice.\n");
+TEST_CASE_METHOD(ServerTestEnvironment, "Snapshot", "[unit][gridtrigger]")
+{
+    testSnapshot();
+}
 
-        g_server = nullptr;
-        g_mir2xLog = nullptr;
-        g_serverArgParser = nullptr;
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+TEST_CASE_METHOD(ServerTestEnvironment, "Retire", "[unit][gridtrigger]")
+{
+    testRetire();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Let Through", "[unit][gridtrigger]")
+{
+    testLetThrough();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Raise", "[unit][gridtrigger]")
+{
+    testRaise();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Named", "[unit][gridtrigger]")
+{
+    testNamed();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Retire Notice", "[unit][gridtrigger]")
+{
+    testRetireNotice();
 }

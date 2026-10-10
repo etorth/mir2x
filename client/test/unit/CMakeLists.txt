@@ -8,11 +8,11 @@
 # (from the top of the build tree), or build/run a single one explicitly, e.g.:
 #
 #   cmake --build <builddir> --target test_xmltypeset
-#   <builddir>/client/test/unit/test_xmltypeset
+#   ctest --test-dir <builddir> -R '^xmltypeset/' --output-on-failure
 #
 # unit tests that need the packed client resources (fontex.zsdb / emoji.zsdb) require
 # `cmake --install <builddir>` to have been run at least once; they default to reading
-# from ${CMAKE_INSTALL_PREFIX}/client/res, override with an explicit ARGS resource dir.
+# from ${CMAKE_INSTALL_PREFIX}/client/res; override with MIR2X_TEST_RES_DIR.
 
 mir2x_add_unit_test(
     NAME xmltypeset

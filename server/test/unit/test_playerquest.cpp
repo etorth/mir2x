@@ -1,7 +1,7 @@
-#include <cstdio>
+#include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <sol/sol.hpp>
 #include "argf.hpp"
@@ -45,9 +45,8 @@ namespace
 {
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     class CoutCapture final
@@ -239,51 +238,80 @@ namespace
         require(f.check("TEST.despList[" + questName + "][SYS_QSTFSM] == '任务已完成'"), "completed quest without a description loses its default");
     }
 
-    void runTests()
+
+    class CoutBufferRestore
     {
-        testRestoreGoesOn();
-        testTriggerGoesOn();
-        testCompletedDescriptions();
-    }
+        private:
+            std::ostream &m_stream;
+            std::streambuf * const m_saved;
+
+        public:
+            CoutBufferRestore(std::ostream &stream, std::streambuf *replacement)
+                : m_stream(stream)
+                , m_saved(stream.rdbuf(replacement))
+            {}
+
+            ~CoutBufferRestore()
+            {
+                m_stream.rdbuf(m_saved);
+            }
+    };
+    struct ServerTestEnvironment
+    {
+        char arg0[32] = "playerquest_test";
+        char arg1[16] = "--slave";
+        char arg2[32] = "--master-ip=127.0.0.1";
+        char *argv[4]{arg0, arg1, arg2, nullptr};
+        std::unique_ptr<argf::parser> parser;
+        std::unique_ptr<ServerArgParser> serverArgs;
+        std::ostringstream logBannerDiscard;
+        std::unique_ptr<Log> log;
+        std::unique_ptr<Server> server;
+
+        struct ResetGlobals
+        {
+            ~ResetGlobals()
+            {
+                g_server = nullptr;
+                g_mir2xLog = nullptr;
+                g_serverArgParser = nullptr;
+            }
+        } resetGlobals;
+
+        ServerTestEnvironment()
+        {
+            parser = std::make_unique<argf::parser>(3, argv);
+            serverArgs = std::make_unique<ServerArgParser>(*parser);
+            serverArgs->setSharedConfig(ServerArgParser::MasterSharedConfig
+            {
+                .logicalFPS = 1,
+                .summonCount = 1,
+            });
+            g_serverArgParser = serverArgs.get();
+
+            {
+                CoutBufferRestore redirect(std::cout, logBannerDiscard.rdbuf());
+                log = std::make_unique<Log>("mir2x-playerquest-test");
+            }
+            g_mir2xLog = log.get();
+
+            server = std::make_unique<Server>();
+            g_server = server.get();
+        }
+    };
 }
 
-int main()
+TEST_CASE_METHOD(ServerTestEnvironment, "Restore Goes On", "[unit][playerquest]")
 {
-    try{
-        char arg0[] = "playerquest_test";
-        char arg1[] = "--slave";
-        char arg2[] = "--master-ip=127.0.0.1";
-        char *argv[] = {arg0, arg1, arg2, nullptr};
+    testRestoreGoesOn();
+}
 
-        const argf::parser parser(3, argv);
-        ServerArgParser serverArgs(parser);
-        serverArgs.setSharedConfig(ServerArgParser::MasterSharedConfig
-        {
-            .logicalFPS = 1,
-            .summonCount = 1,
-        });
-        g_serverArgParser = &serverArgs;
+TEST_CASE_METHOD(ServerTestEnvironment, "Trigger Goes On", "[unit][playerquest]")
+{
+    testTriggerGoesOn();
+}
 
-        // Log's constructor prints a banner with the pid and the log file path, which a gold file can't match
-        std::ostringstream logBannerDiscard;
-        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
-        Log log("mir2x-playerquest-test");
-        std::cout.rdbuf(savedCoutBuf);
-        g_mir2xLog = &log;
-
-        Server server;
-        g_server = &server;
-
-        runTests();
-        std::printf("Player quest passed: restore loads the quest context first, goes on after a quest raised, and fires SYS_ON_ONLINE after it, and triggers go on after a quest raised.\n");
-
-        g_server = nullptr;
-        g_mir2xLog = nullptr;
-        g_serverArgParser = nullptr;
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+TEST_CASE_METHOD(ServerTestEnvironment, "Completed Descriptions", "[unit][playerquest]")
+{
+    testCompletedDescriptions();
 }

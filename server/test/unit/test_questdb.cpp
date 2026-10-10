@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <catch2/catch_test_macros.hpp>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -45,9 +45,8 @@ namespace
 
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     template<typename Func> bool raises(Func &&func)
@@ -186,31 +185,63 @@ namespace
         require(raises([&badTable]{ buildQuestFieldList(badTable); }), "a field list with a key that isn't a string is accepted");
     }
 
-    void runTests()
+
+    struct DatabaseTestEnvironment
     {
-        testCreateTable();
-        testWriteAndLoad();
-        testReplace();
-        testAtomic();
-        testFieldNames();
-        testLuaFieldList();
+        DBPod database;
+
+        struct ResetGlobal
+        {
+            ~ResetGlobal()
+            {
+                g_dbPod = nullptr;
+            }
+        } resetGlobal;
+
+        DatabaseTestEnvironment()
+        {
+            g_dbPod = &database;
+            setupDatabase();
+        }
+    };
+
+    void prepareWrittenQuestRow()
+    {
+        dbCreateQuestTable(questTable);
+        dbUpdateQuestFields(questTable, 1, FieldList{{"fld_states", statesOf("b")}, {"fld_vars", luaf::buildLuaVar(std::string("v"))}}, false);
     }
 }
 
-int main()
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Create Table", "[unit][questdb]")
 {
-    try{
-        DBPod database;
-        g_dbPod = &database;
-        setupDatabase();
-        runTests();
-        g_dbPod = nullptr;
+    testCreateTable();
+}
 
-        std::printf("Quest database passed: table columns, write and load, null fields, replace, atomic writes, field names, and lua field lists.\n");
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Write And Load", "[unit][questdb]")
+{
+    dbCreateQuestTable(questTable);
+    testWriteAndLoad();
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Replace", "[unit][questdb]")
+{
+    prepareWrittenQuestRow();
+    testReplace();
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Atomic", "[unit][questdb]")
+{
+    prepareWrittenQuestRow();
+    testAtomic();
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Field Names", "[unit][questdb]")
+{
+    prepareWrittenQuestRow();
+    testFieldNames();
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Lua Field List", "[unit][questdb]")
+{
+    testLuaFieldList();
 }

@@ -4,6 +4,7 @@
   "dependencies": [
     "argh",
     "asio",
+    "catch2",
     "cereal",
     "fltk",
     "g3log",

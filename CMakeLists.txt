@@ -182,17 +182,16 @@ endfunction()
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xResPath.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
 
-# Python 3 is used both at build/install time and by the test infrastructure:
+# Python 3 is used at build/install time:
 #
 #     tools/installres/src/install_res.py
-#     cmake/run_test.py
 #
 # Find it once here so every caller uses the same interpreter.
 # find_package() also resolves Python on platforms without a `python3` executable, such as Windows.
 # Override it with -DMIR2X_PYTHON_EXECUTABLE=/path/to/python3 when a specific interpreter is required.
 find_package(Python3 COMPONENTS Interpreter)
 set(MIR2X_PYTHON_EXECUTABLE "${Python3_EXECUTABLE}" CACHE FILEPATH
-    "Python 3 interpreter used to run install_res.py and the test infrastructure")
+    "Python 3 interpreter used to run install_res.py")
 if(NOT MIR2X_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "No python3 interpreter found; set -DMIR2X_PYTHON_EXECUTABLE=/path/to/python3")
 endif()

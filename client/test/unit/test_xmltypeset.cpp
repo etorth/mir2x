@@ -8,26 +8,22 @@
 //
 // build & run:
 //   cmake --build <builddir> --target test_xmltypeset
-//   <builddir>/client/test/unit/test_xmltypeset [res_dir]
+//   <builddir>/client/test/unit/test_xmltypeset
 //
 // or, to build and run every registered test project-wide via CTest:
 //   cmake --build <builddir> --target check          # builds tests, then runs ctest
 //   ctest --test-dir <builddir> -R xmltypeset         # rerun just this one (after building)
 //
-// res_dir defaults to MIR2X_TEST_DEFAULT_RES_DIR (${CMAKE_INSTALL_PREFIX}/client/res at
+// MIR2X_TEST_RES_DIR overrides MIR2X_TEST_DEFAULT_RES_DIR (${CMAKE_INSTALL_PREFIX}/client/res at
 // configure time) and must contain font/fontex.zsdb and emoji/emoji.zsdb, i.e. the client
 // must have been installed at least once (`cmake --install <builddir>`) before this runs.
 //
-// exit code is 0 iff every case below passes; on failure the offending case (and its full
-// InitArgs/xml) is printed to stderr before the process exits non-zero. stdout is kept
-// deterministic (see the std::cout suppression around Log's construction in main(), below)
-// so cmake/run_test.py can diff it against test_xmltypeset.log.gold.
+// Catch2 reports assertion failures and the offending geometry parameters.
 
+#include <catch2/catch_test_macros.hpp>
 #include <array>
-#include <cstdio>
+#include <cstdlib>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include "clientargparser.hpp"
 #include "emojidb.hpp"
@@ -99,13 +95,6 @@ namespace
         "死路一条。我也是经历了无数的生死考验，真是为了解决战士的困难才创造了"
         "<t color=\"red\">野蛮冲撞</t>。</par>";
 
-    void require(bool condition, const std::string &message)
-    {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
-    }
-
     // replays the same padding/wrapping/justify math XMLTypeset itself uses, then checks
     // the resulting token boxes against it: this catches both wrapping and alignment bugs
     // (wrong W1/W2, wrong line width, wrong per-line X offset, wrong board width)
@@ -130,33 +119,33 @@ namespace
                     if(args.codeXfer){
                         key = utf8f::exchangeCodePointInU64Key(key, args.codeXfer(utf8f::codePointFromU64Key(key)));
                     }
-                    require(g_fontexDB->retrieve(key, &left, &right) != nullptr, "missing font fixture");
+                    { INFO("missing font fixture"); REQUIRE((g_fontexDB->retrieve(key, &left, &right) != nullptr)); }
                 }
                 const int w1 = x == 0 ? args.lineMargin[0] : left + wordSpace / 2;
                 const int w2 = x + 1 == count ? args.lineMargin[1] : right + (wordSpace + 1) / 2;
                 natural += w1 + token->box.info.w + w2;
                 logical += token->box.width();
-                require(token->box.state.w1 >= w1 && token->box.state.w2 >= w2, "natural padding was reduced");
+                { INFO("natural padding was reduced"); REQUIRE((token->box.state.w1 >= w1 && token->box.state.w2 >= w2)); }
                 if(x == 0){
-                    require(token->box.state.w1 == args.lineMargin[0], "first W1 margin changed");
+                    { INFO("first W1 margin changed"); REQUIRE((token->box.state.w1 == args.lineMargin[0])); }
                 }
                 if(x + 1 == count){
-                    require(token->box.state.w2 == args.lineMargin[1], "last W2 margin changed");
+                    { INFO("last W2 margin changed"); REQUIRE((token->box.state.w2 == args.lineMargin[1])); }
                 }
                 else{
                     const auto next = typeset.getToken(x + 1, y);
-                    require(token->box.state.x + token->box.info.w + token->box.state.w2
-                            == next->box.state.x - next->box.state.w1, "non-contiguous logical token boxes");
+                    { INFO("non-contiguous logical token boxes"); REQUIRE((token->box.state.x + token->box.info.w + token->box.state.w2
+                            == next->box.state.x - next->box.state.w1)); }
                 }
             }
             const auto context = "line " + std::to_string(y) + " target=" + std::to_string(target)
                 + " natural=" + std::to_string(natural) + " logical=" + std::to_string(logical);
             if(args.lineWidth > 0 && count > 1 && !allowWideLeaf){
-                require(natural <= target, "wrapping overflow: " + context);
+                { INFO("wrapping overflow: " + context); REQUIRE((natural <= target)); }
             }
             const bool justify = (align == LALIGN_DISTRIBUTED || (align == LALIGN_JUSTIFY && y + 1 < typeset.lineCount()))
                 && count > 1 && natural < target;
-            require(logical == (justify ? target : natural), "wrong line width: " + context);
+            { INFO("wrong line width: " + context); REQUIRE((logical == (justify ? target : natural))); }
             widths.push_back(logical);
         }
 
@@ -181,15 +170,15 @@ namespace
                 : center ? std::max(0, (ref - logical) / 2) : 0;
             expectedFW = std::max(expectedFW, offset + logical);
         }
-        require(typeset.fw() == expectedFW, "wrong board width: align=" + std::to_string(align)
-                + " expected=" + std::to_string(expectedFW) + " actual=" + std::to_string(typeset.fw()));
+        { INFO("wrong board width: align=" + std::to_string(align)
+                + " expected=" + std::to_string(expectedFW) + " actual=" + std::to_string(typeset.fw())); REQUIRE((typeset.fw() == expectedFW)); }
 
         for(int y = 0; y < typeset.lineCount(); ++y){
             const int logical = widths.at(y);
             const bool center = align == LALIGN_CENTER || (align == LALIGN_DISTRIBUTED && typeset.lineTokenCount(y) == 1);
             const int offset = align == LALIGN_RIGHT ? std::max(0, ref - logical)
                 : center ? std::max(0, (ref - logical) / 2) : 0;
-            require(typeset.getToken(0, y)->box.state.x == offset + args.lineMargin[0], "wrong alignment offset");
+            { INFO("wrong alignment offset"); REQUIRE((typeset.getToken(0, y)->box.state.x == offset + args.lineMargin[0])); }
             if(center && logical <= ref){
                 // room is measured against ref (the alignment baseline), not fw(): fw() is a tight
                 // measurement of arranged tokens and may be smaller than ref when no line's content
@@ -200,11 +189,11 @@ namespace
                 // behavior for LALIGN_DISTRIBUTED)
                 const int leftRoom = typeset.getToken(0, y)->box.state.x - args.lineMargin[0];
                 const int rightRoom = ref - leftRoom - logical;
-                require(std::abs(leftRoom - rightRoom) <= 1, "unequal center alignment room");
+                { INFO("unequal center alignment room"); REQUIRE((std::abs(leftRoom - rightRoom) <= 1)); }
             }
             if(align == LALIGN_RIGHT){
                 const auto last = typeset.getLineBackToken(y);
-                require(last->box.state.x + last->box.info.w + last->box.state.w2 == typeset.fw(), "line does not reach board's right edge");
+                { INFO("line does not reach board's right edge"); REQUIRE((last->box.state.x + last->box.info.w + last->box.state.w2 == typeset.fw())); }
             }
         }
     }
@@ -232,7 +221,7 @@ namespace
         checkGeometry(typeset, args, allowWideLeaf);
         XMLTypeset fresh(args);
         fresh.loadXMLNode(typeset.getXMLNode());
-        require(geometry(typeset) == geometry(fresh), "incremental layout differs from a fresh rebuild");
+        { INFO("incremental layout differs from a fresh rebuild"); REQUIRE((geometry(typeset) == geometry(fresh))); }
     }
 
     void runTests()
@@ -240,17 +229,12 @@ namespace
         int cases = 0;
         const auto check = [&cases](const XMLTypeset::InitArgs &args, const std::string &xml, bool allowWideLeaf = false)
         {
-            try{
-                XMLTypeset typeset(args);
-                typeset.loadXML(xml.c_str());
-                checkGeometry(typeset, args, allowWideLeaf);
-                cases++;
-            }
-            catch(...){
-                std::fprintf(stderr, "failed at case %d: lineWidth=%d align=%d wordSpace=%d margin={%d,%d} xml=%s\n",
-                        cases, args.lineWidth, args.lineAlign, args.wordSpace, args.lineMargin[0], args.lineMargin[1], xml.c_str());
-                throw;
-            }
+            CAPTURE(cases, args.lineWidth, args.lineAlign, args.wordSpace,
+                    args.lineMargin[0], args.lineMargin[1], xml);
+            XMLTypeset typeset(args);
+            typeset.loadXML(xml.c_str());
+            checkGeometry(typeset, args, allowWideLeaf);
+            cases++;
         };
 
         for(const int width: {354, 355, 356}){
@@ -303,7 +287,7 @@ namespace
         };
         XMLTypeset shortLines(tight);
         shortLines.loadXML("<par>AAA</par>");
-        require(shortLines.lineCount() == 2 && shortLines.lineTokenCount(0) == 2 && shortLines.lineTokenCount(1) == 1, "two-token fixture did not wrap");
+        { INFO("two-token fixture did not wrap"); REQUIRE((shortLines.lineCount() == 2 && shortLines.lineTokenCount(0) == 2 && shortLines.lineTokenCount(1) == 1)); }
         checkGeometry(shortLines, tight);
         cases++;
 
@@ -326,13 +310,13 @@ namespace
         checkFresh(*prefix, args);
         checkFresh(edited, args);
         prefix->join(edited, true);
-        require(prefix->getText() == text, "split/join lost text");
+        { INFO("split/join lost text"); REQUIRE((prefix->getText() == text)); }
         checkFresh(*prefix, args);
         for(const int width: {125, 55, 0, 355, 90}){
             args.lineWidth = width;
             prefix->setLineWidth(width, args.lineMargin);
             checkFresh(*prefix, args);
-            require(prefix->getText() == text, "resize changed text");
+            { INFO("resize changed text"); REQUIRE((prefix->getText() == text)); }
             cases++;
         }
         args.codeXfer = [](uint32_t){ return to_u32('*'); };
@@ -368,14 +352,14 @@ namespace
             }
 
             XMLTypeset empty(edge);
-            require(empty.fw() == 0, "wrong initial empty width");
+            { INFO("wrong initial empty width"); REQUIRE((empty.fw() == 0)); }
             empty.loadXML("<par>A</par>");
             empty.clear();
-            require(empty.empty(), "clear did not empty typeset");
-            require(empty.fw() == 0, "clear lost the alignment frame");
+            { INFO("clear did not empty typeset"); REQUIRE((empty.empty())); }
+            { INFO("clear lost the alignment frame"); REQUIRE((empty.fw() == 0)); }
             edge.lineWidth = 105;
             empty.setLineWidth(edge.lineWidth, edge.lineMargin);
-            require(empty.fw() == 0, "resizing empty alignment frame failed");
+            { INFO("resizing empty alignment frame failed"); REQUIRE((empty.fw() == 0)); }
             empty.loadXML("<par/>");
             checkFresh(empty, edge);
             cases++;
@@ -431,7 +415,7 @@ namespace
                 break;
             }
         }
-        require(!parityText[0].empty() && !parityText[1].empty(), "missing opposite-parity width fixtures");
+        { INFO("missing opposite-parity width fixtures"); REQUIRE((!parityText[0].empty() && !parityText[1].empty())); }
         const auto &sameParity = parityText[targetWidth % 2];
         const auto &otherParity = parityText[extendedWidth % 2];
         const std::string upperXML =
@@ -450,7 +434,7 @@ namespace
             };
             XMLTypeset shifted(shiftArgs);
             shifted.loadXML(upperXML.c_str());
-            require(shifted.lineCount() == 3, "shift fixture did not produce three upper lines");
+            { INFO("shift fixture did not produce three upper lines"); REQUIRE((shifted.lineCount() == 3)); }
             checkFresh(shifted, shiftArgs);
             const int firstX = shifted.getToken(0, 0)->box.state.x;
             const int secondX = shifted.getToken(0, 1)->box.state.x;
@@ -458,15 +442,15 @@ namespace
             XMLTypeset wide(shiftArgs);
             wide.loadXML(wideXML.c_str());
             shifted.join(wide, true);
-            require(shifted.lineCount() == 4 && shifted.fw() == extendedWidth, "shift fixture did not extend by one pixel");
+            { INFO("shift fixture did not extend by one pixel"); REQUIRE((shifted.lineCount() == 4 && shifted.fw() == extendedWidth)); }
             checkFresh(shifted, shiftArgs, true);
-            require(shifted.getToken(0, 0)->box.state.x == firstX + (align == LALIGN_RIGHT ? 1 : 0), "wrong first-line growth offset");
-            require(shifted.getToken(0, 1)->box.state.x == secondX + 1, "wrong opposite-parity growth offset");
+            { INFO("wrong first-line growth offset"); REQUIRE((shifted.getToken(0, 0)->box.state.x == firstX + (align == LALIGN_RIGHT ? 1 : 0))); }
+            { INFO("wrong opposite-parity growth offset"); REQUIRE((shifted.getToken(0, 1)->box.state.x == secondX + 1)); }
 
             shifted.deleteToken(0, 3, shifted.lineTokenCount(3));
             checkFresh(shifted, shiftArgs);
-            require(shifted.getToken(0, 0)->box.state.x == firstX, "first-line shrink offset was not restored");
-            require(shifted.getToken(0, 1)->box.state.x == secondX, "opposite-parity shrink offset was not restored");
+            { INFO("first-line shrink offset was not restored"); REQUIRE((shifted.getToken(0, 0)->box.state.x == firstX)); }
+            { INFO("opposite-parity shrink offset was not restored"); REQUIRE((shifted.getToken(0, 1)->box.state.x == secondX)); }
             cases += 3;
 
             check({
@@ -478,55 +462,49 @@ namespace
                 }, capture);
         }
 
-        std::printf("All %d geometry cases passed (including retained tokens, edits, resize, split/join, masks, margins, emoji, and oversized leaves).\n", cases);
     }
 }
 
-int main(int argc, char **argv)
+TEST_CASE("Rich-text geometry, wrapping, alignment, and incremental edits", "[xmltypeset]")
 {
-    try{
-        const std::string resDir = argc > 1 ? argv[1] : MIR2X_TEST_DEFAULT_RES_DIR;
+    struct ResetGlobals
+    {
+        ~ResetGlobals()
+        {
+            g_clientArgParser = nullptr;
+            g_mir2xLog = nullptr;
+            g_sdlDevice = nullptr;
+            g_fontexDB = nullptr;
+            g_emojiDB = nullptr;
+        }
+    } resetGlobals;
+    const char *resourceOverride = std::getenv("MIR2X_TEST_RES_DIR");
+    const std::string resDir = resourceOverride ? resourceOverride : MIR2X_TEST_DEFAULT_RES_DIR;
 
-        char name[] = "xmltypeset_test";
-        char audio[] = "--disable-audio";
-        char profiler[] = "--disable-profiler";
-        char *options[] = {name, audio, profiler};
-        const argf::parser parser(3, options);
-        ClientArgParser clientArgs(parser);
-        g_clientArgParser = &clientArgs;
+    char name[] = "xmltypeset_test";
+    char audio[] = "--disable-audio";
+    char profiler[] = "--disable-profiler";
+    char *options[] = {name, audio, profiler};
+    const argf::parser parser(3, options);
+    ClientArgParser clientArgs(parser);
+    g_clientArgParser = &clientArgs;
 
-        logDisableProfiler();
+    logDisableProfiler();
 
-        // Log's constructor unconditionally prints an init banner to std::cout that embeds
-        // a pid and a timestamped log file path - neither is reproducible across runs, so
-        // it can never match a checked-in gold file. suppress std::cout for the duration of
-        // construction only (this doesn't touch the process's real stdout fd, so the
-        // std::printf-based results the tests print later via runTests() are unaffected);
-        // g3log's own shutdown banner goes to std::cerr, not stdout, so no such suppression
-        // is needed for that.
-        std::ostringstream logBannerDiscard;
-        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
-        Log log("mir2x-xmltypeset-test");
-        std::cout.rdbuf(savedCoutBuf);
-        g_mir2xLog = &log;
+    Log log("mir2x-xmltypeset-test", ".");
+    g_mir2xLog = &log;
 
-        SDLDevice device;
-        g_sdlDevice = &device;
-        device.createMainWindow();
+    SDLDevice device;
+    g_sdlDevice = &device;
+    device.createMainWindow();
 
-        TestFonts fonts;
-        g_fontexDB = &fonts;
-        fonts.load((resDir + "/font/fontex.zsdb").c_str());
+    TestFonts fonts;
+    g_fontexDB = &fonts;
+    fonts.load((resDir + "/font/fontex.zsdb").c_str());
 
-        TestEmoji emoji;
-        g_emojiDB = &emoji;
-        emoji.load((resDir + "/emoji/emoji.zsdb").c_str());
+    TestEmoji emoji;
+    g_emojiDB = &emoji;
+    emoji.load((resDir + "/emoji/emoji.zsdb").c_str());
 
-        runTests();
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+    runTests();
 }

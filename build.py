@@ -164,7 +164,7 @@ def parse_args():
     parser.add_argument(
         "--python",
         type=Path,
-        help="Python 3 interpreter mir2x should use for install_res.py and the test infrastructure "
+        help="Python 3 interpreter mir2x should use for install_res.py "
              "(sets -DMIR2X_PYTHON_EXECUTABLE). Defaults to CMake's own python3 auto-detection.",
     )
     parser.add_argument(

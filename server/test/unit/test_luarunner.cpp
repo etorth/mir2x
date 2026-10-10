@@ -1,10 +1,10 @@
+#include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <coroutine>
-#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -51,9 +51,8 @@ namespace
 {
     void require(bool condition, const char *message)
     {
-        if(!condition){
-            throw std::runtime_error(message);
-        }
+        INFO(message);
+        REQUIRE(condition);
     }
 
     class TestServerObject final: public ServerObject
@@ -1259,68 +1258,165 @@ namespace
         require(closeCount == 1, "runner teardown doesn't call onClose once");
     }
 
-    void runTests()
+
+    class CoutBufferRestore
     {
-        testYieldResumeFinish();
-        testCloseSuspended();
-        testErrorClosesBeforeOnDone();
-        testHandlerReplacesError();
-        testHandlerErrorWhileClosing();
-        testDeferredClose();
-        testCloseInOnDone();
-        testEval();
-        testCloseByKey();
-        testSelfClose();
-        testSelfCloseWhereCanNotYield();
-        testCloseWhileCoopPending();
-        testRemoteCallError();
-        testWaitNotifyTimeout();
-        testCloseThenRun();
-        testNestingLimit();
-        testClosedDuringCloseThread();
-        testCriticalSection();
-        testResumeAfterClose();
-        testTeardown();
-    }
+        private:
+            std::ostream &m_stream;
+            std::streambuf * const m_saved;
+
+        public:
+            CoutBufferRestore(std::ostream &stream, std::streambuf *replacement)
+                : m_stream(stream)
+                , m_saved(stream.rdbuf(replacement))
+            {}
+
+            ~CoutBufferRestore()
+            {
+                m_stream.rdbuf(m_saved);
+            }
+    };
+    struct ServerTestEnvironment
+    {
+        char arg0[32] = "luarunner_test";
+        char arg1[16] = "--slave";
+        char arg2[32] = "--master-ip=127.0.0.1";
+        char *argv[4]{arg0, arg1, arg2, nullptr};
+        std::unique_ptr<argf::parser> parser;
+        std::unique_ptr<ServerArgParser> serverArgs;
+        std::ostringstream logBannerDiscard;
+        std::unique_ptr<Log> log;
+        std::unique_ptr<Server> server;
+
+        struct ResetGlobals
+        {
+            ~ResetGlobals()
+            {
+                g_server = nullptr;
+                g_mir2xLog = nullptr;
+                g_serverArgParser = nullptr;
+            }
+        } resetGlobals;
+
+        ServerTestEnvironment()
+        {
+            parser = std::make_unique<argf::parser>(3, argv);
+            serverArgs = std::make_unique<ServerArgParser>(*parser);
+            serverArgs->setSharedConfig(ServerArgParser::MasterSharedConfig
+            {
+                .logicalFPS = 1,
+                .summonCount = 1,
+            });
+            g_serverArgParser = serverArgs.get();
+
+            {
+                CoutBufferRestore redirect(std::cout, logBannerDiscard.rdbuf());
+                log = std::make_unique<Log>("mir2x-luarunner-test");
+            }
+            g_mir2xLog = log.get();
+
+            server = std::make_unique<Server>();
+            g_server = server.get();
+        }
+    };
 }
 
-int main()
+TEST_CASE_METHOD(ServerTestEnvironment, "Yield Resume Finish", "[unit][luarunner]")
 {
-    try{
-        char arg0[] = "luarunner_test";
-        char arg1[] = "--slave";
-        char arg2[] = "--master-ip=127.0.0.1";
-        char *argv[] = {arg0, arg1, arg2, nullptr};
+    testYieldResumeFinish();
+}
 
-        const argf::parser parser(3, argv);
-        ServerArgParser serverArgs(parser);
-        serverArgs.setSharedConfig(ServerArgParser::MasterSharedConfig
-        {
-            .logicalFPS = 1,
-            .summonCount = 1,
-        });
-        g_serverArgParser = &serverArgs;
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Suspended", "[unit][luarunner]")
+{
+    testCloseSuspended();
+}
 
-        // Log's constructor prints a banner with the pid and the log file path, which a gold file can't match
-        std::ostringstream logBannerDiscard;
-        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
-        Log log("mir2x-luarunner-test");
-        std::cout.rdbuf(savedCoutBuf);
-        g_mir2xLog = &log;
+TEST_CASE_METHOD(ServerTestEnvironment, "Error Closes Before On Done", "[unit][luarunner]")
+{
+    testErrorClosesBeforeOnDone();
+}
 
-        Server server;
-        g_server = &server;
+TEST_CASE_METHOD(ServerTestEnvironment, "Handler Replaces Error", "[unit][luarunner]")
+{
+    testHandlerReplacesError();
+}
 
-        runTests();
-        std::printf("Lua runner close passed: yield and resume, close while suspended, close on error, replaced error, raising close handler, deferred close, close in onDone, eval, close by key, self close, self close where it can't yield, close while a coop is pending, remote call error, notify and timeout of waitNotify(), close then run, nesting limit, closed during closeThread(), critical sections, a resume after a close request, and teardown.\n");
+TEST_CASE_METHOD(ServerTestEnvironment, "Handler Error While Closing", "[unit][luarunner]")
+{
+    testHandlerErrorWhileClosing();
+}
 
-        g_server = nullptr;
-        g_mir2xLog = nullptr;
-        g_serverArgParser = nullptr;
-        return 0;
-    }
-    catch(const std::exception &e){
-        std::fprintf(stderr, "%s\n", e.what());
-        return 1;
-    }
+TEST_CASE_METHOD(ServerTestEnvironment, "Deferred Close", "[unit][luarunner]")
+{
+    testDeferredClose();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close In On Done", "[unit][luarunner]")
+{
+    testCloseInOnDone();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Eval", "[unit][luarunner]")
+{
+    testEval();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close By Key", "[unit][luarunner]")
+{
+    testCloseByKey();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Self Close", "[unit][luarunner]")
+{
+    testSelfClose();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Self Close Where Can Not Yield", "[unit][luarunner]")
+{
+    testSelfCloseWhereCanNotYield();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close While Coop Pending", "[unit][luarunner]")
+{
+    testCloseWhileCoopPending();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Remote Call Error", "[unit][luarunner]")
+{
+    testRemoteCallError();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Wait Notify Timeout", "[unit][luarunner]")
+{
+    testWaitNotifyTimeout();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Close Then Run", "[unit][luarunner]")
+{
+    testCloseThenRun();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Nesting Limit", "[unit][luarunner]")
+{
+    testNestingLimit();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Closed During Close Thread", "[unit][luarunner]")
+{
+    testClosedDuringCloseThread();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Critical Section", "[unit][luarunner]")
+{
+    testCriticalSection();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Resume After Close", "[unit][luarunner]")
+{
+    testResumeAfterClose();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Teardown", "[unit][luarunner]")
+{
+    testTeardown();
 }
