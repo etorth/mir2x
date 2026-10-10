@@ -15,6 +15,8 @@ struct ItemRecord
     const int pkgGfxID = 0;
     const uint32_t shape = 0;
 
+    const size_t price = 0;
+
     const struct EquipAttribute
     {
         const int duration = 0;

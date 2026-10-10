@@ -38,6 +38,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0005,
+    .price = 80,
     .potion
     {
         .hp = 30,
@@ -49,6 +50,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0006,
+    .price = 200,
     .potion
     {
         .hp = 70,
@@ -60,6 +62,7 @@
     .type = u8"恢复药水",
     .weight = 2,
     .pkgGfxID = 0X0007,
+    .price = 500,
     .potion
     {
         .hp = 110,
@@ -71,6 +74,7 @@
     .type = u8"恢复药水",
     .weight = 3,
     .pkgGfxID = 0X0008,
+    .price = 1250,
     .potion
     {
         .hp = 170,
@@ -82,6 +86,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X000F,
+    .price = 84,
     .potion
     {
         .mp = 40,
@@ -93,6 +98,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0010,
+    .price = 210,
     .potion
     {
         .mp = 110,
@@ -104,6 +110,7 @@
     .type = u8"恢复药水",
     .weight = 2,
     .pkgGfxID = 0X0011,
+    .price = 525,
     .potion
     {
         .mp = 180,
@@ -115,6 +122,7 @@
     .type = u8"恢复药水",
     .weight = 3,
     .pkgGfxID = 0X0012,
+    .price = 1375,
     .potion
     {
         .mp = 250,
@@ -126,6 +134,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0014,
+    .price = 500,
     .potion
     {
         .hp = 70,
@@ -137,6 +146,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0015,
+    .price = 3000,
     .potion
     {
         .hp = 110,
@@ -148,6 +158,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X001F,
+    .price = 10,
     .potion
     {
         .hp = 5,
@@ -160,30 +171,35 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X001F,
+    .price = 10,
 },
 
 {   .name = u8"千年毒蛇血",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X001F,
+    .price = 10,
 },
 
 {   .name = u8"虎蛇血",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X001F,
+    .price = 10,
 },
 
 {   .name = u8"红蛇血",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X001F,
+    .price = 10,
 },
 
 {   .name = u8"鹿血",
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0020,
+    .price = 1000,
     .potion
     {
     },
@@ -204,18 +220,21 @@
     .type = u8"功能药水",
     .weight = 1,
     .pkgGfxID = 0X0035,
+    .price = 10000,
 },
 
 {   .name = u8"武器强化油",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0035,
+    .price = 10000,
 },
 
 {   .name = u8"无名油",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0035,
+    .price = 10000,
 },
 
 {   .name = u8"制魔油",
@@ -228,6 +247,7 @@
     .type = u8"功能药水",
     .weight = 1,
     .pkgGfxID = 0X003D,
+    .price = 1000,
 },
 
 {   .name = u8"诺玛药水",
@@ -240,12 +260,14 @@
     .type = u8"功能药水",
     .weight = 1,
     .pkgGfxID = 0X003F,
+    .price = 1000,
 },
 
 {   .name = u8"神水",
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0040,
+    .price = 100,
     .potion
     {
     },
@@ -255,24 +277,28 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X0040,
+    .price = 100,
 },
 
 {   .name = u8"诅咒之药水",
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X0040,
+    .price = 100,
 },
 
 {   .name = u8"亡灵之药水",
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X0040,
+    .price = 100,
 },
 
 {   .name = u8"暗黑之药水",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0040,
+    .price = 100,
 },
 
 {   .name = u8"尹老人的酒瓶",
@@ -291,6 +317,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0046,
+    .price = 5000,
     .potion
     {
         .hp = 200,
@@ -302,6 +329,7 @@
     .type = u8"恢复药水",
     .weight = 1,
     .pkgGfxID = 0X0046,
+    .price = 5000,
     .potion
     {
         .hp = 190,
@@ -853,42 +881,49 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0064,
+    .price = 1000,
 },
 
 {   .name = u8"祖玛头像",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0065,
+    .price = 1000,
 },
 
 {   .name = u8"诺玛王雕像",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0065,
+    .price = 1000,
 },
 
 {   .name = u8"遗址雕像",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0065,
+    .price = 1000,
 },
 
 {   .name = u8"蚂蚁卵",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0066,
+    .price = 600,
 },
 
 {   .name = u8"劳动蚂蚁卵",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0066,
+    .price = 600,
 },
 
 {   .name = u8"盔甲蚂蚁卵",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0066,
+    .price = 600,
 },
 
 {   .name = u8"骷髅骨",
@@ -919,72 +954,84 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0069,
+    .price = 1000,
 },
 
 {   .name = u8"幻影蜘蛛线",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0069,
+    .price = 1000,
 },
 
 {   .name = u8"皮",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006B,
+    .price = 800,
 },
 
 {   .name = u8"邪恶钳虫皮",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006B,
+    .price = 800,
 },
 
 {   .name = u8"钳虫皮",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006B,
+    .price = 800,
 },
 
 {   .name = u8"触龙神皮",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006C,
+    .price = 350,
 },
 
 {   .name = u8"蛆卵",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006E,
+    .price = 500,
 },
 
 {   .name = u8"树脂",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006E,
+    .price = 500,
 },
 
 {   .name = u8"毒蜘蛛牙齿",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006F,
+    .price = 50,
 },
 
 {   .name = u8"蝎子的尾巴",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0070,
+    .price = 100,
 },
 
 {   .name = u8"食人树叶",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0071,
+    .price = 50,
 },
 
 {   .name = u8"食人树的果实",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0072,
+    .price = 300,
 },
 
 {   .name = u8"金条",
@@ -1003,6 +1050,7 @@
     .type = u8"道具",
     .weight = 100,
     .pkgGfxID = 0X007F,
+    .price = 1000000000,
 },
 
 {   .name = u8"黄色药粉（小）",
@@ -1051,18 +1099,21 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0085,
+    .price = 2,
 },
 
 {   .name = u8"花色蜘蛛毒药",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0085,
+    .price = 2,
 },
 
 {   .name = u8"绿包",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0086,
+    .price = 2,
 },
 
 {   .name = u8"骰子",
@@ -1099,48 +1150,56 @@
     .type = u8"兑换券",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"生存游戏场地地图1",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"嫁祸卡",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"参加活动卷",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"信件",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"啊潘的信件",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"华玉的信件",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"书信",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00B4,
+    .price = 50,
 },
 
 {   .name = u8"生存游戏场地地图2",
@@ -1231,12 +1290,14 @@
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D2,
+    .price = 6000,
 },
 
 {   .name = u8"银矿",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D3,
+    .price = 1000,
 },
 
 {   .name = u8"最后困魔石",
@@ -1255,72 +1316,84 @@
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D6,
+    .price = 1000,
 },
 
 {   .name = u8"第三困魔石",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00D6,
+    .price = 1000,
 },
 
 {   .name = u8"铜矿",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D7,
+    .price = 2500,
 },
 
 {   .name = u8"第二困魔石",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00D7,
+    .price = 2500,
 },
 
 {   .name = u8"铁矿",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D8,
+    .price = 500,
 },
 
 {   .name = u8"第一困魔石",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00D8,
+    .price = 500,
 },
 
 {   .name = u8"紫水晶",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D9,
+    .price = 500,
 },
 
 {   .name = u8"石榴石",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DA,
+    .price = 1000,
 },
 
 {   .name = u8"金刚石",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DB,
+    .price = 2500,
 },
 
 {   .name = u8"魔晶石",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DB,
+    .price = 2500,
 },
 
 {   .name = u8"钢玉矿石",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DC,
+    .price = 6000,
 },
 
 {   .name = u8"钢玉石",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DC,
+    .price = 6000,
 },
 
 {   .name = u8"神魔石",
@@ -1477,6 +1550,7 @@
     .type = u8"肉",
     .weight = 1,
     .pkgGfxID = 0X012D,
+    .price = 80,
 },
 
 {   .name = u8"筹码",
@@ -1495,6 +1569,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1506,6 +1581,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1517,6 +1593,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1528,6 +1605,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1539,6 +1617,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1550,6 +1629,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1561,6 +1641,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1572,6 +1653,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"战士",
@@ -1583,6 +1665,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1594,6 +1677,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1605,6 +1689,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1616,6 +1701,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1627,6 +1713,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1638,6 +1725,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1649,6 +1737,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1660,6 +1749,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1671,6 +1761,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1682,6 +1773,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1693,6 +1785,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1704,6 +1797,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1715,6 +1809,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1726,6 +1821,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1737,6 +1833,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1748,6 +1845,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1759,6 +1857,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1770,6 +1869,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1781,6 +1881,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1792,6 +1893,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1803,6 +1905,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1814,6 +1917,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1825,6 +1929,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"法师",
@@ -1836,6 +1941,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1847,6 +1953,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1858,6 +1965,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1869,6 +1977,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1880,6 +1989,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1891,6 +2001,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1902,6 +2013,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1913,6 +2025,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1924,6 +2037,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1935,6 +2049,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1946,6 +2061,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1957,6 +2073,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1968,6 +2085,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1979,6 +2097,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -1990,6 +2109,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -2001,6 +2121,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -2012,6 +2133,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -2023,6 +2145,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -2034,6 +2157,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .job = u8"道士",
@@ -2045,30 +2169,35 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
 },
 
 {   .name = u8"老中医的医书",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
 },
 
 {   .name = u8"阿才的书",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
 },
 
 {   .name = u8"古诗秘书",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
 },
 
 {   .name = u8"新火镜",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
 },
 
 {   .name = u8"木料",
@@ -2395,6 +2524,7 @@
     .weight = 7,
     .pkgGfxID = 0X0163,
     .shape = 9,
+    .price = 40000,
     .equip
     {
         .duration = 10,
@@ -2545,6 +2675,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2562,6 +2693,7 @@
     .weight = 8,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2579,6 +2711,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2600,6 +2733,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2621,6 +2755,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2642,6 +2777,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2663,6 +2799,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2684,6 +2821,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2705,6 +2843,7 @@
     .weight = 3,
     .pkgGfxID = 0X0174,
     .shape = 2,
+    .price = 5500,
     .equip
     {
         .duration = 8,
@@ -2722,6 +2861,7 @@
     .weight = 5,
     .pkgGfxID = 0X0175,
     .shape = 3,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -2738,6 +2878,7 @@
     .weight = 4,
     .pkgGfxID = 0X0175,
     .shape = 3,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -2754,6 +2895,7 @@
     .weight = 5,
     .pkgGfxID = 0X0175,
     .shape = 3,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -2771,6 +2913,7 @@
     .weight = 6,
     .pkgGfxID = 0X0175,
     .shape = 3,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -2792,6 +2935,7 @@
     .weight = 9,
     .pkgGfxID = 0X0175,
     .shape = 3,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -2808,6 +2952,7 @@
     .weight = 20,
     .pkgGfxID = 0X0176,
     .shape = 6,
+    .price = 30000,
     .equip
     {
         .duration = 10,
@@ -2875,6 +3020,7 @@
     .weight = 7,
     .pkgGfxID = 0X0186,
     .shape = 4,
+    .price = 8000,
     .equip
     {
         .duration = 8,
@@ -2887,6 +3033,7 @@
     .weight = 2,
     .pkgGfxID = 0X0187,
     .shape = 5,
+    .price = 30000,
     .equip
     {
         .duration = 5,
@@ -2900,6 +3047,7 @@
     .weight = 6,
     .pkgGfxID = 0X019A,
     .shape = 7,
+    .price = 9000,
     .equip
     {
         .duration = 8,
@@ -2917,6 +3065,7 @@
     .weight = 10,
     .pkgGfxID = 0X019A,
     .shape = 7,
+    .price = 9000,
     .equip
     {
         .duration = 10,
@@ -2932,6 +3081,7 @@
     .weight = 4,
     .pkgGfxID = 0X019B,
     .shape = 8,
+    .price = 8000,
     .equip
     {
         .duration = 8,
@@ -2949,6 +3099,7 @@
     .weight = 6,
     .pkgGfxID = 0X019B,
     .shape = 8,
+    .price = 8000,
     .equip
     {
         .duration = 8,
@@ -2966,6 +3117,7 @@
     .weight = 10,
     .pkgGfxID = 0X019C,
     .shape = 9,
+    .price = 18000,
     .equip
     {
         .duration = 8,
@@ -2983,6 +3135,7 @@
     .weight = 7,
     .pkgGfxID = 0X019C,
     .shape = 9,
+    .price = 18000,
     .equip
     {
         .duration = 8,
@@ -3000,6 +3153,7 @@
     .weight = 5,
     .pkgGfxID = 0X019D,
     .shape = 10,
+    .price = 15000,
     .equip
     {
         .duration = 8,
@@ -3017,6 +3171,7 @@
     .weight = 20,
     .pkgGfxID = 0X019E,
     .shape = 11,
+    .price = 30000,
     .equip
     {
         .duration = 10,
@@ -3030,6 +3185,7 @@
     .weight = 4,
     .pkgGfxID = 0X019F,
     .shape = 12,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -3057,6 +3213,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01D6,
+    .price = 1200,
     .equip
     {
         .duration = 6,
@@ -3073,6 +3230,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01D7,
+    .price = 6000,
     .equip
     {
         .duration = 4,
@@ -3089,6 +3247,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01D8,
+    .price = 1500,
     .equip
     {
         .duration = 6,
@@ -3105,6 +3264,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01D9,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -3180,6 +3340,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DB,
+    .price = 20000,
     .equip
     {
         .duration = 5,
@@ -3191,6 +3352,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DB,
+    .price = 20000,
     .equip
     {
         .duration = 5,
@@ -3206,6 +3368,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DB,
+    .price = 20000,
     .equip
     {
         .duration = 5,
@@ -3221,6 +3384,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DB,
+    .price = 20000,
     .equip
     {
         .duration = 5,
@@ -3236,6 +3400,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DC,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -3248,6 +3413,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01DD,
+    .price = 70000,
     .equip
     {
         .duration = 4,
@@ -3260,6 +3426,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01DE,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -3272,6 +3439,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01DF,
+    .price = 40000,
     .equip
     {
         .duration = 5,
@@ -3284,6 +3452,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01EA,
+    .price = 1000,
     .equip
     {
         .duration = 5,
@@ -3299,12 +3468,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X01EA,
+    .price = 1000,
 },
 
 {   .name = u8"珍珠戒指",
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01EB,
+    .price = 2500,
     .equip
     {
         .duration = 5,
@@ -3320,6 +3491,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01EB,
+    .price = 2500,
     .equip
     {
         .duration = 5,
@@ -3335,6 +3507,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01EC,
+    .price = 6000,
     .equip
     {
         .duration = 5,
@@ -3399,6 +3572,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01EE,
+    .price = 10000,
     .equip
     {
         .duration = 5,
@@ -3414,6 +3588,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01EE,
+    .price = 10000,
     .equip
     {
         .duration = 2,
@@ -3429,6 +3604,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01EF,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -3441,6 +3617,7 @@
     .type = u8"戒指",
     .weight = 4,
     .pkgGfxID = 0X01F0,
+    .price = 19000,
     .equip
     {
         .duration = 7,
@@ -3453,6 +3630,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X01F1,
+    .price = 19000,
     .equip
     {
         .duration = 7,
@@ -3465,6 +3643,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01F2,
+    .price = 16000,
     .equip
     {
         .duration = 7,
@@ -3477,6 +3656,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X01F3,
+    .price = 7000,
     .equip
     {
         .duration = 7,
@@ -3492,6 +3672,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X01FE,
+    .price = 1500,
     .equip
     {
         .duration = 4,
@@ -3576,6 +3757,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0200,
+    .price = 9000,
     .equip
     {
         .duration = 4,
@@ -3621,6 +3803,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0202,
+    .price = 15000,
     .equip
     {
         .duration = 4,
@@ -3636,6 +3819,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0202,
+    .price = 15000,
     .equip
     {
         .duration = 2,
@@ -3651,6 +3835,7 @@
     .type = u8"戒指",
     .weight = 4,
     .pkgGfxID = 0X0203,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -3662,6 +3847,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0204,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3674,6 +3860,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0205,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -3688,6 +3875,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3699,6 +3887,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3718,6 +3907,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3737,6 +3927,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3756,6 +3947,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3775,6 +3967,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3794,6 +3987,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3813,6 +4007,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0206,
+    .price = 60000,
     .equip
     {
         .duration = 5,
@@ -3838,6 +4033,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X0207,
+    .price = 150000,
     .equip
     {
         .duration = 5,
@@ -3855,6 +4051,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0207,
+    .price = 150000,
     .equip
     {
         .duration = 8,
@@ -3900,6 +4097,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0213,
+    .price = 2000,
     .equip
     {
         .duration = 7,
@@ -3915,6 +4113,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0213,
+    .price = 2000,
     .equip
     {
         .duration = 7,
@@ -3930,6 +4129,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0214,
+    .price = 3000,
     .equip
     {
         .duration = 7,
@@ -3945,6 +4145,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0214,
+    .price = 3000,
     .equip
     {
         .duration = 7,
@@ -3960,6 +4161,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0214,
+    .price = 3000,
     .equip
     {
         .duration = 7,
@@ -3975,6 +4177,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0214,
+    .price = 3000,
     .equip
     {
         .duration = 7,
@@ -3990,6 +4193,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0215,
+    .price = 3000,
     .equip
     {
         .duration = 7,
@@ -4005,6 +4209,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0216,
+    .price = 5000,
     .equip
     {
         .duration = 7,
@@ -4020,6 +4225,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0216,
+    .price = 5000,
     .equip
     {
         .duration = 7,
@@ -4035,6 +4241,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0216,
+    .price = 5000,
     .equip
     {
         .duration = 7,
@@ -4050,6 +4257,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X0217,
+    .price = 9000,
     .equip
     {
         .duration = 7,
@@ -4065,6 +4273,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X0217,
+    .price = 9000,
     .equip
     {
         .duration = 3,
@@ -4080,6 +4289,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0218,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4092,6 +4302,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0219,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4104,6 +4315,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4115,6 +4327,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4134,6 +4347,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4153,6 +4367,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4172,6 +4387,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4191,6 +4407,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4210,6 +4427,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4229,6 +4447,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021A,
+    .price = 13000,
     .equip
     {
         .duration = 7,
@@ -4254,6 +4473,7 @@
     .type = u8"戒指",
     .weight = 3,
     .pkgGfxID = 0X021B,
+    .price = 200000,
     .equip
     {
         .duration = 5,
@@ -4271,6 +4491,7 @@
     .type = u8"戒指",
     .weight = 5,
     .pkgGfxID = 0X021B,
+    .price = 200000,
     .equip
     {
         .duration = 8,
@@ -4286,6 +4507,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0226,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -4298,6 +4520,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4309,6 +4532,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4328,6 +4552,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4347,6 +4572,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4366,6 +4592,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4385,6 +4612,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4404,6 +4632,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4423,6 +4652,7 @@
     .type = u8"戒指",
     .weight = 2,
     .pkgGfxID = 0X0229,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -4459,6 +4689,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X022B,
+    .price = 70000,
     .equip
     {
         .duration = 8,
@@ -4475,6 +4706,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X022C,
+    .price = 130000,
     .equip
     {
         .duration = 8,
@@ -4491,6 +4723,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X022D,
+    .price = 25000,
     .equip
     {
         .duration = 8,
@@ -4507,6 +4740,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X022E,
+    .price = 180000,
     .equip
     {
         .duration = 5,
@@ -4524,6 +4758,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X022E,
+    .price = 180000,
     .equip
     {
         .duration = 8,
@@ -4553,6 +4788,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X023B,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -4564,6 +4800,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X023C,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -4575,6 +4812,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X023D,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -4585,6 +4823,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X023E,
+    .price = 100000,
     .equip
     {
         .duration = 4,
@@ -4595,6 +4834,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X023F,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -4607,6 +4847,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0240,
+    .price = 100000,
     .equip
     {
         .duration = 5,
@@ -4632,6 +4873,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X024E,
+    .price = 8000,
     .equip
     {
         .duration = 5,
@@ -4651,6 +4893,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X024E,
+    .price = 8000,
     .equip
     {
         .duration = 7,
@@ -4662,6 +4905,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X024F,
+    .price = 20000,
     .equip
     {
         .duration = 5,
@@ -4673,6 +4917,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0250,
+    .price = 9000,
     .equip
     {
         .duration = 5,
@@ -4684,6 +4929,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0251,
+    .price = 7000,
     .equip
     {
         .duration = 5,
@@ -4695,6 +4941,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0252,
+    .price = 6000,
     .equip
     {
         .duration = 5,
@@ -4706,6 +4953,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0252,
+    .price = 6000,
     .equip
     {
         .duration = 5,
@@ -4747,6 +4995,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0255,
+    .price = 20000,
     .equip
     {
         .duration = 7,
@@ -4758,6 +5007,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0256,
+    .price = 60000,
     .equip
     {
         .duration = 6,
@@ -4769,6 +5019,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0257,
+    .price = 120000,
     .equip
     {
         .duration = 5,
@@ -4786,6 +5037,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0280,
+    .price = 500,
     .equip
     {
         .duration = 10,
@@ -4801,6 +5053,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X0281,
+    .price = 15000,
     .equip
     {
         .duration = 10,
@@ -4816,6 +5069,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X0282,
+    .price = 5000,
     .equip
     {
         .duration = 10,
@@ -4831,6 +5085,7 @@
     .type = u8"手镯",
     .weight = 10,
     .pkgGfxID = 0X0283,
+    .price = 30000,
     .equip
     {
         .duration = 10,
@@ -4843,6 +5098,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0284,
+    .price = 1500,
     .equip
     {
         .duration = 7,
@@ -4859,6 +5115,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0285,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -4875,6 +5132,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0285,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -4961,6 +5219,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0287,
+    .price = 2500,
     .equip
     {
         .duration = 7,
@@ -4977,6 +5236,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0288,
+    .price = 400,
     .equip
     {
         .duration = 7,
@@ -5004,6 +5264,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0294,
+    .price = 1500,
     .equip
     {
         .duration = 8,
@@ -5019,6 +5280,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0294,
+    .price = 1500,
     .equip
     {
         .duration = 8,
@@ -5034,6 +5296,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0294,
+    .price = 1500,
     .equip
     {
         .duration = 8,
@@ -5049,6 +5312,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0294,
+    .price = 1500,
     .equip
     {
         .duration = 8,
@@ -5064,6 +5328,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0295,
+    .price = 5000,
     .equip
     {
         .duration = 8,
@@ -5079,6 +5344,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0296,
+    .price = 10000,
     .equip
     {
         .duration = 8,
@@ -5090,6 +5356,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0297,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5102,6 +5369,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0297,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5118,6 +5386,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0297,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5134,6 +5403,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X0297,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5150,6 +5420,7 @@
     .type = u8"手镯",
     .weight = 12,
     .pkgGfxID = 0X029A,
+    .price = 30000,
     .equip
     {
         .duration = 5,
@@ -5162,6 +5433,7 @@
     .type = u8"手镯",
     .weight = 9,
     .pkgGfxID = 0X029B,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -5180,6 +5452,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X029D,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5196,6 +5469,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02A8,
+    .price = 2000,
     .equip
     {
         .duration = 6,
@@ -5211,6 +5485,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02A8,
+    .price = 2000,
     .equip
     {
         .duration = 6,
@@ -5226,6 +5501,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02A9,
+    .price = 8000,
     .equip
     {
         .duration = 6,
@@ -5241,6 +5517,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02AA,
+    .price = 15000,
     .equip
     {
         .duration = 6,
@@ -5252,6 +5529,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AB,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -5264,6 +5542,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AB,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -5280,6 +5559,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AB,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -5296,6 +5576,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AB,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -5312,6 +5593,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AB,
+    .price = 50000,
     .equip
     {
         .duration = 5,
@@ -5328,6 +5610,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02AC,
+    .price = 15000,
     .equip
     {
         .duration = 8,
@@ -5340,6 +5623,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5351,6 +5635,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5370,6 +5655,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5389,6 +5675,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5408,6 +5695,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5427,6 +5715,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5446,6 +5735,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5465,6 +5755,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02AD,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -5490,6 +5781,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AE,
+    .price = 90000,
     .equip
     {
         .duration = 8,
@@ -5507,6 +5799,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02AF,
+    .price = 70000,
     .equip
     {
         .duration = 8,
@@ -5523,6 +5816,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02B0,
+    .price = 23000,
     .equip
     {
         .duration = 8,
@@ -5539,6 +5833,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BC,
+    .price = 3000,
     .equip
     {
         .duration = 5,
@@ -5554,6 +5849,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BC,
+    .price = 3000,
     .equip
     {
         .duration = 5,
@@ -5569,6 +5865,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BC,
+    .price = 3000,
     .equip
     {
         .duration = 5,
@@ -5588,12 +5885,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X02BC,
+    .price = 3000,
 },
 
 {   .name = u8"思贝儿手镯",
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BD,
+    .price = 8000,
     .equip
     {
         .duration = 5,
@@ -5609,6 +5908,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BE,
+    .price = 45000,
     .equip
     {
         .duration = 5,
@@ -5620,6 +5920,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02BE,
+    .price = 45000,
     .equip
     {
         .duration = 6,
@@ -5634,6 +5935,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5645,6 +5947,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5664,6 +5967,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5683,6 +5987,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5702,6 +6007,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5721,6 +6027,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5740,6 +6047,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5759,6 +6067,7 @@
     .type = u8"手镯",
     .weight = 2,
     .pkgGfxID = 0X02BF,
+    .price = 80000,
     .equip
     {
         .duration = 5,
@@ -5784,6 +6093,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02C0,
+    .price = 150000,
     .equip
     {
         .duration = 5,
@@ -5800,6 +6110,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02C0,
+    .price = 150000,
     .equip
     {
         .duration = 8,
@@ -5815,6 +6126,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02C1,
+    .price = 180000,
     .equip
     {
         .duration = 5,
@@ -5833,6 +6145,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02C1,
+    .price = 180000,
     .equip
     {
         .duration = 8,
@@ -5848,6 +6161,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02C2,
+    .price = 200000,
     .equip
     {
         .duration = 5,
@@ -5864,6 +6178,7 @@
     .type = u8"手镯",
     .weight = 5,
     .pkgGfxID = 0X02C2,
+    .price = 200000,
     .equip
     {
         .duration = 8,
@@ -5879,6 +6194,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02D1,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5894,6 +6210,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02D2,
+    .price = 500,
     .equip
     {
         .duration = 7,
@@ -5909,6 +6226,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02D3,
+    .price = 30000,
     .equip
     {
         .duration = 6,
@@ -5924,6 +6242,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -5935,6 +6254,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -5954,6 +6274,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -5973,6 +6294,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -5992,6 +6314,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -6011,6 +6334,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -6030,6 +6354,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -6049,6 +6374,7 @@
     .type = u8"手镯",
     .weight = 3,
     .pkgGfxID = 0X02D5,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -6088,6 +6414,7 @@
     .type = u8"手镯",
     .weight = 6,
     .pkgGfxID = 0X02E5,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -6125,6 +6452,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02F8,
+    .price = 8000,
     .equip
     {
         .duration = 5,
@@ -6144,6 +6472,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02F8,
+    .price = 8000,
     .equip
     {
         .duration = 6,
@@ -6155,6 +6484,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02F9,
+    .price = 20000,
     .equip
     {
         .duration = 6,
@@ -6166,6 +6496,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02FA,
+    .price = 9000,
     .equip
     {
         .duration = 6,
@@ -6177,6 +6508,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02FB,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -6188,6 +6520,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02FC,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -6199,6 +6532,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02FC,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -6240,6 +6574,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X02FF,
+    .price = 22000,
     .equip
     {
         .duration = 8,
@@ -6251,6 +6586,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0300,
+    .price = 60000,
     .equip
     {
         .duration = 6,
@@ -6262,6 +6598,7 @@
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0301,
+    .price = 85000,
     .equip
     {
         .duration = 7,
@@ -6280,6 +6617,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X031D,
+    .price = 70000,
     .equip
     {
         .duration = 8,
@@ -6291,6 +6629,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X031E,
+    .price = 90000,
     .equip
     {
         .duration = 8,
@@ -6302,6 +6641,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X031F,
+    .price = 120000,
     .equip
     {
         .duration = 8,
@@ -6314,6 +6654,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X032A,
+    .price = 2000,
     .equip
     {
         .duration = 9,
@@ -6329,6 +6670,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X032B,
+    .price = 2500,
     .equip
     {
         .duration = 9,
@@ -6344,6 +6686,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X032C,
+    .price = 5000,
     .equip
     {
         .duration = 9,
@@ -6359,6 +6702,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X032C,
+    .price = 5000,
     .equip
     {
         .duration = 9,
@@ -6375,12 +6719,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X032C,
+    .price = 5000,
 },
 
 {   .name = u8"幽灵项链",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X032D,
+    .price = 10000,
     .equip
     {
         .duration = 9,
@@ -6396,12 +6742,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X032D,
+    .price = 10000,
 },
 
 {   .name = u8"绿色项链",
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X032E,
+    .price = 15000,
     .equip
     {
         .duration = 9,
@@ -6413,12 +6761,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X032E,
+    .price = 15000,
 },
 
 {   .name = u8"怨恨项链（幸运）",
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6431,6 +6781,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6443,6 +6794,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6455,6 +6807,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6467,6 +6820,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6479,6 +6833,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6490,6 +6845,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6505,6 +6861,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6520,6 +6877,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -6535,24 +6893,28 @@
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
 },
 
 {   .name = u8"体验怨恨项链（幻影）",
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
 },
 
 {   .name = u8"体验怨恨项链（神圣）",
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X032F,
+    .price = 50000,
 },
 
 {   .name = u8"昏暗风印（幸运）",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6565,6 +6927,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6577,6 +6940,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6589,6 +6953,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6601,6 +6966,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6613,6 +6979,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6624,6 +6991,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6639,6 +7007,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6654,6 +7023,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6669,6 +7039,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -6684,30 +7055,35 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
 },
 
 {   .name = u8"体验昏暗封印（雷）",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
 },
 
 {   .name = u8"体验昏暗封印（风）",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
 },
 
 {   .name = u8"体验昏暗封印（火）",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0330,
+    .price = 80000,
 },
 
 {   .name = u8"莲花宝镜（暗黑）",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0331,
+    .price = 15000,
     .equip
     {
         .duration = 7,
@@ -6727,6 +7103,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0331,
+    .price = 15000,
     .equip
     {
         .duration = 7,
@@ -6746,6 +7123,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0331,
+    .price = 15000,
     .equip
     {
         .duration = 7,
@@ -6761,6 +7139,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0331,
+    .price = 15000,
     .equip
     {
         .duration = 7,
@@ -6780,6 +7159,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0332,
+    .price = 15000,
     .equip
     {
         .duration = 9,
@@ -6791,6 +7171,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6803,6 +7184,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6815,6 +7197,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6827,6 +7210,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6839,6 +7223,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6851,6 +7236,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6862,6 +7248,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6881,6 +7268,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6900,6 +7288,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6919,6 +7308,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6938,6 +7328,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6957,6 +7348,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -6976,6 +7368,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0333,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -7084,6 +7477,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0340,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -7099,6 +7493,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0340,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -7118,6 +7513,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0340,
+    .price = 10000,
     .equip
     {
         .duration = 6,
@@ -7137,6 +7533,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0340,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -7156,6 +7553,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0340,
+    .price = 10000,
     .equip
     {
         .duration = 7,
@@ -7175,12 +7573,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0340,
+    .price = 10000,
 },
 
 {   .name = u8"天珠项链",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0341,
+    .price = 25000,
     .equip
     {
         .duration = 7,
@@ -7196,6 +7596,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0341,
+    .price = 25000,
     .equip
     {
         .duration = 7,
@@ -7211,12 +7612,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0341,
+    .price = 25000,
 },
 
 {   .name = u8"灵魂项链",
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0342,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -7228,12 +7631,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0342,
+    .price = 30000,
 },
 
 {   .name = u8"勇士项链",
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0343,
+    .price = 12500,
     .equip
     {
         .duration = 9,
@@ -7249,6 +7654,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7261,6 +7667,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7273,6 +7680,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7285,6 +7693,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7297,6 +7706,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7309,6 +7719,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0344,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -7320,12 +7731,14 @@
     .type = u8"道具",
     .weight = 4,
     .pkgGfxID = 0X0344,
+    .price = 30000,
 },
 
 {   .name = u8"荣耀项链",
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0345,
+    .price = 7500,
     .equip
     {
         .duration = 9,
@@ -7341,6 +7754,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0345,
+    .price = 7500,
     .equip
     {
         .duration = 9,
@@ -7356,6 +7770,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0346,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -7367,6 +7782,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0346,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -7382,6 +7798,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0346,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -7397,6 +7814,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0346,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -7412,6 +7830,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7424,6 +7843,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7436,6 +7856,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7448,6 +7869,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7460,6 +7882,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7472,6 +7895,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7483,6 +7907,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7502,6 +7927,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7521,6 +7947,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7540,6 +7967,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7559,6 +7987,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7578,6 +8007,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7597,6 +8027,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0347,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -7622,6 +8053,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0352,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -7637,6 +8069,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0352,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -7652,6 +8085,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0352,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -7671,6 +8105,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0352,
+    .price = 6000,
     .equip
     {
         .duration = 6,
@@ -7690,12 +8125,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0352,
+    .price = 6000,
 },
 
 {   .name = u8"白金项链",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0353,
+    .price = 4500,
     .equip
     {
         .duration = 6,
@@ -7711,6 +8148,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0354,
+    .price = 7500,
     .equip
     {
         .duration = 6,
@@ -7726,6 +8164,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0355,
+    .price = 15000,
     .equip
     {
         .duration = 6,
@@ -7741,6 +8180,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0355,
+    .price = 15000,
     .equip
     {
         .duration = 6,
@@ -7760,6 +8200,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0355,
+    .price = 15000,
     .equip
     {
         .duration = 6,
@@ -7779,12 +8220,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0355,
+    .price = 15000,
 },
 
 {   .name = u8"生命项链",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0356,
+    .price = 32500,
     .equip
     {
         .duration = 6,
@@ -7800,6 +8243,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0356,
+    .price = 32500,
     .equip
     {
         .duration = 6,
@@ -7815,12 +8259,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0356,
+    .price = 32500,
 },
 
 {   .name = u8"恶魔铃铛",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0357,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -7832,12 +8278,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0357,
+    .price = 40000,
 },
 
 {   .name = u8"愤怒之钟（冰）",
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0358,
+    .price = 22500,
     .equip
     {
         .duration = 6,
@@ -7857,6 +8305,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0358,
+    .price = 22500,
     .equip
     {
         .duration = 6,
@@ -7876,6 +8325,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0358,
+    .price = 22500,
     .equip
     {
         .duration = 6,
@@ -7895,6 +8345,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0358,
+    .price = 22500,
     .equip
     {
         .duration = 6,
@@ -7910,6 +8361,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0358,
+    .price = 22500,
     .equip
     {
         .duration = 6,
@@ -7929,6 +8381,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0359,
+    .price = 45000,
     .equip
     {
         .duration = 4,
@@ -7940,6 +8393,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0359,
+    .price = 45000,
     .equip
     {
         .duration = 4,
@@ -7955,6 +8409,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0359,
+    .price = 45000,
     .equip
     {
         .duration = 4,
@@ -7970,6 +8425,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0359,
+    .price = 45000,
     .equip
     {
         .duration = 4,
@@ -7985,6 +8441,7 @@
     .type = u8"戒指",
     .weight = 1,
     .pkgGfxID = 0X0359,
+    .price = 45000,
     .equip
     {
         .duration = 4,
@@ -8000,6 +8457,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035A,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -8011,6 +8469,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035A,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -8026,6 +8485,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035A,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -8041,6 +8501,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035A,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -8056,6 +8517,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035A,
+    .price = 40000,
     .equip
     {
         .duration = 6,
@@ -8071,6 +8533,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8083,6 +8546,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8095,6 +8559,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8107,6 +8572,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8119,6 +8585,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8131,6 +8598,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8142,6 +8610,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8161,6 +8630,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8180,6 +8650,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8199,6 +8670,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8218,6 +8690,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8237,6 +8710,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8256,6 +8730,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X035B,
+    .price = 80000,
     .equip
     {
         .duration = 6,
@@ -8281,6 +8756,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0366,
+    .price = 100,
     .equip
     {
         .duration = 8,
@@ -8296,6 +8772,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0367,
+    .price = 6000,
     .equip
     {
         .duration = 8,
@@ -8313,6 +8790,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0368,
+    .price = 4000,
     .equip
     {
         .duration = 8,
@@ -8329,6 +8807,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0369,
+    .price = 150,
     .equip
     {
         .duration = 8,
@@ -8344,6 +8823,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036A,
+    .price = 30000,
     .equip
     {
         .duration = 7,
@@ -8359,6 +8839,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036D,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -8371,6 +8852,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8383,6 +8865,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8395,6 +8878,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8407,6 +8891,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8419,6 +8904,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8431,6 +8917,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X036E,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8442,6 +8929,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X036F,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -8456,6 +8944,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037A,
+    .price = 100000,
     .equip
     {
         .duration = 8,
@@ -8466,6 +8955,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037B,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8476,6 +8966,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037C,
+    .price = 50000,
     .equip
     {
         .duration = 6,
@@ -8487,6 +8978,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037D,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8498,6 +8990,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037E,
+    .price = 40000,
     .equip
     {
         .duration = 7,
@@ -8509,6 +9002,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X037F,
+    .price = 23000,
     .equip
     {
         .duration = 7,
@@ -8524,6 +9018,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0380,
+    .price = 30500,
     .equip
     {
         .duration = 6,
@@ -8539,6 +9034,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8551,6 +9047,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8563,6 +9060,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8575,6 +9073,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8587,6 +9086,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8599,6 +9099,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0381,
+    .price = 80000,
     .equip
     {
         .duration = 7,
@@ -8610,6 +9111,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -8622,6 +9124,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -8634,6 +9137,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -8646,6 +9150,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -8658,6 +9163,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -8670,6 +9176,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X0382,
+    .price = 30000,
     .equip
     {
         .duration = 9,
@@ -8681,6 +9188,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8693,6 +9201,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8705,6 +9214,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8717,6 +9227,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8729,6 +9240,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8741,6 +9253,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0383,
+    .price = 50000,
     .equip
     {
         .duration = 8,
@@ -8752,6 +9265,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X038E,
+    .price = 8000,
     .equip
     {
         .duration = 8,
@@ -8763,6 +9277,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X038F,
+    .price = 20000,
     .equip
     {
         .duration = 7,
@@ -8774,6 +9289,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0390,
+    .price = 9000,
     .equip
     {
         .duration = 7,
@@ -8785,6 +9301,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -8804,6 +9321,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -8823,6 +9341,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -8842,6 +9361,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -8861,6 +9381,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 6,
@@ -8876,6 +9397,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0391,
+    .price = 7000,
     .equip
     {
         .duration = 7,
@@ -8887,6 +9409,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0392,
+    .price = 6000,
     .equip
     {
         .duration = 7,
@@ -8898,6 +9421,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 6,
@@ -8910,6 +9434,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 8,
@@ -8922,6 +9447,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 6,
@@ -8934,6 +9460,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 6,
@@ -8946,6 +9473,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 6,
@@ -8958,6 +9486,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0393,
+    .price = 100000,
     .equip
     {
         .duration = 6,
@@ -8969,6 +9498,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8981,6 +9511,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -8993,6 +9524,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -9005,6 +9537,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -9017,6 +9550,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -9029,6 +9563,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0394,
+    .price = 20000,
     .equip
     {
         .duration = 8,
@@ -9040,6 +9575,7 @@
     .type = u8"项链",
     .weight = 2,
     .pkgGfxID = 0X0395,
+    .price = 50000,
     .equip
     {
         .duration = 7,
@@ -9055,6 +9591,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0396,
+    .price = 130000,
     .equip
     {
         .duration = 8,
@@ -9078,6 +9615,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0397,
+    .price = 80000,
     .equip
     {
         .duration = 8,
@@ -9102,6 +9640,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0398,
+    .price = 100000,
     .equip
     {
         .duration = 8,
@@ -9125,6 +9664,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X0399,
+    .price = 200000,
     .equip
     {
         .duration = 8,
@@ -9149,6 +9689,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X0399,
+    .price = 200000,
     .equip
     {
         .duration = 8,
@@ -9172,6 +9713,7 @@
     .type = u8"项链",
     .weight = 3,
     .pkgGfxID = 0X039A,
+    .price = 250000,
     .equip
     {
         .duration = 8,
@@ -9195,6 +9737,7 @@
     .type = u8"项链",
     .weight = 1,
     .pkgGfxID = 0X039A,
+    .price = 250000,
     .equip
     {
         .duration = 8,
@@ -9218,6 +9761,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X039B,
+    .price = 300000,
     .equip
     {
         .duration = 8,
@@ -9233,6 +9777,7 @@
     .type = u8"项链",
     .weight = 4,
     .pkgGfxID = 0X039B,
+    .price = 300000,
     .equip
     {
         .duration = 8,
@@ -9280,6 +9825,7 @@
     .weight = 8,
     .pkgGfxID = 0X03AD,
     .shape = 2,
+    .price = 500,
     .equip
     {
         .duration = 8,
@@ -9297,6 +9843,7 @@
     .weight = 8,
     .pkgGfxID = 0X03AD,
     .shape = 2,
+    .price = 500,
     .equip
     {
         .duration = 12,
@@ -9313,6 +9860,7 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X03AD,
+    .price = 500,
 },
 
 {   .name = u8"布衣（女）",
@@ -9343,6 +9891,7 @@
     .weight = 8,
     .pkgGfxID = 0X03B7,
     .shape = 2,
+    .price = 500,
     .equip
     {
         .duration = 8,
@@ -9360,6 +9909,7 @@
     .weight = 8,
     .pkgGfxID = 0X03B7,
     .shape = 2,
+    .price = 500,
     .equip
     {
         .duration = 12,
@@ -9376,6 +9926,7 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X03B7,
+    .price = 500,
 },
 
 {   .name = u8"天蚕宝甲（男）",
@@ -9383,6 +9934,7 @@
     .weight = 28,
     .pkgGfxID = 0X03C1,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 60000,
     .equip
     {
         .duration = 42,
@@ -9419,6 +9971,7 @@
     .weight = 28,
     .pkgGfxID = 0X03C3,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 60000,
     .equip
     {
         .duration = 42,
@@ -9437,6 +9990,7 @@
     .weight = 28,
     .pkgGfxID = 0X03CB,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 60000,
     .equip
     {
         .duration = 42,
@@ -9473,6 +10027,7 @@
     .weight = 28,
     .pkgGfxID = 0X03CD,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 60000,
     .equip
     {
         .duration = 42,
@@ -9491,6 +10046,7 @@
     .weight = 23,
     .pkgGfxID = 0X03D4,
     .shape = 3,
+    .price = 7000,
     .equip
     {
         .duration = 25,
@@ -9508,6 +10064,7 @@
     .weight = 23,
     .pkgGfxID = 0X03D4,
     .shape = 3,
+    .price = 7000,
     .equip
     {
         .duration = 26,
@@ -9525,6 +10082,7 @@
     .type = u8"道具",
     .weight = 37,
     .pkgGfxID = 0X03D4,
+    .price = 7000,
 },
 
 {   .name = u8"战神盔甲（男）",
@@ -9532,6 +10090,7 @@
     .weight = 51,
     .pkgGfxID = 0X03D5,
     .shape = 6,
+    .price = 21000,
     .equip
     {
         .duration = 30,
@@ -9549,6 +10108,7 @@
     .weight = 61,
     .pkgGfxID = 0X03D6,
     .shape = 6,
+    .price = 35000,
     .equip
     {
         .duration = 35,
@@ -9566,6 +10126,7 @@
     .weight = 81,
     .pkgGfxID = 0X03D7,
     .shape = 6,
+    .price = 35000,
     .equip
     {
         .duration = 39,
@@ -9584,6 +10145,7 @@
     .weight = 25,
     .pkgGfxID = 0X03D8,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 50000,
     .equip
     {
         .duration = 25,
@@ -9624,6 +10186,7 @@
     .weight = 23,
     .pkgGfxID = 0X03DE,
     .shape = 3,
+    .price = 7000,
     .equip
     {
         .duration = 25,
@@ -9641,6 +10204,7 @@
     .weight = 23,
     .pkgGfxID = 0X03DE,
     .shape = 3,
+    .price = 7000,
     .equip
     {
         .duration = 26,
@@ -9658,6 +10222,7 @@
     .type = u8"道具",
     .weight = 37,
     .pkgGfxID = 0X03DE,
+    .price = 7000,
 },
 
 {   .name = u8"战神盔甲（女）",
@@ -9665,6 +10230,7 @@
     .weight = 51,
     .pkgGfxID = 0X03DF,
     .shape = 6,
+    .price = 21000,
     .equip
     {
         .duration = 30,
@@ -9682,6 +10248,7 @@
     .weight = 61,
     .pkgGfxID = 0X03E0,
     .shape = 6,
+    .price = 35000,
     .equip
     {
         .duration = 35,
@@ -9699,6 +10266,7 @@
     .weight = 81,
     .pkgGfxID = 0X03E1,
     .shape = 6,
+    .price = 35000,
     .equip
     {
         .duration = 39,
@@ -9717,6 +10285,7 @@
     .weight = 25,
     .pkgGfxID = 0X03E2,
     .shape = 0, // TODO this cloth has no associated gfx resource
+    .price = 50000,
     .equip
     {
         .duration = 25,
@@ -9757,6 +10326,7 @@
     .weight = 15,
     .pkgGfxID = 0X03E8,
     .shape = 5,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -9775,6 +10345,7 @@
     .weight = 15,
     .pkgGfxID = 0X03E8,
     .shape = 5,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -9793,6 +10364,7 @@
     .type = u8"道具",
     .weight = 22,
     .pkgGfxID = 0X03E8,
+    .price = 10000,
 },
 
 {   .name = u8"幽灵战衣（男）",
@@ -9800,6 +10372,7 @@
     .weight = 28,
     .pkgGfxID = 0X03E9,
     .shape = 8,
+    .price = 30000,
     .equip
     {
         .duration = 24,
@@ -9818,6 +10391,7 @@
     .weight = 30,
     .pkgGfxID = 0X03EA,
     .shape = 8,
+    .price = 50000,
     .equip
     {
         .duration = 26,
@@ -9836,6 +10410,7 @@
     .weight = 40,
     .pkgGfxID = 0X03EB,
     .shape = 8,
+    .price = 50000,
     .equip
     {
         .duration = 29,
@@ -9854,6 +10429,7 @@
     .weight = 15,
     .pkgGfxID = 0X03F2,
     .shape = 5,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -9872,6 +10448,7 @@
     .weight = 15,
     .pkgGfxID = 0X03F2,
     .shape = 5,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -9890,6 +10467,7 @@
     .type = u8"道具",
     .weight = 22,
     .pkgGfxID = 0X03F2,
+    .price = 10000,
 },
 
 {   .name = u8"幽灵战衣（女）",
@@ -9897,6 +10475,7 @@
     .weight = 28,
     .pkgGfxID = 0X03F3,
     .shape = 8,
+    .price = 30000,
     .equip
     {
         .duration = 24,
@@ -9915,6 +10494,7 @@
     .weight = 30,
     .pkgGfxID = 0X03F4,
     .shape = 8,
+    .price = 50000,
     .equip
     {
         .duration = 26,
@@ -9933,6 +10513,7 @@
     .weight = 40,
     .pkgGfxID = 0X03F5,
     .shape = 8,
+    .price = 50000,
     .equip
     {
         .duration = 29,
@@ -9951,6 +10532,7 @@
     .weight = 12,
     .pkgGfxID = 0X03FC,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -9969,6 +10551,7 @@
     .weight = 12,
     .pkgGfxID = 0X03FC,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 21,
@@ -9987,6 +10570,7 @@
     .weight = 18,
     .pkgGfxID = 0X03FC,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 1,
@@ -10006,6 +10590,7 @@
     .type = u8"道具",
     .weight = 14,
     .pkgGfxID = 0X03FC,
+    .price = 10000,
 },
 
 {   .name = u8"恶魔长袍（男）",
@@ -10013,6 +10598,7 @@
     .weight = 17,
     .pkgGfxID = 0X03FD,
     .shape = 7,
+    .price = 30000,
     .equip
     {
         .duration = 22,
@@ -10031,6 +10617,7 @@
     .weight = 20,
     .pkgGfxID = 0X03FE,
     .shape = 7,
+    .price = 50000,
     .equip
     {
         .duration = 23,
@@ -10049,6 +10636,7 @@
     .weight = 25,
     .pkgGfxID = 0X03FF,
     .shape = 7,
+    .price = 50000,
     .equip
     {
         .duration = 25,
@@ -10067,6 +10655,7 @@
     .weight = 12,
     .pkgGfxID = 0X0406,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 20,
@@ -10085,6 +10674,7 @@
     .weight = 12,
     .pkgGfxID = 0X0406,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 21,
@@ -10103,6 +10693,7 @@
     .weight = 18,
     .pkgGfxID = 0X0406,
     .shape = 4,
+    .price = 10000,
     .equip
     {
         .duration = 1,
@@ -10122,6 +10713,7 @@
     .type = u8"道具",
     .weight = 14,
     .pkgGfxID = 0X0406,
+    .price = 10000,
 },
 
 {   .name = u8"恶魔长袍（女）",
@@ -10129,6 +10721,7 @@
     .weight = 17,
     .pkgGfxID = 0X0407,
     .shape = 7,
+    .price = 30000,
     .equip
     {
         .duration = 22,
@@ -10147,6 +10740,7 @@
     .weight = 20,
     .pkgGfxID = 0X0408,
     .shape = 7,
+    .price = 50000,
     .equip
     {
         .duration = 23,
@@ -10165,6 +10759,7 @@
     .weight = 25,
     .pkgGfxID = 0X0409,
     .shape = 7,
+    .price = 50000,
     .equip
     {
         .duration = 25,
@@ -10183,6 +10778,7 @@
     .weight = 10,
     .pkgGfxID = 0X0410,
     .shape = 7,
+    .price = 700,
     .equip
     {
         .duration = 10,
@@ -10205,6 +10801,7 @@
     .weight = 99,
     .pkgGfxID = 0X0411,
     .shape = 8,
+    .price = 100000,
     .equip
     {
         .duration = 35,
@@ -10352,6 +10949,7 @@
     .weight = 33,
     .pkgGfxID = 0X0414,
     .shape = 27,
+    .price = 8500,
     .equip
     {
         .duration = 20,
@@ -10372,6 +10970,7 @@
     .weight = 33,
     .pkgGfxID = 0X0414,
     .shape = 27,
+    .price = 8500,
     .equip
     {
         .duration = 22,
@@ -10392,6 +10991,7 @@
     .weight = 40,
     .pkgGfxID = 0X0414,
     .shape = 27,
+    .price = 8500,
     .equip
     {
         .duration = 22,
@@ -10411,6 +11011,7 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X0414,
+    .price = 8500,
 },
 
 {   .name = u8"匕首",
@@ -10418,6 +11019,7 @@
     .weight = 7,
     .pkgGfxID = 0X0415,
     .shape = 21,
+    .price = 100,
     .equip
     {
         .duration = 6,
@@ -10438,6 +11040,7 @@
     .weight = 8,
     .pkgGfxID = 0X0415,
     .shape = 21,
+    .price = 100,
     .equip
     {
         .duration = 11,
@@ -10461,6 +11064,7 @@
     .weight = 36,
     .pkgGfxID = 0X0416,
     .shape = 1,
+    .price = 60000,
     .equip
     {
         .duration = 26,
@@ -10487,6 +11091,7 @@
     .weight = 18,
     .pkgGfxID = 0X0417,
     .shape = 24,
+    .price = 100000,
     .equip
     {
         .duration = 19,
@@ -10503,6 +11108,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0417,
+    .price = 100000,
 },
 
 {   .name = u8"风之鹤嘴锄",
@@ -10534,6 +11140,7 @@
     .weight = 87,
     .pkgGfxID = 0X0419,
     .shape = 22,
+    .price = 60000,
     .equip
     {
         .duration = 35,
@@ -10743,6 +11350,7 @@
     .weight = 20,
     .pkgGfxID = 0X0424,
     .shape = 12,
+    .price = 3500,
     .equip
     {
         .duration = 20,
@@ -10762,6 +11370,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0424,
+    .price = 3500,
 },
 
 {   .name = u8"飞魂魔刃",
@@ -10769,6 +11378,7 @@
     .weight = 18,
     .pkgGfxID = 0X0425,
     .shape = 25,
+    .price = 60000,
     .equip
     {
         .duration = 19,
@@ -10795,6 +11405,7 @@
     .weight = 1,
     .pkgGfxID = 0X0426,
     .shape = 26,
+    .price = 23000,
     .equip
     {
         .duration = 40,
@@ -10821,6 +11432,7 @@
     .weight = 23,
     .pkgGfxID = 0X0427,
     .shape = 11,
+    .price = 5000,
     .equip
     {
         .duration = 16,
@@ -10841,6 +11453,7 @@
     .weight = 27,
     .pkgGfxID = 0X0427,
     .shape = 11,
+    .price = 5000,
     .equip
     {
         .duration = 18,
@@ -10861,6 +11474,7 @@
     .weight = 1,
     .pkgGfxID = 0X0428,
     .shape = 41,
+    .price = 100000,
     .equip
     {
         .duration = 40,
@@ -10879,6 +11493,7 @@
     .weight = 30,
     .pkgGfxID = 0X0429,
     .shape = 12,
+    .price = 6000,
     .equip
     {
         .duration = 22,
@@ -10900,6 +11515,7 @@
     .weight = 70,
     .pkgGfxID = 0X042A,
     .shape = 5,
+    .price = 23000,
     .equip
     {
         .duration = 30,
@@ -10921,6 +11537,7 @@
     .weight = 70,
     .pkgGfxID = 0X042A,
     .shape = 5,
+    .price = 23000,
     .equip
     {
         .duration = 30,
@@ -10942,30 +11559,35 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X042A,
+    .price = 23000,
 },
 
 {   .name = u8"体验炼狱（冰）",
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X042A,
+    .price = 23000,
 },
 
 {   .name = u8"体验炼狱（雷）",
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X042A,
+    .price = 23000,
 },
 
 {   .name = u8"体验炼狱（风）",
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X042A,
+    .price = 23000,
 },
 
 {   .name = u8"我乃炼狱",
     .type = u8"道具",
     .weight = 20,
     .pkgGfxID = 0X042A,
+    .price = 23000,
 },
 
 {   .name = u8"命运之刃",
@@ -10973,6 +11595,7 @@
     .weight = 47,
     .pkgGfxID = 0X042B,
     .shape = 13,
+    .price = 15000,
     .equip
     {
         .duration = 24,
@@ -10998,6 +11621,7 @@
     .weight = 54,
     .pkgGfxID = 0X042C,
     .shape = 14,
+    .price = 28000,
     .equip
     {
         .duration = 26,
@@ -11023,6 +11647,7 @@
     .weight = 22,
     .pkgGfxID = 0X042C,
     .shape = 14,
+    .price = 28000,
     .equip
     {
         .duration = 20,
@@ -11048,6 +11673,7 @@
     .weight = 90,
     .pkgGfxID = 0X042D,
     .shape = 15,
+    .price = 40000,
     .equip
     {
         .duration = 34,
@@ -11068,6 +11694,7 @@
     .type = u8"道具",
     .weight = 30,
     .pkgGfxID = 0X042D,
+    .price = 40000,
 },
 
 {   .name = u8"屠龙",
@@ -11075,6 +11702,7 @@
     .weight = 100,
     .pkgGfxID = 0X042E,
     .shape = 4,
+    .price = 80000,
     .equip
     {
         .duration = 36,
@@ -11093,6 +11721,7 @@
     .weight = 100,
     .pkgGfxID = 0X042E,
     .shape = 4,
+    .price = 80000,
     .equip
     {
         .duration = 36,
@@ -11115,6 +11744,7 @@
     .weight = 100,
     .pkgGfxID = 0X042E,
     .shape = 4,
+    .price = 80000,
     .equip
     {
         .duration = 36,
@@ -11135,6 +11765,7 @@
     .type = u8"道具",
     .weight = 40,
     .pkgGfxID = 0X042E,
+    .price = 80000,
 },
 
 {   .name = u8"袖里剑",
@@ -11202,6 +11833,7 @@
     .weight = 95,
     .pkgGfxID = 0X0432,
     .shape = 38,
+    .price = 80000,
     .equip
     {
         .duration = 35,
@@ -11289,6 +11921,7 @@
     .weight = 60,
     .pkgGfxID = 0X0436,
     .shape = 44,
+    .price = 120000,
     .equip
     {
         .duration = 42,
@@ -11305,6 +11938,7 @@
     .weight = 60,
     .pkgGfxID = 0X0436,
     .shape = 44,
+    .price = 120000,
     .equip
     {
         .duration = 40,
@@ -11326,6 +11960,7 @@
     .weight = 10,
     .pkgGfxID = 0X0438,
     .shape = 2,
+    .price = 3500,
     .equip
     {
         .duration = 8,
@@ -11347,6 +11982,7 @@
     .weight = 10,
     .pkgGfxID = 0X0438,
     .shape = 6,
+    .price = 3500,
     .equip
     {
         .duration = 9,
@@ -11368,6 +12004,7 @@
     .weight = 11,
     .pkgGfxID = 0X0439,
     .shape = 6,
+    .price = 5000,
     .equip
     {
         .duration = 10,
@@ -11389,6 +12026,7 @@
     .weight = 11,
     .pkgGfxID = 0X0439,
     .shape = 6,
+    .price = 5000,
     .equip
     {
         .duration = 11,
@@ -11410,6 +12048,7 @@
     .weight = 10,
     .pkgGfxID = 0X043A,
     .shape = 16,
+    .price = 10000,
     .equip
     {
         .duration = 13,
@@ -11430,12 +12069,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X043A,
+    .price = 10000,
 },
 
 {   .name = u8"我乃魔杖",
     .type = u8"道具",
     .weight = 5,
     .pkgGfxID = 0X043A,
+    .price = 10000,
 },
 
 {   .name = u8"血饮",
@@ -11513,6 +12154,7 @@
     .weight = 15,
     .pkgGfxID = 0X043C,
     .shape = 17,
+    .price = 40000,
     .equip
     {
         .duration = 17,
@@ -11533,6 +12175,7 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X043C,
+    .price = 40000,
 },
 
 {   .name = u8"嗜魂法杖",
@@ -11540,6 +12183,7 @@
     .weight = 16,
     .pkgGfxID = 0X043D,
     .shape = 3,
+    .price = 30000,
     .equip
     {
         .duration = 19,
@@ -11561,6 +12205,7 @@
     .weight = 16,
     .pkgGfxID = 0X043D,
     .shape = 3,
+    .price = 30000,
     .equip
     {
         .duration = 19,
@@ -11582,6 +12227,7 @@
     .weight = 16,
     .pkgGfxID = 0X043D,
     .shape = 3,
+    .price = 30000,
     .equip
     {
         .duration = 19,
@@ -11602,6 +12248,7 @@
     .type = u8"道具",
     .weight = 15,
     .pkgGfxID = 0X043D,
+    .price = 30000,
 },
 
 {   .name = u8"铁轮",
@@ -11609,6 +12256,7 @@
     .weight = 16,
     .pkgGfxID = 0X043E,
     .shape = 40,
+    .price = 80000,
     .equip
     {
         .duration = 18,
@@ -11627,6 +12275,7 @@
     .weight = 1,
     .pkgGfxID = 0X043F,
     .shape = 42,
+    .price = 120000,
     .equip
     {
         .duration = 20,
@@ -11644,6 +12293,7 @@
     .weight = 12,
     .pkgGfxID = 0X043F,
     .shape = 42,
+    .price = 120000,
     .equip
     {
         .duration = 30,
@@ -11661,6 +12311,7 @@
     .weight = 25,
     .pkgGfxID = 0X043F,
     .shape = 42,
+    .price = 120000,
     .equip
     {
         .duration = 40,
@@ -11679,6 +12330,7 @@
     .weight = 13,
     .pkgGfxID = 0X044C,
     .shape = 29,
+    .price = 3500,
     .equip
     {
         .duration = 12,
@@ -11700,6 +12352,7 @@
     .weight = 11,
     .pkgGfxID = 0X044C,
     .shape = 29,
+    .price = 3500,
     .equip
     {
         .duration = 10,
@@ -11721,6 +12374,7 @@
     .weight = 15,
     .pkgGfxID = 0X044D,
     .shape = 30,
+    .price = 5000,
     .equip
     {
         .duration = 14,
@@ -11743,6 +12397,7 @@
     .weight = 17,
     .pkgGfxID = 0X044D,
     .shape = 30,
+    .price = 5000,
     .equip
     {
         .duration = 16,
@@ -11765,6 +12420,7 @@
     .weight = 21,
     .pkgGfxID = 0X044E,
     .shape = 18,
+    .price = 10000,
     .equip
     {
         .duration = 22,
@@ -11786,30 +12442,35 @@
     .type = u8"道具",
     .weight = 8,
     .pkgGfxID = 0X044E,
+    .price = 10000,
 },
 
 {   .name = u8"体验银蛇（冰）",
     .type = u8"道具",
     .weight = 8,
     .pkgGfxID = 0X044E,
+    .price = 10000,
 },
 
 {   .name = u8"体验银蛇（雷）",
     .type = u8"道具",
     .weight = 8,
     .pkgGfxID = 0X044E,
+    .price = 10000,
 },
 
 {   .name = u8"体验银蛇（风）",
     .type = u8"道具",
     .weight = 8,
     .pkgGfxID = 0X044E,
+    .price = 10000,
 },
 
 {   .name = u8"我乃银蛇",
     .type = u8"道具",
     .weight = 8,
     .pkgGfxID = 0X044E,
+    .price = 10000,
 },
 
 {   .name = u8"无极棍",
@@ -11817,6 +12478,7 @@
     .weight = 33,
     .pkgGfxID = 0X044F,
     .shape = 19,
+    .price = 40000,
     .equip
     {
         .duration = 24,
@@ -11843,6 +12505,7 @@
     .weight = 33,
     .pkgGfxID = 0X044F,
     .shape = 19,
+    .price = 40000,
     .equip
     {
         .duration = 24,
@@ -11868,6 +12531,7 @@
     .type = u8"道具",
     .weight = 16,
     .pkgGfxID = 0X044F,
+    .price = 40000,
 },
 
 {   .name = u8"龙纹剑",
@@ -11875,6 +12539,7 @@
     .weight = 37,
     .pkgGfxID = 0X0450,
     .shape = 20,
+    .price = 80000,
     .equip
     {
         .duration = 26,
@@ -11898,6 +12563,7 @@
     .weight = 37,
     .pkgGfxID = 0X0450,
     .shape = 20,
+    .price = 80000,
     .equip
     {
         .duration = 26,
@@ -11924,6 +12590,7 @@
     .weight = 37,
     .pkgGfxID = 0X0450,
     .shape = 20,
+    .price = 80000,
     .equip
     {
         .duration = 26,
@@ -11945,6 +12612,7 @@
     .type = u8"道具",
     .weight = 24,
     .pkgGfxID = 0X0450,
+    .price = 80000,
 },
 
 {   .name = u8"逍遥扇",
@@ -11952,6 +12620,7 @@
     .weight = 35,
     .pkgGfxID = 0X0451,
     .shape = 39,
+    .price = 80000,
     .equip
     {
         .duration = 25,
@@ -11974,6 +12643,7 @@
     .weight = 37,
     .pkgGfxID = 0X0452,
     .shape = 43,
+    .price = 80000,
     .equip
     {
         .duration = 26,
@@ -11992,6 +12662,7 @@
     .weight = 60,
     .pkgGfxID = 0X0453,
     .shape = 39,
+    .price = 70000,
     .equip
     {
         .duration = 40,
@@ -12010,6 +12681,7 @@
     .weight = 15,
     .pkgGfxID = 0X0460,
     .shape = 31,
+    .price = 80000,
     .equip
     {
         .duration = 20,
@@ -12209,6 +12881,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0475,
+    .price = 10000,
 },
 
 {   .name = u8"血魔心脏",
@@ -12328,48 +13001,56 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047D,
+    .price = 400,
 },
 
 {   .name = u8"雷电僵尸骨",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047D,
+    .price = 400,
 },
 
 {   .name = u8"僧侣僵尸骨",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047D,
+    .price = 400,
 },
 
 {   .name = u8"尸王白骨",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047D,
+    .price = 400,
 },
 
 {   .name = u8"灵魂护身符（小）",
     .type = u8"道具",
     .weight = 2,
     .pkgGfxID = 0X047E,
+    .price = 4000,
 },
 
 {   .name = u8"灵魂护身符（中）",
     .type = u8"道具",
     .weight = 5,
     .pkgGfxID = 0X047E,
+    .price = 4000,
 },
 
 {   .name = u8"毁灭护身符",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047E,
+    .price = 4000,
 },
 
 {   .name = u8"道力护身符",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X047E,
+    .price = 4000,
 },
 
 {   .name = u8"七点白蛇胆",
@@ -12460,6 +13141,7 @@
     .weight = 61,
     .pkgGfxID = 0X0492,
     .shape = 13,
+    .price = 23000,
     .equip
     {
         .duration = 28,
@@ -12484,6 +13166,7 @@
     .weight = 14,
     .pkgGfxID = 0X04A9,
     .shape = 17,
+    .price = 23000,
     .equip
     {
         .duration = 15,
@@ -12505,6 +13188,7 @@
     .weight = 23,
     .pkgGfxID = 0X04CF,
     .shape = 18,
+    .price = 9000,
     .equip
     {
         .duration = 22,
@@ -12531,6 +13215,7 @@
     .weight = 27,
     .pkgGfxID = 0X04D1,
     .shape = 18,
+    .price = 20000,
     .equip
     {
         .duration = 22,
@@ -12577,6 +13262,7 @@
     .weight = 50,
     .pkgGfxID = 0X04E2,
     .shape = 12,
+    .price = 9000,
     .equip
     {
         .duration = 26,
@@ -12618,6 +13304,7 @@
     .weight = 29,
     .pkgGfxID = 0X04EC,
     .shape = 19,
+    .price = 23000,
     .equip
     {
         .duration = 24,
@@ -12644,6 +13331,7 @@
     .weight = 12,
     .pkgGfxID = 0X0500,
     .shape = 16,
+    .price = 9000,
     .equip
     {
         .duration = 13,
@@ -12668,18 +13356,21 @@
     .type = u8"道具",
     .weight = 6,
     .pkgGfxID = 0X0500,
+    .price = 9000,
 },
 
 {   .name = u8"体验魔杖（冰）",
     .type = u8"道具",
     .weight = 6,
     .pkgGfxID = 0X0500,
+    .price = 9000,
 },
 
 {   .name = u8"体验魔杖（风）",
     .type = u8"道具",
     .weight = 6,
     .pkgGfxID = 0X0500,
+    .price = 9000,
 },
 
 {   .name = u8"潘夜魔杖",
@@ -12687,6 +13378,7 @@
     .weight = 14,
     .pkgGfxID = 0X0501,
     .shape = 16,
+    .price = 20000,
     .equip
     {
         .duration = 14,
@@ -12712,6 +13404,7 @@
     .weight = 80,
     .pkgGfxID = 0X0516,
     .shape = 15,
+    .price = 23000,
     .equip
     {
         .duration = 32,
@@ -12881,24 +13574,28 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053A,
+    .price = 600,
 },
 
 {   .name = u8"沃玛号角_1",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053A,
+    .price = 600,
 },
 
 {   .name = u8"祖玛雕像号角",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053A,
+    .price = 600,
 },
 
 {   .name = u8"火焰沃玛号角",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053A,
+    .price = 600,
 },
 
 {   .name = u8"真实明镜",
@@ -12929,24 +13626,28 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053C,
+    .price = 1200,
 },
 
 {   .name = u8"毒蛇胆汁",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053D,
+    .price = 100,
 },
 
 {   .name = u8"七点白蛇胆汁",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053D,
+    .price = 100,
 },
 
 {   .name = u8"制灵水",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053D,
+    .price = 100,
 },
 
 {   .name = u8"龙珠（火）",
@@ -13021,36 +13722,42 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0542,
+    .price = 1400,
 },
 
 {   .name = u8"丸药",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0542,
+    .price = 1400,
 },
 
 {   .name = u8"潘夜之泪",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0544,
+    .price = 800,
 },
 
 {   .name = u8"腐蚀人鬼之泪",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0544,
+    .price = 800,
 },
 
 {   .name = u8"潘夜珠",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0545,
+    .price = 600,
 },
 
 {   .name = u8"夜明珠",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0546,
+    .price = 1400,
 },
 
 {   .name = u8"龙珠（幻影）",
@@ -13139,6 +13846,7 @@
     .type = u8"鞋",
     .weight = 1,
     .pkgGfxID = 0X0550,
+    .price = 1000,
     .equip
     {
         .duration = 6,
@@ -13160,6 +13868,7 @@
     .type = u8"鞋",
     .weight = 1,
     .pkgGfxID = 0X0551,
+    .price = 5000,
     .equip
     {
         .duration = 8,
@@ -13181,6 +13890,7 @@
     .type = u8"鞋",
     .weight = 2,
     .pkgGfxID = 0X0552,
+    .price = 20000,
     .equip
     {
         .duration = 10,
@@ -13201,6 +13911,7 @@
     .type = u8"鞋",
     .weight = 2,
     .pkgGfxID = 0X0553,
+    .price = 10000,
     .equip
     {
         .duration = 10,
@@ -13221,6 +13932,7 @@
     .type = u8"鞋",
     .weight = 3,
     .pkgGfxID = 0X0554,
+    .price = 30000,
     .equip
     {
         .duration = 12,
@@ -13237,6 +13949,7 @@
     .type = u8"鞋",
     .weight = 2,
     .pkgGfxID = 0X055B,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -13253,6 +13966,7 @@
     .type = u8"鞋",
     .weight = 4,
     .pkgGfxID = 0X055D,
+    .price = 30000,
     .equip
     {
         .duration = 12,
@@ -13268,6 +13982,7 @@
     .type = u8"鞋",
     .weight = 1,
     .pkgGfxID = 0X055E,
+    .price = 8000,
     .equip
     {
         .duration = 8,
@@ -13288,6 +14003,7 @@
     .type = u8"鞋",
     .weight = 4,
     .pkgGfxID = 0X055F,
+    .price = 30000,
     .equip
     {
         .duration = 12,
@@ -13303,6 +14019,7 @@
     .type = u8"鞋",
     .weight = 4,
     .pkgGfxID = 0X0560,
+    .price = 50000,
     .equip
     {
         .duration = 12,
@@ -13319,6 +14036,7 @@
     .type = u8"鞋",
     .weight = 2,
     .pkgGfxID = 0X0561,
+    .price = 30000,
     .equip
     {
         .duration = 8,
@@ -13395,6 +14113,7 @@
     .type = u8"鞋",
     .weight = 3,
     .pkgGfxID = 0X0568,
+    .price = 35000,
     .equip
     {
         .duration = 12,
@@ -13415,12 +14134,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0568,
+    .price = 35000,
 },
 
 {   .name = u8"青山绿水",
     .type = u8"鞋",
     .weight = 3,
     .pkgGfxID = 0X0569,
+    .price = 200000,
     .equip
     {
         .duration = 12,
@@ -13693,6 +14414,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0582,
+    .price = 1000,
     .description = u8"营养丰富的褐色栗子，益气补脾，健胃厚肠。",
 },
 
@@ -13712,6 +14434,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0583,
+    .price = 10000,
     .description = u8"营养丰富的金色栗子，益气补脾，健胃厚肠，是栗子中的极品。",
 },
 
@@ -13731,6 +14454,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0584,
+    .price = 4000,
     .description = u8"营养丰富的金色栗子，益气补脾，健胃厚肠，是栗子中的珍品。",
 },
 
@@ -13750,6 +14474,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0585,
+    .price = 3000,
     .description = u8"营养丰富的金色栗子，益气补脾，健胃厚肠，是栗子中的上品。",
 },
 
@@ -13775,18 +14500,21 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X058E,
+    .price = 350,
 },
 
 {   .name = u8"尾毛",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X058E,
+    .price = 350,
 },
 
 {   .name = u8"牛毛",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X058E,
+    .price = 350,
 },
 
 {   .name = u8"苍蝇拍",
@@ -13799,24 +14527,28 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0590,
+    .price = 1000,
 },
 
 {   .name = u8"诺玛法老珍珠",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0590,
+    .price = 1000,
 },
 
 {   .name = u8"红娥宝玉",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0590,
+    .price = 1000,
 },
 
 {   .name = u8"制魔宝玉",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0590,
+    .price = 1000,
 },
 
 {   .name = u8"宝箱",
@@ -13841,12 +14573,14 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0596,
+    .price = 1400,
 },
 
 {   .name = u8"祖玛卫士雕像",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0596,
+    .price = 1400,
 },
 
 {   .name = u8"牙齿",
@@ -13935,36 +14669,42 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A1,
+    .price = 1600,
 },
 
 {   .name = u8"灵魂",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A1,
+    .price = 1600,
 },
 
 {   .name = u8"皇家玉石",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A1,
+    .price = 1600,
 },
 
 {   .name = u8"武炎铁饼",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A1,
+    .price = 1600,
 },
 
 {   .name = u8"藏罪据证",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A2,
+    .price = 1000,
 },
 
 {   .name = u8"石钥匙",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A2,
+    .price = 1000,
 },
 
 {   .name = u8"护卫的信件",
@@ -13977,6 +14717,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A4,
+    .price = 400,
 },
 
 {   .name = u8"冰针",
@@ -13989,18 +14730,21 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A9,
+    .price = 1800,
 },
 
 {   .name = u8"瓷器箱子",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A9,
+    .price = 1800,
 },
 
 {   .name = u8"石人心核",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05A9,
+    .price = 1800,
 },
 
 {   .name = u8"制炼石",
@@ -14031,6 +14775,7 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05AD,
+    .price = 450,
 },
 
 {   .name = u8"死亡木偶",
@@ -14175,18 +14920,21 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05B1,
+    .price = 250,
 },
 
 {   .name = u8"旧扇子",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05B1,
+    .price = 250,
 },
 
 {   .name = u8"万相的护身符",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05B1,
+    .price = 250,
 },
 
 {   .name = u8"随身NPC",
@@ -14607,6 +15355,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"基本剑术",
@@ -14617,6 +15366,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"攻杀剑术",
@@ -14627,6 +15377,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"刺杀剑术",
@@ -14637,6 +15388,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"半月弯刀",
@@ -14647,6 +15399,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"野蛮冲撞",
@@ -14657,6 +15410,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"烈火剑法",
@@ -14667,6 +15421,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"莲月剑法",
@@ -14677,6 +15432,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"翔空剑法",
@@ -14687,6 +15443,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"火球术",
@@ -14697,6 +15454,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"诱惑之光",
@@ -14707,6 +15465,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"抗拒火环",
@@ -14717,6 +15476,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"雷电术",
@@ -14727,6 +15487,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"瞬息移动",
@@ -14737,6 +15498,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"大火球",
@@ -14747,6 +15509,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"地狱火",
@@ -14757,6 +15520,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"爆裂火焰",
@@ -14767,6 +15531,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"疾光电影",
@@ -14777,6 +15542,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"火墙",
@@ -14787,6 +15553,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"地狱雷光",
@@ -14797,6 +15564,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"魔法盾",
@@ -14807,6 +15575,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"圣言术",
@@ -14817,6 +15586,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"冰咆哮",
@@ -14827,6 +15597,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"冰月神掌",
@@ -14837,6 +15608,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"冰月震天",
@@ -14847,6 +15619,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"霹雳掌",
@@ -14857,6 +15630,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"冰沙掌",
@@ -14867,6 +15641,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"风掌",
@@ -14877,6 +15652,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"龙卷风",
@@ -14887,6 +15663,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"风震天",
@@ -14897,6 +15674,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"击风",
@@ -14907,6 +15685,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"异形换位",
@@ -14917,6 +15696,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"精神力战法",
@@ -14927,6 +15707,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"治愈术",
@@ -14937,6 +15718,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"施毒术",
@@ -14947,6 +15729,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"灵魂火符",
@@ -14957,6 +15740,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"幽灵盾",
@@ -14967,6 +15751,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"神圣战甲术",
@@ -14977,6 +15762,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"召唤骷髅",
@@ -14987,6 +15773,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"困魔咒",
@@ -14997,6 +15784,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"隐身术",
@@ -15007,6 +15795,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"集体隐身术",
@@ -15017,6 +15806,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"群体治愈术",
@@ -15027,6 +15817,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"召唤神兽",
@@ -15037,6 +15828,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"空拳刀法",
@@ -15047,6 +15839,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"月魂断玉",
@@ -15057,6 +15850,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"月魂灵波",
@@ -15067,6 +15861,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"回生术",
@@ -15077,6 +15872,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"强魔震法",
@@ -15087,6 +15883,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"猛虎强势",
@@ -15097,6 +15894,7 @@
     .type = u8"技能书",
     .weight = 1,
     .pkgGfxID = 0X0130,
+    .price = 1000,
     .book
     {
         .magic = u8"超强召唤骷髅",
