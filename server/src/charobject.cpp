@@ -180,17 +180,8 @@ bool CharObject::removeInViewCO(uint64_t uid)
 
 int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 {
-    const auto oldSize = to_d(m_inViewCOList.size());
-    const auto oldDirection = [&coLoc, this]() -> int
-    {
-        if(const auto p = getInViewCOPtr(coLoc.uid)){
-            return p->direction;
-        }
-        return DIR_NONE;
-    }();
-
     if(!forceDelete && inView(coLoc.mapUID, coLoc.x, coLoc.y)){
-        m_inViewCOList.insert_or_assign(coLoc.uid, COLocation
+        return m_inViewCOList.insert_or_assign(coLoc.uid, COLocation
         {
             .uid    = coLoc.uid,
             .mapUID = coLoc.mapUID,
@@ -211,13 +202,18 @@ int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 
             // if this is the first action, and without a valid direction
             // then we keep the cached direction as DIR_NONE
-            .direction = pathf::dirValid(coLoc.direction) ? coLoc.direction : oldDirection,
-        });
+            .direction = pathf::dirValid(coLoc.direction) ? coLoc.direction : [&coLoc, this]() -> int
+            {
+                if(const auto p = getInViewCOPtr(coLoc.uid)){
+                    return p->direction;
+                }
+                return DIR_NONE;
+            }(),
+        }).second ? 1 : 0;
     }
     else{
-        m_inViewCOList.erase(coLoc.uid);
+        return m_inViewCOList.erase(coLoc.uid) ? -1 : 0;
     }
-    return to_d(m_inViewCOList.size()) - oldSize;
 }
 
 ActionNode CharObject::makeActionStand() const
