@@ -21,11 +21,59 @@ corof::awaitable<> NPChar::on_AM_ATTACK(const ActorMsgPack &)
 corof::awaitable<> NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAction>();
+    if(amA.UID == UID()){
+        return {};
+    }
+
+    const auto [dstX, dstY] = [&amA]() -> std::tuple<int, int>
+    {
+        switch(amA.action.type){
+            case ACTION_MOVE:
+            case ACTION_SPACEMOVE:
+                {
+                    return {amA.action.aimX, amA.action.aimY};
+                }
+            default:
+                {
+                    return {amA.action.x, amA.action.y};
+                }
+        }
+    }();
+
+    const auto distChanged = [dstX, dstY, amA, this]() -> bool
+    {
+        if(amA.mapUID != mapUID()){
+            return true;
+        }
+
+        if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
+            return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
+        }
+        return true;
+    }();
+
+    const auto addedInView = updateInViewCO(COLocation
+    {
+        .uid    = amA.UID,
+        .mapUID = amA.mapUID,
+
+        .x = dstX,
+        .y = dstY,
+        .direction = amA.action.direction,
+    });
+
     switch(uidf::getUIDType(amA.UID)){
         case UID_PLY:
             {
-                m_luaRunner->spawn(amA.UID, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
-                dispatchAction(amA.UID, makeActionStand());
+                if(addedInView > 0){
+                    dispatchAction(amA.UID, makeActionStand());
+                    m_luaRunner->spawn(amA.UID, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
+                }
+
+                if(distChanged){
+                    // TODO support aura for NPC
+                }
+
                 return {};
             }
         default:
