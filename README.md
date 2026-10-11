@@ -23,12 +23,7 @@ mir2x is an experimental project that verifies actor-model based parallelism for
 
 ### Prebuilt binaries
 
-Each push to the repository publishes a rolling `latest` GitHub release containing Linux and Windows MinGW UCRT64 install trees:
-
-- [mir2x-linux-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-linux-latest-build.zip)
-- [mir2x-windows-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-windows-latest-build.zip)
-
-The full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
+Each push to the repository publishes a rolling `latest` GitHub release containing Linux and Windows MinGW UCRT64 install trees, the full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
 
 ### Notes
 - This repo uses C++ coroutine to implement actor model, requires compiler to support c++23.
