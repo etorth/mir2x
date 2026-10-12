@@ -31,9 +31,9 @@ corof::awaitable<> ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
     return {};
 }
 
-corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
 {
-    const auto amA = rstMPK.conv<AMAction>();
+    const auto amA = mpk.conv<AMAction>();
     if(!mapBin()->validC(amA.action.x, amA.action.y)){
          return {};
     }
