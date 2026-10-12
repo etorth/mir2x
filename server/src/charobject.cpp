@@ -132,7 +132,7 @@ int CharObject::viewRange() const
             }
         default:
             {
-                std::unreachable();
+                throw fflvalue(uidf::getUIDString(UID()));
             }
     }
 }

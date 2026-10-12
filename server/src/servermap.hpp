@@ -113,7 +113,7 @@ class ServerMap final: public ServerObject
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && triggerList.empty();
+                return !locked && uidList.empty() && observerList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && triggerList.empty();
             }
 
             bool hasUID(uint64_t uid) const
@@ -218,9 +218,14 @@ class ServerMap final: public ServerObject
         corof::awaitable<> loadNPChar();
 
     private:
-        void    addGridUID(uint64_t, int, int, bool);
         bool    hasGridUID(uint64_t, int, int) const;
-        bool removeGridUID(uint64_t, int, int);
+        void   moveGridUID(uint64_t, int, int, int, int);
+        void    addGridUID(uint64_t, int, int, bool, bool = true);
+        bool removeGridUID(uint64_t, int, int,       bool = true);
+
+        static int observerViewRange(uint64_t);
+        void updateGridObserver(uint64_t, int, int, bool);
+        void updateGridObserverCircle(uint64_t, int, int, bool);
 
     private:
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCGLoc(bool, bool, int, int, int, int, int, int, int) const;

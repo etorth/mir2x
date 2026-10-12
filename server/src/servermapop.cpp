@@ -508,10 +508,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                 // the object comfirm to move
                 // and it's internal state has changed
 
-                // leave last cell
-                if(!removeGridUID(amTM.UID, amTM.X, amTM.Y)){
-                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", amTM.UID, amTM.X, amTM.Y);
-                }
+                moveGridUID(amTM.UID, amTM.X, amTM.Y, nMostX, nMostY);
 
                 std::unordered_set<uint64_t> seenUIDList;
                 doCircle(amTM.X, amTM.Y, SYS_VIEWR, [amTM, amA, &seenUIDList, this](int gridX, int gridY)
@@ -539,9 +536,6 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     return false;
                 });
 
-                // push to the new cell
-                // check if it should switch the map
-                addGridUID(amTM.UID, nMostX, nMostY, true);
                 if(uidf::isPlayer(amTM.UID)){
                     postGroundItemIDList(amTM.UID, nMostX, nMostY);
                     postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map

@@ -909,7 +909,86 @@ void ServerMap::dispatchGridSwitch(uint64_t playerUID, int x, int y)
     }
 }
 
-void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
+int ServerMap::observerViewRange(uint64_t uid) // mirrors CharObject::viewRange() until view ranges can vary per actor.
+{
+    switch(uidf::getUIDType(uid)){
+        case UID_PLY:
+        case UID_NPC:
+            {
+                return SYS_VIEWR;
+            }
+        case UID_MON:
+            {
+                if(const auto record = DBCOM_MONSTERRECORD(uidf::getMonsterID(uid))){
+                    return record.view;
+                }
+                return SYS_VIEWR;
+            }
+        default:
+            {
+                throw fflvalue(uidf::getUIDString(uid));
+            }
+    }
+}
+
+void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
+{
+    if(mapBin()->validC(x, y)){
+        if(auto &observers = getGrid(x, y).observerList; add){
+            if(std::ranges::find(observers, uid) == observers.end()){
+                observers.push_back(uid);
+            }
+        }
+        else{
+            std::erase(observers, uid);
+        }
+    }
+}
+
+void ServerMap::updateGridObserverCircle(uint64_t uid, int x, int y, bool add)
+{
+    if(const int range = observerViewRange(uid); range > 0){
+        doCircle(x, y, range, [this, uid, add](int gridX, int gridY)
+        {
+            updateGridObserver(uid, gridX, gridY, add);
+            return false;
+        });
+    }
+}
+
+void ServerMap::moveGridUID(uint64_t uid, int srcX, int srcY, int dstX, int dstY)
+{
+    if(!removeGridUID(uid, srcX, srcY, false)){
+        throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", uid, srcX, srcY);
+    }
+    addGridUID(uid, dstX, dstY, true, false);
+
+    if(const int range = observerViewRange(uid); range > 0){
+        const int step = std::max<int>(std::abs(dstX - srcX), std::abs(dstY - srcY));
+        if(step == 0){
+            return;
+        }
+
+        const int dir = pathf::getOffDir(srcX, srcY, dstX, dstY);
+        const auto delta = m_addDeleteGridList.find({dir, step, range});
+
+        if(delta != m_addDeleteGridList.end()){
+            for(const auto &[dx, dy]: delta->second.second){
+                updateGridObserver(uid, srcX + dx, srcY + dy, false);
+            }
+
+            for(const auto &[dx, dy]: delta->second.first){
+                updateGridObserver(uid, srcX + dx, srcY + dy, true);
+            }
+        }
+        else{
+            updateGridObserverCircle(uid, srcX, srcY, false);
+            updateGridObserverCircle(uid, dstX, dstY, true);
+        }
+    }
+}
+
+void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce, bool updateObservers)
 {
     if(!mapBin()->validC(nX, nY)){
         throw fflpanic("invalid location: ({}, {})", nX, nY);
@@ -918,6 +997,9 @@ void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
     if(bForce || mapBin()->groundValid(nX, nY)){
         if(!hasGridUID(uid, nX, nY)){
             getUIDList(nX, nY).push_back(uid);
+            if(updateObservers){
+                updateGridObserverCircle(uid, nX, nY, true);
+            }
         }
     }
 }
@@ -932,7 +1014,7 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
     return std::find(uidList.begin(), uidList.end(), uid) != uidList.end();
 }
 
-bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
+bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY, bool updateObservers)
 {
     if(!mapBin()->validC(nX, nY)){
         throw fflpanic("invalid location: ({}, {})", nX, nY);
@@ -950,6 +1032,9 @@ bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
 
     if(uidList.size() * 2 < uidList.capacity()){
         uidList.shrink_to_fit();
+    }
+    if(updateObservers){
+        updateGridObserverCircle(uid, nX, nY, false);
     }
     return true;
 }
