@@ -1,5 +1,7 @@
 #pragma once
 #include <array>
+#include <map>
+#include <set>
 #include <tuple>
 #include <memory>
 #include <vector>
@@ -333,7 +335,7 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        template<std::predicate<int, int> F> bool doCircle(this auto && self, int cx0, int cy0, int r, const F &f)
+        template<std::predicate<int, int> F> static bool doCircle(const Mir2xMapData *data, int cx0, int cy0, int r, const F &f)
         {
             int doW = 2 * r - 1;
             int doH = 2 * r - 1;
@@ -341,11 +343,11 @@ class ServerMap final: public ServerObject
             int x0 = cx0 - r + 1;
             int y0 = cy0 - r + 1;
 
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && (!data || mathf::rectangleOverlapRegion<int>(0, 0, data->w(), data->h(), x0, y0, doW, doH))){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(self.mapBin()->validC(x, y)){
-                            if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
+                        if(!data || data->validC(x, y)){
+                            if(mathf::LDistance2<int>(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
                                 }
@@ -357,6 +359,62 @@ class ServerMap final: public ServerObject
             return false;
         }
 
+        template<std::predicate<int, int> F> bool doCircle(this auto && self, int cx0, int cy0, int r, const F &f)
+        {
+            return ServerMap::doCircle(self.mapBin(), cx0, cy0, r, f);
+        }
+
+
+    private:
+        // addDeleteList:
+        // {dir, step, radius} -> pair{ first : vector_of_{dx, dy},
+        //                              second: vector_of_{dx, dy}}
+        //
+        inline const static auto m_addDeleteGridList = []
+        {
+            const auto fnGetCircle = [](int cx, int cy, int r) -> std::set<std::pair<int, int>>
+            {
+                std::set<std::pair<int, int>> circle;
+                ServerMap::doCircle(nullptr, cx, cy, r, [&circle](int x, int y)
+                {
+                    circle.emplace(x, y);
+                    return false;
+                });
+                return circle;
+            };
+
+            constexpr int MAX_CACHED_R    = 100;
+            constexpr int MAX_CACHED_STEP =   3;
+
+            std::map<std::tuple<int, int, int>,
+                /**/ std::pair<std::vector<std::pair<int, int>>,
+                /**/           std::vector<std::pair<int, int>>>> result;
+
+            for(int r = 1; r <= MAX_CACHED_R; ++r){
+                const auto oldCircle = fnGetCircle(0, 0, r);
+                for(int dir = DIR_BEGIN; dir < DIR_END; ++dir){
+                    for(int step = 1; step <= MAX_CACHED_STEP; ++step){
+                        const auto [dx, dy] = pathf::getFrontGLoc(0, 0, dir, step);
+                        const auto newCircle = fnGetCircle(dx, dy, r);
+
+                        for(const auto &loc: newCircle){
+                            if(oldCircle.find(loc) == oldCircle.end()){
+                                result[{dir, step, r}].first.emplace_back(loc); // added grids
+                            }
+                        }
+
+                        for(const auto &loc: oldCircle){
+                            if(newCircle.find(loc) == newCircle.end()){
+                                result[{dir, step, r}].second.emplace_back(loc); // removed grids
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }();
+
+    private:
         template<std::predicate<int, int> F> bool doSquare(this auto && self, int x0, int y0, int doW, int doH, const F &f)
         {
             if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
