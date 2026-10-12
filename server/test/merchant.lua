@@ -187,6 +187,18 @@ function uidRemoteCall(uid, ...)
 end
 
 local dialog = require('include.dialog')
+assert(argBooleanFlag(nil) == false)
+assert(argBooleanFlag(nil, 'test flag', false) == false)
+assert(argBooleanFlag(nil, 'test flag', true) == true)
+for _, flag in ipairs({true, false, 0, 1}) do
+    local expected = flag == true or flag == 1
+    assert(argBooleanFlag(flag) == expected)
+    assert(argBooleanFlag(flag, 'test flag', not expected) == expected)
+end
+for _, flag in ipairs({-1, 2, 0.0, 1.0, 'true', {}, function() end}) do
+    local ok, err = pcall(argBooleanFlag, flag, 'test flag')
+    assert(not ok and err:find('Invalid flag for test flag', 1, true), tostring(err))
+end
 for _, id in ipairs({'npc_next', SYS_EXIT}) do
     -- single="1" by default, against repeat clicks, see dialog.link()
     local defaultClose = id == SYS_EXIT and ' close="1"' or ''
@@ -197,11 +209,21 @@ for _, id in ipairs({'npc_next', SYS_EXIT}) do
     assert(dialog.link(id, 'label', {suffix = ' after'}) == link .. ' after')
     assert(dialog.link(id, 'label', {prefix = '', suffix = ''}) == link)
     assert(dialog.link(id, 'label', {single = false}) == string.format('<event id="%s"%s>label</event>', id, defaultClose))
-    for _, close in ipairs({true, false}) do
+    for _, single in ipairs({true, false, 0, 1}) do
+        local singleAttr = (single == true or single == 1) and ' single="1"' or ''
+        assert(dialog.link(id, 'label', {single = single}) == string.format('<event id="%s"%s%s>label</event>', id, singleAttr, defaultClose))
+    end
+    for _, close in ipairs({true, false, 0, 1}) do
         local opts = {close = close, prefix = 'before 100% ', suffix = ' after 100%'}
         local expected = string.format('before 100%% <event id="%s" single="1"%s>label</event> after 100%%',
-            id, close and ' close="1"' or '')
+            id, (close == true or close == 1) and ' close="1"' or '')
         assert(dialog.link(id, 'label', opts) == expected)
+    end
+    for _, field in ipairs({'single', 'close'}) do
+        for _, flag in ipairs({-1, 2, 0.0, 1.0, 'true', {}, function() end}) do
+            local ok, err = pcall(dialog.link, id, 'label', {[field] = flag})
+            assert(not ok and err:find('Invalid flag for dialog.link(opts.' .. field .. ')', 1, true), tostring(err))
+        end
     end
 end
 

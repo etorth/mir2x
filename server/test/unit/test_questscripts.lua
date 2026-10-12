@@ -1,4 +1,5 @@
 local root = assert(arg[1], 'Repository root is required')
+dofile(root .. '/common/src/luamodule.lua')
 local STOP = {}
 
 local function fixture(file)
@@ -131,7 +132,8 @@ local function introFixture(t, level)
     f.job, f.level = t.job, level or 1
 
     local denv = setmetatable({
-        SYS_EXIT = 'SYS_EXIT', SYS_EPUID = 'SYS_EPUID', SYS_EPQST = 'SYS_EPQST', SYS_EPDEF = 'SYS_EPDEF',
+        SYS_EXIT = 'SYS_EXIT', SYS_SPACEMOVE = 'SYS_SPACEMOVE',
+        SYS_EPUID = 'SYS_EPUID', SYS_EPQST = 'SYS_EPQST', SYS_EPDEF = 'SYS_EPDEF',
         assertType = function(v, ...)
             for _, t in ipairs({...}) do
                 if type(v) == t or (t == 'integer' and math.type(v) == 'integer') then return v end
@@ -173,6 +175,7 @@ local intros =
     {
         quest = '道士初出江湖', job = '道士', guide = '道馆_1/士官_1', guideNPC = '士官_1', shop = '大老板_1', recipient = '阿潘_1',
         shopTarget = "{'道馆_1',394,169}", recipientTarget = "{'道馆_1',429,120}",
+        shopEvent = 'SYS_SPACEMOVE',
         parcel = '道力护身符', material = '鸡血', count = 2, book = '治愈术',
         wait = '请级别高一点，修练到6级以上再来吧！',
         menuLow = '好的。首先贫道会教你做一些简单但值得去做的事情，一边做一边慢慢的熟悉一下道馆内的事情！',
@@ -260,10 +263,18 @@ for _, t in ipairs(intros) do
     -- below level 4 the errands, accepted once
     f.level = 1
     f.guide.npc_quest(11)
-    assert(posted(f, 'id="npc_accept_errand"') and posted(f, 'args="' .. t.shopTarget .. '"'))
-    f.guide.npc_fly_to_loc(11, f.xml:match('args="([^"]*)"'))
+    local shopArgs = t.shopEvent and 'return ' .. t.shopTarget or t.shopTarget
+    assert(posted(f, 'id="npc_accept_errand"'))
+    assert(posted(f, string.format('id="%s" args="%s" single="1" close="1"', t.shopEvent or 'npc_fly_to_loc', shopArgs)))
+    local args = assert(f.xml:match('args="([^"]*)"'))
     local target = load('return ' .. t.shopTarget)()
-    assert(f.moved[1] == target[1] and f.moved[2] == target[2] and f.moved[3] == target[3])
+    if t.shopEvent then
+        local destination = assert(load(args))()
+        assert(destination[1] == target[1] and destination[2] == target[2] and destination[3] == target[3])
+    else
+        f.guide.npc_fly_to_loc(11, args)
+        assert(f.moved[1] == target[1] and f.moved[2] == target[2] and f.moved[3] == target[3])
+    end
     f.guide.npc_accept_errand(11)
     assert(f.state == 'SYS_ENTER')
     f.state = 'quest_deliver_parcel'

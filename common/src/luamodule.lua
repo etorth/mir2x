@@ -99,7 +99,9 @@ function argBooleanFlag(flag, fieldName, defValue)
         else
             error(string.format('Invalid flag for %s: %s', fieldName or '(unknown)', tostring(flag)))
         end
-    elseif type(flag) ~= 'boolean' then
+    elseif type(flag) == 'boolean' then
+        return flag
+    else
         error(string.format('Invalid flag for %s', fieldName or '(unknown)'))
     end
 end
