@@ -112,6 +112,31 @@ corof::awaitable<std::optional<COLocation>> CharObject::getCOLocation(uint64_t u
     }
 }
 
+int CharObject::viewRange() const
+{
+    switch(uidf::getUIDType(UID())){
+        case UID_PLY:
+            {
+                return SYS_VIEWR; // TODO: support better player view range by 充钱!
+            }
+        case UID_MON:
+            {
+                if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()))){
+                    return r.view;
+                }
+                return SYS_VIEWR;
+            }
+        case UID_NPC:
+            {
+                return SYS_VIEWR;
+            }
+        default:
+            {
+                std::unreachable();
+            }
+    }
+}
+
 bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
 {
     if(argMapUID != mapUID()){
@@ -122,21 +147,12 @@ bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
         return false;
     }
 
-    const auto r = [this]() -> int
-    {
-        if(isMonster()){
-            if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()))){
-                return r.view;
-            }
-        }
-        return SYS_VIEWR;
-    }();
-
-    if(r <= 0){
+    if(const auto r = viewRange(); r <= 0){
         return false; // always blind
     }
-
-    return mathf::LDistance2<int>(X(), Y(), argX, argY) <= r * r;
+    else{
+        return mathf::LDistance2<int>(X(), Y(), argX, argY) <= r * r;
+    }
 }
 
 void CharObject::trimInViewCO()

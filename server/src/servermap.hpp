@@ -95,6 +95,7 @@ class ServerMap final: public ServerObject
         {
             bool locked = false;
             std::vector<uint64_t> uidList;
+            std::vector<uint64_t> observerList;
             std::vector<DroppedItemNode> itemList;
             std::vector<FireWallMagicNode> fireWallList;
 

@@ -112,6 +112,7 @@ class CharObject: public ServerObject
         corof::awaitable<std::optional<COLocation>> getCOLocation(uint64_t);
 
     protected:
+        int  viewRange() const;
         bool inView(uint64_t, int, int) const;
 
     protected:
