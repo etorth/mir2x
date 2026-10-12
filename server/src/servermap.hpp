@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "logprof.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
 #include "totype.hpp"
@@ -378,6 +379,7 @@ class ServerMap final: public ServerObject
         //
         inline const static auto m_addDeleteGridList = []
         {
+            logScopedProfiler("addDeleteGridListInit");
             const auto fnGetCircle = [](int cx, int cy, int r) -> std::set<std::pair<int, int>>
             {
                 std::set<std::pair<int, int>> circle;
@@ -389,8 +391,8 @@ class ServerMap final: public ServerObject
                 return circle;
             };
 
-            constexpr int MAX_CACHED_R    = 100;
-            constexpr int MAX_CACHED_STEP =   3;
+            constexpr int MAX_CACHED_R    = SYS_VIEWR;
+            constexpr int MAX_CACHED_STEP = 3;
 
             std::map<std::tuple<int, int, int>,
                 /**/ std::pair<std::vector<std::pair<int, int>>,
