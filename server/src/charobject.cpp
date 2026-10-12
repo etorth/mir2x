@@ -151,7 +151,7 @@ bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
         return false; // always blind
     }
     else{
-        return mathf::LDistance2<int>(X(), Y(), argX, argY) <= r * r;
+        return mathf::LDistance2<int>(X(), Y(), argX, argY) <= (r - 1) * (r - 1);
     }
 }
 
