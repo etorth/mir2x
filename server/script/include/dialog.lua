@@ -7,26 +7,20 @@ function dialog.link(id, label, opts)
 
     opts = opts or {}
 
-    local is_close = opts.close
-    if is_close == nil then
-        is_close = (id == SYS_EXIT)
-    end
-
-    local is_single = opts.single
-    if is_single == nil then
-        is_single = true -- default to single, prevent repeat-clicks
-    end
-
     local args_attr = opts.args ~= nil and string.format(' args="%s"', opts.args)  or ''
     local wrap_attr = opts.wrap ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
 
-    local single_attr = is_single and ' single="1"' or ''
-    local  close_attr = is_close  and  ' close="1"' or ''
+    local single_attr = argBooleanFlag(opts.single, 'dialog.link(opts.single)', true          ) and ' single="1"' or '' --default to single, prevent repeat-clicks
+    local  close_attr = argBooleanFlag(opts.close , 'dialog.link(opts.close)' , id == SYS_EXIT) and  ' close="1"' or ''
 
     local prefix = opts.prefix or ''
     local suffix = opts.suffix or ''
 
     return string.format('%s<event id="%s"%s%s%s%s>%s</event>%s', prefix, id, args_attr, wrap_attr, single_attr, close_attr, label, suffix)
+end
+
+function dialog.spacemove(label, opts)
+    return dialog.link(SYS_SPACEMOVE, label, opts)
 end
 
 local function renderPar(line)

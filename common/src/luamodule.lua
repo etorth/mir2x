@@ -85,6 +85,25 @@ function assertValue(var, ...)
     fatalPrintf('Assertion failed: expect %s, get %s', table.concat(args, ', ', 1, args.n), tostring(var))
 end
 
+function argBooleanFlag(flag, fieldName, defValue)
+    assertType(fieldName, 'string', 'nil')
+    assertType(defValue, 'boolean', 'nil')
+
+    if flag == nil then
+        return defValue and true or false
+    elseif math.type(flag) == 'integer' then
+        if flag == 0 then
+            return false
+        elseif flag == 1 then
+            return true
+        else
+            error(string.format('Invalid flag for %s: %s', fieldName or '(unknown)', tostring(flag)))
+        end
+    elseif type(flag) ~= 'boolean' then
+        error(string.format('Invalid flag for %s', fieldName or '(unknown)'))
+    end
+end
+
 -- shared by every guard
 -- keeps a guard down to one table plus the onExit closure
 -- the caller already owns, instead of a fresh metatable and method set per call

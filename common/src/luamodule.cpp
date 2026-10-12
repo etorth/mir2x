@@ -227,6 +227,8 @@ LuaModule::LuaModule()
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
     execString("SYS_ALLOWREDNAME = \'%s\'", SYS_ALLOWREDNAME);
 
+    execString("SYS_SPACEMOVE = %s", str_quoted(SYS_SPACEMOVE).c_str());
+
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
     bindFunction("debugAttach", [this]()

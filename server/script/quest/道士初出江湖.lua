@@ -568,7 +568,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 dialog.post(uid, questPath,
                 {
                     '这个，嗯<t wrap="0">···</t>详细的情况请到收罗杂货的<t color="red">大老板道友</t>那儿打听吧。',
-                    string.format('大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在%s，请参考一下吧！', dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = [=[{'道馆_1',394,169}]=]})),
+                    string.format('大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在%s，请参考一下吧！', dialog.spacemove('(394,169)', {close = 1, args = [=[return {'道馆_1',394,169}]=]})),
                 },
                 {
                     dialog.link('npc_accept_errand', '好的！', {close = true}),

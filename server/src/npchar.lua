@@ -376,6 +376,26 @@ function hasUIDQuestHandler(uid, quest, event)
     return true
 end
 
+local function spaceMoveCallback(uid, args)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    local function runSpaceMove()
+        assertType(args, 'string')
+        local map, x, y = load(args)()
+
+        if type(map) == 'table' then
+            x   = map[2]
+            y   = map[3]
+            map = map[1]
+        end
+
+        uidSpaceMove(uid, map, x, y)
+    end
+
+    pcall(runSpaceMove)
+end
+
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
@@ -387,6 +407,11 @@ function _RSVD_NAME_npc_main(from, path, event, value)
     assertType(path, 'string', 'nil')
     assertType(event, 'string')
     assertType(value, 'string', 'nil')
+
+    if event == SYS_SPACEMOVE then
+        spaceMoveCallback(from, value)
+        return
+    end
 
     local fnPostInvalidChat = function()
         uidPostXML(from,
