@@ -165,6 +165,15 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
         dispatchAction(amA.UID, makeActionStand());
     }
 
+    if(uidf::isPlayer(amA.UID)){
+        if(addedInView > 0){
+            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
+        }
+        else if(addedInView < 0){
+            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_DISAPPEAR, %llu)", to_llu(amA.UID)));
+        }
+    }
+
     // always need to notify client for CO gets added/moved/removed
     reportAction(amA.UID, amA.mapUID, amA.action);
 

@@ -49,31 +49,7 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
         }
     }
 
-    doCircle(amA.action.x, amA.action.y, SYS_VIEWR, [this, amA](int nX, int nY) -> bool
-    {
-        if(true || mapBin()->validC(nX, nY)){
-            doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool
-            {
-                if(nUID != amA.UID){
-                    switch(uidf::getUIDType(nUID)){
-                        case UID_PLY:
-                        case UID_MON:
-                        case UID_NPC:
-                            {
-                                m_actorPod->post(nUID, {AM_ACTION, amA});
-                                break;
-                            }
-                        default:
-                            {
-                                break;
-                            }
-                    }
-                }
-                return false;
-            });
-        }
-        return false;
-    });
+    forwardObserverAction(amA, amA.action.x, amA.action.y);
     return {};
 }
 
@@ -157,62 +133,13 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                     throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTSM.X, amTSM.Y);
                 }
 
-                std::unordered_set<uint64_t> seenUIDList;
-                doCircle(amTSM.X, amTSM.Y, SYS_VIEWR, [amA, fromUID, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amA, fromUID, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
-
                 addGridUID(fromUID, nDstX, nDstY, true);
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
                     postGroundFireWallList(fromUID, nDstX, nDstY);
                 }
 
-                doCircle(nDstX, nDstY, SYS_VIEWR, [amA, fromUID, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amA, fromUID, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
+                forwardObserverAction(amA, amTSM.X, amTSM.Y, nDstX, nDstY);
                 break;
             }
         default:
@@ -285,32 +212,6 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
 
                 removeGridUID(fromUID, amTJ.X, amTJ.Y);
 
-                std::unordered_set<uint64_t> seenUIDList;
-                doCircle(amTJ.X, amTJ.Y, SYS_VIEWR, [amTJ, amA, fromUID, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amTJ, amA, fromUID, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
-
                 // push to the new cell
                 // check if it should switch the map
                 addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true);
@@ -319,31 +220,7 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                     postGroundFireWallList(fromUID, amTJ.EndX, amTJ.EndY);
                 }
 
-                doCircle(amTJ.EndX, amTJ.EndY, SYS_VIEWR, [amTJ, amA, fromUID, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amTJ, amA, fromUID, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
-
+                forwardObserverAction(amA, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
                 dispatchGridSwitch(fromUID, amTJ.EndX, amTJ.EndY);
                 break;
             }
@@ -510,62 +387,12 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
                 moveGridUID(amTM.UID, amTM.X, amTM.Y, nMostX, nMostY);
 
-                std::unordered_set<uint64_t> seenUIDList;
-                doCircle(amTM.X, amTM.Y, SYS_VIEWR, [amTM, amA, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amTM, amA, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != amTM.UID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
-
                 if(uidf::isPlayer(amTM.UID)){
                     postGroundItemIDList(amTM.UID, nMostX, nMostY);
                     postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
                 }
 
-                doCircle(nMostX, nMostY, SYS_VIEWR, [amTM, amA, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [amTM, amA, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != amTM.UID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
-
+                forwardObserverAction(amA, amTM.X, amTM.Y, nMostX, nMostY);
                 dispatchGridSwitch(amTM.UID, nMostX, nMostY);
                 break;
             }
@@ -704,32 +531,7 @@ corof::awaitable<> ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     // broadcast new CO location to leaving map
     // then all old neighbors can remove it from their inview list
 
-    std::unordered_set<uint64_t> seenUIDList;
-    doCircle(amTL.X, amTL.Y, SYS_VIEWR, [fromUID, &amA, &seenUIDList, this](int gridX, int gridY)
-    {
-        doUIDList(gridX, gridY, [fromUID, &amA, &seenUIDList, this](uint64_t gridUID)
-        {
-            switch(uidf::getUIDType(gridUID)){
-                case UID_PLY:
-                case UID_MON:
-                case UID_NPC:
-                    {
-                        if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                            seenUIDList.insert(gridUID);
-                            m_actorPod->post(gridUID, {AM_ACTION, amA});
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-            return false;
-        });
-        return false;
-    });
-
+    forwardObserverAction(amA, amTL.X, amTL.Y);
     m_actorPod->post({fromUID, rmpk.seqID()}, AM_FINISHLEAVE);
 }
 
@@ -772,31 +574,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                     postGroundFireWallList(fromUID, amAMS.X, amAMS.Y); // doesn't help if switched map
                 }
 
-                std::unordered_set<uint64_t> seenUIDList;
-                doCircle(amAMS.X, amAMS.Y, SYS_VIEWR, [fromUID, amA, &seenUIDList, this](int gridX, int gridY)
-                {
-                    doUIDList(gridX, gridY, [fromUID, amA, &seenUIDList, this](uint64_t gridUID)
-                    {
-                        switch(uidf::getUIDType(gridUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
-                                        m_actorPod->post(gridUID, {AM_ACTION, amA});
-                                        seenUIDList.insert(gridUID);
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        return false;
-                    });
-                    return false;
-                });
+                forwardObserverAction(amA, amAMS.X, amAMS.Y);
                 break;
             }
         default:

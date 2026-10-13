@@ -105,7 +105,7 @@ class CharObject: public ServerObject
         virtual void reportCO(uint64_t) = 0;
 
     protected:
-        virtual void dispatchAction(          const ActionNode &, bool = false);
+        virtual void dispatchAction(          const ActionNode &);
         virtual void dispatchAction(uint64_t, const ActionNode &);
 
     protected:

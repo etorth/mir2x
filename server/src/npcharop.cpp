@@ -69,6 +69,9 @@ corof::awaitable<> NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
                     dispatchAction(amA.UID, makeActionStand());
                     m_luaRunner->spawn(amA.UID, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
                 }
+                else if(addedInView < 0){
+                    m_luaRunner->spawn(amA.UID, str_printf("_RSVD_NAME_trigger(SYS_ON_DISAPPEAR, %llu)", to_llu(amA.UID)));
+                }
 
                 if(distChanged){
                     // TODO support aura for NPC

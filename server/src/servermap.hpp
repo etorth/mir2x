@@ -16,6 +16,7 @@
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "serdesmsg.hpp"
+#include "actormsg.hpp"
 #include "enableaddco.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
@@ -227,6 +228,9 @@ class ServerMap final: public ServerObject
         static int observerViewRange(uint64_t);
         void updateGridObserver(uint64_t, int, int, bool);
         void updateGridObserverCircle(uint64_t, int, int, bool);
+
+        void forwardObserverAction(const AMAction &, int, int);
+        void forwardObserverAction(const AMAction &, int, int, int, int);
 
     private:
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCGLoc(bool, bool, int, int, int, int, int, int, int) const;

@@ -262,7 +262,7 @@ ActionNode CharObject::makeActionStand() const
     return stand;
 }
 
-void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
+void CharObject::dispatchAction(const ActionNode &action)
 {
     fflassert(hasActorPod());
     AMAction amA;
@@ -276,32 +276,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
         boPtr->setLastAction(amA.action.type);
     }
 
-    if(forceMap){
-        m_actorPod->post(mapUID(), {AM_ACTION, amA});
-        return;
-    }
-
-    switch(amA.action.type){
-        case ACTION_JUMP:
-        case ACTION_MOVE:
-        case ACTION_PUSHMOVE:
-        case ACTION_SPACEMOVE:
-        case ACTION_SPAWN:
-            {
-                m_actorPod->post(mapUID(), {AM_ACTION, amA});
-                return;
-            }
-        default:
-            {
-                foreachInViewCO([this, amA](const COLocation &coLoc)
-                {
-                    if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
-                        m_actorPod->post(coLoc.uid, {AM_ACTION, amA});
-                    }
-                });
-                return;
-            }
-    }
+    m_actorPod->post(mapUID(), {AM_ACTION, amA});
 }
 
 void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)

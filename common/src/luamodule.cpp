@@ -206,20 +206,21 @@ LuaModule::LuaModule()
     execString("SYS_EPUID = \'%s\'", SYS_EPUID);
     execString("SYS_EPQST = \'%s\'", SYS_EPQST);
 
-    execString("SYS_ON_BEGIN    = %d", SYS_ON_BEGIN);
-    execString("SYS_ON_GAINEXP  = %d", SYS_ON_GAINEXP);
-    execString("SYS_ON_GAINITEM = %d", SYS_ON_GAINITEM);
-    execString("SYS_ON_GAINGOLD = %d", SYS_ON_GAINGOLD);
-    execString("SYS_ON_ONLINE   = %d", SYS_ON_ONLINE);
-    execString("SYS_ON_OFFLINE  = %d", SYS_ON_OFFLINE);
-    execString("SYS_ON_DIE      = %d", SYS_ON_DIE);
-    execString("SYS_ON_REVIVE   = %d", SYS_ON_REVIVE);
-    execString("SYS_ON_LEVELUP  = %d", SYS_ON_LEVELUP);
-    execString("SYS_ON_KILL     = %d", SYS_ON_KILL);
-    execString("SYS_ON_TEAMUP   = %d", SYS_ON_TEAMUP);
-    execString("SYS_ON_TEAMDOWN = %d", SYS_ON_TEAMDOWN);
-    execString("SYS_ON_APPEAR   = %d", SYS_ON_APPEAR);
-    execString("SYS_ON_END      = %d", SYS_ON_END);
+    execString("SYS_ON_BEGIN     = %d", SYS_ON_BEGIN);
+    execString("SYS_ON_GAINEXP   = %d", SYS_ON_GAINEXP);
+    execString("SYS_ON_GAINITEM  = %d", SYS_ON_GAINITEM);
+    execString("SYS_ON_GAINGOLD  = %d", SYS_ON_GAINGOLD);
+    execString("SYS_ON_ONLINE    = %d", SYS_ON_ONLINE);
+    execString("SYS_ON_OFFLINE   = %d", SYS_ON_OFFLINE);
+    execString("SYS_ON_DIE       = %d", SYS_ON_DIE);
+    execString("SYS_ON_REVIVE    = %d", SYS_ON_REVIVE);
+    execString("SYS_ON_LEVELUP   = %d", SYS_ON_LEVELUP);
+    execString("SYS_ON_KILL      = %d", SYS_ON_KILL);
+    execString("SYS_ON_TEAMUP    = %d", SYS_ON_TEAMUP);
+    execString("SYS_ON_TEAMDOWN  = %d", SYS_ON_TEAMDOWN);
+    execString("SYS_ON_APPEAR    = %d", SYS_ON_APPEAR);
+    execString("SYS_ON_DISAPPEAR = %d", SYS_ON_DISAPPEAR);
+    execString("SYS_ON_END       = %d", SYS_ON_END);
 
     execString("SYS_COOP        = \'%s\'", SYS_COOP);
     execString("SYS_QSTFSM      = \'%s\'", SYS_QSTFSM);

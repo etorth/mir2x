@@ -959,6 +959,45 @@ void ServerMap::updateGridObserverCircle(uint64_t uid, int x, int y, bool add)
     }
 }
 
+void ServerMap::forwardObserverAction(const AMAction &amA, int x, int y)
+{
+    // forward an action to every CO whose view range currently covers grid (x, y)
+    // this is exactly the set of COs that can see the actor, so no doCircle scan is needed
+
+    if(!mapBin()->validC(x, y)){
+        return;
+    }
+
+    for(const auto observerUID: getGrid(x, y).observerList){
+        if(observerUID != amA.UID){
+            m_actorPod->post(observerUID, {AM_ACTION, amA});
+        }
+    }
+}
+
+void ServerMap::forwardObserverAction(const AMAction &amA, int srcX, int srcY, int dstX, int dstY)
+{
+    // forward a move/jump/spacemove to the union of observers of the source and destination grids
+    // src-only observers lose sight of the actor and remove it, dst observers gain or keep sight of it
+
+    std::unordered_set<uint64_t> postedUIDList;
+    const auto fnForwardGrid = [&amA, &postedUIDList, this](int x, int y)
+    {
+        if(!mapBin()->validC(x, y)){
+            return;
+        }
+
+        for(const auto observerUID: getGrid(x, y).observerList){
+            if((observerUID != amA.UID) && postedUIDList.insert(observerUID).second){
+                m_actorPod->post(observerUID, {AM_ACTION, amA});
+            }
+        }
+    };
+
+    fnForwardGrid(srcX, srcY);
+    fnForwardGrid(dstX, dstY);
+}
+
 void ServerMap::moveGridUID(uint64_t uid, int srcX, int srcY, int dstX, int dstY)
 {
     if(!removeGridUID(uid, srcX, srcY, false)){

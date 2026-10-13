@@ -442,6 +442,13 @@ local _RSVD_NAME_triggerConfigList = {
             'integer'   -- uid
         },
     },
+
+    [SYS_ON_DISAPPEAR] = {
+        'SYS_ON_DISAPPEAR',
+        {
+            'integer'   -- uid
+        },
+    },
 }
 
 function _RSVD_NAME_triggerConfig(triggerType)
