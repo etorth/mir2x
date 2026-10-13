@@ -116,6 +116,9 @@ class CharObject: public ServerObject
         bool inView(uint64_t, int, int) const;
 
     protected:
+        virtual void onInViewCODisappear(uint64_t) {}
+
+    protected:
         void trimInViewCO();
         bool removeInViewCO(uint64_t);
         int  updateInViewCO(const COLocation &, bool = false);

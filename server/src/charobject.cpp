@@ -158,13 +158,30 @@ bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
 
 void CharObject::trimInViewCO()
 {
+    std::inplace_vector<uint64_t, 128> sbuf;
+    std::vector<uint64_t> dbuf;
+
     for(auto p = m_inViewCOList.begin(); p != m_inViewCOList.end();){
         if(inView(p->second.mapUID, p->second.x, p->second.y)){
-            p++;
+            ++p;
         }
         else{
+            if(sbuf.size() < sbuf.capacity()){
+                sbuf.push_back(p->first);
+            }
+            else{
+                dbuf.push_back(p->first);
+            }
             p = m_inViewCOList.erase(p);
         }
+    }
+
+    for(const auto uid: sbuf){
+        onInViewCODisappear(uid);
+    }
+
+    for(const auto uid: dbuf){
+        onInViewCODisappear(uid);
     }
 }
 

@@ -183,6 +183,7 @@ class Player final: public BattleObject
         corof::awaitable<> operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
+        void onInViewCODisappear(uint64_t) override;
         corof::awaitable<> onActorMsg(const ActorMsgPack &);
 
     private:

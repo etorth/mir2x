@@ -170,7 +170,7 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
             m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
         }
         else if(addedInView < 0){
-            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_DISAPPEAR, %llu)", to_llu(amA.UID)));
+            onInViewCODisappear(amA.UID);
         }
     }
 
@@ -179,6 +179,13 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
 
     if(m_teamLeader == amA.UID){
         co_await followTeamLeader();
+    }
+}
+
+void Player::onInViewCODisappear(uint64_t uid)
+{
+    if(uidf::isPlayer(uid)){
+        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_DISAPPEAR, %llu)", to_llu(uid)));
     }
 }
 

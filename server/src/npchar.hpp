@@ -73,6 +73,7 @@ class NPChar final: public CharObject
         }
 
     protected:
+        void onInViewCODisappear(uint64_t) override;
         corof::awaitable<> onActivate() override;
 
     private:
