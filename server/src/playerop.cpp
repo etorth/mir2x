@@ -178,7 +178,7 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
     if(addedInView < 0){
         onInViewCODisappear(amA.UID);
     }
-    else if(!inView(amA.mapUID, dstX, dstY)){
+    else if((addedInView == 0) && !inView(amA.mapUID, dstX, dstY)){
         reportCODisappear(amA.UID);
     }
 
