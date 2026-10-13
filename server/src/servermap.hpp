@@ -395,7 +395,7 @@ class ServerMap final: public ServerObject
                 return circle;
             };
 
-            constexpr int MAX_CACHED_R    = SYS_VIEWR;
+            constexpr int MAX_CACHED_R    = SYS_MAX_VIEWR;
             constexpr int MAX_CACHED_STEP = 3;
 
             std::map<std::tuple<int, int, int>,

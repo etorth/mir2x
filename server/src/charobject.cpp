@@ -118,18 +118,18 @@ int CharObject::viewRange() const
     switch(uidf::getUIDType(UID())){
         case UID_PLY:
             {
-                return SYS_VIEWR; // TODO: support better player view range by 充钱!
+                return SYS_PLY_VIEWR; // TODO: support better player view range by 充钱!
             }
         case UID_MON:
             {
                 if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()))){
                     return r.view;
                 }
-                return SYS_VIEWR;
+                return SYS_MON_VIEWR;
             }
         case UID_NPC:
             {
-                return SYS_VIEWR;
+                return SYS_NPC_VIEWR;
             }
         default:
             {

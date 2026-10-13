@@ -62,10 +62,10 @@ constexpr int SYS_MAPVISIBLEW  = 60;
 constexpr int SYS_MAPVISIBLEH  = 40;
 constexpr int SYS_MAPVISIBLECD = 100;
 
-// view range is mutual direction and universal
-// a monster tracks player in range MonsterRecord::view, but it keeps records for all player in SYS_VIEWR as neighbors
-// otherwise monsters will not send ACTION to players in range MonsterRecord::view < d <= SYS_VIEWR
-constexpr int SYS_VIEWR = 15;
+constexpr int SYS_MAX_VIEWR = 40; // for addDeleteList creation
+constexpr int SYS_PLY_VIEWR = 15;
+constexpr int SYS_NPC_VIEWR =  8;
+constexpr int SYS_MON_VIEWR = 10; // monster default view range, specified in MonsterRecord::view
 
 // monster targeting expire time
 // CO targeted longer than the time is expired, for monster only

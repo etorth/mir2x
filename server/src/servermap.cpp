@@ -913,16 +913,19 @@ int ServerMap::observerViewRange(uint64_t uid) // mirrors CharObject::viewRange(
 {
     switch(uidf::getUIDType(uid)){
         case UID_PLY:
+            {
+                return SYS_PLY_VIEWR;
+            }
         case UID_NPC:
             {
-                return SYS_VIEWR;
+                return SYS_NPC_VIEWR;
             }
         case UID_MON:
             {
                 if(const auto record = DBCOM_MONSTERRECORD(uidf::getMonsterID(uid))){
                     return record.view;
                 }
-                return SYS_VIEWR;
+                return SYS_MON_VIEWR;
             }
         default:
             {

@@ -211,7 +211,7 @@ class ProcessRun: public Process
         bool inMyHeroView(int x, int y) const
         {
             const auto myHeroPtr = getMyHero();
-            return mathf::LDistance2<int>(myHeroPtr->x(), myHeroPtr->y(), x, y) <= (SYS_VIEWR - 1) * (SYS_VIEWR - 1);
+            return mathf::LDistance2<int>(myHeroPtr->x(), myHeroPtr->y(), x, y) <= (SYS_PLY_VIEWR - 1) * (SYS_PLY_VIEWR - 1);
         }
 
     public:
