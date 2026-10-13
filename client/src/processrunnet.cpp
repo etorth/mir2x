@@ -301,6 +301,28 @@ void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
         return;
     }
 
+    // only create a new CO if it is within my hero's view range
+    // otherwise a late/stale record could recreate a CO that has already left view
+
+    const auto [cordX, cordY] = [&smCOR]() -> std::tuple<int, int>
+    {
+        switch(smCOR.action.type){
+            case ACTION_MOVE:
+            case ACTION_SPACEMOVE:
+                {
+                    return {smCOR.action.aimX, smCOR.action.aimY};
+                }
+            default:
+                {
+                    return {smCOR.action.x, smCOR.action.y};
+                }
+        }
+    }();
+
+    if(!inMyHeroView(cordX, cordY)){
+        return;
+    }
+
     switch(uidf::getUIDType(smCOR.UID)){
         case UID_MON:
             {
@@ -581,6 +603,18 @@ void ProcessRun::on_SM_CASTMAGIC(const uint8_t *bufPtr, size_t)
             {
                 break;
             }
+    }
+}
+
+void ProcessRun::on_SM_CODISAPPEAR(const uint8_t *bufPtr, size_t)
+{
+    const auto smCOD = ServerMsg::conv<SMCODisappear>(bufPtr);
+    if(smCOD.mapUID == mapUID()){
+        fflassert(smCOD.UID);
+        fflassert(smCOD.UID != m_myHeroUID);
+
+        m_actionBlocker.erase(smCOD.UID);
+        m_coList.erase(smCOD.UID);
     }
 }
 

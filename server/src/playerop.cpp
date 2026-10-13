@@ -169,13 +169,18 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
         if(addedInView > 0){
             m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
         }
-        else if(addedInView < 0){
-            onInViewCODisappear(amA.UID);
-        }
     }
 
     // always need to notify client for CO gets added/moved/removed
     reportAction(amA.UID, amA.mapUID, amA.action);
+
+    // send removal after the final action, which could otherwise recreate the CO on the client.
+    if(addedInView < 0){
+        onInViewCODisappear(amA.UID);
+    }
+    else if(!inView(amA.mapUID, dstX, dstY)){
+        reportCODisappear(amA.UID);
+    }
 
     if(m_teamLeader == amA.UID){
         co_await followTeamLeader();
@@ -184,6 +189,8 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
 
 void Player::onInViewCODisappear(uint64_t uid)
 {
+    reportCODisappear(uid);
+
     if(uidf::isPlayer(uid)){
         m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_DISAPPEAR, %llu)", to_llu(uid)));
     }

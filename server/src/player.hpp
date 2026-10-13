@@ -295,6 +295,7 @@ class Player final: public BattleObject
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint64_t);
+        void reportCODisappear(uint64_t);
         void reportUpdateItem(const SDItem &);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
         void reportSecuredItemList();

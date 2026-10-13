@@ -7,7 +7,9 @@
 #include <cstdint>
 #include <algorithm>
 
+#include "mathf.hpp"
 #include "myhero.hpp"
+#include "sysconst.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "focustype.hpp"
@@ -206,6 +208,12 @@ class ProcessRun: public Process
             return m_mir2xMapData.validC(x, y);
         }
 
+        bool inMyHeroView(int x, int y) const
+        {
+            const auto myHeroPtr = getMyHero();
+            return mathf::LDistance2<int>(myHeroPtr->x(), myHeroPtr->y(), x, y) <= (SYS_VIEWR - 1) * (SYS_VIEWR - 1);
+        }
+
     public:
 #define _support_sm(sm) void on_##sm(const uint8_t *, size_t)
         _support_sm(SM_EXP);
@@ -219,6 +227,7 @@ class ProcessRun: public Process
         _support_sm(SM_INVOPCOST);
         _support_sm(SM_ACTION);
         _support_sm(SM_OFFLINE);
+        _support_sm(SM_CODISAPPEAR);
         _support_sm(SM_NPCSELL);
         _support_sm(SM_NPCERROR);
         _support_sm(SM_STARTGAMESCENE);

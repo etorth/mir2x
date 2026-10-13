@@ -2016,6 +2016,10 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                         return false;
                     }
 
+                    if(!inMyHeroView(action.x, action.y) || m_coList.contains(uid)){
+                        return true;
+                    }
+
                     m_coList[uid].reset(new ClientTaoSkeleton(uid, this, ActionStand
                     {
                         .direction = DIR_DOWNLEFT,
@@ -2046,6 +2050,10 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 {
                     if(magicPtr->frame() < 10){
                         return false;
+                    }
+
+                    if(!inMyHeroView(action.x, action.y) || m_coList.contains(uid)){
+                        return true;
                     }
 
                     m_coList[uid].reset(new ClientTaoSkeletonExt(uid, this, ActionStand

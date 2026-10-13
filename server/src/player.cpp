@@ -835,6 +835,19 @@ void Player::reportAction(uint64_t uid, uint64_t actionMapUID, const ActionNode 
     postNetMessage(SM_ACTION, smA);
 }
 
+void Player::reportCODisappear(uint64_t uid)
+{
+    fflassert(uid);
+    fflassert(uid != UID());
+
+    const SMCODisappear smCD
+    {
+        .UID = uid,
+        .mapUID = mapUID(),
+    };
+    postNetMessage(SM_CODISAPPEAR, smCD);
+}
+
 void Player::reportDeadUID(uint64_t nDeadUID)
 {
     SMNotifyDead smND;

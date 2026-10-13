@@ -233,6 +233,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_NPCXMLLAYOUT)
         _INSTALL_SM_HANDLER(ProcessRun, SM_NPCERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_OFFLINE)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_CODISAPPEAR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PICKUPERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PING)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERCONFIG)
