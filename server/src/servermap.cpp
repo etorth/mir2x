@@ -943,6 +943,10 @@ void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
             if(auto p = std::ranges::find(observers, uid); p != observers.end()){
                 std::swap(*p, observers.back());
                 observers.pop_back();
+
+                if(observers.size() * 2 < observers.capacity()){
+                    observers.shrink_to_fit();
+                }
             }
         }
     }
@@ -1066,7 +1070,7 @@ bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY, bool updateObservers
     auto p = std::find(uidList.begin(), uidList.end(), uid);
 
     if(p == uidList.end()){
-        return false;
+        return false; // observer memberships are not cleaned up if CO not found
     }
 
     std::swap(uidList.back(), *p);
@@ -1075,6 +1079,7 @@ bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY, bool updateObservers
     if(uidList.size() * 2 < uidList.capacity()){
         uidList.shrink_to_fit();
     }
+
     if(updateObservers){
         updateGridObserverCircle(uid, nX, nY, false);
     }
