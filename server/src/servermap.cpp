@@ -940,7 +940,10 @@ void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
             }
         }
         else{
-            std::erase(observers, uid);
+            if(auto p = std::ranges::find(observers, uid); p != observers.end()){
+                std::swap(*p, observers.back());
+                observers.pop_back();
+            }
         }
     }
 }
