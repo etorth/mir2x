@@ -5,6 +5,8 @@
 - Map grid trigger better understanding
 - Monster/Magic configurable and editable interface
 - follow UID magic should vanish when tracking
+- hasPlayerNeighbor only checks CO in view range, this is not good, should change to a query to map: hasObserver
+- a moving PLY jumps to a group of static MONs, PLY should see all MONs in PLY's view range, but current it's not, only see all MONs in MON's view range.
 
 # HonChonDo / HonChonMado — the two legendary blade questlines
 
