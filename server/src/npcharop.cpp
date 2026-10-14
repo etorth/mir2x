@@ -144,6 +144,11 @@ corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> NPChar::on_AM_NOTIFYDEAD(const ActorMsgPack &)
+{
+    return {};
+}
+
 corof::awaitable<> NPChar::on_AM_OBSERVE(const ActorMsgPack &mpk)
 {
     const auto amO = mpk.conv<AMObserve>();

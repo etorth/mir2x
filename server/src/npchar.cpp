@@ -581,6 +581,10 @@ corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_OBSERVE(mpk);
             }
+        case AM_NOTIFYDEAD:
+            {
+                return on_AM_NOTIFYDEAD(mpk);
+            }
         case AM_QUERYCORECORD:
             {
                 return on_AM_QUERYCORECORD(mpk);
