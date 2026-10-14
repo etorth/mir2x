@@ -478,9 +478,9 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_QUERYHEALTH(rstMPK);
             }
-        case AM_NOTIFYNEWCO:
+        case AM_OBSERVE:
             {
-                return on_AM_NOTIFYNEWCO(rstMPK);
+                return on_AM_OBSERVE(rstMPK);
             }
         case AM_DEADFADEOUT:
             {
@@ -1238,14 +1238,24 @@ corof::awaitable<int> Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targ
     }
 }
 
-bool Monster::hasPlayerNeighbor() const
+corof::awaitable<bool> Monster::isObserved()
 {
-    for(const auto &[uid, coLoc]: m_inViewCOList){
-        if(uidf::getUIDType(coLoc.uid) == UID_PLY){
-            return true;
-        }
+    AMQueryObserved amQO;
+    std::memset(&amQO, 0, sizeof(amQO));
+
+    amQO.X = X();
+    amQO.Y = Y();
+
+    switch(const auto mpk = co_await m_actorPod->send(mapUID(), {AM_QUERYOBSERVED, amQO}); mpk.type()){
+        case AM_FALSE:
+            {
+                co_return false;
+            }
+        default:
+            {
+                co_return true; // keep polling when the map can not answer
+            }
     }
-    return false;
 }
 
 corof::awaitable<bool> Monster::asyncIdleWait(uint64_t tick)
@@ -1256,8 +1266,12 @@ corof::awaitable<bool> Monster::asyncIdleWait(uint64_t tick)
         co_return co_await asyncWait(tick);
     }
 
-    if(hasPlayerNeighbor()){
+    if(co_await isObserved()){
         co_return co_await asyncWait(tick);
+    }
+
+    if(m_sdHealth.dead()){
+        co_return false;
     }
 
     m_idleWaitToken.emplace();

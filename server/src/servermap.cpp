@@ -657,6 +657,10 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_QUERYCOCOUNT(rstMPK);
             }
+        case AM_QUERYOBSERVED:
+            {
+                return on_AM_QUERYOBSERVED(rstMPK);
+            }
         case AM_OFFLINE:
             {
                 return on_AM_OFFLINE(rstMPK);
@@ -940,6 +944,7 @@ void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
         if(auto &observers = getGrid(x, y).observerList; add){
             if(std::ranges::find(observers, uid) == observers.end()){
                 observers.push_back(uid);
+                notifyGridObserved(uid, x, y);
             }
         }
         else{
@@ -963,6 +968,72 @@ void ServerMap::updateGridObserverCircle(uint64_t uid, int x, int y, bool add)
             updateGridObserver(uid, gridX, gridY, add);
             return false;
         });
+    }
+}
+
+void ServerMap::moveGridObserverCircle(uint64_t uid, int srcX, int srcY, int dstX, int dstY)
+{
+    // only update grids that leave or enter the observer circle
+    // a newly entered grid notifies its COs that this CO starts observing them
+
+    const int range = observerViewRange(uid);
+    const int step = std::max<int>(std::abs(dstX - srcX), std::abs(dstY - srcY));
+
+    if(range <= 0 || step == 0){
+        return;
+    }
+
+    if(const int dir = pathf::getOffDir(srcX, srcY, dstX, dstY); pathf::dirValid(dir)){
+        if(const auto [frontX, frontY] = pathf::getFrontGLoc(srcX, srcY, dir, step); (frontX == dstX) && (frontY == dstY)){
+            if(const auto delta = m_addDeleteGridList.find({dir, step, range}); delta != m_addDeleteGridList.end()){
+                for(const auto &[dx, dy]: delta->second.second){
+                    updateGridObserver(uid, srcX + dx, srcY + dy, false);
+                }
+
+                for(const auto &[dx, dy]: delta->second.first){
+                    updateGridObserver(uid, srcX + dx, srcY + dy, true);
+                }
+                return;
+            }
+        }
+    }
+
+    const auto fnInCircle = [range](int x, int y, int cx, int cy)
+    {
+        return mathf::LDistance2<int>(x, y, cx, cy) <= (range - 1) * (range - 1);
+    };
+
+    doCircle(srcX, srcY, range, [uid, dstX, dstY, &fnInCircle, this](int x, int y)
+    {
+        if(!fnInCircle(x, y, dstX, dstY)){
+            updateGridObserver(uid, x, y, false);
+        }
+        return false;
+    });
+
+    doCircle(dstX, dstY, range, [uid, srcX, srcY, &fnInCircle, this](int x, int y)
+    {
+        if(!fnInCircle(x, y, srcX, srcY)){
+            updateGridObserver(uid, x, y, true);
+        }
+        return false;
+    });
+}
+
+void ServerMap::notifyGridObserved(uint64_t observerUID, int x, int y)
+{
+    if(!mapBin()->validC(x, y)){
+        return;
+    }
+
+    AMObserve amO;
+    std::memset(&amO, 0, sizeof(amO));
+    amO.UID = observerUID;
+
+    for(const auto uid: getUIDList(x, y)){
+        if(uid != observerUID){
+            m_actorPod->post(uid, {AM_OBSERVE, amO});
+        }
     }
 }
 
@@ -1011,30 +1082,7 @@ void ServerMap::moveGridUID(uint64_t uid, int srcX, int srcY, int dstX, int dstY
         throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", uid, srcX, srcY);
     }
     addGridUID(uid, dstX, dstY, true, false);
-
-    if(const int range = observerViewRange(uid); range > 0){
-        const int step = std::max<int>(std::abs(dstX - srcX), std::abs(dstY - srcY));
-        if(step == 0){
-            return;
-        }
-
-        const int dir = pathf::getOffDir(srcX, srcY, dstX, dstY);
-        const auto delta = m_addDeleteGridList.find({dir, step, range});
-
-        if(delta != m_addDeleteGridList.end()){
-            for(const auto &[dx, dy]: delta->second.second){
-                updateGridObserver(uid, srcX + dx, srcY + dy, false);
-            }
-
-            for(const auto &[dx, dy]: delta->second.first){
-                updateGridObserver(uid, srcX + dx, srcY + dy, true);
-            }
-        }
-        else{
-            updateGridObserverCircle(uid, srcX, srcY, false);
-            updateGridObserverCircle(uid, dstX, dstY, true);
-        }
-    }
+    moveGridObserverCircle(uid, srcX, srcY, dstX, dstY);
 }
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce, bool updateObservers)
@@ -1388,27 +1436,6 @@ int ServerMap::getMonsterCount(uint32_t monsterID)
         }
     }
     return result;
-}
-
-void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
-{
-    AMNotifyNewCO amNNCO;
-    std::memset(&amNNCO, 0, sizeof(amNNCO));
-
-    amNNCO.UID = nUID;
-    doCircle(nX, nY, 20, [this, amNNCO](int nX, int nY) -> bool
-    {
-        if(true || mapBin()->validC(nX, nY)){
-            doUIDList(nX, nY, [this, amNNCO](uint64_t nUID)
-            {
-                if(nUID != amNNCO.UID){
-                    m_actorPod->post(nUID, {AM_NOTIFYNEWCO, amNNCO});
-                }
-                return false;
-            });
-        }
-        return false;
-    });
 }
 
 int ServerMap::checkPathGrid(int argX, int argY) const

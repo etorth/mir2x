@@ -557,9 +557,9 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_BADACTORPOD(mpk);
             }
-        case AM_NOTIFYNEWCO:
+        case AM_OBSERVE:
             {
-                return on_AM_NOTIFYNEWCO(mpk);
+                return on_AM_OBSERVE(mpk);
             }
         case AM_QUERYHEALTH:
             {

@@ -115,7 +115,8 @@ enum ActorMsgPackType: int
     AM_PICKUPITEMLIST,
     AM_REMOVEGROUNDITEM,
     AM_CORECORD,
-    AM_NOTIFYNEWCO,
+    AM_OBSERVE,
+    AM_QUERYOBSERVED,
     AM_CHECKMASTER,
     AM_CHECKMASTEROK,
     AM_QUERYMASTER,
@@ -261,7 +262,8 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_PICKUPITEMLIST)
         _add_mpk_type_case(AM_REMOVEGROUNDITEM)
         _add_mpk_type_case(AM_CORECORD)
-        _add_mpk_type_case(AM_NOTIFYNEWCO)
+        _add_mpk_type_case(AM_OBSERVE)
+        _add_mpk_type_case(AM_QUERYOBSERVED)
         _add_mpk_type_case(AM_CHECKMASTER)
         _add_mpk_type_case(AM_CHECKMASTEROK)
         _add_mpk_type_case(AM_QUERYMASTER)
@@ -790,9 +792,15 @@ struct AMCORecord
     };
 };
 
-struct AMNotifyNewCO
+struct AMObserve
 {
-    uint64_t UID;
+    uint64_t UID; // CO that starts to observe the receiver
+};
+
+struct AMQueryObserved
+{
+    int X;
+    int Y;
 };
 
 struct AMCheckMasterOK

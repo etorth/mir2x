@@ -226,8 +226,11 @@ class ServerMap final: public ServerObject
         bool removeGridUID(uint64_t, int, int,       bool = true);
 
         static int observerViewRange(uint64_t);
-        void updateGridObserver(uint64_t, int, int, bool);
+
+        void updateGridObserver      (uint64_t, int, int, bool);
         void updateGridObserverCircle(uint64_t, int, int, bool);
+        void   moveGridObserverCircle(uint64_t, int, int, int, int);
+        void notifyGridObserved      (uint64_t, int, int);
 
         void forwardObserverAction(const AMAction &, int, int);
         void forwardObserverAction(const AMAction &, int, int, int, int);
@@ -239,9 +242,6 @@ class ServerMap final: public ServerObject
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int) const;
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int, int, int) const;
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int, int, int, int, int) const;
-
-    private:
-        void notifyNewCO(uint64_t, int, int);
 
     private:
         int getMonsterCount(uint32_t);
@@ -461,6 +461,7 @@ class ServerMap final: public ServerObject
         corof::awaitable<> on_AM_DROPITEMLIST        (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYOBSERVED       (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_CASTFIREWALL        (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOTECALL          (const ActorMsgPack &);

@@ -171,16 +171,24 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::awaitable<> Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_OBSERVE(const ActorMsgPack &mpk)
 {
-    const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
-    if(m_sdHealth.dead()){
-        notifyDead(amNNCO.UID);
+    const auto amO = mpk.conv<AMObserve>();
+    if(mpk.from() != mapUID()){
+        return {};
     }
-    else{
-        // should make an valid action node and send it
-        // currently just dispatch through map
-        dispatchAction(makeActionStand());
+
+    if(m_sdHealth.dead()){
+        notifyDead(amO.UID);
+        return {};
+    }
+
+    dispatchAction(amO.UID, makeActionStand());
+    dispatchHealth(amO.UID);
+
+    if(uidf::isPlayer(amO.UID) && m_idleWaitToken.has_value()){
+        m_actorPod->cancelWaitToken(m_idleWaitToken.value());
+        m_idleWaitToken.reset();
     }
     return {};
 }

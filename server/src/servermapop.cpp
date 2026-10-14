@@ -129,11 +129,13 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                 amA.mapUID = amSMOK.mapUID;
                 amA.action = amSMOK.action;
 
-                if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
+                if(!removeGridUID(fromUID, amTSM.X, amTSM.Y, false)){
                     throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTSM.X, amTSM.Y);
                 }
 
-                addGridUID(fromUID, nDstX, nDstY, true);
+                addGridUID(fromUID, nDstX, nDstY, true, false);
+                moveGridObserverCircle(fromUID, amTSM.X, amTSM.Y, nDstX, nDstY);
+
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
                     postGroundFireWallList(fromUID, nDstX, nDstY);
@@ -210,11 +212,13 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                     throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTJ.X, amTJ.Y);
                 }
 
-                removeGridUID(fromUID, amTJ.X, amTJ.Y);
+                removeGridUID(fromUID, amTJ.X, amTJ.Y, false);
 
                 // push to the new cell
                 // check if it should switch the map
-                addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true);
+                addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true, false);
+                moveGridObserverCircle(fromUID, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
+
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList(fromUID, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
                     postGroundFireWallList(fromUID, amTJ.EndX, amTJ.EndY);
@@ -718,6 +722,18 @@ corof::awaitable<> ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
             return false;
         });
     }
+    return {};
+}
+
+corof::awaitable<> ServerMap::on_AM_QUERYOBSERVED(const ActorMsgPack &mpk)
+{
+    const auto amQO = mpk.conv<AMQueryObserved>();
+    const auto observed = mapBin()->validC(amQO.X, amQO.Y) && std::ranges::any_of(getGrid(amQO.X, amQO.Y).observerList, [](uint64_t uid)
+    {
+        return uidf::isPlayer(uid);
+    });
+
+    m_actorPod->post(mpk.fromAddr(), observed ? AM_TRUE : AM_FALSE);
     return {};
 }
 

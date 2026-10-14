@@ -144,10 +144,11 @@ corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::awaitable<> NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_OBSERVE(const ActorMsgPack &mpk)
 {
-    if(uidf::getUIDType(mpk.from()) == UID_PLY){
-        dispatchAction(mpk.from(), makeActionStand());
+    const auto amO = mpk.conv<AMObserve>();
+    if(mpk.from() == mapUID()){
+        dispatchAction(amO.UID, makeActionStand());
     }
     return {};
 }

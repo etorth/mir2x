@@ -145,7 +145,7 @@ class Monster: public BattleObject
         corof::awaitable<> on_AM_QUERYMASTER     (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYHEALTH     (const ActorMsgPack &);
         corof::awaitable<> on_AM_DEADFADEOUT     (const ActorMsgPack &);
-        corof::awaitable<> on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OBSERVE         (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCORECORD   (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYLOCATION   (const ActorMsgPack &);
@@ -228,7 +228,7 @@ class Monster: public BattleObject
         }
 
     public:
-        bool hasPlayerNeighbor() const;
+        corof::awaitable<bool> isObserved();
 
     protected:
         virtual corof::awaitable<bool> asyncIdleWait(uint64_t);

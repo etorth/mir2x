@@ -203,7 +203,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_RECVPACKAGE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADCHANNEL         (const ActorMsgPack &);
         corof::awaitable<> on_AM_NOTIFYDEAD         (const ActorMsgPack &);
-        corof::awaitable<> on_AM_NOTIFYNEWCO        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OBSERVE            (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYHEALTH        (const ActorMsgPack &);
         corof::awaitable<> on_AM_DEADFADEOUT        (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD        (const ActorMsgPack &);

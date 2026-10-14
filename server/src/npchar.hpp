@@ -82,7 +82,7 @@ class NPChar final: public CharObject
         corof::awaitable<> on_AM_ATTACK(const ActorMsgPack &);
         corof::awaitable<> on_AM_ACTION(const ActorMsgPack &);
         corof::awaitable<> on_AM_NPCEVENT(const ActorMsgPack &);
-        corof::awaitable<> on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        corof::awaitable<> on_AM_OBSERVE(const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD(const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCORECORD(const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYLOCATION(const ActorMsgPack &);

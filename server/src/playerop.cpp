@@ -196,16 +196,18 @@ void Player::onInViewCODisappear(uint64_t uid)
     }
 }
 
-corof::awaitable<> Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
+corof::awaitable<> Player::on_AM_OBSERVE(const ActorMsgPack &mpk)
 {
-    const auto amNNCO = mpk.conv<AMNotifyNewCO>();
+    const auto amO = mpk.conv<AMObserve>();
+    if(mpk.from() != mapUID()){
+        return {};
+    }
+
     if(m_sdHealth.dead()){
-        notifyDead(amNNCO.UID);
+        notifyDead(amO.UID);
     }
     else{
-        // should make an valid action node and send it
-        // currently just dispatch through map
-        dispatchAction(amNNCO.UID, makeActionStand());
+        dispatchAction(amO.UID, makeActionStand());
     }
     return {};
 }
