@@ -19,6 +19,7 @@
 #include "processcreatechar.hpp"
 #include "processcreateaccount.hpp"
 #include "processchangepassword.hpp"
+#include "processconnectionerror.hpp"
 #include "pngtexoffdb.hpp"
 #include "messagestackboard.hpp"
 #include "buildconfig.hpp"
@@ -153,6 +154,13 @@ void Client::initASIO()
         else{
             onServerMessage(headCode, pData, nDataLen);
         }
+        switchProcess();
+    },
+
+    [this](std::error_code ec)
+    {
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Connection error: %s (%s:%d)", ec.message().c_str(), ec.category().name(), ec.value());
+        requestProcess(PROCESSID_CONNECTIONERROR);
         switchProcess();
     });
 }
@@ -310,6 +318,12 @@ void Client::switchProcess(int oldID, int newID)
                             SDL_HideCursor();
                             break;
                         }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
                     case PROCESSID_EXIT:
                         {
                             // exit immediately when logo shows
@@ -333,6 +347,12 @@ void Client::switchProcess(int oldID, int newID)
                             SDL_ShowCursor();
                             break;
                         }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
                     case PROCESSID_EXIT:
                         {
                             // exit immediately when logo shows
@@ -352,6 +372,12 @@ void Client::switchProcess(int oldID, int newID)
                     case PROCESSID_LOGIN:
                         {
                             m_currentProcess = std::make_unique<ProcessLogin>();
+                            SDL_ShowCursor();
+                            break;
+                        }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
                             SDL_ShowCursor();
                             break;
                         }
@@ -381,6 +407,12 @@ void Client::switchProcess(int oldID, int newID)
                             m_currentProcess = std::make_unique<ProcessChangePassword>();
                             break;
                         }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
                     default:
                         {
                             break;
@@ -396,6 +428,12 @@ void Client::switchProcess(int oldID, int newID)
                             m_currentProcess = std::make_unique<ProcessLogin>();
                             break;
                         }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
                     default:
                         {
                             break;
@@ -409,6 +447,12 @@ void Client::switchProcess(int oldID, int newID)
                     case PROCESSID_LOGIN:
                         {
                             m_currentProcess = std::make_unique<ProcessLogin>();
+                            break;
+                        }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
                             break;
                         }
                     default:
@@ -432,6 +476,12 @@ void Client::switchProcess(int oldID, int newID)
                             m_currentProcess = std::make_unique<ProcessCreateChar>();
                             break;
                         }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
                     default:
                         {
                             break;
@@ -445,6 +495,28 @@ void Client::switchProcess(int oldID, int newID)
                     case PROCESSID_SELECTCHAR:
                         {
                             m_currentProcess = std::make_unique<ProcessSelectChar>();
+                            break;
+                        }
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case PROCESSID_RUN:
+            {
+                switch(newID){
+                    case PROCESSID_CONNECTIONERROR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessConnectionError>();
+                            SDL_ShowCursor();
                             break;
                         }
                     default:

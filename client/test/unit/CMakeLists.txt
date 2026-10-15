@@ -22,3 +22,10 @@ mir2x_add_unit_test(
 )
 target_compile_definitions(test_xmltypeset PRIVATE
     MIR2X_TEST_DEFAULT_RES_DIR="${CMAKE_INSTALL_PREFIX}/client/res")
+
+mir2x_add_unit_test(
+    NAME netio
+    SOURCES test_netio.cpp ../../src/netio.cpp
+    LIBS common
+)
+target_include_directories(test_netio PRIVATE ../../src)

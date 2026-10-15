@@ -36,7 +36,8 @@ void NetIO::doReadPacketHeadCode()
     asio::async_read(m_socket, asio::buffer(m_readSBuf, 1), [this](std::error_code ec, size_t)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message());
+            onConnectionError(ec);
+            return;
         }
 
         m_respIDOpt.reset();
@@ -115,7 +116,8 @@ void NetIO::doReadPacketBody(size_t maskSize, size_t bodySize)
         asio::async_read(m_socket, asio::buffer(m_readDBuf.data(), totalSize), [maskSize, bodySize, this](std::error_code ec, size_t)
         {
             if(ec){
-                throw fflpanic("network error: {}", ec.message());
+                onConnectionError(ec);
+                return;
             }
 
             if(maskSize){
@@ -154,7 +156,8 @@ void NetIO::doSendBuf()
     asio::async_write(m_socket, asio::buffer(m_currSendBuf.data(), m_currSendBuf.size()), [this](std::error_code ec, size_t)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message());
+            onConnectionError(ec);
+            return;
         }
 
         m_currSendBuf.clear();
@@ -239,21 +242,38 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize, uint64_t 
     }
 }
 
-void NetIO::start(const std::string &ipStr, const std::string &portStr, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)> msgHandler)
+void NetIO::onConnectionError(std::error_code ec)
+{
+    shutdown();
+    if(auto handler = std::move(m_connectionErrorHandler)){
+        handler(ec);
+    }
+}
+
+void NetIO::start(const std::string &ipStr, const std::string &portStr, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)> msgHandler, std::function<void(std::error_code)> connectionErrorHandler)
 {
     fflassert(str_haschar(  ipStr));
     fflassert(str_haschar(portStr));
 
     fflassert(msgHandler);
+    fflassert(connectionErrorHandler);
     m_msgHandler = std::move(msgHandler);
+    m_connectionErrorHandler = std::move(connectionErrorHandler);
 
-    asio::async_connect(m_socket, m_resolver.resolve(ipStr, portStr), [this](std::error_code ec, const asio::ip::tcp::endpoint &)
+    m_resolver.async_resolve(ipStr, portStr, [this](std::error_code ec, asio::ip::tcp::resolver::results_type endpoints)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message());
+            onConnectionError(ec);
+            return;
         }
-        else{
+
+        asio::async_connect(m_socket, endpoints, [this](std::error_code connectError, const asio::ip::tcp::endpoint &)
+        {
+            if(connectError){
+                onConnectionError(connectError);
+                return;
+            }
             doReadPacketHeadCode();
-        }
+        });
     });
 }

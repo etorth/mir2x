@@ -29,6 +29,7 @@ class NetIO final
 
     private:
         std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)> m_msgHandler;
+        std::function<void(std::error_code)> m_connectionErrorHandler;
 
     public:
         NetIO()
@@ -45,7 +46,11 @@ class NetIO final
         }
 
     public:
-        void start(const std::string &, const std::string &, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>);
+        void start(const std::string &, // hostname
+                   const std::string &, // port
+
+                   std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>, // message handler
+                   std::function<void(std::error_code)>);                           // error   handler
 
     public:
         void poll()
@@ -62,6 +67,7 @@ class NetIO final
         }
 
     private:
+        void onConnectionError(std::error_code);
         void doSendBuf();
 
     public:
@@ -96,7 +102,8 @@ class NetIO final
             asio::async_read(m_socket, asio::buffer(m_readSBuf + offset, 1), [offset, fnOp, this](std::error_code ec, size_t)
             {
                 if(ec){
-                    throw fflpanic("network error: {}", ec.message());
+                    onConnectionError(ec);
+                    return;
                 }
 
                 if(m_readSBuf[offset] & 0x80){
