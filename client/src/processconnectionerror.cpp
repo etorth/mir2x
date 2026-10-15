@@ -12,8 +12,10 @@ ProcessConnectionError::ProcessConnectionError()
             []{ return std::get<1>(g_sdlDevice->getWindowLogicalSize()) / 2; },
             false)
 {
-    const auto exit = []{ g_client->requestProcess(PROCESSID_EXIT); };
-    m_board.waitChoice(u8"<layout><par>无法连接到服务器</par></layout>", exit, exit);
+    m_board.waitChoice(u8"<layout><par>无法连接到服务器</par></layout>", []
+    {
+        g_client->requestProcess(PROCESSID_EXIT);
+    });
 }
 
 void ProcessConnectionError::draw() const

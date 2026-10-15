@@ -61,7 +61,6 @@ class InputStringBoard: public Widget
 
     public:
         void waitInput(InputStringBoard::WaitInputArgs);
-
         void waitChoice(
                 std::u8string,
                 std::function<void()>,

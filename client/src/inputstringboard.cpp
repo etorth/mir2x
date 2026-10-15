@@ -109,7 +109,15 @@ InputStringBoard::InputStringBoard(
 
     , m_yesButton
       {{
-          .x = 66,
+          .x = [this]
+          {
+              if(m_onAccept && m_onReject){
+                  return 66;
+              }
+              else{
+                  return (w() - m_yesButton.w()) / 2;
+              }
+          },
           .y = 190,
 
           .texIDList
@@ -130,7 +138,15 @@ InputStringBoard::InputStringBoard(
 
     , m_nopButton
       {{
-          .x = 212,
+          .x = [this]
+          {
+              if(m_onAccept && m_onReject){
+                  return 212;
+              }
+              else{
+                  return (w() - m_nopButton.w()) / 2;
+              }
+          },
           .y = 190,
 
           .texIDList
@@ -159,6 +175,9 @@ InputStringBoard::InputStringBoard(
     setShow(false);
     setSize([this]{ return m_bg.w(); },
             [this]{ return m_bg.h(); });
+
+    m_yesButton.setShow([this]{ return static_cast<bool>(m_onAccept) || !m_onReject; });
+    m_nopButton.setShow([this]{ return static_cast<bool>(m_onReject)               ; });
 
     m_inputBg.setShow([this]
     {
@@ -208,12 +227,12 @@ void InputStringBoard::waitChoice(
         std::function<void()> onReject)
 {
     m_textInfo.loadXML(to_cstr(layoutString), 0);
-    m_onAccept = [onAccept = std::move(onAccept)](std::u8string)
-    {
-        if(onAccept){
-            onAccept();
-        }
-    };
+    if(onAccept){
+        m_onAccept = [onAccept = std::move(onAccept)](std::u8string){ onAccept(); };
+    }
+    else{
+        m_onAccept = nullptr;
+    }
     m_onReject = std::move(onReject);
 
     clear();
