@@ -11,6 +11,7 @@
 #include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
+#include "sysconst.hpp"
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
 #include "luaf.hpp"
@@ -86,10 +87,11 @@ struct SDInitPlayer
     int hairColor = 0;
 
     int pkPoint = 0;
+    int viewRange = SYS_PLY_VIEWR;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor, pkPoint);
+        ar(dbid, channID, name, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor, pkPoint, viewRange);
     }
 };
 
@@ -734,10 +736,11 @@ struct SDStartGameScene
     SDWLDesp desp;
     std::string name {};
     uint32_t nameColor = 0;
+    int viewRange = SYS_PLY_VIEWR;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, mapUID, x, y, direction, desp, name, nameColor);
+        ar(uid, mapUID, x, y, direction, desp, name, nameColor, viewRange);
     }
 };
 

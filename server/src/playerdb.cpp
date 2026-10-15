@@ -83,6 +83,11 @@ void Player::dbUpdatePKPoint()
     g_dbPod->exec(u8R"###( update tbl_char set fld_pkpoint = %llu where fld_dbid = %llu )###", to_llu(pkPoint()), to_llu(dbid()));
 }
 
+void Player::dbUpdateViewRange()
+{
+    g_dbPod->exec(u8R"###( update tbl_char set fld_viewr = %d where fld_dbid = %llu )###", viewRange(), to_llu(dbid()));
+}
+
 void Player::dbUpdateMapGLoc()
 {
     if(uidf::isBaseMap(mapUID())){

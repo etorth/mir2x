@@ -193,6 +193,17 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->gainExp(exp);
     });
 
+    bindFunction("getViewRange", [this]() -> int
+    {
+        return getPlayer()->viewRange();
+    });
+
+    bindFunction("addViewRange", [this](int added) -> int
+    {
+        getPlayer()->setViewRange(getPlayer()->viewRange() + added);
+        return getPlayer()->viewRange();
+    });
+
     // hand over an item the player can not take off once worn, see SDItem::EA_BIND
     //
     // returns the seqID, a quest needs it to tell the lent copy from one the player already
@@ -522,6 +533,7 @@ Player::Player(const SDInitPlayer &initParam)
     , m_job(initParam.job)
     , m_name(initParam.name)
     , m_pkPoint(initParam.pkPoint)
+    , m_viewRange(std::clamp<int>(initParam.viewRange, 1, SYS_MAX_VIEWR))
     , m_hair(initParam.hair)
     , m_hairColor(initParam.hairColor)
 {
@@ -1160,10 +1172,12 @@ void Player::dispatchOffline()
         AMOffline amO;
         std::memset(&amO, 0, sizeof(amO));
 
-        amO.UID    = UID();
+        amO.UID = UID();
         amO.mapUID = mapUID();
-        amO.X      = X();
-        amO.Y      = Y();
+        amO.viewRange = viewRange();
+
+        amO.X = X();
+        amO.Y = Y();
 
         m_actorPod->post(mapUID(), {AM_OFFLINE, amO});
         return;
@@ -2032,6 +2046,7 @@ void Player::postOnlineOK()
 
         .name = m_name,
         .nameColor = nameColor(),
+        .viewRange = viewRange(),
     }));
 
     postExp();
@@ -2376,6 +2391,38 @@ bool Player::hasAggression(uint64_t targetUID) const
         return hres_tstamp().to_sec() < p->second + SYS_PKAGGRESSIONTIME;
     }
     return false;
+}
+
+void Player::setViewRange(int newViewRange)
+{
+    const auto oldViewRange = std::exchange(m_viewRange, std::clamp<int>(newViewRange, 1, SYS_MAX_VIEWR));
+    if(oldViewRange == m_viewRange){
+        return;
+    }
+
+    dbUpdateViewRange();
+
+    // send to client before trimInViewCO() and AM_VIEWRANGE
+    // client checks every reported CO against this view range
+    postNetMessage(SM_VIEWRANGE, SMViewRange
+    {
+        .viewRange = static_cast<uint8_t>(m_viewRange),
+    });
+
+    if(m_viewRange < oldViewRange){
+        trimInViewCO();
+    }
+
+    // map updates its observer list, newly observed COs report to me by AM_OBSERVE
+    AMViewRange amVR;
+    std::memset(&amVR, 0, sizeof(amVR));
+
+    amVR.X = X();
+    amVR.Y = Y();
+    amVR.oldViewRange = oldViewRange;
+    amVR.newViewRange =  m_viewRange;
+
+    m_actorPod->post(mapUID(), {AM_VIEWRANGE, amVR});
 }
 
 void Player::addPKPoint(int added)

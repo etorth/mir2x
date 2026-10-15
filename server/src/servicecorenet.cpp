@@ -139,6 +139,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .hair      = queryChar.getColumn("fld_hair"),
         .hairColor = queryChar.getColumn("fld_haircolor"),
         .pkPoint   = queryChar.getColumn("fld_pkpoint"),
+        .viewRange = queryChar.getColumn("fld_viewr"),
     };
 
     AMLoadMap amLM;

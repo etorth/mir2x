@@ -117,6 +117,7 @@ enum ActorMsgPackType: int
     AM_CORECORD,
     AM_OBSERVE,
     AM_QUERYOBSERVED,
+    AM_VIEWRANGE,
     AM_CHECKMASTER,
     AM_CHECKMASTEROK,
     AM_QUERYMASTER,
@@ -264,6 +265,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_CORECORD)
         _add_mpk_type_case(AM_OBSERVE)
         _add_mpk_type_case(AM_QUERYOBSERVED)
+        _add_mpk_type_case(AM_VIEWRANGE)
         _add_mpk_type_case(AM_CHECKMASTER)
         _add_mpk_type_case(AM_CHECKMASTEROK)
         _add_mpk_type_case(AM_QUERYMASTER)
@@ -359,6 +361,7 @@ struct AMAllowLeave
 struct AMLeaveOK
 {
     uint64_t mapUID;
+    int viewRange;
     ActionNode action;
 };
 
@@ -426,6 +429,7 @@ struct AMSpaceMoveOK
 {
     uint64_t uid;
     uint64_t mapUID;
+    int viewRange;
     ActionNode action;
 };
 
@@ -460,6 +464,7 @@ struct AMMoveOK
 {
     uint64_t uid;
     uint64_t mapUID;
+    int viewRange;
     ActionNode action;
 };
 
@@ -485,6 +490,7 @@ struct AMJumpOK
 {
     uint64_t uid;
     uint64_t mapUID;
+    int viewRange;
     ActionNode action;
 };
 
@@ -508,6 +514,7 @@ struct AMAction
 {
     uint64_t UID;
     uint64_t mapUID;
+    int viewRange;
     ActionNode action;
 };
 
@@ -538,6 +545,7 @@ struct AMAllowMapSwitch
 
 struct AMMapSwitchOK
 {
+    int viewRange;
     ActionNode action;
 };
 
@@ -662,6 +670,7 @@ struct AMDeadFadeOut
     uint64_t UID;
     uint64_t mapUID;
 
+    int viewRange;
     int X;
     int Y;
 };
@@ -738,6 +747,7 @@ struct AMOffline
     uint64_t UID;
     uint64_t mapUID;
 
+    int viewRange;
     int X;
     int Y;
 };
@@ -801,6 +811,15 @@ struct AMQueryObserved
 {
     int X;
     int Y;
+};
+
+struct AMViewRange
+{
+    int X;
+    int Y;
+
+    int oldViewRange;
+    int newViewRange;
 };
 
 struct AMCheckMasterOK

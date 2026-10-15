@@ -661,6 +661,10 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_QUERYOBSERVED(rstMPK);
             }
+        case AM_VIEWRANGE:
+            {
+                return on_AM_VIEWRANGE(rstMPK);
+            }
         case AM_OFFLINE:
             {
                 return on_AM_OFFLINE(rstMPK);
@@ -913,31 +917,6 @@ void ServerMap::dispatchGridSwitch(uint64_t playerUID, int x, int y)
     }
 }
 
-int ServerMap::observerViewRange(uint64_t uid) // mirrors CharObject::viewRange() until view ranges can vary per actor.
-{
-    switch(uidf::getUIDType(uid)){
-        case UID_PLY:
-            {
-                return SYS_PLY_VIEWR;
-            }
-        case UID_NPC:
-            {
-                return SYS_NPC_VIEWR;
-            }
-        case UID_MON:
-            {
-                if(const auto record = DBCOM_MONSTERRECORD(uidf::getMonsterID(uid))){
-                    return record.view;
-                }
-                return SYS_MON_VIEWR;
-            }
-        default:
-            {
-                throw fflvalue(uidf::getUIDString(uid));
-            }
-    }
-}
-
 void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
 {
     if(mapBin()->validC(x, y)){
@@ -960,9 +939,9 @@ void ServerMap::updateGridObserver(uint64_t uid, int x, int y, bool add)
     }
 }
 
-void ServerMap::updateGridObserverCircle(uint64_t uid, int x, int y, bool add)
+void ServerMap::updateGridObserverCircle(std::pair<uint64_t, int> uidRange, int x, int y, bool add)
 {
-    if(const int range = observerViewRange(uid); range > 0){
+    if(const auto [uid, range] = uidRange; range > 0){
         doCircle(x, y, range, [this, uid, add](int gridX, int gridY)
         {
             updateGridObserver(uid, gridX, gridY, add);
@@ -971,12 +950,12 @@ void ServerMap::updateGridObserverCircle(uint64_t uid, int x, int y, bool add)
     }
 }
 
-void ServerMap::moveGridObserverCircle(uint64_t uid, int srcX, int srcY, int dstX, int dstY)
+void ServerMap::moveGridObserverCircle(std::pair<uint64_t, int> uidRange, int srcX, int srcY, int dstX, int dstY)
 {
     // only update grids that leave or enter the observer circle
     // a newly entered grid notifies its COs that this CO starts observing them
 
-    const int range = observerViewRange(uid);
+    const auto [uid, range] = uidRange;
     const int step = std::max<int>(std::abs(dstX - srcX), std::abs(dstY - srcY));
 
     if(range <= 0 || step == 0){
@@ -1018,6 +997,36 @@ void ServerMap::moveGridObserverCircle(uint64_t uid, int srcX, int srcY, int dst
         }
         return false;
     });
+}
+
+void ServerMap::resizeGridObserverCircle(uint64_t uid, int x, int y, int oldRange, int newRange)
+{
+    // same center, only update grids between the two circles
+    // grids already observed are not notified again
+
+    const auto fnInCircle = [x, y](int gridX, int gridY, int range)
+    {
+        return (range > 0) && (mathf::LDistance2<int>(gridX, gridY, x, y) <= (range - 1) * (range - 1));
+    };
+
+    if(oldRange > newRange){
+        doCircle(x, y, oldRange, [uid, newRange, &fnInCircle, this](int gridX, int gridY)
+        {
+            if(!fnInCircle(gridX, gridY, newRange)){
+                updateGridObserver(uid, gridX, gridY, false);
+            }
+            return false;
+        });
+    }
+    else if(oldRange < newRange){
+        doCircle(x, y, newRange, [uid, oldRange, &fnInCircle, this](int gridX, int gridY)
+        {
+            if(!fnInCircle(gridX, gridY, oldRange)){
+                updateGridObserver(uid, gridX, gridY, true);
+            }
+            return false;
+        });
+    }
 }
 
 void ServerMap::notifyGridObserved(uint64_t observerUID, int x, int y)
@@ -1076,26 +1085,27 @@ void ServerMap::forwardObserverAction(const AMAction &amA, int srcX, int srcY, i
     fnForwardGrid(dstX, dstY);
 }
 
-void ServerMap::moveGridUID(uint64_t uid, int srcX, int srcY, int dstX, int dstY)
+void ServerMap::moveGridUID(std::pair<uint64_t, int> uidRange, int srcX, int srcY, int dstX, int dstY)
 {
-    if(!removeGridUID(uid, srcX, srcY, false)){
-        throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", uid, srcX, srcY);
+    if(!removeGridUID(uidRange, srcX, srcY, false)){
+        throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", uidRange.first, srcX, srcY);
     }
-    addGridUID(uid, dstX, dstY, true, false);
-    moveGridObserverCircle(uid, srcX, srcY, dstX, dstY);
+    addGridUID(uidRange, dstX, dstY, true, false);
+    moveGridObserverCircle(uidRange, srcX, srcY, dstX, dstY);
 }
 
-void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce, bool updateObservers)
+void ServerMap::addGridUID(std::pair<uint64_t, int> uidRange, int nX, int nY, bool bForce, bool updateObservers)
 {
     if(!mapBin()->validC(nX, nY)){
         throw fflpanic("invalid location: ({}, {})", nX, nY);
     }
 
+    const auto [uid, range] = uidRange;
     if(bForce || mapBin()->groundValid(nX, nY)){
         if(!hasGridUID(uid, nX, nY)){
             getUIDList(nX, nY).push_back(uid);
             if(updateObservers){
-                updateGridObserverCircle(uid, nX, nY, true);
+                updateGridObserverCircle({uid, range}, nX, nY, true);
             }
         }
     }
@@ -1111,12 +1121,13 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
     return std::find(uidList.begin(), uidList.end(), uid) != uidList.end();
 }
 
-bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY, bool updateObservers)
+bool ServerMap::removeGridUID(std::pair<uint64_t, int> uidRange, int nX, int nY, bool updateObservers)
 {
     if(!mapBin()->validC(nX, nY)){
         throw fflpanic("invalid location: ({}, {})", nX, nY);
     }
 
+    const auto [uid, range] = uidRange;
     auto &uidList = getUIDList(nX, nY);
     auto p = std::find(uidList.begin(), uidList.end(), uid);
 
@@ -1132,7 +1143,7 @@ bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY, bool updateObservers
     }
 
     if(updateObservers){
-        updateGridObserverCircle(uid, nX, nY, false);
+        updateGridObserverCircle({uid, range}, nX, nY, false);
     }
     return true;
 }

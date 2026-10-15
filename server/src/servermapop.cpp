@@ -42,7 +42,7 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
     // before CO send ACTION_SPAWN servermap won't let other know it's ready
 
     if(amA.action.type == ACTION_SPAWN){
-        addGridUID(amA.UID, amA.action.x, amA.action.y, true);
+        addGridUID({amA.UID, amA.viewRange}, amA.action.x, amA.action.y, true);
         if(uidf::getUIDType(amA.UID) == UID_PLY){
             postGroundItemIDList(amA.UID, amA.action.x, amA.action.y);
             postGroundFireWallList(amA.UID, amA.action.x, amA.action.y);
@@ -127,14 +127,10 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
                 amA.UID = fromUID;
                 amA.mapUID = amSMOK.mapUID;
+                amA.viewRange = amSMOK.viewRange;
                 amA.action = amSMOK.action;
 
-                if(!removeGridUID(fromUID, amTSM.X, amTSM.Y, false)){
-                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTSM.X, amTSM.Y);
-                }
-
-                addGridUID(fromUID, nDstX, nDstY, true, false);
-                moveGridObserverCircle(fromUID, amTSM.X, amTSM.Y, nDstX, nDstY);
+                moveGridUID({fromUID, amSMOK.viewRange}, amTSM.X, amTSM.Y, nDstX, nDstY);
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
@@ -206,18 +202,10 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
 
                 amA.UID = amJOK.uid;
                 amA.mapUID = amJOK.mapUID;
+                amA.viewRange = amJOK.viewRange;
                 amA.action = amJOK.action;
 
-                if(!hasGridUID(fromUID, amTJ.X, amTJ.Y)){
-                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTJ.X, amTJ.Y);
-                }
-
-                removeGridUID(fromUID, amTJ.X, amTJ.Y, false);
-
-                // push to the new cell
-                // check if it should switch the map
-                addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true, false);
-                moveGridObserverCircle(fromUID, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
+                moveGridUID({fromUID, amJOK.viewRange}, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList(fromUID, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
@@ -384,12 +372,13 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
                 amA.UID = amMOK.uid;
                 amA.mapUID = amMOK.mapUID;
+                amA.viewRange = amMOK.viewRange;
                 amA.action = amMOK.action;
 
                 // the object comfirm to move
                 // and it's internal state has changed
 
-                moveGridUID(amTM.UID, amTM.X, amTM.Y, nMostX, nMostY);
+                moveGridUID({amTM.UID, amMOK.viewRange}, amTM.X, amTM.Y, nMostX, nMostY);
 
                 if(uidf::isPlayer(amTM.UID)){
                     postGroundItemIDList(amTM.UID, nMostX, nMostY);
@@ -526,9 +515,10 @@ corof::awaitable<> ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     std::memset(&amA, 0, sizeof(amA));
     amA.UID = rmpk.from();
     amA.mapUID = amLOK.mapUID; // new map CO that switched into
+    amA.viewRange = amLOK.viewRange;
     amA.action = amLOK.action;
 
-    if(!removeGridUID(fromUID, amTL.X, amTL.Y)){
+    if(!removeGridUID({fromUID, amLOK.viewRange}, amTL.X, amTL.Y)){
         throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", fromUID, amTL.X, amTL.Y);
     }
 
@@ -567,12 +557,13 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 
                 amA.UID = fromUID;
                 amA.mapUID = UID();
+                amA.viewRange = amMSOK.viewRange;
                 amA.action = amMSOK.action;
 
                 // didn't check map switch here
                 // map switch should be triggered by move request
 
-                addGridUID(fromUID, amAMS.X, amAMS.Y, true);
+                addGridUID({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y, true);
                 if(uidf::isPlayer(fromUID)){
                     postGroundItemIDList(fromUID, amAMS.X, amAMS.Y);
                     postGroundFireWallList(fromUID, amAMS.X, amAMS.Y); // doesn't help if switched map
@@ -707,7 +698,7 @@ corof::awaitable<> ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
     if(mapBin()->validC(amDFO.X, amDFO.Y)){
-        removeGridUID(amDFO.UID, amDFO.X, amDFO.Y);
+        removeGridUID({amDFO.UID, amDFO.viewRange}, amDFO.X, amDFO.Y);
         doCircle(amDFO.X, amDFO.Y, 20, [this, amDFO](int nX, int nY) -> bool
         {
             if(true || mapBin()->validC(nX, nY)){
@@ -734,6 +725,18 @@ corof::awaitable<> ServerMap::on_AM_QUERYOBSERVED(const ActorMsgPack &mpk)
     });
 
     m_actorPod->post(mpk.fromAddr(), observed ? AM_TRUE : AM_FALSE);
+    return {};
+}
+
+corof::awaitable<> ServerMap::on_AM_VIEWRANGE(const ActorMsgPack &mpk)
+{
+    // CO may have left this map, or may still be in map switch and not added to this map yet
+    // then the latest view range is carried by following AM_MAPSWITCHOK/AM_ACTION
+
+    const auto amVR = mpk.conv<AMViewRange>();
+    if(mapBin()->validC(amVR.X, amVR.Y) && hasGridUID(mpk.from(), amVR.X, amVR.Y)){
+        resizeGridObserverCircle(mpk.from(), amVR.X, amVR.Y, amVR.oldViewRange, amVR.newViewRange);
+    }
     return {};
 }
 
@@ -809,7 +812,7 @@ corof::awaitable<> ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 
     // this may fail
     // because player may get offline at try move
-    removeGridUID(amO.UID, amO.X, amO.Y);
+    removeGridUID({amO.UID, amO.viewRange}, amO.X, amO.Y);
 
     doCircle(amO.X, amO.Y, 10, [amO, this](int nX, int nY) -> bool
     {

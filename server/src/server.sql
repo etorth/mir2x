@@ -23,6 +23,7 @@ create table tbl_char(
     fld_hair           integer default 0,
     fld_haircolor      integer default 0,
     fld_pkpoint        integer default 0,
+    fld_viewr          integer default (SYS_PLY_VIEWR()),
 
     foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade
 ) strict;

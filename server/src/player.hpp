@@ -65,6 +65,9 @@ class Player final: public BattleObject
     protected:
         int m_pkPoint; // never decays on its own, a redemption NPC is the only way down
 
+    protected:
+        int m_viewRange;
+
     private:
         // players I opened fire on, uid -> last strike time
         //
@@ -156,6 +159,11 @@ class Player final: public BattleObject
         bool redName() const
         {
             return m_pkPoint >= SYS_PKPOINTREDNAME;
+        }
+
+        int viewRange() const override
+        {
+            return m_viewRange;
         }
 
         // fully derived from the pk point, there is nothing stored to keep in sync
@@ -413,6 +421,7 @@ class Player final: public BattleObject
     private:
         void dbUpdateExp();
         void dbUpdatePKPoint();
+        void dbUpdateViewRange();
         void dbUpdateHealth();
         void dbUpdateMapGLoc();
 
@@ -506,6 +515,7 @@ class Player final: public BattleObject
         bool hasAggression(uint64_t) const;
 
         void addPKPoint(int);
+        void setViewRange(int);
         void reportName();
 
     private:

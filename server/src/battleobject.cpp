@@ -157,6 +157,7 @@ corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
 
                 amJOK.uid = UID();
                 amJOK.mapUID = mapUID();
+                amJOK.viewRange = viewRange();
                 amJOK.action = ActionJump
                 {
                     .direction = Direction(),
@@ -278,6 +279,7 @@ corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, 
                 std::memset(&amMOK, 0, sizeof(amMOK));
                 amMOK.uid = UID();
                 amMOK.mapUID = mapUID();
+                amMOK.viewRange = viewRange();
                 amMOK.action = ActionMove
                 {
                     .speed = speed,
@@ -364,6 +366,7 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
 
                 amSMOK.uid = UID();
                 amSMOK.mapUID = mapUID();
+                amSMOK.viewRange = viewRange();
                 amSMOK.action = ActionSpaceMove
                 {
                     .direction = Direction(),
@@ -470,6 +473,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
     AMLeaveOK amLOK;
     std::memset(&amLOK, 0, sizeof(amLOK));
     amLOK.mapUID = mapUID(); // send new map UID to old map intentionally
+    amLOK.viewRange = viewRange();
     amLOK.action = makeActionStand();
 
     leaveErrorSg.dismiss();
@@ -477,6 +481,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
 
     AMMapSwitchOK amMSOK;
     std::memset(&amMSOK, 0, sizeof(amMSOK));
+    amMSOK.viewRange = viewRange();
     amMSOK.action = makeActionStand();
 
     mapSwitchErrorSg.dismiss();
@@ -600,10 +605,12 @@ void BattleObject::goGhost()
     AMDeadFadeOut amDFO;
     std::memset(&amDFO, 0, sizeof(amDFO));
 
-    amDFO.UID    = UID();
+    amDFO.UID = UID();
     amDFO.mapUID = mapUID();
-    amDFO.X      = X();
-    amDFO.Y      = Y();
+    amDFO.viewRange = viewRange();
+
+    amDFO.X = X();
+    amDFO.Y = Y();
 
     m_actorPod->post(mapUID(), {AM_DEADFADEOUT, amDFO});
     deactivate(); // calls dtor

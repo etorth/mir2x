@@ -221,16 +221,17 @@ class ServerMap final: public ServerObject
 
     private:
         bool    hasGridUID(uint64_t, int, int) const;
-        void   moveGridUID(uint64_t, int, int, int, int);
-        void    addGridUID(uint64_t, int, int, bool, bool = true);
-        bool removeGridUID(uint64_t, int, int,       bool = true);
 
-        static int observerViewRange(uint64_t);
+        void   moveGridUID(std::pair<uint64_t, int>, int, int, int, int);
+        void    addGridUID(std::pair<uint64_t, int>, int, int, bool, bool = true);
+        bool removeGridUID(std::pair<uint64_t, int>, int, int,       bool = true);
 
-        void updateGridObserver      (uint64_t, int, int, bool);
-        void updateGridObserverCircle(uint64_t, int, int, bool);
-        void   moveGridObserverCircle(uint64_t, int, int, int, int);
-        void notifyGridObserved      (uint64_t, int, int);
+        void   updateGridObserverCircle(std::pair<uint64_t, int>, int, int, bool);
+        void     moveGridObserverCircle(std::pair<uint64_t, int>, int, int, int, int);
+
+        void   updateGridObserver      (uint64_t, int, int, bool);
+        void   resizeGridObserverCircle(uint64_t, int, int, int, int);
+        void notifyGridObserved        (uint64_t, int, int);
 
         void forwardObserverAction(const AMAction &, int, int);
         void forwardObserverAction(const AMAction &, int, int, int, int);
@@ -462,6 +463,7 @@ class ServerMap final: public ServerObject
         corof::awaitable<> on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYOBSERVED       (const ActorMsgPack &);
+        corof::awaitable<> on_AM_VIEWRANGE           (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_CASTFIREWALL        (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOTECALL          (const ActorMsgPack &);

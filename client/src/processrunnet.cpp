@@ -50,6 +50,7 @@ void ProcessRun::on_SM_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
         .y = sdSGS.y,
     });
 
+    m_myHeroViewRange = sdSGS.viewRange;
     getMyHero()->setName(to_cstr(sdSGS.name), sdSGS.nameColor);
     getMyHero()->setWLDesp(std::move(sdSGS.desp));
 
@@ -616,6 +617,13 @@ void ProcessRun::on_SM_CODISAPPEAR(const uint8_t *bufPtr, size_t)
         m_actionBlocker.erase(smCOD.UID);
         m_coList.erase(smCOD.UID);
     }
+}
+
+void ProcessRun::on_SM_VIEWRANGE(const uint8_t *bufPtr, size_t)
+{
+    // no need to trim m_coList here
+    // server sends SM_CODISAPPEAR for COs out of new view range
+    m_myHeroViewRange = ServerMsg::conv<SMViewRange>(bufPtr).viewRange;
 }
 
 void ProcessRun::on_SM_OFFLINE(const uint8_t *bufPtr, size_t)

@@ -57,6 +57,8 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
                 dialog.link('npc_test_map_trigger', '测试地图网格触发'),
                 dialog.link('npc_test_switch_map', '测试地图切换', {close = true, args = [=[{'比奇县_0',390,400}]=]}),
                 dialog.link('npc_test_random_move', '狂奔', {close = true}),
+                dialog.link('npc_test_add_view_range', '增加视野'),
+                dialog.link('npc_test_sub_view_range', '减少视野'),
                 getNPCMapLocXML("event", {id="npc_test_switch_map", close="1"}),
                 dialog.link(SYS_EXIT, '退出'),
             })
@@ -97,6 +99,16 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
                     break
                 end
             end
+        end,
+
+        npc_test_add_view_range = function(uid, value)
+            local viewRange = uidRemoteCall(uid, [=[ return addViewRange(1) ]=])
+            server.player.postString(uid, '当前视野：%d', viewRange)
+        end,
+
+        npc_test_sub_view_range = function(uid, value)
+            local viewRange = uidRemoteCall(uid, [=[ return addViewRange(-1) ]=])
+            server.player.postString(uid, '当前视野：%d', viewRange)
         end,
 
         npc_test_deliver_iterms = function(uid, value)

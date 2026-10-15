@@ -116,10 +116,6 @@ corof::awaitable<std::optional<COLocation>> CharObject::getCOLocation(uint64_t u
 int CharObject::viewRange() const
 {
     switch(uidf::getUIDType(UID())){
-        case UID_PLY:
-            {
-                return SYS_PLY_VIEWR; // TODO: support better player view range by 充钱!
-            }
         case UID_MON:
             {
                 if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()))){
@@ -296,6 +292,7 @@ void CharObject::dispatchAction(const ActionNode &action)
 
     amA.UID = UID();
     amA.mapUID = mapUID();
+    amA.viewRange = viewRange();
     amA.action = action;
 
     if(auto boPtr = dynamic_cast<BattleObject *>(this)){
@@ -313,6 +310,7 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
 
     amA.UID = UID();
     amA.mapUID = mapUID();
+    amA.viewRange = viewRange();
     amA.action = action;
     m_actorPod->post(uid, {AM_ACTION, amA});
 }
