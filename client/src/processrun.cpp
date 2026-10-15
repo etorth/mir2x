@@ -152,8 +152,6 @@ void ProcessRun::update(double fUpdateTime)
     }
 
     getMyHero()->update(fUpdateTime);
-    const int myHeroX = getMyHero()->x();
-    const int myHeroY = getMyHero()->y();
 
     for(auto p = m_coList.begin(); p != m_coList.end();){
         if(p->second.get() == getMyHero()){
@@ -161,9 +159,7 @@ void ProcessRun::update(double fUpdateTime)
             continue;
         }
 
-        const auto [locX, locY] = p->second->location();
-        const auto locDistance2 = mathf::LDistance2(myHeroX, myHeroY, locX, locY);
-        if(p->second->visible() && (locDistance2 < 1000)){
+        if(p->second->visible() && getMyHero()->inViewRange(p->second.get())){
             if(p->second->lastActive() + 5000 < SDL_GetTicks() && p->second->lastQuerySelf() + 5000 < SDL_GetTicks()){
                 p->second->querySelf();
             }

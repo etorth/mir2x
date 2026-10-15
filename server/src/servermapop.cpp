@@ -693,25 +693,14 @@ corof::awaitable<> ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
 
 corof::awaitable<> ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
-    // CO always send AM_DEADFADEOUT to server map to remove the grid occupation
-    // and server map then boardcast to all its neighbors to remove this CO from their list to do clean
-
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
     if(mapBin()->validC(amDFO.X, amDFO.Y)){
         removeGridUID({amDFO.UID, amDFO.viewRange}, amDFO.X, amDFO.Y);
-        doCircle(amDFO.X, amDFO.Y, 20, [this, amDFO](int nX, int nY) -> bool
-        {
-            if(true || mapBin()->validC(nX, nY)){
-                for(auto nUID: getUIDList(nX, nY)){
-                    if(nUID != amDFO.UID){
-                        if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                            m_actorPod->post(nUID, {AM_DEADFADEOUT, amDFO});
-                        }
-                    }
-                }
+        for(const auto observerUID: getGrid(amDFO.X, amDFO.Y).observerList){
+            if((observerUID != amDFO.UID) && (uidf::isPlayer(observerUID) || uidf::isMonster(observerUID))){
+                m_actorPod->post(observerUID, {AM_DEADFADEOUT, amDFO});
             }
-            return false;
-        });
+        }
     }
     return {};
 }

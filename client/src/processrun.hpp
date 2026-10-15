@@ -63,7 +63,6 @@ class ProcessRun: public Process
 
     private:
         const uint64_t m_myHeroUID;
-        int m_myHeroViewRange = SYS_PLY_VIEWR;
 
     private:
         uint64_t m_mapUID = 0;
@@ -211,8 +210,7 @@ class ProcessRun: public Process
 
         bool inMyHeroView(int x, int y) const
         {
-            const auto myHeroPtr = getMyHero();
-            return mathf::LDistance2<int>(myHeroPtr->x(), myHeroPtr->y(), x, y) <= (m_myHeroViewRange - 1) * (m_myHeroViewRange - 1);
+            return getMyHero()->inViewRange(x, y);
         }
 
     public:

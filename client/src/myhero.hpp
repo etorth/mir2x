@@ -9,6 +9,7 @@ class MyHero: public Hero
 {
     private:
         size_t m_exp = 0;
+        int m_viewRange = SYS_PLY_VIEWR;
 
     private:
         std::unordered_map<uint32_t, uint64_t> m_lastCastTime;
@@ -28,6 +29,25 @@ class MyHero: public Hero
 
     public:
         ~MyHero() = default;
+
+    public:
+        void setViewRange(int range)
+        {
+            fflassert(range >= 1 && range <= SYS_MAX_VIEWR, range);
+            m_viewRange = range;
+        }
+
+        bool inViewRange(int x, int y) const
+        {
+            return mathf::LDistance2<int>(this->x(), this->y(), x, y) <= (m_viewRange - 1) * (m_viewRange - 1);
+        }
+
+        bool inViewRange(const ClientCreature *creature) const
+        {
+            fflassert(creature);
+            const auto [x, y] = creature->location();
+            return inViewRange(x, y);
+        }
 
     public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)
