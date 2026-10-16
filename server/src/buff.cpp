@@ -61,6 +61,10 @@ corof::awaitable<> BaseBuff::runOnTrigger(int btgr)
 
     for(const auto &key: keyList){
         for(int m = 1; m < BATGR_END; m <<= 1){
+            if(!(btgr & m)){
+                continue;
+            }
+
             if(auto ptgr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
                 if(ptgr->getBAREF().trigger.on & m){
                     co_await ptgr->runOnTrigger(m);
