@@ -115,11 +115,22 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             const uint64_t key;
             const uint64_t seqID;
 
+            // the path the thread waits in, only that path resumes it when the wait ends
+            // resume(key, seqID) refuses a thread waiting in any of them, it only resumes a plain coroutine.yield()
+
+            enum WaitType: int
+            {
+                WAIT_NONE = 0,
+                WAIT_COOPCALL, // in the C++ call of a coop, onDone can come before the call returns, the thread doesn't yield then
+                WAIT_COOP,     // yielded in a coop, its onDone resumes it
+                WAIT_PAUSE,    // yielded in pause(), its timer resumes it
+                WAIT_NOTIFY,   // yielded in waitNotify(), a notify or its timeout resumes it
+            }
+            waitType = WAIT_NONE;
+
             // consume coroutine result
             // forward pfr to issuer as a special case
-            // if needResume is true, means the lua layer has been yielded
 
-            bool needResume = false;
             std::function<void(const sol::protected_function_result &)> onDone;
 
             // thread can be closed when
@@ -172,7 +183,6 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             sol::thread runner;
             sol::coroutine callback;
 
-            bool needNotify = false;
             std::deque<luaf::luaVar> notifyList; // sender called table.pack(...) before pushed into this list
 
             // the timer of the timeout of the waitNotify() the thread waits in, see _RSVD_NAME_waitNotify
@@ -417,9 +427,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     }
 
                     fflassert(s.lua_state());
+                    fflassert(m_currRunner->waitType == LuaThreadHandle::WAIT_NONE, m_currRunner->keyPair(), to_d(m_currRunner->waitType));
 
-                    m_currRunner->needResume = false;
-                    const auto callDoneSg = stdf::guard([this](){ m_currRunner->needResume = true; });
+                    m_currRunner->waitType = LuaThreadHandle::WAIT_COOPCALL;
+                    const auto callDoneSg = stdf::guard([this]()
+                    {
+                        if(m_currRunner->waitType == LuaThreadHandle::WAIT_COOPCALL){
+                            m_currRunner->waitType = LuaThreadHandle::WAIT_COOP;
+                        }
+                    });
 
                     if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
                         std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, s), LuaCoopState(s)), std::move(args))).resume();

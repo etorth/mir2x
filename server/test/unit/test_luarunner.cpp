@@ -1043,6 +1043,75 @@ namespace
         }
     }
 
+    void testResumeRefusesOwnWait()
+    {
+        RunnerFixture f;
+        PendingCoop pending;
+
+        f.runner.bindCoop("_RSVD_NAME_testCoop", [&pending](this auto, LuaCoopResumer onDone, sol::object value) -> corof::awaitable<>
+        {
+            co_await pending;
+            onDone(value);
+        });
+
+        f.runner.bindCoop("_RSVD_NAME_testCoopNow", [](this auto, LuaCoopResumer onDone, sol::object value) -> corof::awaitable<>
+        {
+            onDone(value);
+            co_return;
+        });
+
+        // a coop whose onDone comes before its call returns doesn't yield, the thread waits in nothing after it
+        const auto kpNow = f.runner.spawn(1160, std::string(R"###(
+            TEST.now = _RSVD_NAME_callFuncCoop('testCoopNow', 'now')
+            coroutine.yield()
+            TEST.afterNow = true
+        )###"));
+
+        require(f.isString("now", "now") && f.runner.hasKeyPair(kpNow), "coop with an immediate onDone yields, or doesn't return its result");
+        f.runner.resume(kpNow);
+        require(f.isTrue("afterNow") && !f.runner.hasKeyPair(kpNow), "plain yield after an immediate coop can't be resumed");
+
+        // a thread in a coop is resumed by onDone only, the plain yield after it can be resumed again
+        const auto kpCoop = f.runner.spawn(1161, std::string(R"###(
+            TEST.coop = _RSVD_NAME_callFuncCoop('testCoop', 'coop')
+            coroutine.yield()
+            TEST.afterCoop = true
+        )###"));
+
+        REQUIRE_THROWS(f.runner.resume(kpCoop));
+        require(f.isNil("coop"), "refused resume ends the wait of a coop");
+
+        pending.reply();
+        require(f.isString("coop", "coop") && f.runner.hasKeyPair(kpCoop), "coop reply doesn't get back to the runner");
+
+        f.runner.resume(kpCoop);
+        require(f.isTrue("afterCoop") && !f.runner.hasKeyPair(kpCoop), "plain yield after a coop can't be resumed");
+
+        // pause() is resumed by its timer only
+        const auto kpPause = f.runner.spawn(1162, std::string(R"###(
+            pause(500)
+            TEST.afterPause = true
+        )###"));
+
+        REQUIRE_THROWS(f.runner.resume(kpPause));
+        require(f.isNil("afterPause") && f.runner.timers.size() == 1, "refused resume ends the pause");
+
+        f.runner.fire(f.runner.timers.begin()->first)(true);
+        require(f.isTrue("afterPause") && !f.runner.hasKeyPair(kpPause), "pause doesn't end at its timer");
+
+        // waitNotify() is resumed by a notify or its timeout only
+        const auto kpNotify = f.runner.spawn(1163, std::string(R"###(
+            TEST.got = waitNotify()
+        )###"));
+
+        REQUIRE_THROWS(f.runner.resume(kpNotify));
+        require(f.isNil("got") && f.runner.hasKeyPair(kpNotify), "refused resume ends the wait of a notify");
+
+        require(f.runner.execRawString("TEST.msg = table.pack('notify')").valid(), "failed to create notify message");
+        f.runner.addNotify(1163, 0, luaf::buildLuaVar(f.get("msg")));
+        require(f.isString("got", "notify") && !f.runner.hasKeyPair(kpNotify), "notify doesn't end the wait");
+    }
+
     void testCloseThenRun()
     {
         RunnerFixture f;
@@ -1389,6 +1458,11 @@ TEST_CASE_METHOD(ServerTestEnvironment, "Remote Call Error", "[unit][luarunner]"
 TEST_CASE_METHOD(ServerTestEnvironment, "Wait Notify Timeout", "[unit][luarunner]")
 {
     testWaitNotifyTimeout();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Resume Refuses Own Wait", "[unit][luarunner]")
+{
+    testResumeRefusesOwnWait();
 }
 
 TEST_CASE_METHOD(ServerTestEnvironment, "Close Then Run", "[unit][luarunner]")

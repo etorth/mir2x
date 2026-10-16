@@ -276,10 +276,7 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     -- onDone can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield
 
-    -- TODO
-    -- shall we use while-loop or single if-condition
-    -- buggy code may call ServerLuaCoroutineRunner::resume() without call onDone
-
+    -- only onDone resumes the thread here, ServerLuaCoroutineRunner::resume() raises for a thread waiting in a coop
     while not result do
         coroutine.yield()
     end

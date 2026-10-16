@@ -58,8 +58,22 @@ void LuaCoopResumer::popOnClose() const
 
 void LuaCoopResumer::resumeYieldedRunner(ServerLuaCoroutineRunner *luaRunner, void *handle)
 {
-    if(auto currRunner = static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(handle); currRunner->needResume){
-        luaRunner->resumeRunner(static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(currRunner));
+    switch(auto currRunner = static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(handle); currRunner->waitType){
+        case ServerLuaCoroutineRunner::LuaThreadHandle::WAIT_COOPCALL: // thread hasn't yielded and sees its result without yielding
+            {
+                currRunner->waitType = ServerLuaCoroutineRunner::LuaThreadHandle::WAIT_NONE;
+                return;
+            }
+        case ServerLuaCoroutineRunner::LuaThreadHandle::WAIT_COOP:
+            {
+                currRunner->waitType = ServerLuaCoroutineRunner::LuaThreadHandle::WAIT_NONE;
+                luaRunner->resumeRunner(currRunner);
+                return;
+            }
+        default:
+            {
+                throw fflpanic("coop onDone called for thread {} not waiting in a coop: waitType {}", currRunner->keyPair(), to_d(currRunner->waitType));
+            }
     }
 }
 
@@ -403,12 +417,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         if(!m_currRunner->notifyList.empty()){
             auto firstVar = std::move(m_currRunner->notifyList.front());
             m_currRunner->notifyList.pop_front();
-
-            m_currRunner->needNotify = false;
             return luaf::buildLuaObj(sol::state_view(s), std::move(firstVar));
         }
 
-        m_currRunner->needNotify = true;
+        m_currRunner->waitType = LuaThreadHandle::WAIT_NOTIFY;
         if(timeout > 0){
             const auto kp = m_currRunner->keyPair();
             const auto timer = std::make_shared<std::pair<uint64_t, uint64_t>>();
@@ -444,6 +456,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         {
             if(timeout){
                 if(auto runnerPtr = hasKeyPair(kp)){
+                    fflassert(runnerPtr->waitType == LuaThreadHandle::WAIT_PAUSE, kp, to_d(runnerPtr->waitType));
+                    runnerPtr->waitType = LuaThreadHandle::WAIT_NONE;
+
                     // first pop the onclose function
                     // otherwise the resume() will call it if the resume reaches end of code
                     fflassert(!runnerPtr->onClose.empty());
@@ -457,6 +472,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         {
             cancelTimer(timer);
         });
+        m_currRunner->waitType = LuaThreadHandle::WAIT_PAUSE;
     });
 
     constexpr static unsigned char luaScript []
@@ -501,6 +517,13 @@ void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
         if(p->onStack || p->closing){
             return;
         }
+
+        // any thread waiting in a coop, pause() or waitNotify() is resumed by that path when its wait ends
+        // resuming it here ends the wait early and unexpectedly, and the path later resumes it again in whatever it waits for then
+
+        if(p->waitType != LuaThreadHandle::WAIT_NONE){
+            throw fflpanic("resume thread {} waiting in its own path: waitType {}", p->keyPair(), to_d(p->waitType));
+        }
         resumeRunner(p);
     }
     else{
@@ -537,7 +560,7 @@ void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, luaf::lua
 {
     if(auto runnerPtr = hasKey(key, seqID)){
         runnerPtr->notifyList.push_back(std::move(var));
-        if(runnerPtr->needNotify){
+        if(runnerPtr->waitType == LuaThreadHandle::WAIT_NOTIFY){
             resumeNotifyWaiter(runnerPtr);
         }
     }
@@ -546,11 +569,11 @@ void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, luaf::lua
 void ServerLuaCoroutineRunner::resumeNotifyWaiter(LuaThreadHandle *runnerPtr)
 {
     fflassert(runnerPtr);
-    fflassert(runnerPtr->needNotify, runnerPtr->keyPair());
+    fflassert(runnerPtr->waitType == LuaThreadHandle::WAIT_NOTIFY, runnerPtr->keyPair(), to_d(runnerPtr->waitType));
 
     // the other one of the two must not resume the thread again
     // the onClose entry of the timer is on top while the thread waits, nothing else runs on the thread to push one
-    runnerPtr->needNotify = false;
+    runnerPtr->waitType = LuaThreadHandle::WAIT_NONE;
     if(const auto timer = std::exchange(runnerPtr->notifyTimer, std::nullopt)){
         cancelTimer(*timer);
         runnerPtr->onClose.pop();
