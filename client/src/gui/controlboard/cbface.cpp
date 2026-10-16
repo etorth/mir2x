@@ -85,6 +85,8 @@ CBFace::CBFace(
           {
               drawBuffIDList(drawDstX, drawDstY, self->w(), self->h());
           },
+
+          .parent{this},
       }}
 {}
 
