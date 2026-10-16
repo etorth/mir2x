@@ -151,7 +151,7 @@ const std::optional<SDBuffIDList> &CBFace::getSDBuffIDListOpt() const
     return m_processRun->getMyHero()->getSDBuffIDListOpt();
 }
 
-void CBFace::drawBuffIDList(int drawDstX, int drawDstY, int, int) const
+void CBFace::drawBuffIDList(int drawDstX, int drawDstY, int, int drawDstH) const
 {
     const auto sdBuffIDListOpt = getSDBuffIDListOpt();
     if(!sdBuffIDListOpt.has_value()){
@@ -172,8 +172,8 @@ void CBFace::drawBuffIDList(int drawDstX, int drawDstY, int, int) const
     // |
     // +--- (buffIconOffStartX, buffIconOffStartY)
 
-    const int buffIconOffStartX = drawDstX + 20;
-    const int buffIconOffStartY = drawDstY + 79;
+    const int buffIconOffStartX = drawDstX;
+    const int buffIconOffStartY = drawDstY + drawDstH;
 
     for(int drawIconCount = 0; const auto id: sdBuffIDList.idList){
         const auto &br = DBCOM_BUFFRECORD(id);
@@ -182,7 +182,7 @@ void CBFace::drawBuffIDList(int drawDstX, int drawDstY, int, int) const
         if(br.icon.gfxID != SYS_U32NIL){
             if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                 const int buffIconOffX = buffIconOffStartX + (drawIconCount % 5) * buffIconDrawW;
-                const int buffIconOffY = buffIconOffStartY - (drawIconCount / 5) * buffIconDrawH;
+                const int buffIconOffY = buffIconOffStartY - (drawIconCount / 5 + 1) * buffIconDrawH;
 
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                 g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
