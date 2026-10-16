@@ -1353,11 +1353,15 @@ void ServerMap::postGridItemIDList(int x, int y)
     }
 }
 
-void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
+void ServerMap::postGroundItemIDList(std::pair<uint64_t, int> uidRange, int x, int y)
 {
     fflassert(mapBin()->groundValid(x, y));
-    fflassert(uidf::getUIDType(uid) == UID_PLY);
-    forwardNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
+    fflassert(uidf::isPlayer(uidRange.first));
+
+    fflassert(uidRange.second > 0, uidRange.second);
+    fflassert(uidRange.second <= SYS_MAX_VIEWR, uidRange.second);
+
+    forwardNetPackage(uidRange.first, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, uidRange.second)));
 }
 
 SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
@@ -1406,11 +1410,15 @@ void ServerMap::postGridFireWallList(int x, int y)
     }
 }
 
-void ServerMap::postGroundFireWallList(uint64_t uid, int x, int y)
+void ServerMap::postGroundFireWallList(std::pair<uint64_t, int> uidRange, int x, int y)
 {
     fflassert(mapBin()->groundValid(x, y));
-    fflassert(uidf::getUIDType(uid) == UID_PLY);
-    forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, cerealf::serialize(getGroundFireWallList(x, y, 20)));
+    fflassert(uidf::isPlayer(uidRange.first));
+
+    fflassert(uidRange.second > 0, uidRange.second);
+    fflassert(uidRange.second <= SYS_MAX_VIEWR, uidRange.second);
+
+    forwardNetPackage(uidRange.first, SM_GROUNDFIREWALLLIST, cerealf::serialize(getGroundFireWallList(x, y, uidRange.second)));
 }
 
 int ServerMap::getMonsterCount(uint32_t monsterID)

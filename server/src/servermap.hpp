@@ -314,14 +314,14 @@ class ServerMap final: public ServerObject
 
     private:
         void postGridItemIDList(int, int);
-        void postGroundItemIDList(uint64_t, int, int);
+        void postGroundItemIDList(std::pair<uint64_t, int>, int, int);
 
     private:
         SDGroundFireWallList getGroundFireWallList(int, int, size_t); // may remove expired firewall
 
     private:
         void postGridFireWallList(int, int);
-        void postGroundFireWallList(uint64_t, int, int);
+        void postGroundFireWallList(std::pair<uint64_t, int>, int, int);
 
     private:
         int checkPathGrid(int, int) const;

@@ -36,8 +36,8 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
     if(amA.action.type == ACTION_SPAWN){
         addGridUID({amA.UID, amA.viewRange}, amA.action.x, amA.action.y, true);
         if(uidf::getUIDType(amA.UID) == UID_PLY){
-            postGroundItemIDList(amA.UID, amA.action.x, amA.action.y);
-            postGroundFireWallList(amA.UID, amA.action.x, amA.action.y);
+            postGroundItemIDList  ({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
+            postGroundFireWallList({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
         }
     }
 
@@ -125,8 +125,8 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                 moveGridUID({fromUID, amSMOK.viewRange}, amTSM.X, amTSM.Y, nDstX, nDstY);
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
-                    postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
-                    postGroundFireWallList(fromUID, nDstX, nDstY);
+                    postGroundItemIDList  ({fromUID, amSMOK.viewRange}, nDstX, nDstY); // doesn't help if switched map
+                    postGroundFireWallList({fromUID, amSMOK.viewRange}, nDstX, nDstY);
                 }
 
                 forwardObserverAction(amA, amTSM.X, amTSM.Y, nDstX, nDstY);
@@ -200,8 +200,8 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                 moveGridUID({fromUID, amJOK.viewRange}, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
-                    postGroundItemIDList(fromUID, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
-                    postGroundFireWallList(fromUID, amTJ.EndX, amTJ.EndY);
+                    postGroundItemIDList  ({fromUID, amJOK.viewRange}, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
+                    postGroundFireWallList({fromUID, amJOK.viewRange}, amTJ.EndX, amTJ.EndY);
                 }
 
                 forwardObserverAction(amA, amTJ.X, amTJ.Y, amTJ.EndX, amTJ.EndY);
@@ -373,8 +373,8 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                 moveGridUID({amTM.UID, amMOK.viewRange}, amTM.X, amTM.Y, nMostX, nMostY);
 
                 if(uidf::isPlayer(amTM.UID)){
-                    postGroundItemIDList(amTM.UID, nMostX, nMostY);
-                    postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
+                    postGroundItemIDList  ({amTM.UID, amMOK.viewRange}, nMostX, nMostY);
+                    postGroundFireWallList({amTM.UID, amMOK.viewRange}, nMostX, nMostY); // doesn't help if switched map
                 }
 
                 forwardObserverAction(amA, amTM.X, amTM.Y, nMostX, nMostY);
@@ -557,8 +557,8 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 
                 addGridUID({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y, true);
                 if(uidf::isPlayer(fromUID)){
-                    postGroundItemIDList(fromUID, amAMS.X, amAMS.Y);
-                    postGroundFireWallList(fromUID, amAMS.X, amAMS.Y); // doesn't help if switched map
+                    postGroundItemIDList  ({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y);
+                    postGroundFireWallList({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y); // doesn't help if switched map
                 }
 
                 forwardObserverAction(amA, amAMS.X, amAMS.Y);
@@ -709,6 +709,10 @@ corof::awaitable<> ServerMap::on_AM_VIEWRANGE(const ActorMsgPack &mpk)
     const auto amVR = mpk.conv<AMViewRange>();
     if(mapBin()->validC(amVR.X, amVR.Y) && hasGridUID(mpk.from(), amVR.X, amVR.Y)){
         resizeGridObserverCircle(mpk.from(), amVR.X, amVR.Y, amVR.oldViewRange, amVR.newViewRange);
+        if(uidf::isPlayer(mpk.from()) && (amVR.newViewRange > amVR.oldViewRange)){
+            postGroundItemIDList  ({mpk.from(), amVR.newViewRange}, amVR.X, amVR.Y);
+            postGroundFireWallList({mpk.from(), amVR.newViewRange}, amVR.X, amVR.Y);
+        }
     }
     return {};
 }
