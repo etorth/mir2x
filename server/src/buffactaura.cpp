@@ -111,6 +111,10 @@ corof::awaitable<> BaseBuffActAura::transmit(uint64_t targetUID)
                             bo->sendBuff(targetUID, buffSeq, auraBuffID);
                             break;
                         }
+                    case FT_ERROR:
+                        {
+                            break; // target gone or its master can't be resolved, skip
+                        }
                     default:
                         {
                             throw fflvalue(friendType);
