@@ -1162,6 +1162,13 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 
 bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
 {
+    // dead object can not gain HP by heal/buff/regen
+    // revive explicitly by setHealth()
+
+    if(m_sdHealth.dead()){
+        addHP = 0;
+    }
+
     if(const bool hasDied = m_sdHealth.dead(); m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
         dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
         if(!hasDied && m_sdHealth.dead()){

@@ -102,10 +102,12 @@ corof::awaitable<> Player::net_CM_REQUESTADDHP(uint8_t, const uint8_t *buf, size
 {
     const auto cmRAHP = ClientMsg::conv<CMRequestAddHP>(buf);
     if(cmRAHP.addHP > 0){
-        const auto oldDead = m_sdHealth.dead();
-        updateHealth(cmRAHP.addHP);
-        if(oldDead){
+        if(m_sdHealth.dead()){
+            setHealth(cmRAHP.addHP);
             onRevive();
+        }
+        else{
+            updateHealth(cmRAHP.addHP);
         }
     }
     return {};
