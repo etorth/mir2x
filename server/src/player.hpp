@@ -596,6 +596,15 @@ class Player final: public BattleObject
             };
         }
 
+        void triggerWLOff(int wltype)
+        {
+            if(auto cbp = m_onWLOff.find(wltype); cbp != m_onWLOff.end()){
+                if(auto trigger = std::move(m_onWLOff.extract(cbp).mapped()); trigger){
+                    trigger();
+                }
+            }
+        }
+
     protected:
         const SDChatPeer *findFriendChatPeer(const SDChatPeerID &sdCPID) const
         {

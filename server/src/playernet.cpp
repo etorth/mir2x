@@ -938,6 +938,7 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, 
 
     if(currItem){
         addInventoryItem(currItem, false);
+        triggerWLOff(wltype);
     }
 
     if(const auto buffIDOpt = item.getExtAttr<SDItem::EA_BUFFID_t>(); buffIDOpt.has_value() && buffIDOpt.value()){
@@ -1051,11 +1052,7 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
         .item = addedItem,
     }));
 
-    if(auto cbp = m_onWLOff.find(wltype); cbp != m_onWLOff.end()){
-        fflassert(cbp->second);
-        cbp->second();
-        m_onWLOff.erase(cbp);
-    }
+    triggerWLOff(wltype);
 
     return {};
 }

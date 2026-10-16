@@ -234,11 +234,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->dbRemoveWearItem(wltype);
 
         // same teardown the manual disarm does, so anything hooked on the slot lets go
-        if(auto cbp = getPlayer()->m_onWLOff.find(wltype); cbp != getPlayer()->m_onWLOff.end()){
-            fflassert(cbp->second);
-            cbp->second();
-            getPlayer()->m_onWLOff.erase(cbp);
-        }
+        getPlayer()->triggerWLOff(wltype);
         return true;
     });
 
@@ -2274,11 +2270,7 @@ bool Player::damageWearItem(int wltype, int odds)
 
     postNetMessage(SM_TEXT, str_printf(u8"%s因持久耗尽而彻底损坏", to_cstr(DBCOM_ITEMRECORD(item.itemID).name)));
 
-    if(auto cbp = m_onWLOff.find(wltype); cbp != m_onWLOff.end()){
-        fflassert(cbp->second);
-        cbp->second();
-        m_onWLOff.erase(cbp);
-    }
+    triggerWLOff(wltype);
     return true;
 }
 
