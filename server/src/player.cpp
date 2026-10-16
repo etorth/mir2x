@@ -1208,6 +1208,7 @@ bool Player::goOffline()
 
     dispatchOffline();
     reportOffline(UID(), mapUID()); // report self offline
+    requestKillPets();
 
     m_channID = 0;
     m_actorPod->closeNet(); // blocking call, channel slot has been destroyed
