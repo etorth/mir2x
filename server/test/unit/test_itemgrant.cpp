@@ -9,6 +9,7 @@
 #include "golddb.hpp"
 #include "inventorydb.hpp"
 #include "jobf.hpp"
+#include "sysconst.hpp"
 #include "uidf.hpp"
 
 class ServerArgParser;
@@ -82,6 +83,10 @@ namespace
         {
             const auto job = sqlite3_value_int64(argv[0]);
             sqlite3_result_int(context, job >= 0 && job <= INT_MAX && jobf::jobValid(to_d(job)));
+        });
+        g_dbPod->createFunction("SYS_PLY_VIEWR", 0, true, +[](sqlite3_context *context, int, sqlite3_value **)
+        {
+            sqlite3_result_int(context, SYS_PLY_VIEWR);
         });
 
         static constexpr unsigned char schema[]
