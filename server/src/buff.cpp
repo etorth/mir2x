@@ -159,9 +159,10 @@ BaseBuffAct *BaseBuff::hasBuffAct(size_t argActOff) const
 bool BaseBuff::removeBuffAct(size_t argActOff)
 {
     // removed act is not destroyed immediately, caller may still be inside the act
-    // BattleObject calls BuffList::clearDeadBuff() later by defer()
+    // schedule BuffList::clearDeadBuff() by its BO
 
     if(auto p = std::find_if(m_activeActList.begin(), m_activeActList.end(), [argActOff](const auto &actPtr){ return actPtr->actOff() == argActOff; }); p != m_activeActList.end()){
+        getBO()->clearDeadBuffLater();
         m_deadActList.push_back(std::move(*p));
         m_activeActList.erase(p);
         return true;

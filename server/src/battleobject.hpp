@@ -19,6 +19,7 @@ class BattleObject: public CharObject
 {
     public:
         friend class CharObject;
+        friend class BuffList;
         friend class BaseBuff;
         friend class BaseBuffAct;
         friend class BaseBuffActAura;
@@ -271,6 +272,8 @@ class BattleObject: public CharObject
 
     private:
         void expireBuffAct(const std::pair<uint64_t, size_t> &);
+
+    private:
         void clearDeadBuffLater();
 
     protected:

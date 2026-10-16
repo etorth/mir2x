@@ -1069,7 +1069,6 @@ void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
     if(auto buffp = m_buffList.hasBuff(buffSeq)){
         const auto fromUID = buffp->fromUID();
         m_buffList.removeBuff(buffSeq);
-        clearDeadBuffLater();
 
         AMRemoveBuff amRB;
         std::memset(&amRB, 0, sizeof(amRB));
@@ -1103,13 +1102,8 @@ void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 
 void BattleObject::expireBuffAct(const std::pair<uint64_t, size_t> &key)
 {
-    if(auto buff = m_buffList.hasBuff(key.first); buff && buff->removeBuffAct(key.second)){
-        if(buff->done()){
-            removeBuff(key.first, true);
-        }
-        else{
-            clearDeadBuffLater();
-        }
+    if(auto buff = m_buffList.hasBuff(key.first); buff && buff->removeBuffAct(key.second) && buff->done()){
+        removeBuff(key.first, true);
     }
 }
 
@@ -1189,7 +1183,6 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 
     if(!pbuffListFromUID.empty() && br.stackReplace){
         m_buffList.removeBuff(pbuffListFromUID.front()->buffSeq());
-        clearDeadBuffLater();
         return fnAddBuff();
     }
 

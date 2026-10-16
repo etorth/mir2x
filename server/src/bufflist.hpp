@@ -92,18 +92,7 @@ class BuffList final
         }
 
     public:
-        // removed buffs are not destroyed immediately, caller may still be inside the buff
-        // BattleObject calls clearDeadBuff() later by defer()
-
-        bool removeBuff(uint64_t buffSeq)
-        {
-            if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end()){
-                m_deadBufList.push_back(std::move(p->second));
-                m_activeBuffList.erase(p);
-                return true;
-            }
-            return false;
-        }
+        bool removeBuff(uint64_t);
 
         void clearDeadBuff()
         {

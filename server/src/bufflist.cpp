@@ -2,6 +2,21 @@
 #include <vector>
 #include "buffactattackmodifier.hpp"
 #include "bufflist.hpp"
+#include "battleobject.hpp"
+
+bool BuffList::removeBuff(uint64_t buffSeq)
+{
+    // removed buff is not destroyed immediately, caller may still be inside the buff
+    // schedule clearDeadBuff() by its BO
+
+    if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end()){
+        p->second->getBO()->clearDeadBuffLater();
+        m_deadBufList.push_back(std::move(p->second));
+        m_activeBuffList.erase(p);
+        return true;
+    }
+    return false;
+}
 
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
