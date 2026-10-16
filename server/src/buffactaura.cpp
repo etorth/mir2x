@@ -22,12 +22,23 @@ BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
 
 corof::awaitable<> BaseBuffActAura::dispatch()
 {
-    for(const auto uid: getBuff()->getBO()->getInViewUIDList()){
+    // transmit() suspends, this aura can be removed meanwhile
+    // don't touch *this* after co_await, always look up the aura again by its key
+
+    const auto bo = getBuff()->getBO();
+    const auto key = actKey();
+
+    for(const auto uid: bo->getInViewUIDList()){
         switch(uidf::getUIDType(uid)){
             case UID_PLY:
             case UID_MON:
                 {
-                    co_await transmit(uid);
+                    if(auto paura = dynamic_cast<BaseBuffActAura *>(bo->m_buffList.hasBuffAct(key))){
+                        co_await paura->transmit(uid);
+                    }
+                    else{
+                        co_return;
+                    }
                     break;
                 }
             default:
@@ -40,49 +51,70 @@ corof::awaitable<> BaseBuffActAura::dispatch()
 
 corof::awaitable<> BaseBuffActAura::transmit(uint64_t targetUID)
 {
+    // don't touch *this* after co_await, it can be removed meanwhile
+
+    const auto bo = getBuff()->getBO();
+    const auto key = actKey();
+
+    const auto buffSeq = getBuff()->buffSeq();
+    const auto auraBuffID = getAuraBuffID();
+
+    const auto favor = getBR().favor;
+    const auto radius = getBAREF().aura.radius;
+
     fflassert(targetUID);
-    fflassert(targetUID != getBuff()->getBO()->UID());
+    fflassert(targetUID != bo->UID());
+
     switch(uidf::getUIDType(targetUID)){
         case UID_PLY:
         case UID_MON:
             {
-                if(const auto coLocOpt = co_await getBuff()->getBO()->getCOLocation(targetUID); coLocOpt.has_value()){
-                    const auto &baref = getBAREF();
-                    fflassert(baref);
+                const auto coLocOpt = co_await bo->getCOLocation(targetUID);
+                if(!coLocOpt.has_value()){
+                    co_return;
+                }
 
-                    if(getBuff()->getBO()->mapUID() != coLocOpt.value().mapUID){
-                        co_return;
-                    }
+                if(!bo->m_buffList.hasBuffAct(key)){
+                    co_return;
+                }
 
-                    if(mathf::LDistance2<int>(getBuff()->getBO()->X(), getBuff()->getBO()->Y(), coLocOpt.value().x, coLocOpt.value().y) > baref.aura.radius * baref.aura.radius){
-                        co_return;
-                    }
+                if(bo->mapUID() != coLocOpt.value().mapUID){
+                    co_return;
+                }
 
-                    switch(const auto friendType = co_await getBuff()->getBO()->checkFriend(targetUID)){
-                        case FT_FRIEND:
-                            {
-                                if(getBR().favor >= 0){
-                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                }
-                                break;
+                if(mathf::LDistance2<int>(bo->X(), bo->Y(), coLocOpt.value().x, coLocOpt.value().y) > radius * radius){
+                    co_return;
+                }
+
+                const auto friendType = co_await bo->checkFriend(targetUID);
+                if(!bo->m_buffList.hasBuffAct(key)){
+                    co_return;
+                }
+
+                switch(friendType){
+                    case FT_FRIEND:
+                        {
+                            if(favor >= 0){
+                                bo->sendBuff(targetUID, buffSeq, auraBuffID);
                             }
-                        case FT_ENEMY:
-                            {
-                                if(getBR().favor <= 0){
-                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                }
-                                break;
+                            break;
+                        }
+                    case FT_ENEMY:
+                        {
+                            if(favor <= 0){
+                                bo->sendBuff(targetUID, buffSeq, auraBuffID);
                             }
-                        case FT_NEUTRAL:
-                            {
-                                getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                break;
-                            }
-                        default:
-                            {
-                                throw fflvalue(friendType);
-                            }
-                    }
+                            break;
+                        }
+                    case FT_NEUTRAL:
+                        {
+                            bo->sendBuff(targetUID, buffSeq, auraBuffID);
+                            break;
+                        }
+                    default:
+                        {
+                            throw fflvalue(friendType);
+                        }
                 }
                 break;
             }

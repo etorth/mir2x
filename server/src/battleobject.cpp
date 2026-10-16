@@ -1069,6 +1069,7 @@ void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
     if(auto buffp = m_buffList.hasBuff(buffSeq)){
         const auto fromUID = buffp->fromUID();
         m_buffList.removeBuff(buffSeq);
+        clearDeadBuffLater();
 
         AMRemoveBuff amRB;
         std::memset(&amRB, 0, sizeof(amRB));
@@ -1100,6 +1101,25 @@ void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
     }
 }
 
+void BattleObject::expireBuffAct(const std::pair<uint64_t, size_t> &key)
+{
+    if(auto buff = m_buffList.hasBuff(key.first); buff && buff->removeBuffAct(key.second)){
+        if(buff->done()){
+            removeBuff(key.first, true);
+        }
+        else{
+            clearDeadBuffLater();
+        }
+    }
+}
+
+void BattleObject::clearDeadBuffLater()
+{
+    // removed buff/act may still be on the call stack, destroy them later
+    // coroutines suspended inside a buff/act always look it up again by key after resume
+    defer([this]{ m_buffList.clearDeadBuff(); });
+}
+
 void BattleObject::removeFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, bool dispatch)
 {
     for(auto pbuff: m_buffList.hasFromBuff(fromUID, fromBuffSeq)){
@@ -1119,6 +1139,21 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
         auto buffPtr   = std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, buffSeqID);
 
         if(auto buff = m_buffList.addBuff(std::move(buffPtr))){
+            for(size_t actOff = 0; const auto &baref: buff->getBR().actList){
+                const std::pair<uint64_t, size_t> key{buff->buffSeq(), actOff++};
+                if(baref.duration == BADUR_INSTANT){
+                    defer([key, this]{ expireBuffAct(key); });
+                }
+                else if(baref.duration > 0){
+                    addDelay(baref.duration, [key, this](bool timeout)
+                    {
+                        if(timeout){
+                            expireBuffAct(key);
+                        }
+                    });
+                }
+            }
+
             for(const auto paura: buff->getAuraList()){
                 if(paura->getBAR().aura.self){
                     addBuff(buff->fromUID(), buff->buffSeq(), DBCOM_BUFFID(paura->getBAR().aura.buff));
@@ -1154,6 +1189,7 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 
     if(!pbuffListFromUID.empty() && br.stackReplace){
         m_buffList.removeBuff(pbuffListFromUID.front()->buffSeq());
+        clearDeadBuffLater();
         return fnAddBuff();
     }
 

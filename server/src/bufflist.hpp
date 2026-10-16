@@ -44,12 +44,27 @@ class BuffList final
             return (m_activeBuffList[buffSeq] = std::move(buffPtr)).get();
         }
 
+    private:
+        // coroutines below may suspend, buffs can be removed meanwhile
+        // iterate a snapshot of buffSeq and look each buff up again before using it
+
+        std::vector<uint64_t> buffSeqList() const
+        {
+            std::vector<uint64_t> result;
+            result.reserve(m_activeBuffList.size());
+
+            for(const auto &p: m_activeBuffList){
+                result.push_back(p.first);
+            }
+            return result;
+        }
+
     public:
         corof::awaitable<> sendAura(uint64_t targetUID)
         {
-            for(auto &p: m_activeBuffList){
-                if(p.second){
-                    co_await p.second->sendAura(targetUID);
+            for(const auto buffSeq: buffSeqList()){
+                if(auto buff = hasBuff(buffSeq)){
+                    co_await buff->sendAura(targetUID);
                 }
             }
         }
@@ -57,10 +72,10 @@ class BuffList final
         corof::awaitable<> updateAura(uint64_t uid)
         {
             co_await sendAura(uid);
-            for(auto &p: m_activeBuffList){
-                if(p.second){
-                    if((p.second->fromUID() == uid) && p.second->fromAuraBAREF()){
-                        co_await p.second->runOnBOMove(); // behave same as BO itself moves
+            for(const auto buffSeq: buffSeqList()){
+                if(auto buff = hasBuff(buffSeq)){
+                    if((buff->fromUID() == uid) && buff->fromAuraBAREF()){
+                        co_await buff->runOnBOMove(); // behave same as BO itself moves
                     }
                 }
             }
@@ -69,18 +84,32 @@ class BuffList final
     public:
         corof::awaitable<> dispatchAura()
         {
-            for(auto &p: m_activeBuffList){
-                if(p.second){
-                    co_await p.second->dispatchAura();
+            for(const auto buffSeq: buffSeqList()){
+                if(auto buff = hasBuff(buffSeq)){
+                    co_await buff->dispatchAura();
                 }
             }
         }
 
     public:
-        void removeBuff(uint64_t buffSeq)
+        // removed buffs are not destroyed immediately, caller may still be inside the buff
+        // BattleObject calls clearDeadBuff() later by defer()
+
+        bool removeBuff(uint64_t buffSeq)
         {
-            if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end() && p->second){
+            if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end()){
                 m_deadBufList.push_back(std::move(p->second));
+                m_activeBuffList.erase(p);
+                return true;
+            }
+            return false;
+        }
+
+        void clearDeadBuff()
+        {
+            m_deadBufList.clear();
+            for(auto &p: m_activeBuffList){
+                p.second->m_deadActList.clear();
             }
         }
 
@@ -88,9 +117,9 @@ class BuffList final
         corof::awaitable<> runOnTrigger(int btgr)
         {
             fflassert(validBuffActTrigger(btgr));
-            for(auto &p: m_activeBuffList){
-                if(p.second){
-                    co_await p.second->runOnTrigger(btgr);
+            for(const auto buffSeq: buffSeqList()){
+                if(auto buff = hasBuff(buffSeq)){
+                    co_await buff->runOnTrigger(btgr);
                 }
             }
         }
@@ -98,9 +127,9 @@ class BuffList final
     public:
         corof::awaitable<> runOnBOMove()
         {
-            for(auto &p: m_activeBuffList){
-                if(p.second){
-                    co_await p.second->runOnBOMove();
+            for(const auto buffSeq: buffSeqList()){
+                if(auto buff = hasBuff(buffSeq)){
+                    co_await buff->runOnBOMove();
                 }
             }
         }
@@ -153,8 +182,8 @@ class BuffList final
     public:
         BaseBuff *hasBuff(uint64_t buffSeq) const
         {
-            if(m_activeBuffList.contains(buffSeq)){
-                return m_activeBuffList.at(buffSeq).get();
+            if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end()){
+                return p->second.get();
             }
             return nullptr;
         }

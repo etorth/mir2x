@@ -269,6 +269,10 @@ class BattleObject: public CharObject
         void removeBuff(uint64_t, bool);
         void removeFromBuff(uint64_t, uint64_t, bool);
 
+    private:
+        void expireBuffAct(const std::pair<uint64_t, size_t> &);
+        void clearDeadBuffLater();
+
     protected:
         BaseBuff *addBuff(uint64_t, uint64_t, uint32_t);
 

@@ -89,12 +89,7 @@ class BaseBuff
     public:
         virtual bool done() const
         {
-            for(auto &p: m_activeActList){
-                if(p){
-                    return false;
-                }
-            }
-            return true;
+            return m_activeActList.empty();
         }
 
     public:
@@ -106,6 +101,7 @@ class BaseBuff
 
     public:
         std::vector<BaseBuffActAura *> getAuraList();
+        std::vector<std::pair<uint64_t, size_t>> getAuraKeyList();
 
     public:
         corof::awaitable<> sendAura(uint64_t);

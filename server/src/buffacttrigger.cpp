@@ -15,7 +15,7 @@ BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
             switch(getBAREF().duration){
                 case BADUR_UNLIMITED: return -1;
                 case BADUR_INSTANT  : return  0;
-                default             : return getBAREF().duration * getBAREF().trigger.tps;
+                default             : return getBAREF().duration * getBAREF().trigger.tps / 1000; // duration in ms
             }
         }();
 

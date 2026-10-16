@@ -1,4 +1,5 @@
 #include <memory>
+#include <algorithm>
 #include "uidf.hpp"
 #include "fflerror.hpp"
 #include "buff.hpp"
@@ -45,15 +46,28 @@ BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint64_t argFromBuf
 corof::awaitable<> BaseBuff::runOnTrigger(int btgr)
 {
     fflassert(validBuffActTrigger(btgr));
+
+    // trigger may suspend, this buff can be removed meanwhile
+    // don't touch *this* after co_await, always look up the act again by its key
+
+    auto bo = getBO();
+    std::vector<std::pair<uint64_t, size_t>> keyList;
+
     for(auto &actPtr: m_activeActList){
         if(actPtr->getBAR().isTrigger()){
-            auto ptgr = dynamic_cast<BaseBuffActTrigger *>(actPtr.get());
-            fflassert(ptgr);
+            keyList.push_back(actPtr->actKey());
+        }
+    }
 
-            for(int m = 1; m < BATGR_END; m <<= 1){
-                if(actPtr->getBAREF().trigger.on & m){
+    for(const auto &key: keyList){
+        for(int m = 1; m < BATGR_END; m <<= 1){
+            if(auto ptgr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
+                if(ptgr->getBAREF().trigger.on & m){
                     co_await ptgr->runOnTrigger(m);
                 }
+            }
+            else{
+                break;
             }
         }
     }
@@ -75,10 +89,10 @@ corof::awaitable<> BaseBuff::runOnBOMove()
         auto bo = getBO();
         auto seq = buffSeq();
 
-        if(const auto coLocOpt = co_await getBO()->getCOLocation(fromUID()); !coLocOpt.has_value()){
-            if((bo->mapUID() != coLocOpt.value().mapUID) || (mathf::LDistance2<int>(bo->X(), bo->Y(), coLocOpt.value().x, coLocOpt.value().y) > bap->aura.radius * bap->aura.radius)){
-                bo->removeBuff(seq, true);
-            }
+        // aura source is gone, or out of radius
+        const auto coLocOpt = co_await bo->getCOLocation(fromUID());
+        if(!coLocOpt.has_value() || (bo->mapUID() != coLocOpt.value().mapUID) || (mathf::LDistance2<int>(bo->X(), bo->Y(), coLocOpt.value().x, coLocOpt.value().y) > bap->aura.radius * bap->aura.radius)){
+            bo->removeBuff(seq, true);
         }
     }
 }
@@ -99,17 +113,32 @@ std::vector<BaseBuffActAura *> BaseBuff::getAuraList()
     return result;
 }
 
+std::vector<std::pair<uint64_t, size_t>> BaseBuff::getAuraKeyList()
+{
+    std::vector<std::pair<uint64_t, size_t>> result;
+    for(auto paura: getAuraList()){
+        result.push_back(paura->actKey());
+    }
+    return result;
+}
+
 corof::awaitable<> BaseBuff::sendAura(uint64_t uid)
 {
-    for(auto paura: getAuraList()){
-        co_await paura->transmit(uid);
+    auto bo = getBO();
+    for(const auto &key: getAuraKeyList()){
+        if(auto paura = dynamic_cast<BaseBuffActAura *>(bo->m_buffList.hasBuffAct(key))){
+            co_await paura->transmit(uid);
+        }
     }
 }
 
 corof::awaitable<> BaseBuff::dispatchAura()
 {
-    for(auto paura: getAuraList()){
-        co_await paura->dispatch();
+    auto bo = getBO();
+    for(const auto &key: getAuraKeyList()){
+        if(auto paura = dynamic_cast<BaseBuffActAura *>(bo->m_buffList.hasBuffAct(key))){
+            co_await paura->dispatch();
+        }
     }
 }
 
@@ -125,11 +154,13 @@ BaseBuffAct *BaseBuff::hasBuffAct(size_t argActOff) const
 
 bool BaseBuff::removeBuffAct(size_t argActOff)
 {
-    for(auto &p: m_activeActList){
-        if(p && p->actOff() == argActOff){
-            m_deadActList.push_back(std::move(p));
-            return true;
-        }
+    // removed act is not destroyed immediately, caller may still be inside the act
+    // BattleObject calls BuffList::clearDeadBuff() later by defer()
+
+    if(auto p = std::find_if(m_activeActList.begin(), m_activeActList.end(), [argActOff](const auto &actPtr){ return actPtr->actOff() == argActOff; }); p != m_activeActList.end()){
+        m_deadActList.push_back(std::move(*p));
+        m_activeActList.erase(p);
+        return true;
     }
     return false;
 }
