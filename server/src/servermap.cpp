@@ -1470,6 +1470,19 @@ int ServerMap::checkPathGrid(int argX, int argY) const
     return PF_FREE;
 }
 
+void ServerMap::update()
+{
+    updateMapGrid();
+    // if(!g_serverArgParser->sharedConfig().disableMapScript){
+    //     m_luaRunner->resume(m_mainScriptThreadKey);
+    // }
+
+    addDelay(100, [this](bool)
+    {
+        update();
+    });
+}
+
 void ServerMap::updateMapGrid()
 {
     updateMapGridFireWall();
@@ -1592,6 +1605,11 @@ corof::awaitable<> ServerMap::onActivate()
     if(!g_serverArgParser->sharedConfig().disableMapScript){
         m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
     }
+
+    addDelay(100, [this](bool)
+    {
+        update();
+    });
 }
 
 corof::awaitable<> ServerMap::loadNPChar()

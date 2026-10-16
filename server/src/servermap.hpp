@@ -327,6 +327,7 @@ class ServerMap final: public ServerObject
         int checkPathGrid(int, int) const;
 
     private:
+        void update();
         void updateMapGrid();
         void updateMapGridFireWall();
         void updateMapGridGroundItem();
