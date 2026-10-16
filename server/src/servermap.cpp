@@ -1473,10 +1473,6 @@ int ServerMap::checkPathGrid(int argX, int argY) const
 void ServerMap::update()
 {
     updateMapGrid();
-    // if(!g_serverArgParser->sharedConfig().disableMapScript){
-    //     m_luaRunner->resume(m_mainScriptThreadKey);
-    // }
-
     addDelay(100, [this](bool)
     {
         update();
