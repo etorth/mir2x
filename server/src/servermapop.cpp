@@ -666,19 +666,11 @@ corof::awaitable<> ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
 
     if(mapBin()->validC(amUHP.X, amUHP.Y)){
-        doCircle(amUHP.X, amUHP.Y, 20, [this, amUHP](int nX, int nY) -> bool
-        {
-            if(true || mapBin()->validC(nX, nY)){
-                for(auto nUID: getUIDList(nX, nY)){
-                    if(nUID != amUHP.UID){
-                        if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                            m_actorPod->post(nUID, {AM_UPDATEHP, amUHP});
-                        }
-                    }
-                }
+        for(const auto observerUID: getGrid(amUHP.X, amUHP.Y).observerList){
+            if((observerUID != amUHP.UID) && (uidf::isPlayer(observerUID) || uidf::isMonster(observerUID))){
+                m_actorPod->post(observerUID, {AM_UPDATEHP, amUHP});
             }
-            return false;
-        });
+        }
     }
     return {};
 }

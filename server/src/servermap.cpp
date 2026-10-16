@@ -1346,19 +1346,11 @@ void ServerMap::postGridItemIDList(int x, int y)
     fflassert(mapBin()->groundValid(x, y));
     const auto sdBuf = cerealf::serialize(getGroundItemIDList(x, y, 1), true);
 
-    doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
-    {
-        if(mapBin()->groundValid(x, y)){
-            doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
-            {
-                if(uidf::getUIDType(uid) == UID_PLY){
-                    forwardNetPackage(uid, SM_GROUNDITEMIDLIST, sdBuf);
-                }
-                return false;
-            });
+    for(const auto uid: getGrid(x, y).observerList){
+        if(uidf::isPlayer(uid)){
+            forwardNetPackage(uid, SM_GROUNDITEMIDLIST, sdBuf);
         }
-        return false;
-    });
+    }
 }
 
 void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
@@ -1407,19 +1399,11 @@ void ServerMap::postGridFireWallList(int x, int y)
     fflassert(mapBin()->groundValid(x, y));
     const auto sdBuf = cerealf::serialize(getGroundFireWallList(x, y, 1), true);
 
-    doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
-    {
-        if(mapBin()->groundValid(x, y)){
-            doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
-            {
-                if(uidf::getUIDType(uid) == UID_PLY){
-                    forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, sdBuf);
-                }
-                return false;
-            });
+    for(const auto uid: getGrid(x, y).observerList){
+        if(uidf::isPlayer(uid)){
+            forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, sdBuf);
         }
-        return false;
-    });
+    }
 }
 
 void ServerMap::postGroundFireWallList(uint64_t uid, int x, int y)
