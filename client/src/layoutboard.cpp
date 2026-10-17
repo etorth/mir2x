@@ -368,14 +368,50 @@ void LayoutBoard::setupStartY(int fromPar)
 
 void LayoutBoard::removePar(int loc, int count)
 {
-    fflassert(!Widget::evalBool(m_canEdit, this));
-    fflassert(loc >= 0 && loc <= parCount(), loc, parCount());
-    fflassert(count >= 0 && loc + count <= parCount(), loc, count, parCount());
+    if(loc < 0){
+        count += loc;
+        loc = 0;
+    }
 
-    if(count > 0){
-        const auto begin = ithParIterator(loc);
-        m_parNodeList.erase(begin, std::next(begin, count));
-        setupStartY(loc);
+    if(loc >= parCount()){
+        return;
+    }
+
+    if(count <= 0){
+        return;
+    }
+
+    if(loc + count > parCount()){
+        count = parCount() - loc;
+    }
+
+    const auto begin = ithParIterator(loc);
+    const auto end   = std::next(begin, count);
+
+    m_parNodeList.erase(begin, end);
+    setupStartY(loc);
+
+    if(!Widget::evalBool(m_canEdit, this)){
+        return;
+    }
+
+    if(empty()){
+        clear(); // editable board needs at least one par, same as clear()
+        return;
+    }
+
+    if(m_cursorLoc.par >= loc + count){
+        m_cursorLoc.par -= count;
+    }
+    else if(m_cursorLoc.par >= loc){
+        if(loc > 0){
+            m_cursorLoc.par = loc - 1;
+            std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->lastCursorLoc();
+        }
+        else{
+            m_cursorLoc.par = 0;
+            std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->firstCursorLoc();
+        }
     }
 }
 
