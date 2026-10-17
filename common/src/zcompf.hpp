@@ -70,7 +70,7 @@ namespace zcompf
         dst.clear();
         dst.resize(ZSTD_compressBound(srcSize * sizeof(T)));
 
-        const size_t rc = ZSTD_compress(dst.data(), dst.size(), src, srcSize * sizeof(T), ZSTD_maxCLevel());
+        const size_t rc = ZSTD_compress(dst.data(), dst.size(), src, srcSize * sizeof(T), ZSTD_defaultCLevel());
         if(ZSTD_isError(rc)){
             throw fflpanic("failed to compress file: {}", ZSTD_getErrorName(rc));
         }
