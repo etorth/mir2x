@@ -89,7 +89,7 @@ enum ActorMsgPackType: int
     AM_PATHFIND,
     AM_PATHFINDOK,
     AM_ATTACK,
-    AM_UPDATEHP,
+    AM_OBSERVERNETPACKAGE,
     AM_DEADFADEOUT,
     AM_QUERYUIDBUFF,
     AM_QUERYCORECORD,
@@ -237,7 +237,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_PATHFIND)
         _add_mpk_type_case(AM_PATHFINDOK)
         _add_mpk_type_case(AM_ATTACK)
-        _add_mpk_type_case(AM_UPDATEHP)
+        _add_mpk_type_case(AM_OBSERVERNETPACKAGE)
         _add_mpk_type_case(AM_DEADFADEOUT)
         _add_mpk_type_case(AM_QUERYUIDBUFF)
         _add_mpk_type_case(AM_QUERYCORECORD)
@@ -651,18 +651,6 @@ struct AMAttack
     int Y;
 
     DamageNode damage;
-};
-
-struct AMUpdateHP
-{
-    uint64_t UID;
-    uint64_t mapUID;
-
-    int X;
-    int Y;
-
-    uint32_t HP;
-    uint32_t HPMax;
 };
 
 struct AMDeadFadeOut

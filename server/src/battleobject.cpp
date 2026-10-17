@@ -618,7 +618,7 @@ void BattleObject::goGhost()
 
 void BattleObject::dispatchHealth()
 {
-    dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
+    dispatchObserverNetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
 void BattleObject::dispatchHealth(uint64_t uid)
@@ -1058,7 +1058,7 @@ void BattleObject::dispatchBuffIDList()
         .idList = m_buffList.getIDList(),
     });
 
-    dispatchInViewCONetPackage(SM_BUFFIDLIST, sdBuf);
+    dispatchObserverNetPackage(SM_BUFFIDLIST, sdBuf);
     if(isPlayer()){
         dynamic_cast<Player *>(this)->postNetMessage(SM_BUFFIDLIST, sdBuf);
     }
@@ -1199,7 +1199,7 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
     }
 
     if(const bool hasDied = m_sdHealth.dead(); m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
-        dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
+        dispatchObserverNetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
         if(!hasDied && m_sdHealth.dead()){
             onDie();
         }
@@ -1211,7 +1211,7 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
 bool BattleObject::setHealth(std::optional<int> hp, std::optional<int> mp, std::optional<int> maxHP, std::optional<int> maxMP)
 {
     if(const bool hasDied = m_sdHealth.dead(); m_sdHealth.setHealth(hp, mp, maxHP, maxMP)){
-        dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
+        dispatchObserverNetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
         if(!hasDied && m_sdHealth.dead()){
             onDie();
         }

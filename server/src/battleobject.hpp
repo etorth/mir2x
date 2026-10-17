@@ -257,16 +257,6 @@ class BattleObject: public CharObject
         }
 
     protected:
-        template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)
-        {
-            for(const auto &[uid, coLoc]: m_inViewCOList){
-                if(uidf::getUIDType(coLoc.uid) == UID_PLY){
-                    forwardNetPackage(coLoc.uid, type, std::forward<Args>(args)...);
-                }
-            }
-        }
-
-    protected:
         void removeBuff(uint64_t, bool);
         void removeFromBuff(uint64_t, uint64_t, bool);
 

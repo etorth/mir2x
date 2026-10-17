@@ -660,16 +660,17 @@ corof::awaitable<> ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     return {};
 }
 
-corof::awaitable<> ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_OBSERVERNETPACKAGE(const ActorMsgPack &mpk)
 {
-    AMUpdateHP amUHP;
-    std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
+    const auto sdONP = mpk.deserialize<SDObserverNetPackage>();
+    if(!mapBin()->validC(sdONP.x, sdONP.y)){
+        return {};
+    }
 
-    if(mapBin()->validC(amUHP.X, amUHP.Y)){
-        for(const auto observerUID: getGrid(amUHP.X, amUHP.Y).observerList){
-            if((observerUID != amUHP.UID) && (uidf::isPlayer(observerUID) || uidf::isMonster(observerUID))){
-                m_actorPod->post(observerUID, {AM_UPDATEHP, amUHP});
-            }
+    const auto sdBuf = cerealf::serialize(sdONP.package);
+    for(const auto observerUID: getGrid(sdONP.x, sdONP.y).observerList){
+        if((observerUID != sdONP.uid) && uidf::isPlayer(observerUID)){
+            m_actorPod->post(observerUID, {AM_SENDPACKAGE, sdBuf});
         }
     }
     return {};

@@ -33,6 +33,25 @@ struct SDSendPackage
     }
 };
 
+struct SDObserverNetPackage
+{
+    //              SDObserverNetPackage                   SDSendPackage
+    // used for CO ----------------------> map -> observers -------------> player -> client
+    // map forwards to every player whose view range covers grid (x, y), except uid, which is usually the sender itself
+
+    uint64_t uid = 0;
+
+    int x = -1;
+    int y = -1;
+
+    SDSendPackage package;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, x, y, package);
+    }
+};
+
 struct SDInitQuest
 {
     uint32_t questID = 0;

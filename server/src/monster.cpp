@@ -490,10 +490,6 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_NOTIFYDEAD(rstMPK);
             }
-        case AM_UPDATEHP:
-            {
-                return on_AM_UPDATEHP(rstMPK);
-            }
         case AM_EXP:
             {
                 return on_AM_EXP(rstMPK);

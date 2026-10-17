@@ -25,7 +25,7 @@ corof::awaitable<> Monster::on_AM_MISS(const ActorMsgPack &mpk)
         std::memset(&smM, 0, sizeof(smM));
 
         smM.UID = amM.UID;
-        dispatchInViewCONetPackage(SM_MISS, smM);
+        dispatchObserverNetPackage(SM_MISS, smM);
     }
     return {};
 }
@@ -220,11 +220,6 @@ corof::awaitable<> Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     amL.Direction = Direction();
 
     m_actorPod->post(rstMPK.fromAddr(), {AM_LOCATION, amL});
-    return {};
-}
-
-corof::awaitable<> Monster::on_AM_UPDATEHP(const ActorMsgPack &)
-{
     return {};
 }
 

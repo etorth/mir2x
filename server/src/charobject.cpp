@@ -302,6 +302,26 @@ void CharObject::dispatchAction(const ActionNode &action)
     m_actorPod->post(mapUID(), {AM_ACTION, amA});
 }
 
+void CharObject::dispatchObserverNetPackage(uint8_t type, const void *buf, size_t bufLen)
+{
+    fflassert(hasActorPod());
+    const auto data = static_cast<const uint8_t *>(buf);
+
+    m_actorPod->post(mapUID(), {AM_OBSERVERNETPACKAGE, cerealf::serialize(SDObserverNetPackage
+    {
+        .uid = UID(),
+
+        .x = X(),
+        .y = Y(),
+
+        .package
+        {
+            .type = type,
+            .buf {data, data + bufLen},
+        },
+    })});
+}
+
 void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
 {
     fflassert(hasActorPod());

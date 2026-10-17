@@ -565,7 +565,7 @@ class Player final: public BattleObject
             if(sendSelf){
                 postNetMessage(type, std::forward<Args>(args)...);
             }
-            dispatchInViewCONetPackage(type, std::forward<Args>(args)...);
+            dispatchObserverNetPackage(type, std::forward<Args>(args)...);
         }
 
     public:

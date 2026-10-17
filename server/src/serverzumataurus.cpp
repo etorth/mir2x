@@ -204,7 +204,7 @@ corof::awaitable<bool> ServerZumaTaurus::attackUID(uint64_t targetUID, int dcTyp
 
                                         smSG.x = amSFLD.x;
                                         smSG.y = amSFLD.y;
-                                        dispatchInViewCONetPackage(SM_STRIKEGRID, smSG);
+                                        dispatchObserverNetPackage(SM_STRIKEGRID, smSG);
                                     }
                                 }
                             });

@@ -613,9 +613,9 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_TRYLEAVE(rstMPK);
             }
-        case AM_UPDATEHP:
+        case AM_OBSERVERNETPACKAGE:
             {
-                return on_AM_UPDATEHP(rstMPK);
+                return on_AM_OBSERVERNETPACKAGE(rstMPK);
             }
         case AM_DEADFADEOUT:
             {

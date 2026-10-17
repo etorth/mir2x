@@ -182,12 +182,29 @@ class CharObject: public ServerObject
         virtual ActionNode makeActionStand() const;
 
     protected:
-        template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)
+        // send to every player whose view range covers this CO, via map observer list
+        // m_inViewCOList is bounded by this CO's own view range, which can be smaller than the observer's
+
+        void dispatchObserverNetPackage(uint8_t, const void *, size_t);
+
+        void dispatchObserverNetPackage(uint8_t type)
         {
-            for(const auto &[uid, coLoc]: m_inViewCOList){
-                if(uidf::getUIDType(coLoc.uid) == UID_PLY){
-                    forwardNetPackage(coLoc.uid, type, std::forward<Args>(args)...);
-                }
-            }
+            dispatchObserverNetPackage(type, nullptr, 0);
+        }
+
+        void dispatchObserverNetPackage(uint8_t type, const std::string &buf)
+        {
+            dispatchObserverNetPackage(type, buf.data(), buf.length());
+        }
+
+        void dispatchObserverNetPackage(uint8_t type, const std::string_view &buf)
+        {
+            dispatchObserverNetPackage(type, buf.data(), buf.size());
+        }
+
+        template<typename T> void dispatchObserverNetPackage(uint8_t type, const T &t)
+        {
+            static_assert(std::is_trivially_copyable_v<T>);
+            dispatchObserverNetPackage(type, &t, sizeof(t));
         }
 };
