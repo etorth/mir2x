@@ -1490,8 +1490,7 @@ void ServerMap::runFireWall(int x, int y, uint64_t groundSeq)
                 waitTime = std::min<uint64_t>(waitTime, p->lastAttackTime + attackGap - currTime);
             }
 
-            // asyncWait(0) waits forever
-            co_await asyncWait(std::max<uint64_t>(1, waitTime));
+            co_await asyncWait(std::max<uint64_t>(1, waitTime)); // asyncWait(0) waits forever
         }
     });
 }
