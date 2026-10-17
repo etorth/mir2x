@@ -753,6 +753,9 @@ corof::awaitable<> ServerMap::on_AM_DROPITEMLIST(const ActorMsgPack &mpk)
     auto sdDIL = mpk.deserialize<SDDropItemList>();
     fflassert(mapBin()->groundValid(sdDIL.x, sdDIL.y));
 
+    const auto groundSeq = m_groundSeq++;
+    std::set<std::pair<int, int>> dropItemGLocs;
+
     for(auto &item: sdDIL.itemList){
         fflassert(item);
 
@@ -776,8 +779,13 @@ corof::awaitable<> ServerMap::on_AM_DROPITEMLIST(const ActorMsgPack &mpk)
         }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
 
         if(mapBin()->groundValid(bestX, bestY)){
-            addGridItem(std::move(item), bestX, bestY);
+            addGridItem(std::move(item), groundSeq, bestX, bestY);
+            dropItemGLocs.insert({bestX, bestY});
         }
+    }
+
+    if(!dropItemGLocs.empty()){
+        expireGridItemLater(groundSeq, std::move(dropItemGLocs));
     }
     return {};
 }
@@ -898,9 +906,11 @@ corof::awaitable<> ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
 {
     const auto amCFW = mpk.conv<AMCastFireWall>();
     if(mapBin()->groundValid(amCFW.x, amCFW.y)){
+        const auto groundSeq = m_groundSeq++;
         getGrid(amCFW.x, amCFW.y).fireWallList.push_back(FireWallMagicNode
         {
             .uid = mpk.from(),
+            .groundSeq = groundSeq,
 
             .minDC = amCFW.minDC,
             .maxDC = amCFW.maxDC,
@@ -913,7 +923,7 @@ corof::awaitable<> ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
             .dps      = amCFW.dps,
         });
 
-        m_fireWallLocList.insert({amCFW.x, amCFW.y});
+        runFireWall(amCFW.x, amCFW.y, groundSeq);
         postGridFireWallList(amCFW.x, amCFW.y);
     }
     return {};

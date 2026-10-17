@@ -1260,7 +1260,7 @@ size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
     return count;
 }
 
-void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
+void ServerMap::addGridItem(SDItem item, uint64_t groundSeq, int x, int y, bool post)
 {
     fflassert(item);
     fflassert(mapBin()->groundValid(x, y));
@@ -1268,10 +1268,9 @@ void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
     getGridItemList(x, y).push_back(DroppedItemNode
     {
         .item = std::move(item),
-        .dropTime = hres_tstamp().to_msec(),
+        .groundSeq = groundSeq,
     });
 
-    m_gridItemLocList.insert({x, y});
     if(post){
         postGridItemIDList(x, y);
     }
@@ -1282,20 +1281,27 @@ void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)
     fflassert(DBCOM_ITEMRECORD(itemID));
     fflassert(mapBin()->groundValid(x, y));
 
-    getGridItemList(x, y).push_back(DroppedItemNode
+    const auto groundSeq = m_groundSeq++;
+    addGridItem(SDItem
     {
-        .item
-        {
-            .itemID = itemID,
-            .seqID  = 1,
-        },
-        .dropTime = hres_tstamp().to_msec(),
-    });
+        .itemID = itemID,
+        .seqID  = 1,
+    },
+    groundSeq, x, y, post);
 
-    m_gridItemLocList.insert({x, y});
-    if(post){
-        postGridItemIDList(x, y);
-    }
+    expireGridItemLater(groundSeq, {{x, y}});
+}
+
+void ServerMap::expireGridItemLater(uint64_t groundSeq, std::set<std::pair<int, int>> dropItemGLocs)
+{
+    addDelay(120 * 1000, [groundSeq, dropItemGLocs = std::move(dropItemGLocs), this](bool)
+    {
+        for(const auto &[x, y]: dropItemGLocs){
+            if(std::erase_if(getGridItemList(x, y), [groundSeq](const auto &node){ return node.groundSeq == groundSeq; }) > 0){
+                postGridItemIDList(x, y);
+            }
+        }
+    });
 }
 
 void ServerMap::removeGridItemID(uint32_t itemID, int x, int y, bool post)
@@ -1377,15 +1383,6 @@ SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
     doCircle(x, y, r, [&groundFireWallList, this](int x, int y) -> bool
     {
         if(mapBin()->groundValid(x, y)){
-            for(auto p = getGrid(x, y).fireWallList.begin(); p != getGrid(x, y).fireWallList.end();){
-                if(hres_tstamp().to_msec() >= p->startTime + p->duration){
-                    p = getGrid(x, y).fireWallList.erase(p);
-                }
-                else{
-                    p++;
-                }
-            }
-
             groundFireWallList.fireWallList.push_back(SDGridFireWall
             {
                 .x = x,
@@ -1462,120 +1459,78 @@ int ServerMap::checkPathGrid(int argX, int argY) const
     return PF_FREE;
 }
 
-void ServerMap::update()
+void ServerMap::runFireWall(int x, int y, uint64_t groundSeq)
 {
-    updateMapGrid();
-    addDelay(100, [this](bool)
+    defer([x, y, groundSeq, this](this auto) -> corof::awaitable<>
     {
-        update();
+        while(true){
+            auto &fireWallList = getGrid(x, y).fireWallList;
+            const auto p = std::ranges::find(fireWallList, groundSeq, &FireWallMagicNode::groundSeq);
+
+            if(p == fireWallList.end()){
+                co_return;
+            }
+
+            const auto currTime = hres_tstamp().to_msec();
+            const auto expireTime = p->startTime + p->duration;
+
+            if(currTime >= expireTime){
+                fireWallList.erase(p);
+                postGridFireWallList(x, y);
+                co_return;
+            }
+
+            uint64_t waitTime = expireTime - currTime;
+            if(p->dps > 0){
+                const uint64_t attackGap = std::max<uint64_t>(1, 1000 / p->dps);
+                if(currTime >= p->lastAttackTime + attackGap){
+                    attackFireWall(x, y, *p);
+                    p->lastAttackTime = currTime;
+                }
+                waitTime = std::min<uint64_t>(waitTime, p->lastAttackTime + attackGap - currTime);
+            }
+
+            // asyncWait(0) waits forever
+            co_await asyncWait(std::max<uint64_t>(1, waitTime));
+        }
     });
 }
 
-void ServerMap::updateMapGrid()
+void ServerMap::attackFireWall(int x, int y, const FireWallMagicNode &node)
 {
-    updateMapGridFireWall();
-    updateMapGridGroundItem();
-}
+    AMAttack amA;
+    std::memset(&amA, 0, sizeof(amA));
 
-void ServerMap::updateMapGridFireWall()
-{
-    for(auto locIter = m_fireWallLocList.begin(); locIter != m_fireWallLocList.end();){
-        const auto nX = std::get<0>(*locIter);
-        const auto nY = std::get<1>(*locIter);
+    amA.UID = node.uid;
+    amA.mapUID = UID();
+    amA.X = x;
+    amA.Y = y;
 
-        bool hasDoneWallFire = false;
-        auto &gridFireWallList = getGrid(nX, nY).fireWallList;
+    amA.damage = MagicDamage
+    {
+        .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
+        .damage = mathf::rand<int>(node.minDC, node.maxDC + 1),
+        .mcHit = node.mcHit,
+    };
 
-        for(auto p = gridFireWallList.begin(); p != gridFireWallList.end();){
-            const auto currTime = hres_tstamp().to_msec();
-            if(currTime >= p->startTime + p->duration){
-                hasDoneWallFire = true;
-                p = gridFireWallList.erase(p);
-                continue;
-            }
-
-            if(p->dps > 0 && currTime > p->lastAttackTime + 1000 / p->dps){
-                AMAttack amA;
-                std::memset(&amA, 0, sizeof(amA));
-
-                amA.UID = p->uid;
-                amA.mapUID = UID();
-                amA.X = nX;
-                amA.Y = nY;
-
-                amA.damage = MagicDamage
-                {
-                    .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
-                    .damage = mathf::rand<int>(p->minDC, p->maxDC + 1),
-                    .mcHit = p->mcHit,
-                };
-
-                doUIDList(nX, nY, [amA, this](uint64_t uid) -> bool
-                {
-                    if(uid != amA.UID){
-                        switch(uidf::getUIDType(uid)){
-                            case UID_PLY:
-                            case UID_MON:
-                                {
-                                    m_actorPod->post(uid, {AM_ATTACK, amA});
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
+    doUIDList(x, y, [amA, this](uint64_t uid) -> bool
+    {
+        if(uid != amA.UID){
+            switch(uidf::getUIDType(uid)){
+                case UID_PLY:
+                case UID_MON:
+                    {
+                        m_actorPod->post(uid, {AM_ATTACK, amA});
+                        break;
                     }
-                    return false;
-                });
-                p->lastAttackTime = currTime;
-            }
-            p++;
-        }
-
-        if(hasDoneWallFire){
-            postGridFireWallList(nX, nY);
-        }
-
-        if(gridFireWallList.empty()){
-            locIter = m_fireWallLocList.erase(locIter);
-        }
-        else{
-            locIter++;
-        }
-    }
-}
-
-void ServerMap::updateMapGridGroundItem()
-{
-    for(auto locIter = m_gridItemLocList.begin(); locIter != m_gridItemLocList.end();){
-        const auto nX = std::get<0>(*locIter);
-        const auto nY = std::get<1>(*locIter);
-
-        bool hasItemExpired = false;
-        auto &gridItemList = getGridItemList(nX, nY);
-
-        for(auto p = gridItemList.begin(); p != gridItemList.end();){
-            if(hres_tstamp().to_msec() >= p->dropTime + 120 * 1000){
-                hasItemExpired = true;
-                p = gridItemList.erase(p);
-            }
-            else{
-                p++;
+                default:
+                    {
+                        break;
+                    }
             }
         }
-
-        if(hasItemExpired){
-            postGridItemIDList(nX, nY);
-        }
-
-        if(gridItemList.empty()){
-            locIter = m_gridItemLocList.erase(locIter);
-        }
-        else{
-            locIter++;
-        }
-    }
+        return false;
+    });
 }
 
 void ServerMap::beforeActivate()
@@ -1593,11 +1548,6 @@ corof::awaitable<> ServerMap::onActivate()
     if(!g_serverArgParser->sharedConfig().disableMapScript){
         m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
     }
-
-    addDelay(100, [this](bool)
-    {
-        update();
-    });
 }
 
 corof::awaitable<> ServerMap::loadNPChar()

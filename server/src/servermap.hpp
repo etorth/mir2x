@@ -75,6 +75,7 @@ class ServerMap final: public ServerObject
         struct FireWallMagicNode
         {
             uint64_t uid = 0;
+            uint64_t groundSeq = 0;
 
             int minDC = 0;
             int maxDC = 0;
@@ -90,7 +91,7 @@ class ServerMap final: public ServerObject
         struct DroppedItemNode
         {
             SDItem item;
-            uint64_t dropTime = 0;
+            uint64_t groundSeq = 0; // items dropped in one batch share one groundSeq
         };
 
         struct MapGrid
@@ -137,9 +138,8 @@ class ServerMap final: public ServerObject
         std::unordered_map<std::string, uint64_t> m_npcList;
 
     private:
+        uint64_t m_groundSeq = 1; // allocates groundSeq for each firewall and each ground item drop batch
         std::vector<MapGrid> m_gridList;
-        phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_fireWallLocList;
-        phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_gridItemLocList;
 
     private:
         // grid trigger registry, see ServerMap::allocateGridTriggerId()
@@ -303,21 +303,28 @@ class ServerMap final: public ServerObject
         size_t getGridItemIDCount(uint32_t, int, int) const;
 
     private:
-        void addGridItem(SDItem, int, int, bool = true);
+        void addGridItem(SDItem, uint64_t, int, int, bool = true);
 
     private:
         void    addGridItemID(uint32_t, int, int, bool = true);
         void removeGridItemID(uint32_t, int, int, bool = true);
 
     private:
-        SDGroundItemIDList getGroundItemIDList(int, int, size_t); // may remove expired item
+        void expireGridItemLater(uint64_t, std::set<std::pair<int, int>>);
+
+    private:
+        SDGroundItemIDList getGroundItemIDList(int, int, size_t);
 
     private:
         void postGridItemIDList(int, int);
         void postGroundItemIDList(std::pair<uint64_t, int>, int, int);
 
     private:
-        SDGroundFireWallList getGroundFireWallList(int, int, size_t); // may remove expired firewall
+        void runFireWall(int, int, uint64_t);
+        void attackFireWall(int, int, const FireWallMagicNode &);
+
+    private:
+        SDGroundFireWallList getGroundFireWallList(int, int, size_t);
 
     private:
         void postGridFireWallList(int, int);
@@ -325,12 +332,6 @@ class ServerMap final: public ServerObject
 
     private:
         int checkPathGrid(int, int) const;
-
-    private:
-        void update();
-        void updateMapGrid();
-        void updateMapGridFireWall();
-        void updateMapGridGroundItem();
 
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
