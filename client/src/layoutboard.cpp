@@ -366,6 +366,19 @@ void LayoutBoard::setupStartY(int fromPar)
     }
 }
 
+void LayoutBoard::removePar(int loc, int count)
+{
+    fflassert(!Widget::evalBool(m_canEdit, this));
+    fflassert(loc >= 0 && loc <= parCount(), loc, parCount());
+    fflassert(count >= 0 && loc + count <= parCount(), loc, count, parCount());
+
+    if(count > 0){
+        const auto begin = ithParIterator(loc);
+        m_parNodeList.erase(begin, std::next(begin, count));
+        setupStartY(loc);
+    }
+}
+
 void LayoutBoard::addParXML(int loc, const Widget::IntMargin &parMargin, const char *xmlString)
 {
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
@@ -433,7 +446,18 @@ void LayoutBoard::drawDefault(Widget::ROIMap m) const
         return;
     }
 
+    const int boardW = w(); // w() scans all pars, evaluate once instead of per par
+    const int boardH = h();
+
     for(const auto &node: m_parNodeList){
+        if(node.startY >= m.ro->y + m.ro->h){
+            break;
+        }
+
+        if(node.startY + node.tpset->fh() <= m.ro->y){
+            continue;
+        }
+
         int dstXCrop = m.x;
         int dstYCrop = m.y;
         int srcXCrop = m.ro->x;
@@ -446,8 +470,8 @@ void LayoutBoard::drawDefault(Widget::ROIMap m) const
                     &srcWCrop, &srcHCrop,
                     &dstXCrop, &dstYCrop,
 
-                    w(),
-                    h(),
+                    boardW,
+                    boardH,
 
                     node.margin[2], node.startY, node.tpset->fw(), node.tpset->fh())){
             continue;

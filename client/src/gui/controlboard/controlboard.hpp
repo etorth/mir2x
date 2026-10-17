@@ -102,6 +102,9 @@ class ControlBoard: public Widget
     public:
         void addLog(int, const char *);
 
+    private:
+        void onLogAdded(); // keep latest logs only and scroll to bottom
+
     public:
        TritexButton *getButton(const std::string_view &);
 

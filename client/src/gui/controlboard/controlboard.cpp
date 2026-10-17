@@ -183,18 +183,14 @@ void ControlBoard::addXMLLog(const char *log)
 {
     fflassert(str_haschar(log));
     m_logBoard.addLayoutXML(m_logBoard.parCount(), {0, 0, 0, 0}, log);
-
-    m_middle      .m_slider.setValue(1.0f, false);
-    m_middleExpand.m_slider.setValue(1.0f, false);
+    onLogAdded();
 }
 
 void ControlBoard::addParLog(const char *log)
 {
     fflassert(str_haschar(log));
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, log);
-
-    m_middle      .m_slider.setValue(1.0f, false);
-    m_middleExpand.m_slider.setValue(1.0f, false);
+    onLogAdded();
 }
 
 void ControlBoard::addLog(int logType, const char *log)
@@ -241,7 +237,17 @@ void ControlBoard::addLog(int logType, const char *log)
 
     tinyxml2::XMLPrinter printer;
     xmlDoc.Print(&printer);
+
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, printer.CStr());
+    onLogAdded();
+}
+
+void ControlBoard::onLogAdded()
+{
+    constexpr int maxLogParCount = 1000;
+    if(const auto parCount = m_logBoard.parCount(); parCount > maxLogParCount){
+        m_logBoard.removePar(0, parCount - maxLogParCount);
+    }
 
     m_middle      .m_slider.setValue(1.0f, false);
     m_middleExpand.m_slider.setValue(1.0f, false);

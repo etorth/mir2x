@@ -208,6 +208,9 @@ class LayoutBoard: public Widget
         }
 
     public:
+        void removePar(int, int = 1); // read-only board only, editable board needs cursor fixup
+
+    public:
         void setFont(uint8_t);
         void setFontSize(uint8_t);
         void setFontStyle(uint8_t);
