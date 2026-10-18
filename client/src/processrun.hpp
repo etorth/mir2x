@@ -228,7 +228,9 @@ class ProcessRun: public Process
         _support_sm(SM_OFFLINE);
         _support_sm(SM_CODISAPPEAR);
         _support_sm(SM_VIEWRANGE);
+        _support_sm(SM_NPCNAME);
         _support_sm(SM_NPCSELL);
+        _support_sm(SM_NPCXMLLAYOUT);
         _support_sm(SM_NPCERROR);
         _support_sm(SM_STARTGAMESCENE);
         _support_sm(SM_PLAYERCONFIG);
@@ -240,7 +242,6 @@ class ProcessRun: public Process
         _support_sm(SM_CASTMAGIC);
         _support_sm(SM_NOTIFYDEAD);
         _support_sm(SM_PLAYERNAME);
-        _support_sm(SM_NPCNAME);
         _support_sm(SM_STRIKEGRID);
         _support_sm(SM_PICKUPERROR);
         _support_sm(SM_PLAYERWLDESP);
@@ -252,7 +253,6 @@ class ProcessRun: public Process
         _support_sm(SM_DEADFADEOUT);
         _support_sm(SM_MONSTERGINFO);
         _support_sm(SM_SELLITEMLIST);
-        _support_sm(SM_NPCXMLLAYOUT);
         _support_sm(SM_BUYERROR);
         _support_sm(SM_BUYSUCCEED);
         _support_sm(SM_GROUNDITEMIDLIST);

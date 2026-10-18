@@ -27,6 +27,7 @@ enum CMType: uint8_t
     CM_SETMAGICKEY,
     CM_SETRUNTIMECONFIG,
     CM_QUERYCORECORD,
+    CM_QUERYNPCNAME,
     CM_REQUESTADDHP,
     CM_REQUESTADDEXP,
     CM_REQUESTDIE,
@@ -75,7 +76,6 @@ enum CMType: uint8_t
     CM_UPDATEDIRECTTRADE,
     CM_COMMITDIRECTTRADE,
     CM_CANCELDIRECTTRADE,
-    CM_QUERYNPCNAME,
     CM_END,
 };
 
@@ -426,7 +426,8 @@ namespace
         _RSVD_register_clientmsg(CM_ACTION,                     1, sizeof(CMAction)                    );
         _RSVD_register_clientmsg(CM_SETMAGICKEY,                1, sizeof(CMSetMagicKey)               );
         _RSVD_register_clientmsg(CM_QUERYCORECORD,              1, sizeof(CMQueryCORecord)             );
-        _RSVD_register_clientmsg(CM_REQUESTADDHP,               1, sizeof(CMRequestAddHP)             );
+        _RSVD_register_clientmsg(CM_QUERYNPCNAME,               1, sizeof(CMQueryNPCName)              );
+        _RSVD_register_clientmsg(CM_REQUESTADDHP,               1, sizeof(CMRequestAddHP)              );
         _RSVD_register_clientmsg(CM_REQUESTADDEXP,              1, sizeof(CMRequestAddExp)             );
         _RSVD_register_clientmsg(CM_REQUESTDIE,                 0                                      );
         _RSVD_register_clientmsg(CM_REQUESTKILLPETS,            0                                      );
@@ -438,7 +439,6 @@ namespace
         _RSVD_register_clientmsg(CM_QUERYGOLD,                  0                                      );
         _RSVD_register_clientmsg(CM_QUERYUIDBUFF,               1, sizeof(CMQueryUIDBuff)              );
         _RSVD_register_clientmsg(CM_QUERYPLAYERNAME,            1, sizeof(CMQueryPlayerName)           );
-        _RSVD_register_clientmsg(CM_QUERYNPCNAME,               1, sizeof(CMQueryNPCName)              );
         _RSVD_register_clientmsg(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         );
         _RSVD_register_clientmsg(CM_QUERYCHATPEERLIST,          1, sizeof(CMQueryChatPeerList)         );
         _RSVD_register_clientmsg(CM_QUERYCHATMESSAGE,           1, sizeof(CMQueryChatMessage)          );

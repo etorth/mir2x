@@ -176,6 +176,10 @@ class ClientCreature
         virtual bool update(double) = 0;
         virtual void drawFrame(int, int, int, int, bool) = 0;
 
+    protected:
+        void drawName(int, int) const;
+        int  drawHealthNumbers(int, int, int) const;
+
     public:
         virtual void draw(int viewX, int viewY, int focusMask)
         {
@@ -190,9 +194,7 @@ class ClientCreature
 
     protected:
         bool showHealthBar() const;
-        int drawHealthNumbers(int, int, int) const;
         bool showName(int) const;
-        void drawName(int, int) const;
 
     public:
         void setBuffIDList(SDBuffIDList);

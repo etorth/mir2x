@@ -26,8 +26,8 @@ bool ClientCreature::showHealthBar() const
     if(!m_processRun->getRuntimeConfig<RTCFG_显示血条>()){
         return false;
     }
-    return !m_processRun->getRuntimeConfig<RTCFG_满血不显血>()
-        || (m_sdHealth.has_value() && m_sdHealth->hp < m_sdHealth->getMaxHP());
+
+    return !m_processRun->getRuntimeConfig<RTCFG_满血不显血>() || (m_sdHealth.has_value() && m_sdHealth->hp < m_sdHealth->getMaxHP());
 }
 
 int ClientCreature::drawHealthNumbers(int x, int y, int width) const
@@ -35,6 +35,7 @@ int ClientCreature::drawHealthNumbers(int x, int y, int width) const
     if(!m_sdHealth.has_value() || !m_processRun->getRuntimeConfig<RTCFG_数字显血>()){
         return 0;
     }
+
     m_healthBoard.draw({.x = x + (width - m_healthBoard.w()) / 2, .y = y - m_healthBoard.h()});
     return m_healthBoard.h();
 }
@@ -77,6 +78,7 @@ void ClientCreature::updateHealth(SDHealth health)
     if(!m_sdHealth.has_value() || m_sdHealth->hp != health.hp || m_sdHealth->getMaxHP() != health.getMaxHP()){
         m_healthBoard.setText(u8"%d/%d", health.hp, health.getMaxHP());
     }
+
     const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
     const int pixelY = y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
 
