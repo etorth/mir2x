@@ -53,6 +53,7 @@ class ClientCreature
 
     protected:
         LabelBoard m_nameBoard;
+        LabelBoard m_healthBoard{{.font{.size = 10, .color = colorf::WHITE}}};
 
     protected:
         ClientCreature(uint64_t uid, ProcessRun *pRun)
@@ -189,6 +190,7 @@ class ClientCreature
 
     protected:
         bool showHealthBar() const;
+        int drawHealthNumbers(int, int, int) const;
 
     public:
         void setBuffIDList(SDBuffIDList);

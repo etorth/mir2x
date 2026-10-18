@@ -230,16 +230,18 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         const int drawHPY = startY - 53;
         const int drawHPW = to_d(std::lround(bar1TexW * getHealthRatio().at(0)));
 
+        int healthTextH = 0;
         if(showHealthBar()){
             g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
             g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
+            healthTextH = drawHealthNumbers(drawHPX, drawHPY, bar1TexW);
         }
 
         constexpr int buffIconDrawW = 10;
         constexpr int buffIconDrawH = 10;
 
         const int buffIconStartX = drawHPX + 1;
-        const int buffIconStartY = drawHPY - buffIconDrawH;
+        const int buffIconStartY = drawHPY - healthTextH - buffIconDrawH;
 
         if(getSDBuffIDListOpt().has_value()){
             for(int drawIconCount = 0; const auto id: getSDBuffIDListOpt().value().idList){

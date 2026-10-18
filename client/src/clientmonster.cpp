@@ -338,16 +338,18 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             const int drawBarYP = startY - 53;
             const int drawBarWidth = to_d(std::lround(nBarW * getHealthRatio().at(0)));
 
+            int healthTextH = 0;
             if(showHealthBar()){
                 g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
                 g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
+                healthTextH = drawHealthNumbers(drawBarXP, drawBarYP, nBarW);
             }
 
             constexpr int buffIconDrawW = 10;
             constexpr int buffIconDrawH = 10;
 
             const int buffIconStartX = drawBarXP + 1;
-            const int buffIconStartY = drawBarYP - buffIconDrawH;
+            const int buffIconStartY = drawBarYP - healthTextH - buffIconDrawH;
 
             if(getSDBuffIDListOpt().has_value()){
                 for(int drawIconCount = 0; const auto id: getSDBuffIDListOpt().value().idList){
