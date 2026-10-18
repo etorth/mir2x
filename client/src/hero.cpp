@@ -220,8 +220,7 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 
     // draw HP bar
-    // if current m_HPMqx is zero we draw full bar
-    if(m_currMotion->gfxType(frame) != MOTION_DIE && g_clientArgParser->drawHPBar){
+    if(m_currMotion->gfxType(frame) != MOTION_DIE){
         auto bar0Ptr = g_progUseDB->retrieve(0X00000014);
         auto bar1Ptr = g_progUseDB->retrieve(0X00000015);
 

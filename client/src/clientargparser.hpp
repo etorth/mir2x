@@ -13,12 +13,10 @@ struct ClientArgParser
     const bool disableTypesetCache;     // "--disable-typeset-cache"
     const bool traceMove;               // "--trace-move"
     const bool drawUID;                 // "--draw-uid"
-    const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
     const bool fillMapBlockGrid;        // "--fill-map-block-grid"
     const bool drawMagicGrid;           // "--draw-magic-grid"
     const bool drawTranspGrid;          // "--draw-transp-grid"
-    const bool drawHPBar;               // "--draw-hp-bar"
     const bool drawCreatureCover;       // "--draw-creature-cover"
     const bool drawMouseLocation;       // "--draw-mouse-location"
     const bool enableClientMonitor;     // "--enable-client-monitor"
@@ -50,12 +48,10 @@ struct ClientArgParser
         , disableTypesetCache  (argf::parseInteger<bool>(parseString(parser, "--disable-typeset-cache",    argf::OPT, true), "disable-typeset-cache",    argf::checkPass<bool>, false, true).first)
         , traceMove            (argf::parseInteger<bool>(parseString(parser, "--trace-move",               argf::OPT, true), "trace-move",               argf::checkPass<bool>, false, true).first)
         , drawUID              (argf::parseInteger<bool>(parseString(parser, "--draw-uid",                 argf::OPT, true), "draw-uid",                 argf::checkPass<bool>, false, true).first)
-        , alwaysDrawName       (argf::parseInteger<bool>(parseString(parser, "--always-draw-name",         argf::OPT, true), "always-draw-name",         argf::checkPass<bool>, false, true).first)
         , drawMapGrid          (argf::parseInteger<bool>(parseString(parser, "--draw-map-grid",            argf::OPT, true), "draw-map-grid",            argf::checkPass<bool>, false, true).first)
         , fillMapBlockGrid     (argf::parseInteger<bool>(parseString(parser, "--fill-map-block-grid",      argf::OPT, true), "fill-map-block-grid",      argf::checkPass<bool>, false, true).first)
         , drawMagicGrid        (argf::parseInteger<bool>(parseString(parser, "--draw-magic-grid",          argf::OPT, true), "draw-magic-grid",          argf::checkPass<bool>, false, true).first)
         , drawTranspGrid       (argf::parseInteger<bool>(parseString(parser, "--draw-transp-grid",         argf::OPT, true), "draw-transp-grid",         argf::checkPass<bool>, false, true).first)
-        , drawHPBar            (argf::parseInteger<bool>(parseString(parser, "--draw-hp-bar",              argf::OPT, true), "draw-hp-bar",              argf::checkPass<bool>, false, true).first)
         , drawCreatureCover    (argf::parseInteger<bool>(parseString(parser, "--draw-creature-cover",      argf::OPT, true), "draw-creature-cover",      argf::checkPass<bool>, false, true).first)
         , drawMouseLocation    (argf::parseInteger<bool>(parseString(parser, "--draw-mouse-location",      argf::OPT, true), "draw-mouse-location",      argf::checkPass<bool>, false, true).first)
         , enableClientMonitor  (argf::parseInteger<bool>(parseString(parser, "--enable-client-monitor",    argf::OPT, true), "enable-client-monitor",    argf::checkPass<bool>, false, true).first)
