@@ -108,6 +108,7 @@ enum SMType: uint8_t
     SM_DIRECTTRADEERROR,
     SM_CODISAPPEAR,
     SM_VIEWRANGE,
+    SM_NPCNAME,
     SM_END,
 };
 
@@ -522,6 +523,7 @@ namespace
         _RSVD_register_servermsg(SM_TEXT,                   3                                  );
         _RSVD_register_servermsg(SM_PARTEXT,                3                                  );
         _RSVD_register_servermsg(SM_PLAYERNAME,             3                                  );
+        _RSVD_register_servermsg(SM_NPCNAME,                3                                  );
         _RSVD_register_servermsg(SM_BUILDVERSION,           1, sizeof(SMBuildVersion)          );
         _RSVD_register_servermsg(SM_INVENTORY,              3                                  );
         _RSVD_register_servermsg(SM_BELT,                   3                                  );

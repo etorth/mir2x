@@ -260,6 +260,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_QUERYBASEMAPUID           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYGOLD                 (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYPLAYERNAME           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYNPCNAME              (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYCHATPEERLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYCHATMESSAGE          (uint8_t, const uint8_t *, size_t, uint64_t);

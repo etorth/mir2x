@@ -247,6 +247,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_PING)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERCONFIG)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERNAME)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_NPCNAME)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERSAY)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERBROADCAST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERWLDESP)

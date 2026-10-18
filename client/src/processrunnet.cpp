@@ -741,6 +741,14 @@ void ProcessRun::on_SM_PLAYERNAME(const uint8_t *buf, size_t bufSize)
     }
 }
 
+void ProcessRun::on_SM_NPCNAME(const uint8_t *buf, size_t bufSize)
+{
+    const auto sdNN = cerealf::deserialize<SDNPCName>(buf, bufSize);
+    if(auto npcPtr = dynamic_cast<ClientNPC *>(findUID(sdNN.uid))){
+        npcPtr->setName(sdNN.name);
+    }
+}
+
 void ProcessRun::on_SM_STRIKEGRID(const uint8_t *buf, size_t)
 {
     const auto smSG = ServerMsg::conv<SMStrikeGrid>(buf);

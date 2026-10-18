@@ -95,6 +95,7 @@ enum ActorMsgPackType: int
     AM_QUERYCORECORD,
     AM_QUERYCOCOUNT,
     AM_QUERYPLAYERNAME,
+    AM_QUERYNPCNAME,
     AM_QUERYPLAYERWLDESP,
     AM_COCOUNT,
     AM_PEERCONFIG,
@@ -243,6 +244,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_QUERYCORECORD)
         _add_mpk_type_case(AM_QUERYCOCOUNT)
         _add_mpk_type_case(AM_QUERYPLAYERNAME)
+        _add_mpk_type_case(AM_QUERYNPCNAME)
         _add_mpk_type_case(AM_QUERYPLAYERWLDESP)
         _add_mpk_type_case(AM_COCOUNT)
         _add_mpk_type_case(AM_PEERCONFIG)

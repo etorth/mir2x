@@ -393,6 +393,15 @@ corof::awaitable<> Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size
     return {};
 }
 
+corof::awaitable<> Player::net_CM_QUERYNPCNAME(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmQNN = ClientMsg::conv<CMQueryNPCName>(buf);
+    if(uidf::isNPChar(cmQNN.uid)){
+        m_actorPod->post(cmQNN.uid, AM_QUERYNPCNAME);
+    }
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQPN = ClientMsg::conv<CMQueryPlayerName>(buf);

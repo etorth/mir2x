@@ -21,6 +21,15 @@ struct NPCFrameGfxSeq final
 
 class ClientNPC: public ClientCreature
 {
+    private:
+        bool m_nameQueried = false;
+
+    public:
+        void setName(const std::string &name)
+        {
+            m_nameBoard.setText(u8"%s", name.c_str());
+        }
+
     public:
         ClientNPC(uint64_t, ProcessRun *, const ActionNode &);
 

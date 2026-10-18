@@ -191,6 +191,8 @@ class ClientCreature
     protected:
         bool showHealthBar() const;
         int drawHealthNumbers(int, int, int) const;
+        bool showName(int) const;
+        void drawName(int, int) const;
 
     public:
         void setBuffIDList(SDBuffIDList);

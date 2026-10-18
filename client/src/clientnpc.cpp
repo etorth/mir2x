@@ -4,7 +4,9 @@
 #include "clientnpc.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
+#include "client.hpp"
 
+extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_standNPCDB;
 extern ClientArgParser *g_clientArgParser;
@@ -168,6 +170,15 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     for(auto &p: m_attachMagicList){
         p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
+    }
+
+    if(showName(focusMask)){
+        if(!m_nameQueried){
+            m_nameBoard.clear();
+            g_client->send({CM_QUERYNPCNAME, CMQueryNPCName{.uid = UID()}});
+            m_nameQueried = true;
+        }
+        drawName(x() * SYS_MAPGRIDXP - viewX + SYS_MAPGRIDXP / 2, y() * SYS_MAPGRIDYP - viewY - SYS_MAPGRIDYP);
     }
 }
 

@@ -75,6 +75,7 @@ enum CMType: uint8_t
     CM_UPDATEDIRECTTRADE,
     CM_COMMITDIRECTTRADE,
     CM_CANCELDIRECTTRADE,
+    CM_QUERYNPCNAME,
     CM_END,
 };
 
@@ -169,6 +170,11 @@ struct CMQueryUIDBuff
 };
 
 struct CMQueryPlayerName
+{
+    uint64_t uid;
+};
+
+struct CMQueryNPCName
 {
     uint64_t uid;
 };
@@ -432,6 +438,7 @@ namespace
         _RSVD_register_clientmsg(CM_QUERYGOLD,                  0                                      );
         _RSVD_register_clientmsg(CM_QUERYUIDBUFF,               1, sizeof(CMQueryUIDBuff)              );
         _RSVD_register_clientmsg(CM_QUERYPLAYERNAME,            1, sizeof(CMQueryPlayerName)           );
+        _RSVD_register_clientmsg(CM_QUERYNPCNAME,               1, sizeof(CMQueryNPCName)              );
         _RSVD_register_clientmsg(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         );
         _RSVD_register_clientmsg(CM_QUERYCHATPEERLIST,          1, sizeof(CMQueryChatPeerList)         );
         _RSVD_register_clientmsg(CM_QUERYCHATMESSAGE,           1, sizeof(CMQueryChatMessage)          );

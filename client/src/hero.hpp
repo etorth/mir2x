@@ -157,6 +157,8 @@ class Hero: public CreatureMovable
         {
             m_name = str_haschar(name) ? name : "";
             m_nameColor = (colorf::maskRGB(nameColor) ? nameColor : colorf::WHITE) + colorf::A_SHF(0XFF);
+            m_nameBoard.setText(u8"%s", m_name.c_str());
+            m_nameBoard.setFontColor(m_nameColor);
         }
 
         const auto &getWLDesp() const

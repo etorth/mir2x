@@ -56,7 +56,7 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     }
 }
 
-void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
+void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 {
     const auto [shiftX, shiftY] = getShift(frame);
     const auto startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX - viewX;
@@ -280,6 +280,12 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
                     }
                 }
             }
+        }
+    }
+
+    if(showName(focusMask)){
+        if(!getName().empty()){
+            drawName(startX + SYS_MAPGRIDXP / 2, startY - SYS_MAPGRIDYP);
         }
     }
 

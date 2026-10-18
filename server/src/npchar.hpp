@@ -86,6 +86,7 @@ class NPChar final: public CharObject
         corof::awaitable<> on_AM_NOTIFYDEAD(const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD(const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCORECORD(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYNPCNAME(const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYLOCATION(const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOTECALL(const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);

@@ -763,6 +763,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_QUERYBASEMAPUID           );
         _support_cm(CM_QUERYGOLD                 );
         _support_cm(CM_QUERYPLAYERNAME           );
+        _support_cm(CM_QUERYNPCNAME              );
         _support_cm(CM_QUERYPLAYERWLDESP         );
         _support_cm(CM_QUERYCHATPEERLIST         );
         _support_cm(CM_QUERYCHATMESSAGE          );

@@ -711,6 +711,17 @@ struct SDPlayerName
     }
 };
 
+struct SDNPCName
+{
+    uint64_t uid = 0;
+    std::string name;
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(uid, name);
+    }
+};
+
 struct SDWLDesp
 {
     SDWear wear;

@@ -39,6 +39,16 @@ int ClientCreature::drawHealthNumbers(int x, int y, int width) const
     return m_healthBoard.h();
 }
 
+bool ClientCreature::showName(int focusMask) const
+{
+    return m_processRun->getRuntimeConfig<RTCFG_显示角色名字>() || (focusMask & (1 << FOCUS_MOUSE));
+}
+
+void ClientCreature::drawName(int centerX, int centerY) const
+{
+    m_nameBoard.draw({.x = centerX - m_nameBoard.w() / 2, .y = centerY - m_nameBoard.h() / 2});
+}
+
 bool ClientCreature::advanceMotionFrame()
 {
     m_currMotion->frame = (m_currMotion->frame + 1) % getFrameCountEx(m_currMotion.get());

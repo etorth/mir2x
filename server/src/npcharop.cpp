@@ -158,6 +158,18 @@ corof::awaitable<> NPChar::on_AM_OBSERVE(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> NPChar::on_AM_QUERYNPCNAME(const ActorMsgPack &mpk)
+{
+    if(uidf::isPlayer(mpk.from())){
+        forwardNetPackage(mpk.from(), SM_NPCNAME, cerealf::serialize(SDNPCName
+        {
+            .uid = UID(),
+            .name = m_npcName.substr(0, m_npcName.find('_')),
+        }));
+    }
+    return {};
+}
+
 corof::awaitable<> NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.conv<AMQueryCORecord>().UID;

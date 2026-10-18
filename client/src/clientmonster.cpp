@@ -390,13 +390,10 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
                 }
             }
 
-            if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
-                const int nLW = m_nameBoard.w();
-                const int nLH = m_nameBoard.h();
-                const int nDrawNameXP = drawBarXP + nBarW / 2 - nLW / 2;
-                const int nDrawNameYP = drawBarYP + 20;
-                m_nameBoard.draw({.x=nDrawNameXP, .y=nDrawNameYP, .ro{0, 0, nLW, nLH}});
-            }
+        }
+
+        if(showName(focusMask)){
+            drawName(startX + SYS_MAPGRIDXP / 2, startY - SYS_MAPGRIDYP);
         }
     }
 }
