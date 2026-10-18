@@ -221,11 +221,13 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     // draw HP bar
     if(m_currMotion->gfxType(frame) != MOTION_DIE){
-        auto bar0Ptr = g_progUseDB->retrieve(0X00000014);
-        auto bar1Ptr = g_progUseDB->retrieve(0X00000015);
+        const bool numericHealth = m_processRun->getRuntimeConfig<RTCFG_数字显血>();
+        auto bar0Ptr = g_progUseDB->retrieve(numericHealth ? 0X00000016 : 0X00000014);
+        auto bar1Ptr = g_progUseDB->retrieve(numericHealth ? 0X00000017 : 0X00000015);
 
         const auto [bar1TexW, bar1TexH] = SDLDeviceHelper::getTextureSize(bar1Ptr);
-        const int drawHPX = startX +  7;
+        const int baseBarW = SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
+        const int drawHPX = startX + 7 + (baseBarW - bar1TexW) / 2;
         const int drawHPY = startY - 53;
         const int drawHPW = to_d(std::lround(bar1TexW * getHealthRatio().at(0)));
 
@@ -238,7 +240,7 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
         constexpr int buffIconDrawW = 10;
         constexpr int buffIconDrawH = 10;
 
-        const int buffIconStartX = drawHPX + 1;
+        const int buffIconStartX = startX + 7 + 1;
         const int buffIconStartY = drawHPY - buffIconDrawH;
 
         if(getSDBuffIDListOpt().has_value()){

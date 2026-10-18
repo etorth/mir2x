@@ -330,11 +330,13 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
         }
 
         if(m_currMotion->type != MOTION_MON_DIE){
-            auto pBar0 = g_progUseDB->retrieve(0X00000014);
-            auto pBar1 = g_progUseDB->retrieve(0X00000015);
+            const bool numericHealth = m_processRun->getRuntimeConfig<RTCFG_数字显血>();
+            auto pBar0 = g_progUseDB->retrieve(numericHealth ? 0X00000016 : 0X00000014);
+            auto pBar1 = g_progUseDB->retrieve(numericHealth ? 0X00000017 : 0X00000015);
 
             const auto [nBarW, nBarH] = SDLDeviceHelper::getTextureSize(pBar1);
-            const int drawBarXP = startX +  7;
+            const int baseBarW = SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
+            const int drawBarXP = startX + 7 + (baseBarW - nBarW) / 2;
             const int drawBarYP = startY - 53;
             const int drawBarWidth = to_d(std::lround(nBarW * getHealthRatio().at(0)));
 
@@ -347,7 +349,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             constexpr int buffIconDrawW = 10;
             constexpr int buffIconDrawH = 10;
 
-            const int buffIconStartX = drawBarXP + 1;
+            const int buffIconStartX = startX + 7 + 1;
             const int buffIconStartY = drawBarYP - buffIconDrawH;
 
             if(getSDBuffIDListOpt().has_value()){
