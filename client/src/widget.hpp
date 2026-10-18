@@ -299,7 +299,8 @@ class Widget: public WidgetTreeNode
             //     id: 11, pt 15, filename 0B_WenQuanYi_Bitmap_Song_15_px.TTF
             //     id: 12, pt 18, filename 0C_WenQuanYi_Bitmap_Song_18_px.TTF
             //     id: 13, pt 18, filename 0D_WenQuanYi_Bitmap_Song_18_px.TTF
-            //     id: 14, pt 16, filename 0E_Tom_Thumb.TTF (3x5 glyphs)
+            //     id: 14, pt 16, filename 0E_Tom_Thumb.TTF           (3x5 glyphs)
+            //     id: 15, pt 16, filename 0F_Tom_Thumb_Monospace.TTF (3x5 glyphs)
             //
             // when using id 11, please use pt 15 only
 

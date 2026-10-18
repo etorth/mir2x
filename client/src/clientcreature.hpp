@@ -70,12 +70,12 @@ class ClientCreature
                       const int    hp = m_sdHealth.has_value() ? m_sdHealth->hp         : 0;
                       const int maxHP = m_sdHealth.has_value() ? m_sdHealth->getMaxHP() : 0;
 
-                      return str_printf("%0*d / %d", std::max<int>(1, static_cast<int>(std::to_string(maxHP).size())), hp, maxHP);
+                      return str_printf("%*d/%d", std::max<int>(1, static_cast<int>(std::to_string(maxHP).size())), hp, maxHP);
                   },
 
                   .font
                   {
-                      .id = 14, // Tom Thumb 3x5 tiny ttf
+                      .id = 15, // Tom Thumb 3x5 tiny ttf
                       .size = 16,
                       .color = colorf::WHITE_A255,
                   },
