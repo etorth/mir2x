@@ -45,9 +45,9 @@ bool ClientCreature::showName(int focusMask) const
     return m_processRun->getRuntimeConfig<RTCFG_显示角色名字>() || (focusMask & (1 << FOCUS_MOUSE));
 }
 
-void ClientCreature::drawName(int centerX, int centerY) const
+void ClientCreature::drawName(int centerX, int topY) const
 {
-    m_nameBoard.draw({.x = centerX - m_nameBoard.w() / 2, .y = centerY - m_nameBoard.h() / 2});
+    m_nameBoard.draw({.x = centerX - m_nameBoard.w() / 2, .y = topY});
 }
 
 bool ClientCreature::advanceMotionFrame()

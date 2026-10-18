@@ -393,7 +393,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
         }
 
         if(showName(focusMask)){
-            drawName(startX + SYS_MAPGRIDXP / 2, startY - SYS_MAPGRIDYP);
+            drawName(startX + SYS_MAPGRIDXP / 2, startY + SYS_MAPGRIDYP / 2 + 8);
         }
     }
 }

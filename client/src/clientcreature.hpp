@@ -53,7 +53,7 @@ class ClientCreature
 
     protected:
         LabelBoard m_nameBoard;
-        LabelBoard m_healthBoard{{.font{.size = 10, .color = colorf::WHITE}}};
+        LabelBoard m_healthBoard;
 
     protected:
         ClientCreature(uint64_t uid, ProcessRun *pRun)
@@ -62,6 +62,7 @@ class ClientCreature
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard{{.label=u8"ClientCreature"}}
+            , m_healthBoard{{.font{.size = 10, .color = colorf::WHITE_A255}}};
         {
             if(!(m_UID && m_processRun)){
                 throw fflpanic("invalid argument: UID = {}, processRun = {:p}", m_UID, to_cvptr(m_processRun));

@@ -178,7 +178,7 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
             g_client->send({CM_QUERYNPCNAME, CMQueryNPCName{.uid = UID()}});
             m_nameQueried = true;
         }
-        drawName(x() * SYS_MAPGRIDXP - viewX + SYS_MAPGRIDXP / 2, y() * SYS_MAPGRIDYP - viewY - SYS_MAPGRIDYP);
+        drawName(x() * SYS_MAPGRIDXP - viewX + SYS_MAPGRIDXP / 2, y() * SYS_MAPGRIDYP - viewY + SYS_MAPGRIDYP / 2 + 8);
     }
 }
 
