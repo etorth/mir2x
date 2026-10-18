@@ -29,3 +29,10 @@ mir2x_add_unit_test(
     LIBS common
 )
 target_include_directories(test_netio PRIVATE ../../src)
+
+mir2x_add_unit_test(
+    NAME widget
+    SOURCES test_widget.cpp ../../src/widget.cpp
+    LIBS common mir2x::sdl3_ext
+)
+target_include_directories(test_widget PRIVATE ../../src)

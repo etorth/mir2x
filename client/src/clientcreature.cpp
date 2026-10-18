@@ -21,24 +21,6 @@ extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
 extern SoundEffectDB *g_seffDB;
 
-bool ClientCreature::showHealthBar() const
-{
-    if(!m_processRun->getRuntimeConfig<RTCFG_显示血条>()){
-        return false;
-    }
-
-    return !m_processRun->getRuntimeConfig<RTCFG_满血不显血>() || (m_sdHealth.has_value() && m_sdHealth->hp < m_sdHealth->getMaxHP());
-}
-
-void ClientCreature::drawHealthNumbers(int x, int y, int width, int height) const
-{
-    if(!m_sdHealth.has_value() || !m_processRun->getRuntimeConfig<RTCFG_数字显血>()){
-        return;
-    }
-
-    m_healthBoard.draw({.x = x + (width - m_healthBoard.w()) / 2, .y = y + (height - m_healthBoard.h()) / 2});
-}
-
 bool ClientCreature::showName(int focusMask) const
 {
     return m_processRun->getRuntimeConfig<RTCFG_显示角色名字>() || (focusMask & (1 << FOCUS_MOUSE));
@@ -69,6 +51,7 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
 
 void ClientCreature::setBuffIDList(SDBuffIDList list)
 {
+    m_hpBarBoard.setBuffIDList(list);
     m_sdBuffIDList = std::move(list);
 }
 

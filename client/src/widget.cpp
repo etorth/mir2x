@@ -41,6 +41,24 @@ WidgetTreeNode::~WidgetTreeNode()
     }
 }
 
+std::optional<uint64_t> WidgetTreeNode::childID() const
+{
+    if(!m_parent){
+        return std::nullopt;
+    }
+
+    uint64_t index = 0;
+    for(const auto &child: m_parent->m_childList){
+        if(child.widget){
+            if(child.widget == this){
+                return index;
+            }
+            ++index;
+        }
+    }
+    throw fflpanic("can not find child widget");
+}
+
 void WidgetTreeNode::moveFront(const Widget *widget)
 {
     if(m_inLoop){

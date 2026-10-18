@@ -221,66 +221,9 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     // draw HP bar
     if(m_currMotion->gfxType(frame) != MOTION_DIE){
-        const bool numericHealth = m_processRun->getRuntimeConfig<RTCFG_数字显血>();
-        auto bar0Ptr = g_progUseDB->retrieve(numericHealth ? 0X00000016 : 0X00000014);
-        auto bar1Ptr = g_progUseDB->retrieve(numericHealth ? 0X00000017 : 0X00000015);
-
-        const auto [bar1TexW, bar1TexH] = SDLDeviceHelper::getTextureSize(bar1Ptr);
-        const auto [baseBarW, baseBarH] = SDLDeviceHelper::getTextureSize(g_progUseDB->retrieve(0X00000014));
-        const int drawHPX = startX + 7 + (baseBarW - bar1TexW) / 2;
-        const int drawHPY = startY - 53 + baseBarH - bar1TexH;
-        const int drawHPW = to_d(std::lround(bar1TexW * getHealthRatio().at(0)));
-
-        if(showHealthBar()){
-            g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
-            g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
-            drawHealthNumbers(drawHPX, drawHPY, bar1TexW, bar1TexH);
-        }
-
-        constexpr int buffIconDrawW = 10;
-        constexpr int buffIconDrawH = 10;
-
-        const int buffIconStartX = startX + 7 + 1;
-        const int buffIconStartY = drawHPY - buffIconDrawH;
-
-        if(getSDBuffIDListOpt().has_value()){
-            for(int drawIconCount = 0; const auto id: getSDBuffIDListOpt().value().idList){
-                const auto &br = DBCOM_BUFFRECORD(id);
-                fflassert(br);
-
-                if(br.icon.gfxID != SYS_U32NIL){
-                    if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
-                        const int buffIconOffX = buffIconStartX + (drawIconCount % 3) * buffIconDrawW;
-                        const int buffIconOffY = buffIconStartY - (drawIconCount / 3) * buffIconDrawH;
-
-                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
-                        g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
-
-                        const auto baseColor = [&br]() -> uint32_t
-                        {
-                            if(br.favor > 0){
-                                return colorf::GREEN;
-                            }
-                            else if(br.favor == 0){
-                                return colorf::YELLOW;
-                            }
-                            else{
-                                return colorf::RED;
-                            }
-                        }();
-
-                        const auto startColor = baseColor | colorf::A_SHF(255);
-                        const auto   endColor = baseColor | colorf::A_SHF( 64);
-
-                        const auto edgeGridCount = (buffIconDrawW + buffIconDrawH) * 2 - 4;
-                        const auto startLoc = std::lround(edgeGridCount * std::fmod(m_accuUpdateTime, 1500.0) / 1500.0);
-
-                        g_sdlDevice->drawBoxFading(startColor, endColor, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, startLoc, buffIconDrawW + buffIconDrawH);
-                        drawIconCount++;
-                    }
-                }
-            }
-        }
+        const int playerHeadX = startX + 23;
+        const int playerHeadY = startY - 50;
+        m_hpBarBoard.draw({.dir = DIR_DOWN, .x = playerHeadX, .y = playerHeadY});
     }
 
     if(showName(focusMask)){

@@ -133,6 +133,9 @@ class WidgetTreeNode // tree concept, used by class Widget only
         }
 
     public:
+        std::optional<uint64_t> childID() const;
+
+    public:
         const char *type() const
         {
             return typeid(*this).name();
