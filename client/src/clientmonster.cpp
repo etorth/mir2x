@@ -338,8 +338,10 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             const int drawBarYP = startY - 53;
             const int drawBarWidth = to_d(std::lround(nBarW * getHealthRatio().at(0)));
 
-            g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
-            g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
+            if(showHealthBar()){
+                g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
+                g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
+            }
 
             constexpr int buffIconDrawW = 10;
             constexpr int buffIconDrawH = 10;

@@ -21,6 +21,15 @@ extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
 extern SoundEffectDB *g_seffDB;
 
+bool ClientCreature::showHealthBar() const
+{
+    if(!m_processRun->getRuntimeConfig<RTCFG_显示血条>()){
+        return false;
+    }
+    return !m_processRun->getRuntimeConfig<RTCFG_满血不显血>()
+        || (m_sdHealth.has_value() && m_sdHealth->hp < m_sdHealth->getMaxHP());
+}
+
 bool ClientCreature::advanceMotionFrame()
 {
     m_currMotion->frame = (m_currMotion->frame + 1) % getFrameCountEx(m_currMotion.get());

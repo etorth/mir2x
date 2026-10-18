@@ -187,6 +187,9 @@ class ClientCreature
     public:
         void updateHealth(SDHealth);
 
+    protected:
+        bool showHealthBar() const;
+
     public:
         void setBuffIDList(SDBuffIDList);
 

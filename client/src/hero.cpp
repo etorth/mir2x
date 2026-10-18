@@ -230,8 +230,10 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         const int drawHPY = startY - 53;
         const int drawHPW = to_d(std::lround(bar1TexW * getHealthRatio().at(0)));
 
-        g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
-        g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
+        if(showHealthBar()){
+            g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
+            g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
+        }
 
         constexpr int buffIconDrawW = 10;
         constexpr int buffIconDrawH = 10;
