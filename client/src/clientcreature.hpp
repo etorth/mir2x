@@ -19,6 +19,7 @@
 #include "focustype.hpp"
 #include "serdesmsg.hpp"
 #include "actionnode.hpp"
+#include "textboard.hpp"
 #include "labelboard.hpp"
 #include "motionnode.hpp"
 #include "protocoldef.hpp"
@@ -53,7 +54,7 @@ class ClientCreature
 
     protected:
         LabelBoard m_nameBoard;
-        LabelBoard m_healthBoard;
+        TextBoard  m_healthBoard;
 
     protected:
         ClientCreature(uint64_t uid, ProcessRun *pRun)
@@ -62,11 +63,26 @@ class ClientCreature
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard{{.label=u8"ClientCreature"}}
-            , m_healthBoard{{.font{.size = 10, .color = colorf::WHITE_A255}}};
+            , m_healthBoard
+              {{
+                  .textFunc = [this] -> std::string
+                  {
+                      const int    hp = m_sdHealth.has_value() ? m_sdHealth->hp         : 0;
+                      const int maxHP = m_sdHealth.has_value() ? m_sdHealth->getMaxHP() : 0;
+
+                      return str_printf("%0*d / %d", std::max<int>(1, static_cast<int>(std::to_string(maxHP).size())), hp, maxHP);
+                  },
+
+                  .font
+                  {
+                      .id = 14, // Tom Thumb 3x5 tiny ttf
+                      .size = 16,
+                      .color = colorf::WHITE_A255,
+                  },
+              }}
         {
-            if(!(m_UID && m_processRun)){
-                throw fflpanic("invalid argument: UID = {}, processRun = {:p}", m_UID, to_cvptr(m_processRun));
-            }
+            fflassert(m_UID);
+            fflassert(m_processRun);
         }
 
     public:
@@ -179,7 +195,7 @@ class ClientCreature
 
     protected:
         void drawName(int, int) const;
-        int  drawHealthNumbers(int, int, int) const;
+        void drawHealthNumbers(int, int, int, int) const;
 
     public:
         virtual void draw(int viewX, int viewY, int focusMask)
