@@ -335,9 +335,9 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             auto pBar1 = g_progUseDB->retrieve(numericHealth ? 0X00000017 : 0X00000015);
 
             const auto [nBarW, nBarH] = SDLDeviceHelper::getTextureSize(pBar1);
-            const int baseBarW = SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
+            const auto [baseBarW, baseBarH] = SDLDeviceHelper::getTextureSize(g_progUseDB->retrieve(0X00000014));
             const int drawBarXP = startX + 7 + (baseBarW - nBarW) / 2;
-            const int drawBarYP = startY - 53;
+            const int drawBarYP = startY - 53 + baseBarH - nBarH;
             const int drawBarWidth = to_d(std::lround(nBarW * getHealthRatio().at(0)));
 
             if(showHealthBar()){

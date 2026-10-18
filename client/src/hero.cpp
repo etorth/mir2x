@@ -226,9 +226,9 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
         auto bar1Ptr = g_progUseDB->retrieve(numericHealth ? 0X00000017 : 0X00000015);
 
         const auto [bar1TexW, bar1TexH] = SDLDeviceHelper::getTextureSize(bar1Ptr);
-        const int baseBarW = SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
+        const auto [baseBarW, baseBarH] = SDLDeviceHelper::getTextureSize(g_progUseDB->retrieve(0X00000014));
         const int drawHPX = startX + 7 + (baseBarW - bar1TexW) / 2;
-        const int drawHPY = startY - 53;
+        const int drawHPY = startY - 53 + baseBarH - bar1TexH;
         const int drawHPW = to_d(std::lround(bar1TexW * getHealthRatio().at(0)));
 
         if(showHealthBar()){
