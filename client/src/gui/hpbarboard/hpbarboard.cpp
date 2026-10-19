@@ -270,15 +270,15 @@ bool HPBarBoard::showNumber() const
 
 bool HPBarBoard::showBar() const
 {
-    if(!m_runProc->getRuntimeConfig<RTCFG_显示血条>()){
-        return false;
+    if(m_runProc->getRuntimeConfig<RTCFG_显示血条>()){
+        return true;
     }
 
-    if(m_runProc->getRuntimeConfig<RTCFG_满血不显血>()){
+    if(m_runProc->getRuntimeConfig<RTCFG_满血隐藏血条>()){
         return m_creature->getSDHealth().has_value() && m_creature->getSDHealth()->hp < m_creature->getSDHealth()->getMaxHP();
     }
 
-    return true;
+    return false;
 }
 
 int HPBarBoard::barWidthClip() const
