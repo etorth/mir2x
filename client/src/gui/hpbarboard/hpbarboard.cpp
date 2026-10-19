@@ -137,12 +137,6 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
     , m_runProc(fflcheck(args.runProc))
     , m_creature(fflcheck(args.creature))
 
-    , m_iconArea
-      {{
-          .w = std::nullopt,
-          .h = std::nullopt,
-      }}
-
     , m_numbers
       {{
           // it decides the full widget width
@@ -228,6 +222,15 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
               [this]{ return barWidthClip(); },
               [this]{ return barHeight   (); },
           },
+      }}
+
+    , m_iconArea
+      {{
+          .w = [this]
+          {
+              return buffIconsPerRow() * HPBuffIcon::buffIconDrawW;
+          },
+          .h = std::nullopt,
       }}
 
     , m_flex
