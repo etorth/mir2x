@@ -49,6 +49,9 @@ class HPBarBoard: public Widget
         int     barWidth    () const;
         int     barHeight   () const;
 
+    private:
+        int buffIconsPerRow() const;
+
     public:
         HPBarBoard(HPBarBoard::InitArgs);
         void setBuffIDList(const SDBuffIDList &);

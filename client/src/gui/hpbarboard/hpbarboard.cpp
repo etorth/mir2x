@@ -16,7 +16,7 @@ class HPBuffIcon: public Widget
         constexpr static int buffIconDrawW = 10;
         constexpr static int buffIconDrawH = 10;
 
-        constexpr static int buffIconsPerRow = 3;
+        constexpr static int buffIconsPerRow = 3; // when HP numbers disabled
         constexpr static int buffIconInsetX  = 1;
 
         constexpr static double buffIconAniPeriod = 1500.0;
@@ -27,6 +27,7 @@ class HPBuffIcon: public Widget
             uint32_t gfxID = SYS_U32NIL;
             int      favor = 0;
 
+            std::function<int()> rowIcons {};
             Widget::WADPair parent {};
         };
 
@@ -41,15 +42,16 @@ class HPBuffIcon: public Widget
         HPBuffIcon(HPBuffIcon::InitArgs args)
             : Widget
               {{
-                  .x = [](const Widget *widget)
+                  .x = [rowIcons = args.rowIcons](const Widget *widget)
                   {
-                      return to_d(widget->childID().value() % buffIconsPerRow) * buffIconDrawW;
+                      return to_d(widget->childID().value() % rowIcons()) * buffIconDrawW;
                   },
 
-                  .y = [parent = args.parent.widget](const Widget *widget)
+                  .y = [parent = args.parent.widget, rowIcons = args.rowIcons](const Widget *widget)
                   {
-                      const auto     childRow = static_cast<int>(widget             ->childID().value()) / buffIconsPerRow;
-                      const auto lastChildRow = static_cast<int>(parent->lastChild()->childID().value()) / buffIconsPerRow;
+                      const auto  iconsPerRow = rowIcons();
+                      const auto     childRow = static_cast<int>(widget             ->childID().value()) / iconsPerRow;
+                      const auto lastChildRow = static_cast<int>(parent->lastChild()->childID().value()) / iconsPerRow;
 
                       return (lastChildRow - childRow) * buffIconDrawH;
                   },
@@ -217,6 +219,9 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
       {{
           .x = [this]
           {
+              if(showNumber()){
+                  return m_bar.dx() + BAR_W_MARGIN;
+              }
               return w() / 2 - baseBarWidth() / 2 + HPBuffIcon::buffIconInsetX;
           },
 
@@ -257,7 +262,17 @@ int HPBarBoard::baseBarWidth() const
 
 int HPBarBoard::barWidth() const
 {
-    return showNumber() ? std::max<int>(BAR_W_MIN, m_numbers.w() + 2 * BAR_W_MARGIN) : m_frame.w();
+    if(showNumber()){
+        const int iconWidth = HPBuffIcon::buffIconDrawW;
+        const int iconAreaWidth = std::max<int>(BAR_W_MIN, m_numbers.w());
+        return ((iconAreaWidth + iconWidth - 1) / iconWidth) * iconWidth + 2 * BAR_W_MARGIN;
+    }
+    return m_frame.w();
+}
+
+int HPBarBoard::buffIconsPerRow() const
+{
+    return showNumber() ? ((barWidth() - 2 * BAR_W_MARGIN) / HPBuffIcon::buffIconDrawW) : HPBuffIcon::buffIconsPerRow;
 }
 
 int HPBarBoard::barHeight() const
@@ -278,6 +293,11 @@ void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
             {{
                 .gfxID = br.icon.gfxID,
                 .favor = br.favor,
+
+                .rowIcons = [this]
+                {
+                    return buffIconsPerRow();
+                },
 
                 .parent
                 {
