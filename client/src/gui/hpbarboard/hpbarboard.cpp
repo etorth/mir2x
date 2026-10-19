@@ -191,6 +191,13 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
               [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
               [this]{ return m_empty.h(); },
           },
+
+          .bgDrawFunc = [this](int drawDstX, int drawDstY)
+          {
+              if(showNumber()){
+                  g_sdlDevice->fillRectangle(colorf::BLACK_A255, drawDstX, drawDstY, m_resizeEmpty.w(), m_resizeEmpty.h());
+              }
+          },
       }}
 
     , m_resizeFull
