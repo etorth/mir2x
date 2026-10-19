@@ -27,7 +27,7 @@ class HPBarBoard: public Widget
 
     public:
         static constexpr int BAR_W_MIN    = 40;
-        static constexpr int BAR_W_MARGIN =  3;
+        static constexpr int BAR_W_MARGIN =  0; // disable inset currently
 
     private:
         ProcessRun *m_runProc;

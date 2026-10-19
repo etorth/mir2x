@@ -18,8 +18,6 @@ class HPBuffIcon: public Widget
         constexpr static int buffIconDrawH = 10;
 
         constexpr static int buffIconsPerRow = 3; // when HP numbers disabled
-        constexpr static int buffIconInsetX  = 1;
-
         constexpr static double buffIconAniPeriod = 1500.0;
 
     private:
