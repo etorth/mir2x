@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <cctype>
 #include <tuple>
 #include <array>
 #include <optional>
@@ -158,6 +159,11 @@ class Hero: public CreatureMovable
         {
             m_name = str_haschar(name) ? name : "";
             m_nameColor = (colorf::maskRGB(nameColor) ? nameColor : colorf::WHITE) + colorf::A_SHF(0XFF);
+
+            while(!m_name.empty() && std::isdigit(static_cast<unsigned char>(m_name.back()))){
+                m_name.pop_back();
+            }
+
             m_nameBoard.setText(u8"%s", m_name.c_str());
             m_nameBoard.setFontColor(m_nameColor);
         }
