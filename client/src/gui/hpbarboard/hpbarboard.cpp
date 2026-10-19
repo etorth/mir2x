@@ -262,22 +262,20 @@ int HPBarBoard::baseBarWidth() const
 
 int HPBarBoard::barWidth() const
 {
-    if(showNumber()){
-        const int iconWidth = HPBuffIcon::buffIconDrawW;
-        const int iconAreaWidth = std::max<int>(BAR_W_MIN, m_numbers.w());
-        return ((iconAreaWidth + iconWidth - 1) / iconWidth) * iconWidth + 2 * BAR_W_MARGIN;
-    }
-    return m_frame.w();
-}
-
-int HPBarBoard::buffIconsPerRow() const
-{
-    return showNumber() ? ((barWidth() - 2 * BAR_W_MARGIN) / HPBuffIcon::buffIconDrawW) : HPBuffIcon::buffIconsPerRow;
+    return buffIconsPerRow() * HPBuffIcon::buffIconDrawW + 2 * BAR_W_MARGIN;
 }
 
 int HPBarBoard::barHeight() const
 {
     return SDLDeviceHelper::getTextureHeight(m_frame.getTexture());
+}
+
+int HPBarBoard::buffIconsPerRow() const
+{
+    if(showNumber()){
+        return (std::max<int>(BAR_W_MIN, m_numbers.w()) + HPBuffIcon::buffIconDrawW - 1) / HPBuffIcon::buffIconDrawW;
+    }
+    return HPBuffIcon::buffIconsPerRow;
 }
 
 void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
