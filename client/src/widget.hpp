@@ -133,6 +133,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
         }
 
     public:
+        size_t childCount() const;
         std::optional<uint64_t> childID() const;
 
     public:

@@ -41,6 +41,17 @@ WidgetTreeNode::~WidgetTreeNode()
     }
 }
 
+size_t WidgetTreeNode::childCount() const
+{
+    size_t count = 0;
+    for(const auto &child: m_childList){
+        if(child.widget){
+            ++count;
+        }
+    }
+    return count;
+}
+
 std::optional<uint64_t> WidgetTreeNode::childID() const
 {
     if(!m_parent){

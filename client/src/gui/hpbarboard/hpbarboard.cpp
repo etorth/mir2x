@@ -10,139 +10,254 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-namespace
+class HPBuffIcon: public Widget
 {
-    constexpr int buffIconDrawW = 10;
-    constexpr int buffIconDrawH = 10;
-    constexpr int buffIconsPerRow = 3;
-    constexpr int buffIconInsetX = 1;
-    constexpr double buffIconAnimationPeriod = 1500.0;
+    public:
+        constexpr static int buffIconDrawW = 10;
+        constexpr static int buffIconDrawH = 10;
 
-    class HPBuffIcon: public Widget
-    {
-        private:
-            ImageBoard m_image;
-            GfxShapeBoard m_border;
+        constexpr static int buffIconsPerRow = 3;
+        constexpr static int buffIconInsetX  = 1;
 
-        public:
-            HPBuffIcon(Widget *parent, uint32_t gfxID, int favor, const double &animationTime)
-                : Widget
-                  {{
-                      .x = [](const Widget *widget)
-                      {
-                          return to_d(widget->childID().value() % buffIconsPerRow) * buffIconDrawW;
-                      },
-                      .y = [parent](const Widget *widget)
-                      {
-                          const auto lastRow = parent->lastChild()->childID().value() / buffIconsPerRow;
-                          const auto row = widget->childID().value() / buffIconsPerRow;
-                          return to_d(lastRow - row) * buffIconDrawH;
-                      },
-                      .w = buffIconDrawW,
-                      .h = buffIconDrawH,
-                      .parent{parent, true},
-                  }}
-                , m_image
-                  {{
-                      .w = buffIconDrawW,
-                      .h = buffIconDrawH,
-                      .texLoadFunc = [gfxID]{ return g_progUseDB->retrieve(gfxID); },
-                      .parent{this},
-                  }}
-                , m_border
-                  {{
-                      .w = buffIconDrawW,
-                      .h = buffIconDrawH,
-                      .drawFunc = [favor, &animationTime](const Widget *, int x, int y)
-                      {
-                          const auto color = favor > 0 ? colorf::GREEN : favor == 0 ? colorf::YELLOW : colorf::RED;
-                          constexpr int edgeGridCount = (buffIconDrawW + buffIconDrawH) * 2 - 4;
-                          const auto startLoc = std::lround(edgeGridCount * std::fmod(animationTime, buffIconAnimationPeriod) / buffIconAnimationPeriod);
-                          g_sdlDevice->drawBoxFading(color | colorf::A_SHF(255), color | colorf::A_SHF(64), x, y, buffIconDrawW, buffIconDrawH, startLoc, buffIconDrawW + buffIconDrawH);
-                      },
-                      .parent{this},
-                  }}
-            {}
-    };
-}
+        constexpr static double buffIconAniPeriod = 1500.0;
 
-HPBarBoard::HPBarBoard(ProcessRun *processRun, const std::optional<SDHealth> &health, const double &animationTime)
+    private:
+        struct InitArgs
+        {
+            uint32_t gfxID = SYS_U32NIL;
+            int      favor = 0;
+
+            Widget::WADPair parent {};
+        };
+
+    private:
+        ImageBoard m_image;
+        GfxShapeBoard m_border;
+
+    private:
+        double m_accuTime = 0;
+
+    public:
+        HPBuffIcon(HPBuffIcon::InitArgs args)
+            : Widget
+              {{
+                  .x = [](const Widget *widget)
+                  {
+                      return to_d(widget->childID().value() % buffIconsPerRow) * buffIconDrawW;
+                  },
+
+                  .y = [parent = args.parent.widget](const Widget *widget)
+                  {
+                      const auto     childRow = static_cast<int>(widget             ->childID().value()) / buffIconsPerRow;
+                      const auto lastChildRow = static_cast<int>(parent->lastChild()->childID().value()) / buffIconsPerRow;
+
+                      return (lastChildRow - childRow) * buffIconDrawH;
+                  },
+
+                  .w = buffIconDrawW,
+                  .h = buffIconDrawH,
+
+                  .parent = std::move(args.parent),
+              }}
+
+            , m_image
+              {{
+                  .w = buffIconDrawW,
+                  .h = buffIconDrawH,
+
+                  .texLoadFunc = [gfxID = args.gfxID]{ return g_progUseDB->retrieve(gfxID); },
+                  .parent{this},
+              }}
+
+            , m_border
+              {{
+                  .w = buffIconDrawW,
+                  .h = buffIconDrawH,
+
+                  .drawFunc = [favor = args.favor, this](const Widget *, int x, int y)
+                  {
+                      const auto color = [favor]
+                      {
+                          if     (favor < 0){ return colorf::RED   ; }
+                          else if(favor > 0){ return colorf::GREEN ; }
+                          else              { return colorf::YELLOW; }
+                      }();
+
+                      const auto edgePixelCount = (buffIconDrawW + buffIconDrawH) * 2 - 4;
+                      const auto startLoc = static_cast<int>(edgePixelCount * std::fmod(m_accuTime, buffIconAniPeriod) / buffIconAniPeriod);
+
+                      g_sdlDevice->drawBoxFading(
+                              color + colorf::A_SHF(255),
+                              color + colorf::A_SHF( 64),
+
+                              x,
+                              y,
+
+                              buffIconDrawW,
+                              buffIconDrawH,
+
+                              startLoc,
+                              buffIconDrawW + buffIconDrawH);
+                  },
+                  .parent{this},
+              }}
+        {}
+
+    public:
+        void updateDefault(double fUpdateTime) override
+        {
+            m_accuTime += fUpdateTime;
+        }
+};
+
+HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
     : Widget
       {{
-          .w = [this]{ return barWidth(); },
-          .h = [this]{ return m_iconArea.h() + barHeight(); },
+          .w = [this]{ return std::max<int>(baseBarWidth(), barWidth()); },
+          .h = [this]{ return              m_iconArea.h() + barHeight(); },
       }}
-    , m_processRun(processRun)
-    , m_health(health)
-    , m_animationTime(animationTime)
+
+    , m_runProc(fflcheck(args.runProc))
+    , m_creature(fflcheck(args.creature))
+
     , m_bar
       {{
+          .dir = DIR_UP,
+          .x = [this]{ return w() / 2; },
           .y = [this]{ return m_iconArea.h(); },
-          .w = [this]{ return barWidth(); },
+
+          .w = [this]{ return barWidth (); },
           .h = [this]{ return barHeight(); },
-          .attrs{.inst{.show = [this]{ return showBar(); }}},
+
+          .attrs
+          {
+              .inst
+              {
+                  .show = [this]{ return showBar(); },
+              },
+          },
+
           .parent{this},
       }}
+
     , m_fillClip
       {{
-          .w = [this]{ return to_d(std::lround(barWidth() * healthRatio())); },
-          .h = [this]{ return barHeight(); },
+          .w = [this]{ return barWidthClip(); },
+          .h = [this]{ return barHeight   (); },
+
           .parent{&m_bar},
       }}
+
     , m_fill
       {{
-          .texLoadFunc = [this]{ return g_progUseDB->retrieve(numericHealth() ? 0X00000017 : 0X00000015); },
+          .w = [this]{ return barWidth(); },
+          .texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000017 : 0X00000015); },
           .parent{&m_fillClip},
       }}
+
     , m_frame
       {{
-          .texLoadFunc = [this]{ return g_progUseDB->retrieve(numericHealth() ? 0X00000016 : 0X00000014); },
+          .texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000016 : 0X00000014); },
+      }}
+
+    , m_resizedFrame
+      {{
+          .getter = &m_frame,
+          .vr
+          {
+              BAR_W_MARGIN,
+              0,
+              [this]{ return m_frame.w() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_frame.h(); },
+          },
+
+          .resize
+          {
+              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_frame.h(); },
+          },
+
           .parent{&m_bar},
       }}
+
     , m_numbers
       {{
-          .x = [this]{ return (barWidth() - m_numbers.w()) / 2; },
-          .y = [this]{ return (barHeight() - m_numbers.h()) / 2; },
+          .dir = DIR_NONE,
+
+          .x = [this]{ return m_bar.w() / 2; },
+          .y = [this]{ return m_bar.h() / 2; },
+
           .textFunc = [this]
           {
-              const int hp = m_health.has_value() ? m_health->hp : 0;
-              const int maxHP = m_health.has_value() ? m_health->getMaxHP() : 0;
+              const int    hp = m_creature->getSDHealth().has_value() ? m_creature->getSDHealth()->hp         : 0;
+              const int maxHP = m_creature->getSDHealth().has_value() ? m_creature->getSDHealth()->getMaxHP() : 0;
+
               return str_printf("%*d/%d", std::max<int>(1, to_d(std::to_string(maxHP).size())), hp, maxHP);
           },
-          .font{.id = 15, .size = 16, .color = colorf::WHITE_A255},
-          .attrs{.show = [this]{ return numericHealth() && m_health.has_value(); }},
+
+          .font
+          {
+              .id = 15,
+              .size = 16,
+              .color = colorf::WHITE_A255,
+          },
+
+          .attrs
+          {
+              .show = [this]
+              {
+                  return showNumber() && m_creature->getSDHealth().has_value();
+              },
+          },
+
           .parent{&m_bar},
       }}
+
     , m_iconArea
       {{
           .x = [this]
           {
-              const int baseBarW = SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
-              return buffIconInsetX - (baseBarW - barWidth()) / 2;
+              return w() / 2 - baseBarWidth() / 2 + HPBuffIcon::buffIconInsetX;
           },
+
           .w = std::nullopt,
           .h = std::nullopt,
+
           .parent{this},
       }}
-{
-    fflassert(m_processRun);
-}
+{}
 
-bool HPBarBoard::numericHealth() const
+bool HPBarBoard::showNumber() const
 {
-    return m_processRun->getRuntimeConfig<RTCFG_数字显血>();
+    return m_runProc->getRuntimeConfig<RTCFG_数字显血>();
 }
 
 bool HPBarBoard::showBar() const
 {
-    return m_processRun->getRuntimeConfig<RTCFG_显示血条>()
-        && (!m_processRun->getRuntimeConfig<RTCFG_满血不显血>()
-            || (m_health.has_value() && m_health->hp < m_health->getMaxHP()));
+    if(!m_runProc->getRuntimeConfig<RTCFG_显示血条>()){
+        return false;
+    }
+
+    if(m_runProc->getRuntimeConfig<RTCFG_满血不显血>()){
+        return m_creature->getSDHealth().has_value() && m_creature->getSDHealth()->hp < m_creature->getSDHealth()->getMaxHP();
+    }
+
+    return true;
+}
+
+int HPBarBoard::barWidthClip() const
+{
+    return to_d(barWidth() * m_creature->getSDHealth().and_then(&SDHealth::hpRatio).value_or(1.0f));
+}
+
+int HPBarBoard::baseBarWidth() const
+{
+    return SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
 }
 
 int HPBarBoard::barWidth() const
 {
-    return SDLDeviceHelper::getTextureWidth(m_frame.getTexture());
+    return showNumber() ? std::max<int>(BAR_W_MIN, m_numbers.w() + 2 * BAR_W_MARGIN) : m_frame.w();
 }
 
 int HPBarBoard::barHeight() const
@@ -150,22 +265,26 @@ int HPBarBoard::barHeight() const
     return SDLDeviceHelper::getTextureHeight(m_frame.getTexture());
 }
 
-double HPBarBoard::healthRatio() const
-{
-    return m_health.has_value() && m_health->getMaxHP() > 0
-        ? std::clamp(to_df(m_health->hp) / m_health->getMaxHP(), 0.0, 1.0)
-        : 1.0;
-}
-
 void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
 {
     m_iconArea.clearChild();
     m_iconArea.purge();
+
     for(const auto id: list.idList){
         const auto &br = DBCOM_BUFFRECORD(id);
         fflassert(br);
         if(br.icon.gfxID != SYS_U32NIL && g_progUseDB->retrieve(br.icon.gfxID)){
-            new HPBuffIcon(&m_iconArea, br.icon.gfxID, br.favor, m_animationTime);
+            new HPBuffIcon
+            {{
+                .gfxID = br.icon.gfxID,
+                .favor = br.favor,
+
+                .parent
+                {
+                    .widget = &m_iconArea,
+                    .autoDelete = true,
+                },
+            }};
         }
     }
 }

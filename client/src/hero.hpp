@@ -48,9 +48,10 @@ class Hero: public CreatureMovable
         Hero(uint64_t, bool, int, ProcessRun *, const ActionNode &);
 
     public:
-       ~Hero() = default;
+        ~Hero() = default;
 
     public:
+        void updateAttachGUI(double) override;
         bool update(double) override;
 
     public:

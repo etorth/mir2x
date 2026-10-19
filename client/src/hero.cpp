@@ -244,10 +244,17 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 }
 
-bool Hero::update(double ms)
+void Hero::updateAttachGUI(double fUpdateTime)
 {
-    updateAttachMagic(ms);
-    m_playerSayBoard.update(ms);
+    CreatureMovable::updateAttachGUI(fUpdateTime);
+    m_playerSayBoard.update(fUpdateTime);
+}
+
+bool Hero::update(double fUpdateTime)
+{
+    updateAttachGUI(fUpdateTime);
+    updateAttachMagic(fUpdateTime);
+
     const CallOnExitHelper motionOnUpdate([lastSeqFrameID = m_currMotion->getSeqFrameID(), this]()
     {
         m_currMotion->runTrigger();
@@ -347,11 +354,11 @@ bool Hero::update(double ms)
     });
 
     if(m_currMotion->effect && !m_currMotion->effect->done()){
-        m_currMotion->effect->update(ms);
+        m_currMotion->effect->update(fUpdateTime);
         return true;
     }
 
-    if(!checkUpdate(ms)){
+    if(!checkUpdate(fUpdateTime)){
         return true;
     }
 

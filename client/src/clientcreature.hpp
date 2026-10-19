@@ -57,13 +57,13 @@ class ClientCreature
         HPBarBoard m_hpBarBoard;
 
     protected:
-        ClientCreature(uint64_t uid, ProcessRun *pRun)
+        ClientCreature(uint64_t uid, ProcessRun *runProc)
             : m_UID(uid)
-            , m_processRun(pRun)
+            , m_processRun(runProc)
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard{{.label=u8"ClientCreature"}}
-            , m_hpBarBoard(pRun, m_sdHealth, m_accuUpdateTime)
+            , m_hpBarBoard{{.runProc=runProc, .creature=this}}
         {
             fflassert(m_UID);
             fflassert(m_processRun);
@@ -171,7 +171,8 @@ class ClientCreature
         }
 
     protected:
-        void updateAttachMagic(double);
+        virtual void updateAttachGUI  (double);
+        virtual void updateAttachMagic(double);
 
     public:
         virtual bool update(double) = 0;
@@ -229,7 +230,7 @@ class ClientCreature
                 };
             }
             else{
-                return { 1.0, 1.0};
+                return {1.0, 1.0};
             }
         }
 

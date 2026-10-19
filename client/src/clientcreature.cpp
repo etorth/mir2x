@@ -37,6 +37,12 @@ bool ClientCreature::advanceMotionFrame()
     return true;
 }
 
+void ClientCreature::updateAttachGUI(double fUpdateTime)
+{
+    m_nameBoard .update(fUpdateTime);
+    m_hpBarBoard.update(fUpdateTime);
+}
+
 void ClientCreature::updateAttachMagic(double fUpdateTime)
 {
     for(auto p = m_attachMagicList.begin(); p != m_attachMagicList.end();){

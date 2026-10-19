@@ -1206,6 +1206,22 @@ struct SDHealth
     {
         return mpRecover + buffedMPRecover.sum();
     }
+
+    std::optional<float> hpRatio() const
+    {
+        if(const auto maxHP = getMaxHP(); maxHP > 0){
+            return 1.0f * hp / maxHP;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<float> mpRatio() const
+    {
+        if(const auto maxMP = getMaxMP(); maxMP > 0){
+            return 1.0f * mp / maxMP;
+        }
+        return std::nullopt;
+    }
 };
 
 struct SDBuffIDList
