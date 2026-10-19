@@ -92,12 +92,19 @@ std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, s
 ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
-    fflassert(uidf::getUIDType(uid) == UID_MON, uidf::getUIDString(uid));
+    fflassert(uidf::isMonster(uid), uidf::getUIDString(uid));
+    fflassert(getMR());
+
+    std::u8string name{monsterName()};
+    while(!name.empty() && std::isdigit(static_cast<unsigned char>(name.back()))){
+        name.pop_back();
+    }
+
     if(g_clientArgParser->drawUID){
-        m_nameBoard.setText(u8"%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).name, to_llu(UID()));
+        m_nameBoard.setText(u8"%s(%llu)", to_cstr(name), to_llu(UID()));
     }
     else{
-        m_nameBoard.setText(u8"%s", DBCOM_MONSTERRECORD(monsterID()).name);
+        m_nameBoard.setText(u8"%s", to_cstr(name));
     }
 }
 
