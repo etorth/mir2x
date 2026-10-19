@@ -34,6 +34,9 @@ class HPBarBoard: public Widget
         ClientCreature *m_creature;
 
     private:
+        Widget *m_iconArea = nullptr;
+
+    private:
         TextBoard  m_numbers;
         ImageBoard m_empty;
         ImageBoard m_full;
@@ -44,9 +47,6 @@ class HPBarBoard: public Widget
 
     private:
         GfxCropBoard m_resizeFullCrop;
-
-    private:
-        Widget m_iconArea;
 
     private:
         ItemFlex m_flex;

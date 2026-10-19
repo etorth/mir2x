@@ -224,21 +224,17 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           },
       }}
 
-    , m_iconArea
-      {{
-          .w = [this]
-          {
-              return buffIconsPerRow() * HPBuffIcon::buffIconDrawW;
-          },
-          .h = std::nullopt,
-      }}
-
     , m_flex
       {{
           .align = ItemAlign::CENTER,
           .childList
           {
-              {std::addressof(m_iconArea), false},
+              {new Widget
+              {{
+                  .w = [this]{ return buffIconsPerRow() * HPBuffIcon::buffIconDrawW; },
+                  .h = std::nullopt,
+              }}, true},
+
               {new GfxCenterBoard
               {{
                   .childList
@@ -264,7 +260,13 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
               .autoDelete = false,
           },
       }}
-{}
+{
+    m_flex.foreachItem([this](Widget *widget, bool)
+    {
+        m_iconArea = widget; // setup iconArea to first child
+        return true;
+    });
+}
 
 bool HPBarBoard::showNumber() const
 {
@@ -314,8 +316,8 @@ int HPBarBoard::buffIconsPerRow() const
 
 void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
 {
-    m_iconArea.clearChild();
-    m_iconArea.purge();
+    m_iconArea->clearChild();
+    m_iconArea->purge();
 
     for(const auto id: list.idList){
         const auto &br = DBCOM_BUFFRECORD(id);
@@ -333,7 +335,7 @@ void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
 
                 .parent
                 {
-                    .widget = &m_iconArea,
+                    .widget = m_iconArea,
                     .autoDelete = true,
                 },
             }};
