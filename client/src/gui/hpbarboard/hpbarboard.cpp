@@ -172,15 +172,15 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           .getter = &m_empty,
           .vr
           {
-              BAR_W_MARGIN,
+              std::max<int>(1, BAR_W_MARGIN),
               0,
-              [this]{ return m_empty.w() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.w() - 2 * std::max<int>(1, BAR_W_MARGIN); },
               [this]{ return m_empty.h(); },
           },
 
           .resize
           {
-              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
+              [this]{ return barWidth() - 2 * std::max<int>(1, BAR_W_MARGIN); },
               [this]{ return m_empty.h(); },
           },
 
@@ -197,15 +197,15 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           .getter = &m_full,
           .vr
           {
-              BAR_W_MARGIN,
+              std::max<int>(1, BAR_W_MARGIN),
               0,
-              [this]{ return m_empty.w() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.w() - 2 * std::max<int>(1, BAR_W_MARGIN); },
               [this]{ return m_empty.h(); },
           },
 
           .resize
           {
-              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
+              [this]{ return barWidth() - 2 * std::max<int>(1, BAR_W_MARGIN); },
               [this]{ return m_empty.h(); },
           },
       }}
