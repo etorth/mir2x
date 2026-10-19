@@ -5,6 +5,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "gfxshapeboard.hpp"
+#include "gfxcenterboard.hpp"
 #include "dbcomid.hpp"
 
 extern PNGTexDB *g_progUseDB;
@@ -115,21 +116,13 @@ class HPBuffIcon: public Widget
 HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
     : Widget
       {{
-          .w = [this]{ return std::max<int>(baseBarWidth(), barWidth()); },
-          .h = [this]{ return              m_iconArea.h() + barHeight(); },
-      }}
+          .dir = std::move(args.dir),
 
-    , m_runProc(fflcheck(args.runProc))
-    , m_creature(fflcheck(args.creature))
+          .x = std::move(args.x),
+          .y = std::move(args.y),
 
-    , m_bar
-      {{
-          .dir = DIR_UP,
-          .x = [this]{ return w() / 2; },
-          .y = [this]{ return m_iconArea.h(); },
-
-          .w = [this]{ return barWidth (); },
-          .h = [this]{ return barHeight(); },
+          .w = std::nullopt,
+          .h = std::nullopt,
 
           .attrs
           {
@@ -138,56 +131,22 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
                   .show = [this]{ return showBar(); },
               },
           },
-
-          .parent{this},
+          .parent = std::move(args.parent),
       }}
 
-    , m_fillClip
+    , m_runProc(fflcheck(args.runProc))
+    , m_creature(fflcheck(args.creature))
+
+    , m_iconArea
       {{
-          .w = [this]{ return barWidthClip(); },
-          .h = [this]{ return barHeight   (); },
-
-          .parent{&m_bar},
-      }}
-
-    , m_fill
-      {{
-          .w = [this]{ return barWidth(); },
-          .texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000017 : 0X00000015); },
-          .parent{&m_fillClip},
-      }}
-
-    , m_frame
-      {{
-          .texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000016 : 0X00000014); },
-      }}
-
-    , m_resizedFrame
-      {{
-          .getter = &m_frame,
-          .vr
-          {
-              BAR_W_MARGIN,
-              0,
-              [this]{ return m_frame.w() - 2 * BAR_W_MARGIN; },
-              [this]{ return m_frame.h(); },
-          },
-
-          .resize
-          {
-              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
-              [this]{ return m_frame.h(); },
-          },
-
-          .parent{&m_bar},
+          .w = std::nullopt,
+          .h = std::nullopt,
       }}
 
     , m_numbers
       {{
-          .dir = DIR_NONE,
-
-          .x = [this]{ return m_bar.w() / 2; },
-          .y = [this]{ return m_bar.h() / 2; },
+          // it decides the full widget width
+          // so put it ahead, and setup its location later
 
           .textFunc = [this]
           {
@@ -211,24 +170,89 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
                   return showNumber() && m_creature->getSDHealth().has_value();
               },
           },
-
-          .parent{&m_bar},
       }}
 
-    , m_iconArea
+    , m_empty{{.texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000016 : 0X00000014); }}}
+    , m_full {{.texLoadFunc = [this]{ return g_progUseDB->retrieve(showNumber() ? 0X00000017 : 0X00000015); }}}
+
+    , m_resizeEmpty
       {{
-          .x = [this]
+          .getter = &m_empty,
+          .vr
           {
-              if(showNumber()){
-                  return m_bar.dx() + BAR_W_MARGIN;
-              }
-              return w() / 2 - baseBarWidth() / 2 + HPBuffIcon::buffIconInsetX;
+              BAR_W_MARGIN,
+              0,
+              [this]{ return m_empty.w() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.h(); },
           },
 
-          .w = std::nullopt,
-          .h = std::nullopt,
+          .resize
+          {
+              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.h(); },
+          },
+      }}
 
-          .parent{this},
+    , m_resizeFull
+      {{
+          .getter = &m_full,
+          .vr
+          {
+              BAR_W_MARGIN,
+              0,
+              [this]{ return m_empty.w() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.h(); },
+          },
+
+          .resize
+          {
+              [this]{ return barWidth() - 2 * BAR_W_MARGIN; },
+              [this]{ return m_empty.h(); },
+          },
+      }}
+
+    , m_resizeFullCrop
+      {{
+          .getter = &m_resizeFull,
+          .vr
+          {
+              0,
+              0,
+              [this]{ return barWidthClip(); },
+              [this]{ return barHeight   (); },
+          },
+      }}
+
+    , m_flex
+      {{
+          .align = ItemAlign::CENTER,
+          .childList
+          {
+              {std::addressof(m_iconArea), false},
+              {new GfxCenterBoard
+              {{
+                  .childList
+                  {
+                      {new Widget
+                      {{
+                          .w = std::nullopt,
+                          .h = std::nullopt,
+                          .childList
+                          {
+                              {&m_resizeEmpty   },
+                              {&m_resizeFullCrop},
+                          },
+                      }}, true},
+                      {&m_numbers},
+                  },
+              }}, true},
+          },
+
+          .parent
+          {
+              .widget = this,
+              .autoDelete = false,
+          },
       }}
 {}
 
@@ -267,7 +291,7 @@ int HPBarBoard::barWidth() const
 
 int HPBarBoard::barHeight() const
 {
-    return SDLDeviceHelper::getTextureHeight(m_frame.getTexture());
+    return SDLDeviceHelper::getTextureHeight(m_empty.getTexture());
 }
 
 int HPBarBoard::buffIconsPerRow() const

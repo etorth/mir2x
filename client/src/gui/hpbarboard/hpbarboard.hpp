@@ -1,10 +1,11 @@
 #pragma once
 #include <optional>
 #include "widget.hpp"
+#include "serdesmsg.hpp"
 #include "imageboard.hpp"
 #include "gfxresizeboard.hpp"
 #include "textboard.hpp"
-#include "serdesmsg.hpp"
+#include "itemflex.hpp"
 
 class ProcessRun;
 class ClientCreature;
@@ -14,8 +15,14 @@ class HPBarBoard: public Widget
     private:
         struct InitArgs
         {
+            Widget::VarDir dir = DIR_UPLEFT;
+            Widget::VarInt x   = 0;
+            Widget::VarInt y   = 0;
+
             ProcessRun *runProc = nullptr;
             ClientCreature *creature = nullptr;
+
+            Widget::WADPair  parent {};
         };
 
     public:
@@ -27,17 +34,25 @@ class HPBarBoard: public Widget
         ClientCreature *m_creature;
 
     private:
-        Widget m_bar;
-        Widget m_fillClip;
+        Widget m_iconArea;
 
     private:
-        ImageBoard m_fill;
-        ImageBoard m_frame;
-        GfxResizeBoard m_resizedFrame;
+        TextBoard  m_numbers;
+        ImageBoard m_empty;
+        ImageBoard m_full;
 
     private:
-        TextBoard m_numbers;
-        Widget    m_iconArea;
+        GfxResizeBoard m_resizeEmpty;
+        GfxResizeBoard m_resizeFull;
+
+    private:
+        GfxCropBoard m_resizeFullCrop;
+
+    private:
+        ItemFlex m_flex;
+
+    public:
+        HPBarBoard(HPBarBoard::InitArgs);
 
     private:
         bool showNumber() const;
@@ -53,6 +68,5 @@ class HPBarBoard: public Widget
         int buffIconsPerRow() const;
 
     public:
-        HPBarBoard(HPBarBoard::InitArgs);
         void setBuffIDList(const SDBuffIDList &);
 };
