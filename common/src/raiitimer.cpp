@@ -25,7 +25,11 @@ hres_tstamp::hres_tstamp()
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
     LARGE_INTEGER tstamp;
     QueryPerformanceCounter(&tstamp); // after winxp this function always succeed
-    m_tstamp = (to_u64(tstamp.QuadPart) * 1000000000ULL) / to_u64(g_winFreq.QuadPart);
+    // avoid overflow of counter * 1e9
+    // otherwise time wraps every ~1844s with a 10MHz counter
+    const uint64_t counter = to_u64(   tstamp.QuadPart);
+    const uint64_t freq    = to_u64(g_winFreq.QuadPart);
+    m_tstamp = (counter / freq) * 1000000000ULL + (counter % freq) * 1000000000ULL / freq;
 #else
     struct timespec tstamp;
     if(clock_gettime(CLOCK_MONOTONIC, &tstamp)) [[unlikely]] {
