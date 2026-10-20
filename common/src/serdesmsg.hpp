@@ -960,6 +960,11 @@ struct SDMagicKeyList
         keyList.clear();
     }
 
+    constexpr static bool validKey(char key) // keys 1 ~ 6 are reserved to consume belt items
+    {
+        return (key >= 'a' && key <= 'z') || (key == '0') || (key >= '7' && key <= '9');
+    }
+
     bool setMagicKey(uint32_t, char);
 };
 

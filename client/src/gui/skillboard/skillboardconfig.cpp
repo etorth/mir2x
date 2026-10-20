@@ -1,4 +1,5 @@
 #include "fflerror.hpp"
+#include "serdesmsg.hpp"
 #include "dbcomid.hpp"
 #include "skillboardconfig.hpp"
 #include "skillboard.hpp"
@@ -43,7 +44,7 @@ void SkillBoardConfig::setMagicKey(uint32_t magicID, std::optional<char> key)
 
     fflassert(hasMagicID(magicID));
     fflassert(!SkillBoard::getMagicIconGfx(magicID)->passive);
-    fflassert(!key.has_value() || (key.value() >= 'a' && key.value() <= 'z') || (key.value() >= '0' && key.value() <= '9'));
+    fflassert(!key.has_value() || SDMagicKeyList::validKey(key.value()));
 
     m_learnedMagicList[magicID].key = key;
     if(key.has_value()){

@@ -93,6 +93,14 @@ bool MagicIconButton::processEventDefault(const SDL_Event &event, bool valid, Wi
                 if(SkillBoard::getMagicIconGfx(magicID())->passive){
                     m_processRun->addCBLog(CBLOG_SYS, u8"无法为被动技能设置快捷键：%s", to_cstr(DBCOM_MAGICRECORD(magicID()).name));
                 }
+                else if(!SDMagicKeyList::validKey(key)){
+                    if(key >= '1' && key <= '6'){
+                        m_processRun->addCBLog(CBLOG_SYS, u8"快捷键%c已被快捷栏占用", key);
+                    }
+                    else{
+                        m_processRun->addCBLog(CBLOG_SYS, u8"无效的快捷键%c", key);
+                    }
+                }
                 else{
                     m_config->setMagicKey(magicID(), key);
                     m_processRun->requestSetMagicKey(magicID(), key);

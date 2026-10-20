@@ -774,6 +774,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTEQUIPBELT          );
         _support_cm(CM_REQUESTEQUIPWEAR          );
         _support_cm(CM_REQUESTGRABBELT           );
+        _support_cm(CM_REQUESTCONSUMEBELT        );
         _support_cm(CM_REQUESTGRABWEAR           );
         _support_cm(CM_REQUESTJOINTEAM           );
         _support_cm(CM_REQUESTDIE                );

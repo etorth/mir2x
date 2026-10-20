@@ -62,6 +62,7 @@ enum CMType: uint8_t
     CM_REQUESTGRABWEAR,
     CM_REQUESTEQUIPBELT,
     CM_REQUESTGRABBELT,
+    CM_REQUESTCONSUMEBELT,
     CM_REQUESTJOINTEAM,
     CM_REQUESTLEAVETEAM,
     CM_REQUESTLATESTCHATMESSAGE,
@@ -326,6 +327,11 @@ struct CMRequestGrabBelt
     uint16_t slot;
 };
 
+struct CMRequestConsumeBelt
+{
+    uint16_t slot;
+};
+
 struct CMRequestJoinTeam
 {
     uint64_t uid;
@@ -463,20 +469,21 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTGRABWEAR,            1, sizeof(CMRequestGrabWear)           );
         _RSVD_register_clientmsg(CM_REQUESTEQUIPBELT,           1, sizeof(CMRequestEquipBelt)          );
         _RSVD_register_clientmsg(CM_REQUESTGRABBELT,            1, sizeof(CMRequestGrabBelt)           );
+        _RSVD_register_clientmsg(CM_REQUESTCONSUMEBELT,         1, sizeof(CMRequestConsumeBelt)        );
         _RSVD_register_clientmsg(CM_REQUESTJOINTEAM,            1, sizeof(CMRequestJoinTeam)           );
         _RSVD_register_clientmsg(CM_REQUESTLEAVETEAM,           1, sizeof(CMRequestLeaveTeam)          );
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );
         _RSVD_register_clientmsg(CM_QUERYAUCTIONITEMLIST,       2, sizeof(CMQueryAuctionItemList)      );
-        _RSVD_register_clientmsg(CM_REGISTERAUCTIONITEM,         1, sizeof(CMRegisterAuctionItem)       );
-        _RSVD_register_clientmsg(CM_BUYAUCTIONITEM,              1, sizeof(CMBuyAuctionItem)            );
-        _RSVD_register_clientmsg(CM_UNREGISTERAUCTIONITEM,       1, sizeof(CMUnregisterAuctionItem)     );
-        _RSVD_register_clientmsg(CM_REQUESTDIRECTTRADE,          1, sizeof(CMRequestDirectTrade)        );
-        _RSVD_register_clientmsg(CM_RESPONDDIRECTTRADE,          1, sizeof(CMRespondDirectTrade)        );
-        _RSVD_register_clientmsg(CM_UPDATEDIRECTTRADE,           3                                      );
-        _RSVD_register_clientmsg(CM_COMMITDIRECTTRADE,            1, sizeof(CMCommitDirectTrade)         );
-        _RSVD_register_clientmsg(CM_CANCELDIRECTTRADE,           1, sizeof(CMCancelDirectTrade)         );
+        _RSVD_register_clientmsg(CM_REGISTERAUCTIONITEM,        1, sizeof(CMRegisterAuctionItem)       );
+        _RSVD_register_clientmsg(CM_BUYAUCTIONITEM,             1, sizeof(CMBuyAuctionItem)            );
+        _RSVD_register_clientmsg(CM_UNREGISTERAUCTIONITEM,      1, sizeof(CMUnregisterAuctionItem)     );
+        _RSVD_register_clientmsg(CM_REQUESTDIRECTTRADE,         1, sizeof(CMRequestDirectTrade)        );
+        _RSVD_register_clientmsg(CM_RESPONDDIRECTTRADE,         1, sizeof(CMRespondDirectTrade)        );
+        _RSVD_register_clientmsg(CM_UPDATEDIRECTTRADE,          3                                      );
+        _RSVD_register_clientmsg(CM_COMMITDIRECTTRADE,          1, sizeof(CMCommitDirectTrade)         );
+        _RSVD_register_clientmsg(CM_CANCELDIRECTTRADE,          1, sizeof(CMCancelDirectTrade)         );
 
 #undef _RSVD_register_clientmsg
         return result;

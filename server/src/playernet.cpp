@@ -1103,6 +1103,41 @@ corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, s
     return {};
 }
 
+corof::awaitable<> Player::net_CM_REQUESTCONSUMEBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmRCB = ClientMsg::conv<CMRequestConsumeBelt>(buf);
+    const auto slot = to_uz(cmRCB.slot);
+
+    if(slot >= m_sdItemStorage.belt.list.size()){
+        return {};
+    }
+
+    auto &item = m_sdItemStorage.belt.list.at(slot);
+    if(!item){
+        return {};
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+    fflassert(ir.beltable(), item.itemID);
+
+    // TODO: 传送卷轴 is beltable but not consumable yet
+    if(!(ir.isPotion() && consumePotion(item.itemID))){
+        return {};
+    }
+
+    if(item.count > 1){
+        item.count--;
+        dbUpdateBeltItem(slot, item);
+    }
+    else{
+        item = {};
+        dbRemoveBeltItem(slot);
+    }
+
+    postNetMessage(SM_BELT, cerealf::serialize(m_sdItemStorage.belt));
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRJT = ClientMsg::conv<CMRequestJoinTeam>(buf);
@@ -1221,6 +1256,10 @@ corof::awaitable<> Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_
     const auto &ir = DBCOM_ITEMRECORD(cmCI.itemID);
     fflassert(ir);
 
+    if(const auto itemPtr = findInventoryItem(cmCI.itemID, cmCI.seqID); !itemPtr || itemPtr->count < to_uz(cmCI.count)){
+        return {};
+    }
+
     bool consumed = false;
     if(ir.isBook()){
         consumed = consumeBook(cmCI.itemID);
@@ -1267,7 +1306,9 @@ corof::awaitable<> Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, 
 corof::awaitable<> Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmSMK = ClientMsg::conv<CMSetMagicKey>(buf);
-    dbUpdateMagicKey(cmSMK.magicID, cmSMK.key);
+    if(SDMagicKeyList::validKey(cmSMK.key)){
+        dbUpdateMagicKey(cmSMK.magicID, cmSMK.key);
+    }
     return {};
 }
 

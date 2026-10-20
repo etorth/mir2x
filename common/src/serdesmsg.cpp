@@ -240,7 +240,7 @@ void SDInventory::merge(uint32_t itemID, uint32_t fromSeqID, uint32_t toSeqID)
 bool SDMagicKeyList::setMagicKey(uint32_t magicID, char key)
 {
     fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+    fflassert(validKey(key), key);
 
     bool changed = false;
     for(auto p = keyList.begin(); p != keyList.end();){

@@ -196,6 +196,6 @@ void QuickAccessBoard::gridConsume(int slot)
 
     if(const auto &item = m_processRun->getMyHero()->getBelt(slot)){
         InvPack::playItemSoundEffect(item.itemID, true);
-        m_processRun->requestConsumeItem(item.itemID, item.seqID, 1);
+        m_processRun->requestConsumeBelt(slot);
     }
 }

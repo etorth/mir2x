@@ -28,6 +28,7 @@
 #include "totype.hpp"
 #include "gui/skillboard/skillboard.hpp"
 #include "gui/herostateboard/herostateboard.hpp"
+#include "gui/quickaccessboard/quickaccessboard.hpp"
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
@@ -794,6 +795,9 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                             break;
                                         }
                                 }
+                            }
+                            else if(const auto key = SDLDeviceHelper::getKeyChar(event, false); key >= '1' && key <= '6'){
+                                dynamic_cast<QuickAccessBoard *>(getWidget("QuickAccessBoard"))->gridConsume(key - '1');
                             }
                             else{
                                 checkMagicSpell(event);
@@ -1796,7 +1800,7 @@ bool ProcessRun::requestSpaceMove(uint64_t nMapUID, int nX, int nY)
 void ProcessRun::requestSetMagicKey(uint32_t magicID, char key)
 {
     fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+    fflassert(SDMagicKeyList::validKey(key), key);
 
     CMSetMagicKey cmSMK;
     std::memset(&cmSMK, 0, sizeof(cmSMK));
@@ -2760,6 +2764,22 @@ void ProcessRun::requestGrabBelt(int slot)
     std::memset(&cmRGB, 0, sizeof(cmRGB));
     cmRGB.slot = slot;
     g_client->send({CM_REQUESTGRABBELT, cmRGB});
+}
+
+void ProcessRun::requestConsumeBelt(int slot)
+{
+    if(!(slot >= 0 && slot < 6)){
+        throw fflpanic("invalid slot: {}", slot);
+    }
+
+    if(!getMyHero()->getBelt(slot)){
+        return;
+    }
+
+    CMRequestConsumeBelt cmRCB;
+    std::memset(&cmRCB, 0, sizeof(cmRCB));
+    cmRCB.slot = slot;
+    g_client->send({CM_REQUESTCONSUMEBELT, cmRCB});
 }
 
 void ProcessRun::requestDropItem(uint32_t itemID, uint32_t seqID, size_t count)

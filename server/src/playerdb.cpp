@@ -172,6 +172,10 @@ void Player::dbLoadPlayerConfig()
     if(query.executeStep()){
         if(const std::string buf = query.getColumn("fld_magickeylist"); !buf.empty()){
             m_sdPlayerConfig.magicKeyList = cerealf::deserialize<SDMagicKeyList>(buf);
+            std::erase_if(m_sdPlayerConfig.magicKeyList.keyList, [](const auto &p)
+            {
+                return !SDMagicKeyList::validKey(p.second);
+            });
         }
 
         if(const std::string buf = query.getColumn("fld_runtimeconfig"); !buf.empty()){
@@ -183,7 +187,7 @@ void Player::dbLoadPlayerConfig()
 void Player::dbUpdateMagicKey(uint32_t magicID, char key)
 {
     fflassert(m_sdLearnedMagicList.has(magicID));
-    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+    fflassert(SDMagicKeyList::validKey(key), key);
 
     if(!m_sdPlayerConfig.magicKeyList.setMagicKey(magicID, key)){
         return;

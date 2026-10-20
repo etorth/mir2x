@@ -271,6 +271,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTEQUIPWEAR          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTCONSUMEBELT        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTDIE                (uint8_t, const uint8_t *, size_t, uint64_t);

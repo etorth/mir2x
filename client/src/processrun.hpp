@@ -478,6 +478,7 @@ class ProcessRun: public Process
         void requestGrabWear(int);
         void requestEquipBelt(uint32_t, uint32_t, int);
         void requestGrabBelt(int);
+        void requestConsumeBelt(int);
         void requestDropItem(uint32_t, uint32_t, size_t);
         void requestSetMagicKey(uint32_t, char);
         void requestRemoveSecuredItem(uint32_t, uint32_t);
