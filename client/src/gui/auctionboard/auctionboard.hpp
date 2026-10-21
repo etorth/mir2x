@@ -3,6 +3,7 @@
 #include "widget.hpp"
 #include "imageboard.hpp"
 #include "textboard.hpp"
+#include "wmdaniboard.hpp"
 #include "tritexbutton.hpp"
 #include "auctionitemlist.hpp"
 #include "auctionitemdetailupper.hpp"
@@ -21,7 +22,7 @@ class AuctionBoard final: public Widget
 
         TextBoard m_category;
         TextBoard m_itemCount;
-        TextBoard m_itemRange;
+        WMDAniBoard m_wmdAniBoard;
 
         TextBoard m_columnItem;
         TextBoard m_columnSeller;

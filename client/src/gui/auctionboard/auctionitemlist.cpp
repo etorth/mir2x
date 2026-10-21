@@ -28,7 +28,7 @@ AuctionItemList::AuctionItemList(AuctionItemList::InitArgs args)
           .fixed = AuctionItemRow::m_rowW,
 
           .headSpace = 1,
-          .itemSpace = 1,
+          .itemSpace = 0,
           .tailSpace = 1,
 
           .parent{this},

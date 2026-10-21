@@ -39,7 +39,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     , m_itemList
       {{
           .x = 10,
-          .y = 84,
+          .y = 82,
           .parent{this},
       }}
 
@@ -47,7 +47,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .dir = DIR_NONE,
           .x = 61,
-          .y = 20,
+          .y = 24,
           .textFunc = [this]() -> std::string
           {
               switch(m_itemList.getItemList().category){
@@ -76,9 +76,13 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .dir = DIR_NONE,
           .x = 240,
-          .y = 20,
+          .y = 24,
           .textFunc = [this]() -> std::string
           {
+              if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
+                  const auto lastIndex = std::min<size_t>(firstIndex.value() + AuctionItemList::m_rowCount, m_itemList.size());
+                  return to_cstr(str_printf(u8"第%zu-%zu件物品（共%zu件）", firstIndex.value() + 1, lastIndex, m_itemList.size()));
+              }
               return to_cstr(str_printf(u8"共%zu件", m_itemList.size()));
           },
           .font
@@ -88,29 +92,13 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .parent{this},
       }}
 
-    , m_itemRange
-      {{
-          .dir = DIR_NONE,
-          .x = 419,
-          .y = 20,
-          .textFunc = [this]() -> std::string
-          {
-              if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
-                  const auto lastIndex = std::min<size_t>(firstIndex.value() + AuctionItemList::m_rowCount, m_itemList.size());
-                  return to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex));
-              }
-              return {};
-          },
-          .font
-          {
-              .color = colorf::YELLOW_A255,
-          },
-          .attrs
-          {
-              .show = [this]{ return !m_itemList.empty(); },
-          },
-          .parent{this},
-      }}
+    , m_wmdAniBoard
+      {
+          DIR_NONE,
+          419,
+          24,
+          this,
+      }
 
     , m_columnItem
       {{
