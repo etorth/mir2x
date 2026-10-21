@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 #include <stdexcept>
 #include <algorithm>
 #include <functional>
@@ -249,9 +250,11 @@ CBLeft::CBLeft(
               .down = 0X0000001F,
           },
 
-          .onTrigger = [](Widget *, int)
+          .onTrigger = [this](Widget *, int)
           {
-              std::exit(0);
+              if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))){
+                  inputBoard->waitChoice(u8R"###(<layout><par>确认退出游戏吗？</par></layout>)###", +[]{ std::exit(0); }, +[]{});
+              }
           },
 
           .parent{this},
