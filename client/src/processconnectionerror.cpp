@@ -12,7 +12,7 @@ ProcessConnectionError::ProcessConnectionError()
             []{ return std::get<1>(g_sdlDevice->getWindowLogicalSize()) / 2; },
             false)
 {
-    m_board.waitChoice(u8"<layout><par>无法连接到服务器</par></layout>", []
+    m_board.waitChoice(u8"<layout><par>无法连接到服务器</par></layout>", false, []
     {
         g_client->requestProcess(PROCESSID_EXIT);
     });

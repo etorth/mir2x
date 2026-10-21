@@ -149,7 +149,6 @@ GUIManager::GUIManager(ProcessRun *argProc)
           g_sdlDevice->getWindowLogicalWidth()  / 2 - 179,
           g_sdlDevice->getWindowLogicalHeight() / 2 - 134,
           false,
-          this,
       }
 
     , m_runtimeConfigBoard
@@ -192,6 +191,10 @@ void GUIManager::drawDefault(Widget::ROIMap m) const
 
     Widget::drawDefault(m);
 
+    if(m_inputStringBoard.show()){
+        m_inputStringBoard.drawRoot({});
+    }
+
     if(g_imeBoard->show()){
         g_imeBoard->drawRoot({});
     }
@@ -203,6 +206,7 @@ void GUIManager::updateDefault(double fUpdateTime)
     m_purchaseBoard.update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
+    m_inputStringBoard.update(fUpdateTime);
     g_imeBoard->update(fUpdateTime);
 }
 
@@ -229,24 +233,28 @@ bool GUIManager::processEventDefault(const SDL_Event &event, bool valid, Widget:
             }
     }
 
+    const bool modalEnabled = m_inputStringBoard.showModal();
+
     bool tookEvent = false;
-    const auto fnProcEventRoot = [&event, valid, &tookEvent](Widget *widget)
+    const auto fnProcEventRoot = [&event, &tookEvent](Widget *widget, bool widgetValid)
     {
         if(widget->show()){
-            tookEvent |= widget->processEventRoot(event, valid && !tookEvent, {});
+            tookEvent |= widget->processEventRoot(event, widgetValid && !tookEvent, {});
         }
     };
 
-    fnProcEventRoot(g_imeBoard);
+    fnProcEventRoot(g_imeBoard, valid);
+    fnProcEventRoot(&m_inputStringBoard, valid);
 
-    tookEvent |= Widget::processEventDefault(event, valid && !tookEvent, m);
+    const bool otherValid = valid && !modalEnabled;
+    tookEvent |= Widget::processEventDefault(event, otherValid && !tookEvent, m);
 
-    fnProcEventRoot(&m_purchaseBoard);
-    fnProcEventRoot(&m_controlBoard);
-    fnProcEventRoot(&m_NPCChatBoard);
-    fnProcEventRoot(&m_miniMapBoard);
+    fnProcEventRoot(&m_purchaseBoard, otherValid);
+    fnProcEventRoot(&m_controlBoard , otherValid);
+    fnProcEventRoot(&m_NPCChatBoard , otherValid);
+    fnProcEventRoot(&m_miniMapBoard , otherValid);
 
-    return tookEvent;
+    return tookEvent || modalEnabled;
 }
 
 Widget *GUIManager::getWidget(const std::string_view &name)

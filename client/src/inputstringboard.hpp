@@ -15,6 +15,7 @@ class InputStringBoard: public Widget
         {
             std::u8string layoutString {};
             bool security = false;
+            bool modal    = false;
 
             std::function<void(std::u8string)>            onAccept = nullptr;
             std::function<void()>                         onReject = nullptr;
@@ -24,6 +25,9 @@ class InputStringBoard: public Widget
     private:
         std::function<void(std::u8string)> m_onAccept;
         std::function<void()> m_onReject;
+
+    private:
+        bool m_modal = false;
 
     private:
         ImageBoard m_bg;
@@ -60,9 +64,12 @@ class InputStringBoard: public Widget
         }
 
     public:
+        bool showModal() const
+        {
+            return show() && m_modal;
+        }
+
+    public:
         void waitInput(InputStringBoard::WaitInputArgs);
-        void waitChoice(
-                std::u8string,
-                std::function<void()>,
-                std::function<void()> = {});
+        void waitChoice(std::u8string, bool, std::function<void()>, std::function<void()> = {});
 };

@@ -253,7 +253,7 @@ CBLeft::CBLeft(
           .onTrigger = [this](Widget *, int)
           {
               if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))){
-                  inputBoard->waitChoice(u8R"###(<layout><par>确认退出游戏吗？</par></layout>)###", +[]{ std::exit(0); }, +[]{});
+                  inputBoard->waitChoice(u8R"###(<layout><par>确认退出游戏吗？</par></layout>)###", true, +[]{ std::exit(0); }, +[]{});
               }
           },
 
@@ -275,10 +275,10 @@ CBLeft::CBLeft(
           {
               if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))){
                   if(m_processRun->getMyHero()->dead().value_or(false)){
-                      inputBoard->waitChoice(u8R"###(<layout><par>返回复活点吗？</par></layout>)###", [this]{ m_processRun->requestRevive(); }, +[]{});
+                      inputBoard->waitChoice(u8R"###(<layout><par>返回复活点吗？</par></layout>)###", true, [this]{ m_processRun->requestRevive(); }, +[]{});
                   }
                   else{
-                      inputBoard->waitChoice(u8R"###(<layout><par>返回人物界面吗？</par></layout>)###", [this]{ m_processRun->requestLogout(); }, +[]{});
+                      inputBoard->waitChoice(u8R"###(<layout><par>返回人物界面吗？</par></layout>)###", true, [this]{ m_processRun->requestLogout(); }, +[]{});
                   }
               }
           },

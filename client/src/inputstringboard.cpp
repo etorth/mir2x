@@ -162,6 +162,7 @@ InputStringBoard::InputStringBoard(
               m_input.clear();
               m_input.setFocus(false);
 
+              m_modal = false;
               m_onAccept = {};
               m_input.setValidateFunc({});
               if(auto onReject = std::move(m_onReject)){
@@ -194,6 +195,7 @@ void InputStringBoard::acceptInput()
     m_input.clear();
     m_input.setFocus(false);
 
+    m_modal = false;
     m_onReject = {};
     m_input.setValidateFunc({});
     if(auto onAccept = std::move(m_onAccept)){
@@ -206,6 +208,7 @@ void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
     m_textInfo.loadXML(to_cstr(args.layoutString), 0);
     m_onAccept = std::move(args.onAccept);
     m_onReject = std::move(args.onReject);
+    m_modal = args.modal;
 
     m_input.setShow(true);
     m_input.setActive(true);
@@ -221,10 +224,7 @@ void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
     setFocus(true);
 }
 
-void InputStringBoard::waitChoice(
-        std::u8string layoutString,
-        std::function<void()> onAccept,
-        std::function<void()> onReject)
+void InputStringBoard::waitChoice(std::u8string layoutString, bool modal, std::function<void()> onAccept, std::function<void()> onReject)
 {
     m_textInfo.loadXML(to_cstr(layoutString), 0);
     if(onAccept){
@@ -234,6 +234,7 @@ void InputStringBoard::waitChoice(
         m_onAccept = nullptr;
     }
     m_onReject = std::move(onReject);
+    m_modal = modal;
 
     clear();
     m_input.setFocus(false);

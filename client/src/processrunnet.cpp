@@ -1038,7 +1038,7 @@ void ProcessRun::on_SM_RANKINGLIST(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_REQUESTDIRECTTRADE(const uint8_t *buf, size_t)
 {
     const auto smDTR = ServerMsg::conv<SMRequestDirectTrade>(buf);
-    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitChoice(to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())),
+    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitChoice(to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())), false,
     [uid = smDTR.uid, this]
     {
         respondDirectTrade(uid, true);
