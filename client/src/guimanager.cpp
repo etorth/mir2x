@@ -191,6 +191,11 @@ void GUIManager::drawDefault(Widget::ROIMap m) const
 
     Widget::drawDefault(m);
 
+    if(m_inputStringBoard.showModal()){
+        const auto [winW, winH] = g_sdlDevice->getWindowLogicalSize();
+        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 96), 0, 0, winW, winH);
+    }
+
     if(m_inputStringBoard.show()){
         m_inputStringBoard.drawRoot({});
     }
