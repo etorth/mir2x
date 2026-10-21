@@ -161,27 +161,8 @@ void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)
         // call getMyHero before loadMap()
         // getMyHero() checks if current creature is on current map
 
-        m_actionBlocker.clear();
         getMyHero()->flushForcedMotion();
-        loadMap(smA.mapUID, smA.action.x, smA.action.y);
-        dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))->onSwitchMap();
-
-        // directly assign a stand motion
-        // this need to skip all location validation
-
-        auto myHeroPtr = std::move(m_coList[m_myHeroUID]);
-        const auto oldDir = myHeroPtr->currMotion()->direction;
-        dynamic_cast<Hero *>(myHeroPtr.get())->jumpLoc(smA.action.x, smA.action.y, oldDir);
-
-        m_coList.clear();
-        m_coList[m_myHeroUID] = std::move(myHeroPtr);
-
-        m_fixedLocMagicList.clear();
-        m_followUIDMagicList.clear();
-        m_actionBlocker.clear();
-        m_ascendStrList.clear();
-
-        centerMyHero();
+        relocateMyHero(smA.mapUID, smA.action.x, smA.action.y, getMyHero()->currMotion()->direction);
         getMyHero()->parseAction(smA.action);
         return;
     }
@@ -634,6 +615,18 @@ void ProcessRun::on_SM_OFFLINE(const uint8_t *bufPtr, size_t)
         //     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
         // }
     }
+}
+
+void ProcessRun::on_SM_REVIVE(const uint8_t *bufPtr, size_t)
+{
+    // revive is a system relocation, not an action
+    // dead body may still have MOTION_DIE as current motion, which can not be flushed, so drop all pending motions
+    // health and the stand-up action come by following SM_HEALTH and SM_ACTION
+
+    const auto smR = ServerMsg::conv<SMRevive>(bufPtr);
+
+    dynamic_cast<MyHero *>(m_coList.at(m_myHeroUID).get())->clearActionQueue();
+    relocateMyHero(smR.mapUID, smR.x, smR.y, smR.direction);
 }
 
 void ProcessRun::on_SM_LOGOUTOK(const uint8_t *, size_t)

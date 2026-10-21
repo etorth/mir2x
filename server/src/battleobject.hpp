@@ -150,14 +150,16 @@ class BattleObject: public CharObject
         corof::awaitable<bool> requestSpaceMove(
                 int,            // x
                 int,            // y
-                bool);          // strictMove
+                bool,           // strictMove
+                bool = false);  // reviveMode
 
     protected:
         corof::awaitable<bool> requestMapSwitch(
                 uint64_t,       // mapUID
                 int,            // x
                 int,            // y
-                bool);          // strictMove
+                bool,           // strictMove
+                bool = false);  // reviveMode
 
     protected:
         virtual bool canAct()        const;

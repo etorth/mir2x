@@ -28,7 +28,7 @@ enum CMType: uint8_t
     CM_SETRUNTIMECONFIG,
     CM_QUERYCORECORD,
     CM_QUERYNPCNAME,
-    CM_REQUESTADDHP,
+    CM_REQUESTADDHEALTH,
     CM_REQUESTADDEXP,
     CM_REQUESTDIE,
     CM_REQUESTREVIVE,
@@ -126,9 +126,10 @@ struct CMQueryCORecord
     uint64_t AimUID;
 };
 
-struct CMRequestAddHP
+struct CMRequestAddHealth
 {
-    uint64_t addHP;
+    int32_t addHP;
+    int32_t addMP;
 };
 
 struct CMRequestAddExp
@@ -435,7 +436,7 @@ namespace
         _RSVD_register_clientmsg(CM_SETMAGICKEY,                1, sizeof(CMSetMagicKey)               );
         _RSVD_register_clientmsg(CM_QUERYCORECORD,              1, sizeof(CMQueryCORecord)             );
         _RSVD_register_clientmsg(CM_QUERYNPCNAME,               1, sizeof(CMQueryNPCName)              );
-        _RSVD_register_clientmsg(CM_REQUESTADDHP,               1, sizeof(CMRequestAddHP)              );
+        _RSVD_register_clientmsg(CM_REQUESTADDHEALTH,           1, sizeof(CMRequestAddHealth)          );
         _RSVD_register_clientmsg(CM_REQUESTADDEXP,              1, sizeof(CMRequestAddExp)             );
         _RSVD_register_clientmsg(CM_REQUESTDIE,                 0                                      );
         _RSVD_register_clientmsg(CM_REQUESTREVIVE,              0                                      );

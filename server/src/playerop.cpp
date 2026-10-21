@@ -483,6 +483,22 @@ corof::awaitable<> Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     return {};
 }
 
+corof::awaitable<> Player::on_AM_CODISAPPEAR(const ActorMsgPack &mpk)
+{
+    const auto amCOD = mpk.conv<AMCODisappear>();
+    if(amCOD.mapUID != mapUID()){
+        co_return;
+    }
+
+    if(removeInViewCO(amCOD.UID)){
+        co_await m_buffList.updateAura(amCOD.UID);
+        onInViewCODisappear(amCOD.UID);
+    }
+    else{
+        reportCODisappear(amCOD.UID);
+    }
+}
+
 corof::awaitable<> Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
 {
     forwardNetPackage(mpk.from(), SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList

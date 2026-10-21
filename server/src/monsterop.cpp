@@ -256,6 +256,18 @@ corof::awaitable<> Monster::on_AM_OFFLINE(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> Monster::on_AM_CODISAPPEAR(const ActorMsgPack &mpk)
+{
+    const auto amCOD = mpk.conv<AMCODisappear>();
+    if(amCOD.mapUID != mapUID()){
+        co_return;
+    }
+
+    if(removeInViewCO(amCOD.UID)){
+        co_await m_buffList.updateAura(amCOD.UID);
+    }
+}
+
 corof::awaitable<> Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
     m_actorPod->post(rstMPK.fromAddr(), AM_CHECKMASTEROK);

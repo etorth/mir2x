@@ -158,6 +158,7 @@ class ProcessRun: public Process
 
     private:
         void loadMap(uint64_t, int, int);
+        void relocateMyHero(uint64_t, int, int, int);
 
     public:
         int id() const override
@@ -228,6 +229,7 @@ class ProcessRun: public Process
         _support_sm(SM_OFFLINE);
         _support_sm(SM_LOGOUTOK);
         _support_sm(SM_CODISAPPEAR);
+        _support_sm(SM_REVIVE);
         _support_sm(SM_VIEWRANGE);
         _support_sm(SM_NPCNAME);
         _support_sm(SM_NPCSELL);
@@ -388,7 +390,7 @@ class ProcessRun: public Process
     public:
         void requestDie();
         void requestKillPets();
-        void requestAddHP(uint64_t);
+        void requestAddHealth(int, int);
         void requestAddExp(uint64_t);
         bool requestSpaceMove(uint64_t, int, int);
 

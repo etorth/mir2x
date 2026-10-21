@@ -1582,6 +1582,12 @@ bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
 
 void Hero::jumpLoc(int x, int y, int direction)
 {
+    // drop pending motions without running their triggers
+    // caller should flush them first if they still need to run
+
+    m_motionQueue.clear();
+    m_forcedMotionQueue.clear();
+
     m_currMotion.reset(new MotionNode
     {
         .type = [this]()

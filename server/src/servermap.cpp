@@ -1062,6 +1062,25 @@ void ServerMap::forwardObserverAction(const AMAction &amA, int x, int y)
     }
 }
 
+void ServerMap::notifyCODisappear(uint64_t uid, int x, int y)
+{
+    if(!mapBin()->validC(x, y)){
+        return;
+    }
+
+    AMCODisappear amCOD;
+    std::memset(&amCOD, 0, sizeof(amCOD));
+
+    amCOD.UID = uid;
+    amCOD.mapUID = UID();
+
+    for(const auto observerUID: getGrid(x, y).observerList){
+        if(observerUID != uid){
+            m_actorPod->post(observerUID, {AM_CODISAPPEAR, amCOD});
+        }
+    }
+}
+
 void ServerMap::forwardObserverAction(const AMAction &amA, int srcX, int srcY, int dstX, int dstY)
 {
     // forward a move/jump/spacemove to the union of observers of the source and destination grids

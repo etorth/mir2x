@@ -235,6 +235,7 @@ class ServerMap final: public ServerObject
 
         void forwardObserverAction(const AMAction &, int, int);
         void forwardObserverAction(const AMAction &, int, int, int, int);
+        void notifyCODisappear(uint64_t, int, int);
 
     private:
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCGLoc(bool, bool, int, int, int, int, int, int, int) const;

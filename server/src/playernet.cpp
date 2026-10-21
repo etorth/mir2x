@@ -98,17 +98,22 @@ corof::awaitable<> Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf
     co_return;
 }
 
-corof::awaitable<> Player::net_CM_REQUESTADDHP(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTADDHEALTH(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
-    const auto cmRAHP = ClientMsg::conv<CMRequestAddHP>(buf);
-    if(cmRAHP.addHP > 0){
-        if(m_sdHealth.dead()){
-            setHealth(cmRAHP.addHP);
-            onRevive();
-        }
-        else{
-            updateHealth(cmRAHP.addHP);
-        }
+    const auto cmRAH = ClientMsg::conv<CMRequestAddHealth>(buf);
+
+    const auto addHP = std::max<int>(0, cmRAH.addHP);
+    const auto addMP = std::max<int>(0, cmRAH.addMP);
+
+    // debug command, adding HP to dead player pulls up the body where it died
+    // adding MP only never pulls up the body
+
+    if(m_sdHealth.dead() && addHP > 0){
+        setHealth(addHP, m_sdHealth.mp + addMP);
+        onRevive();
+    }
+    else{
+        updateHealth(addHP, addMP);
     }
     return {};
 }
@@ -127,19 +132,26 @@ corof::awaitable<> Player::net_CM_REQUESTREVIVE(uint8_t, const uint8_t *, size_t
         return {DBCOM_MAPID(u8"道馆_1"), 405, 120};
     }();
 
+    const auto reviveMapUID = (reviveMapID == mapID()) ? mapUID() : uidsf::getBaseMapUID(reviveMapID);
+
+    // revive is a system relocation, not an action
+    // move the dead body to revive point first, then pull it up, so it never stands up where it died
+
+    if(!co_await requestRevive(reviveMapUID, reviveX, reviveY)){
+        co_return;
+    }
+
+    postNetMessage(SM_REVIVE, SMRevive
+    {
+        .mapUID    = mapUID(),
+        .x         = static_cast<uint32_t>(X()),
+        .y         = static_cast<uint32_t>(Y()),
+        .direction = static_cast<uint16_t>(Direction()),
+    });
+
     setHealth(std::max<int>(1, m_sdHealth.getMaxHP() / 10), std::max<int>(1, m_sdHealth.getMaxMP() / 10));
     onRevive();
-
-    if(reviveMapID == mapID()){
-        if(co_await requestSpaceMove(reviveX, reviveY, false)){
-            dbUpdateMapGLoc();
-        }
-    }
-    else{
-        if(co_await requestMapSwitch(uidsf::getBaseMapUID(reviveMapID), reviveX, reviveY, false)){
-            dbUpdateMapGLoc();
-        }
-    }
+    dbUpdateMapGLoc();
 }
 
 corof::awaitable<> Player::net_CM_REQUESTLOGOUT(uint8_t, const uint8_t *, size_t, uint64_t)

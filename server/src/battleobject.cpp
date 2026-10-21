@@ -314,8 +314,17 @@ corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, 
     }
 }
 
-corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool strictMove)
+corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, bool reviveMode)
 {
+    // reviveMode relocates a dead player to its revive point
+    // it's a system relocation rather than an action, so it skips canAct() and doesn't report any action
+    // the map removes the dead body from old observers by AM_CODISAPPEAR, caller should report the relocation by SM_REVIVE
+
+    if(reviveMode){
+        fflassert(isPlayer());
+        fflassert(m_sdHealth.dead());
+    }
+
     if(strictMove){
         if(!mapBin()->groundValid(locX, locY)){
             throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", mapID(), locX, locY);
@@ -327,7 +336,7 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
         }
     }
 
-    if(!canMove(true)){
+    if(!(reviveMode ? !m_moveLock : canMove(true))){
         co_return false;
     }
 
@@ -342,11 +351,12 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
     amTSM.EndX = locX;
     amTSM.EndY = locY;
     amTSM.StrictMove = strictMove;
+    amTSM.reviveMode = reviveMode;
 
     switch(const auto rmpk = co_await m_actorPod->send(mapUID(), {AM_TRYSPACEMOVE, amTSM}); rmpk.type()){
         case AM_ALLOWSPACEMOVE:
             {
-                if(!canMove(false)){
+                if(!(reviveMode || canMove(false))){
                     m_actorPod->post(rmpk.fromAddr(), AM_SPACEMOVEERROR);
                     co_return false;
                 }
@@ -379,6 +389,11 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
                 m_actorPod->post(rmpk.fromAddr(), {AM_SPACEMOVEOK, amSMOK});
                 trimInViewCO();
 
+                if(reviveMode){
+                    dynamic_cast<Player *>(this)->afterChangeGLoc();
+                    co_return true;
+                }
+
                 if(isPlayer()){
                     dynamic_cast<Player *>(this)->reportAction(UID(), mapUID(), amSMOK.action);
                     dynamic_cast<Player *>(this)->afterChangeGLoc();
@@ -397,8 +412,17 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
     }
 }
 
-corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove)
+corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove, bool reviveMode)
 {
+    // reviveMode relocates a dead player to its revive point on another map
+    // it skips canAct(), the new map doesn't forward stand to observers, and no stand is reported to client
+    // caller should report the relocation by SM_REVIVE
+
+    if(reviveMode){
+        fflassert(isPlayer());
+        fflassert(m_sdHealth.dead());
+    }
+
     if(argMapUID == mapUID()){
         throw fflpanic("request to switch on same map: mapUID {}", argMapUID);
     }
@@ -407,7 +431,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         throw fflpanic("invalid argument: mapUID {}, locX {}, locY {}", argMapUID, locX, locY);
     }
 
-    if(!canMove(true)){
+    if(!(reviveMode ? !m_moveLock : canMove(true))){
         co_return false;
     }
 
@@ -428,6 +452,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
     amTMS.X = locX;
     amTMS.Y = locY;
     amTMS.strictMove = strictMove;
+    amTMS.reviveMode = reviveMode;
 
     const auto rmpk = co_await m_actorPod->send(argMapUID, {AM_TRYMAPSWITCH, amTMS});
     if(rmpk.type() != AM_ALLOWMAPSWITCH){
@@ -439,7 +464,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         m_actorPod->post(rmpk.fromAddr(), AM_MAPSWITCHERROR);
     });
 
-    if(!canMove(false)){
+    if(!(reviveMode || canMove(false))){
         co_return false;
     }
 
@@ -458,7 +483,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         m_actorPod->post(leavermpk.fromAddr(), AM_LEAVEERROR);
     });
 
-    if(!canMove(false)){
+    if(!(reviveMode || canMove(false))){
         co_return false;
     }
 
@@ -488,6 +513,11 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
     m_actorPod->post({mapUID(), rmpk.seqID()}, {AM_MAPSWITCHOK, amMSOK});
 
     trimInViewCO();
+    if(reviveMode){
+        dynamic_cast<Player *>(this)->afterChangeGLoc();
+        co_return true;
+    }
+
     if(isPlayer()){
         dynamic_cast<Player *>(this)->reportStand();
         dynamic_cast<Player *>(this)->afterChangeGLoc();

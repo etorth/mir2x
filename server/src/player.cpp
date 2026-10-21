@@ -657,6 +657,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_OFFLINE(mpk);
             }
+        case AM_CODISAPPEAR:
+            {
+                return on_AM_CODISAPPEAR(mpk);
+            }
         case AM_QUERYPLAYERNAME:
             {
                 return on_AM_QUERYPLAYERNAME(mpk);
@@ -769,7 +773,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_QUERYCHATMESSAGE          );
         _support_cm(CM_QUERYSELLITEMLIST         );
         _support_cm(CM_QUERYUIDBUFF              );
-        _support_cm(CM_REQUESTADDHP              );
+        _support_cm(CM_REQUESTADDHEALTH          );
         _support_cm(CM_REQUESTADDEXP             );
         _support_cm(CM_REQUESTEQUIPBELT          );
         _support_cm(CM_REQUESTEQUIPWEAR          );
@@ -899,6 +903,16 @@ void Player::onRevive()
 
     dispatchAction(stand);
     reportAction(UID(), mapUID(), stand);
+}
+
+corof::awaitable<bool> Player::requestRevive(uint64_t argMapUID, int argX, int argY)
+{
+    if(argMapUID == mapUID()){
+        co_return co_await requestSpaceMove(argX, argY, false, true);
+    }
+    else{
+        co_return co_await requestMapSwitch(argMapUID, argX, argY, false, true);
+    }
 }
 
 bool Player::dcValid(int, bool)

@@ -205,6 +205,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_ACTION             (const ActorMsgPack &);
         corof::awaitable<> on_AM_ATTACK             (const ActorMsgPack &);
         corof::awaitable<> on_AM_OFFLINE            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CODISAPPEAR        (const ActorMsgPack &);
         corof::awaitable<> on_AM_CORECORD           (const ActorMsgPack &);
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER   (const ActorMsgPack &);
         corof::awaitable<> on_AM_SENDPACKAGE        (const ActorMsgPack &);
@@ -266,7 +267,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_QUERYCHATMESSAGE          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::awaitable<> net_CM_REQUESTADDHP              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTADDHEALTH          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTEQUIPWEAR          (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -390,6 +391,7 @@ class Player final: public BattleObject
 
     protected:
         void onRevive();
+        corof::awaitable<bool> requestRevive(uint64_t, int, int);
 
     protected:
         bool goOffline(bool = true); // false: soft logout, keep channel and return to character selection

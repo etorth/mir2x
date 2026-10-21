@@ -129,7 +129,15 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                     postGroundFireWallList({fromUID, amSMOK.viewRange}, nDstX, nDstY);
                 }
 
-                forwardObserverAction(amA, amTSM.X, amTSM.Y, nDstX, nDstY);
+                if(amTSM.reviveMode){
+                    // dead body gets relocated to revive point, old observers remove it directly
+                    // can not forward ACTION_SPACEMOVE, client can not flush the dying motion
+                    // new observers get the body when it stands up, which dispatches ACTION_STAND
+                    notifyCODisappear(fromUID, amTSM.X, amTSM.Y);
+                }
+                else{
+                    forwardObserverAction(amA, amTSM.X, amTSM.Y, nDstX, nDstY);
+                }
                 break;
             }
         default:
@@ -561,7 +569,11 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                     postGroundFireWallList({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y); // doesn't help if switched map
                 }
 
-                forwardObserverAction(amA, amAMS.X, amAMS.Y);
+                // dead body switched in for revive should stay invisible
+                // new observers get it when it stands up, which dispatches ACTION_STAND
+                if(!amTMS.reviveMode){
+                    forwardObserverAction(amA, amAMS.X, amAMS.Y);
+                }
                 break;
             }
         default:

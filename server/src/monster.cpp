@@ -534,6 +534,10 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_OFFLINE(rstMPK);
             }
+        case AM_CODISAPPEAR:
+            {
+                return on_AM_CODISAPPEAR(rstMPK);
+            }
         case AM_MASTERKILL:
             {
                 return on_AM_MASTERKILL(rstMPK);

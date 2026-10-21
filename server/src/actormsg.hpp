@@ -112,6 +112,7 @@ enum ActorMsgPackType: int
     AM_SHOWDROPITEM,
     AM_NOTIFYDEAD,
     AM_OFFLINE,
+    AM_CODISAPPEAR,
     AM_PICKUP,
     AM_PICKUPITEMLIST,
     AM_REMOVEGROUNDITEM,
@@ -262,6 +263,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_SHOWDROPITEM)
         _add_mpk_type_case(AM_NOTIFYDEAD)
         _add_mpk_type_case(AM_OFFLINE)
+        _add_mpk_type_case(AM_CODISAPPEAR)
         _add_mpk_type_case(AM_PICKUP)
         _add_mpk_type_case(AM_PICKUPITEMLIST)
         _add_mpk_type_case(AM_REMOVEGROUNDITEM)
@@ -425,6 +427,7 @@ struct AMTrySpaceMove
     int EndY;
 
     bool StrictMove;
+    bool reviveMode;
 };
 
 struct AMAllowSpaceMove
@@ -545,6 +548,7 @@ struct AMTryMapSwitch
     int X;
     int Y;
     bool strictMove;
+    bool reviveMode;
 };
 
 struct AMAllowMapSwitch
@@ -748,6 +752,12 @@ struct AMOffline
     int viewRange;
     int X;
     int Y;
+};
+
+struct AMCODisappear
+{
+    uint64_t UID;
+    uint64_t mapUID;
 };
 
 struct AMPickUp

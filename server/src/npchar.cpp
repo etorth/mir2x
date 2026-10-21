@@ -562,6 +562,7 @@ corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
                 return on_AM_FORCEOFF(mpk);
             }
         case AM_OFFLINE:
+        case AM_CODISAPPEAR:
             {
                 return {};
             }

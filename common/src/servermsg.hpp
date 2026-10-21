@@ -108,6 +108,7 @@ enum SMType: uint8_t
     SM_CLOSEDIRECTTRADE,
     SM_DIRECTTRADEERROR,
     SM_CODISAPPEAR,
+    SM_REVIVE,
     SM_VIEWRANGE,
     SM_NPCNAME,
     SM_END,
@@ -278,6 +279,14 @@ struct SMCODisappear
 {
     uint64_t UID;
     uint64_t mapUID; // observer's map, not the disappearing CO's destination map
+};
+
+struct SMRevive
+{
+    uint64_t mapUID;
+    uint32_t x;
+    uint32_t y;
+    uint16_t direction;
 };
 
 struct SMViewRange
@@ -510,6 +519,7 @@ namespace
         _RSVD_register_servermsg(SM_CASTMAGIC,              1, sizeof(SMCastMagic)             );
         _RSVD_register_servermsg(SM_OFFLINE,                1, sizeof(SMOffline)               );
         _RSVD_register_servermsg(SM_CODISAPPEAR,            1, sizeof(SMCODisappear)           );
+        _RSVD_register_servermsg(SM_REVIVE,                 1, sizeof(SMRevive)                );
         _RSVD_register_servermsg(SM_VIEWRANGE,              1, sizeof(SMViewRange)             );
         _RSVD_register_servermsg(SM_PICKUPERROR,            1, sizeof(SMPickUpError)           );
         _RSVD_register_servermsg(SM_REMOVEGROUNDITEM,       1, sizeof(SMRemoveGroundItem)      );

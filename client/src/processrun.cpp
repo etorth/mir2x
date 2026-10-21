@@ -921,6 +921,30 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
     }
 }
 
+void ProcessRun::relocateMyHero(uint64_t newMapUID, int x, int y, int direction)
+{
+    // directly assign a stand motion to myhero and skip all location validation
+    // caller should flush or drop myhero's pending motions before calling
+
+    if(newMapUID != mapUID()){
+        loadMap(newMapUID, x, y);
+        dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))->onSwitchMap();
+
+        auto myHeroPtr = std::move(m_coList.at(m_myHeroUID));
+        m_coList.clear();
+        m_coList[m_myHeroUID] = std::move(myHeroPtr);
+
+        m_fixedLocMagicList.clear();
+        m_followUIDMagicList.clear();
+        m_ascendStrList.clear();
+    }
+
+    dynamic_cast<Hero *>(m_coList.at(m_myHeroUID).get())->jumpLoc(x, y, direction); // don't use getMyHero(), dead myhero may be invisible
+    m_actionBlocker.clear();
+
+    centerMyHero();
+}
+
 int ProcessRun::checkPathGrid(int argX, int argY) const
 {
     if(!m_mir2xMapData.validC(argX, argY)){
@@ -1286,7 +1310,24 @@ void ProcessRun::RegisterUserCommand()
     m_userCommandList.emplace_back("addHP", [this](const std::vector<std::string> &parms) -> int
     {
         if(parms.size() >= 2){
-            requestAddHP(to_u64(std::stol(parms.at(1))));
+            requestAddHealth(std::stoi(parms.at(1)), 0);
+        }
+        return 0;
+    });
+
+    m_userCommandList.emplace_back("addMP", [this](const std::vector<std::string> &parms) -> int
+    {
+        if(parms.size() >= 2){
+            requestAddHealth(0, std::stoi(parms.at(1)));
+        }
+        return 0;
+    });
+
+    m_userCommandList.emplace_back("xcg", [this](const std::vector<std::string> &) -> int
+    {
+        if(const auto &sdH = getMyHero()->getSDHealth(); sdH.has_value()){
+            requestAddHealth(sdH->getMaxHP(), sdH->getMaxMP());
+            addCBLog(CBLOG_SYS, u8"恢复全部HP和MP");
         }
         return 0;
     });
@@ -1331,15 +1372,6 @@ void ProcessRun::RegisterUserCommand()
     {
         requestDie();
         addCBLog(CBLOG_SYS, u8"自杀");
-        return 0;
-    });
-
-    m_userCommandList.emplace_back("revive", [this](const std::vector<std::string> &) -> int
-    {
-        if(getMyHero()->dead().value_or(true)){
-            requestAddHP(1);
-            addCBLog(CBLOG_SYS, u8"复活");
-        }
         return 0;
     });
 
@@ -1967,14 +1999,15 @@ void ProcessRun::requestKillPets()
     g_client->send(CM_REQUESTKILLPETS);
 }
 
-void ProcessRun::requestAddHP(uint64_t hp)
+void ProcessRun::requestAddHealth(int hp, int mp)
 {
-    if(hp){
-        CMRequestAddHP cmRAHP;
-        std::memset(&cmRAHP, 0, sizeof(cmRAHP));
+    if(hp > 0 || mp > 0){
+        CMRequestAddHealth cmRAH;
+        std::memset(&cmRAH, 0, sizeof(cmRAH));
 
-        cmRAHP.addHP = hp;
-        g_client->send({CM_REQUESTADDHP, cmRAHP});
+        cmRAH.addHP = std::max<int>(0, hp);
+        cmRAH.addMP = std::max<int>(0, mp);
+        g_client->send({CM_REQUESTADDHEALTH, cmRAH});
     }
 }
 
