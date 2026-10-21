@@ -204,6 +204,14 @@ void Channel::bindPlayer(uint64_t uid)
 {
     fflassert(NetDriver::isNetThread());
     fflassert(uidf::isPlayer(uid), uidf::getUIDString(uid));
-    fflassert(!m_playerUID, uidf::getUIDString(m_playerUID), uidf::getUIDString(uid));
+    fflassert(m_playerUID == 0, uidf::getUIDString(m_playerUID), uidf::getUIDString(uid));
     m_playerUID = uid;
+}
+
+void Channel::unbindPlayer(uint64_t uid)
+{
+    fflassert(NetDriver::isNetThread());
+    fflassert(uidf::isPlayer(uid), uidf::getUIDString(uid));
+    fflassert(m_playerUID == uid, uidf::getUIDString(m_playerUID), uidf::getUIDString(uid));
+    m_playerUID = 0;
 }

@@ -1605,7 +1605,7 @@ end
 -- setupMapUIDGridTrigger against one map copy instead of a map name: mapUID = uid of the copy instead of map
 --
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
--- carries the mapSwitchList destination, which only ever names the base map, so a quest that
+-- carries the switchList destination, which only ever names the base map, so a quest that
 -- loaded copies of both maps installs a trigger here, which takes the automatic switch over,
 -- and spaceMoves the player into its own copy of the far side by uid
 --

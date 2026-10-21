@@ -606,6 +606,7 @@ class ActorPool final
 
     public:
         bool checkUIDValid(uint64_t) const;
+        bool checkUIDExist(uint64_t) const; // also true for detached actor whose mailbox is not erased yet
 
     public:
         void launch();  // --launch-+-closeAcceptor

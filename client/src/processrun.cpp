@@ -296,7 +296,7 @@ void ProcessRun::draw() const
     }
 
     if(g_clientArgParser->drawTranspGrid){
-        for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitchList){
+        for(const auto &entry: DBCOM_MAPRECORD(mapID()).switchList){
             for(int tpy = entry.y; tpy < entry.y + entry.h; ++tpy){
                 for(int tpx = entry.x; tpx < entry.x + entry.w; ++tpx){
                     if(true
@@ -1950,6 +1950,16 @@ void ProcessRun::requestLatestChatMessage(const std::vector<uint64_t> &cpids, si
 void ProcessRun::requestDie()
 {
     g_client->send(CM_REQUESTDIE);
+}
+
+void ProcessRun::requestRevive()
+{
+    g_client->send(CM_REQUESTREVIVE);
+}
+
+void ProcessRun::requestLogout()
+{
+    g_client->send(CM_REQUESTLOGOUT);
 }
 
 void ProcessRun::requestKillPets()

@@ -74,6 +74,10 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_PLAYERBROADCAST(mpk);
             }
+        case AM_PLAYERLOGOUT:
+            {
+                return on_AM_PLAYERLOGOUT(mpk);
+            }
         case AM_GRANTITEMLIST:
             {
                 return on_AM_GRANTITEMLIST(mpk);
@@ -118,6 +122,12 @@ corof::awaitable<> ServiceCore::operateNet(uint32_t channID, uint8_t cmType, con
             }
         default:
             {
+                // after soft logout the channel is unbound from player
+                // in-flight gameplay packets sent before client received SM_LOGOUTOK are forwarded here
+
+                if(findDBID(channID).has_value()){
+                    return {};
+                }
                 throw fflvalue(ClientMsg(cmType).name());
             }
     }

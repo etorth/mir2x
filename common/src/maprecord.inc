@@ -3,7 +3,7 @@
 {   .name = u8"比奇县_0", // 1
     .bgmID = 0X00010001,
     .miniMapID = 0X19001000,
-    .mapSwitchList
+    .switchList
     {
         {.x = 333, .y = 776, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 564, .endY = 69},
         {.x = 334, .y = 775, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 565, .endY = 68},
@@ -28,7 +28,7 @@
 {   .name = u8"边境城市_01", // 2
     .bgmID = 0X00010001,
     .miniMapID = 0X19001001,
-    .mapSwitchList
+    .switchList
     {
         {.x = 563, .y = 68, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 332, .endY = 775},
         {.x = 564, .y = 67, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 333, .endY = 774},
@@ -48,7 +48,7 @@
 },
 
 {   .name = u8"沙巴克城堡_0150", // 3
-    .mapSwitchList
+    .switchList
     {
         {.x = 15, .y = 20, .w = 1, .h = 1, .endName = u8"沙巴克城_3", .endX = 194, .endY = 144},
         {.x = 16, .y = 19, .w = 1, .h = 1, .endName = u8"沙巴克城_3", .endX = 195, .endY = 143},
@@ -57,7 +57,7 @@
 
 {   .name = u8"沙巴克城楼_0157", // 4
     .bgmID = 0X00020006,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 26, .w = 1, .h = 1, .endName = u8"祖玛神殿_31", .endX = 173, .endY = 130},
         {.x = 9, .y = 27, .w = 1, .h = 1, .endName = u8"祖玛神殿_31", .endX = 173, .endY = 130},
@@ -68,7 +68,7 @@
 
 {   .name = u8"祖玛神殿大厅_0157", // 5
     .bgmID = 0X00020006,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 26, .w = 1, .h = 1, .endName = u8"祖玛神殿_31", .endX = 173, .endY = 130},
         {.x = 9, .y = 27, .w = 1, .h = 1, .endName = u8"祖玛神殿_31", .endX = 173, .endY = 130},
@@ -78,7 +78,7 @@
 },
 
 {   .name = u8"志善屋_01_001", // 6
-    .mapSwitchList
+    .switchList
     {
         {.x = 19, .y = 22, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 446, .endY = 247},
     }
@@ -93,7 +93,7 @@
 {   .name = u8"银杏山谷_02", // 9
     .bgmID = 0X00010001,
     .miniMapID = 0X19001002,
-    .mapSwitchList
+    .switchList
     {
         {.x = 26, .y = 455, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 775, .endY = 701},
         {.x = 27, .y = 454, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 776, .endY = 700},
@@ -110,7 +110,7 @@
 },
 
 {   .name = u8"试练场_02_002", // 11
-    .mapSwitchList
+    .switchList
     {
         {.x = 90, .y = 15, .w = 1, .h = 2, .endName = u8"试练场_02_003", .endX = 22, .endY = 83},
         {.x = 91, .y = 14, .w = 1, .h = 3, .endName = u8"试练场_02_003", .endX = 22, .endY = 83},
@@ -152,7 +152,7 @@
 },
 
 {   .name = u8"比奇县_0_003", // 23
-    .mapSwitchList
+    .switchList
     {
         {.x = 24, .y = 31, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 514, .endY = 391},
         {.x = 24, .y = 32, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 514, .endY = 392},
@@ -188,7 +188,7 @@
 {   .name = u8"道馆_1", // 24
     .bgmID = 0X00010002,
     .miniMapID = 0X19001003,
-    .mapSwitchList
+    .switchList
     {
         {.x = 513, .y = 583, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 207, .endY = 53},
         {.x = 514, .y = 582, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 208, .endY = 52},
@@ -220,7 +220,7 @@
 {   .name = u8"灌木林_12", // 25
     .bgmID = 0X00010002,
     .miniMapID = 0X19001004,
-    .mapSwitchList
+    .switchList
     {
         {.x = 122, .y = 468, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 404, .endY = 31},
         {.x = 123, .y = 468, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 405, .endY = 31},
@@ -247,7 +247,7 @@
 {   .name = u8"灌木林_122", // 27
     .bgmID = 0X00010002,
     .miniMapID = 0X19001025,
-    .mapSwitchList
+    .switchList
     {
         {.x = 20, .y = 363, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 363, .endY = 390},
         {.x = 21, .y = 364, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 363, .endY = 391},
@@ -281,7 +281,7 @@
 {   .name = u8"灌木林_125", // 30
     .bgmID = 0X00010002,
     .miniMapID = 0X19001028,
-    .mapSwitchList
+    .switchList
     {
         {.x = 121, .y = 371, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 203, .endY = 53},
         {.x = 122, .y = 370, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 204, .endY = 52},
@@ -298,49 +298,49 @@
 },
 
 {   .name = u8"武器仓库_1_001", // 31
-    .mapSwitchList
+    .switchList
     {
         {.x = 5, .y = 18, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 428, .endY = 121},
     }
 },
 
 {   .name = u8"本馆_1_002", // 32
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 18, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 428, .endY = 97},
     }
 },
 
 {   .name = u8"洗衣住居_1_003", // 33
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 12, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 414, .endY = 134},
     }
 },
 
 {   .name = u8"书房_1_004", // 34
-    .mapSwitchList
+    .switchList
     {
         {.x = 12, .y = 16, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 415, .endY = 97},
     }
 },
 
 {   .name = u8"物品研究所_1_005", // 35
-    .mapSwitchList
+    .switchList
     {
         {.x = 12, .y = 16, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 368, .endY = 135},
     }
 },
 
 {   .name = u8"药剂师住居_1_006", // 36
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 16, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 389, .endY = 114},
     }
 },
 
 {   .name = u8"仓库_1_007", // 37
-    .mapSwitchList
+    .switchList
     {
         {.x = 5, .y = 18, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 393, .endY = 170},
     }
@@ -350,7 +350,7 @@
 },
 
 {   .name = u8"无名老人隐居地_1_009", // 39
-    .mapSwitchList
+    .switchList
     {
         {.x = 43, .y = 138, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 186, .endY = 67},
         {.x = 43, .y = 139, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 188, .endY = 67},
@@ -359,7 +359,7 @@
 },
 
 {   .name = u8"试练场_1_010", // 40
-    .mapSwitchList
+    .switchList
     {
         {.x = 90, .y = 15, .w = 1, .h = 2, .endName = u8"试练场_1_011", .endX = 22, .endY = 83},
         {.x = 91, .y = 14, .w = 1, .h = 3, .endName = u8"试练场_1_011", .endX = 22, .endY = 83},
@@ -380,7 +380,7 @@
 },
 
 {   .name = u8"困魔咒空间_1_015", // 45
-    .mapSwitchList
+    .switchList
     {
         {.x = 28, .y = 33, .w = 1, .h = 1, .endName = u8"困魔咒空间_1_016", .endX = 10, .endY = 17},
         {.x = 29, .y = 32, .w = 1, .h = 2, .endName = u8"困魔咒空间_1_016", .endX = 10, .endY = 17},
@@ -390,7 +390,7 @@
 },
 
 {   .name = u8"困魔咒空间_1_016", // 46
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 15, .w = 1, .h = 2, .endName = u8"困魔咒空间_1_015", .endX = 28, .endY = 31},
         {.x = 28, .y = 33, .w = 1, .h = 1, .endName = u8"困魔咒空间_1_017", .endX = 10, .endY = 17},
@@ -400,7 +400,7 @@
 },
 
 {   .name = u8"困魔咒空间_1_017", // 47
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 15, .w = 1, .h = 2, .endName = u8"困魔咒空间_1_016", .endX = 28, .endY = 31},
         {.x = 28, .y = 33, .w = 1, .h = 1, .endName = u8"困魔咒空间_1_018", .endX = 10, .endY = 17},
@@ -410,7 +410,7 @@
 },
 
 {   .name = u8"困魔咒空间_1_018", // 48
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 15, .w = 1, .h = 2, .endName = u8"困魔咒空间_1_017", .endX = 28, .endY = 31},
         {.x = 28, .y = 33, .w = 1, .h = 1, .endName = u8"困魔咒空间_1_019", .endX = 13, .endY = 17},
@@ -420,7 +420,7 @@
 },
 
 {   .name = u8"困魔咒空间_1_019", // 49
-    .mapSwitchList
+    .switchList
     {
         {.x = 38, .y = 41, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 350, .endY = 402},
         {.x = 39, .y = 40, .w = 1, .h = 2, .endName = u8"道馆_1", .endX = 350, .endY = 402},
@@ -434,7 +434,7 @@
 },
 
 {   .name = u8"蜈蚣洞穴_1_020", // 50
-    .mapSwitchList
+    .switchList
     {
         {.x = 172, .y = 173, .w = 1, .h = 3, .endName = u8"蜈蚣洞穴_1_021", .endX = 24, .endY = 40},
         {.x = 186, .y = 17, .w = 2, .h = 1, .endName = u8"绝命谷3层_D6004", .endX = 41, .endY = 264},
@@ -443,7 +443,7 @@
 },
 
 {   .name = u8"蜈蚣洞穴_1_021", // 51
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 42, .w = 1, .h = 3, .endName = u8"蜈蚣洞穴_1_020", .endX = 169, .endY = 172},
         {.x = 23, .y = 44, .w = 1, .h = 1, .endName = u8"蜈蚣洞穴_1_020", .endX = 169, .endY = 172},
@@ -453,7 +453,7 @@
 },
 
 {   .name = u8"蜈蚣洞穴_1_022", // 52
-    .mapSwitchList
+    .switchList
     {
         {.x = 165, .y = 36, .w = 1, .h = 1, .endName = u8"蜈蚣洞穴_1_021", .endX = 12, .endY = 14},
         {.x = 166, .y = 33, .w = 1, .h = 3, .endName = u8"蜈蚣洞穴_1_021", .endX = 12, .endY = 14},
@@ -463,7 +463,7 @@
 },
 
 {   .name = u8"蜈蚣洞穴_1_023", // 53
-    .mapSwitchList
+    .switchList
     {
         {.x = 41, .y = 40, .w = 1, .h = 1, .endName = u8"蜈蚣洞穴_1_022", .endX = 13, .endY = 13},
         {.x = 42, .y = 38, .w = 1, .h = 3, .endName = u8"蜈蚣洞穴_1_022", .endX = 13, .endY = 13},
@@ -473,7 +473,7 @@
 {   .name = u8"毒蛇山谷_2", // 54
     .bgmID = 0X00010004,
     .miniMapID = 0X19001005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 158, .y = 370, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 643, .endY = 16},
         {.x = 159, .y = 371, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 643, .endY = 17},
@@ -496,7 +496,7 @@
 {   .name = u8"沙巴克城_3", // 55
     .bgmID = 0X00010004,
     .miniMapID = 0X19001017,
-    .mapSwitchList
+    .switchList
     {
         {.x = 194, .y = 144, .w = 1, .h = 1, .endName = u8"沙巴克城堡_0150", .endX = 14, .endY = 19},
         {.x = 195, .y = 143, .w = 1, .h = 1, .endName = u8"沙巴克城堡_0150", .endX = 15, .endY = 18},
@@ -521,7 +521,7 @@
 
 {   .name = u8"祖玛神殿_31", // 56
     .miniMapID = 0X19001030,
-    .mapSwitchList
+    .switchList
     {
         {.x = 174, .y = 128, .w = 2, .h = 1, .endName = u8"祖玛神殿大厅_0157", .endX = 9, .endY = 26},
         {.x = 119, .y = 256, .w = 1, .h = 1, .endName = u8"毒蛇山谷_2", .endX = 353, .endY = 34},
@@ -541,7 +541,7 @@
 {   .name = u8"绿洲_4", // 57
     .bgmID = 0X00010007,
     .miniMapID = 0X19001006,
-    .mapSwitchList
+    .switchList
     {
         {.x = 27, .y = 231, .w = 1, .h = 1, .endName = u8"诺玛村庄_41", .endX = 380, .endY = 345},
         {.x = 28, .y = 232, .w = 1, .h = 1, .endName = u8"诺玛村庄_41", .endX = 381, .endY = 346},
@@ -627,7 +627,7 @@
 {   .name = u8"诺玛村庄_41", // 65
     .bgmID = 0X00010007,
     .miniMapID = 0X19001020,
-    .mapSwitchList
+    .switchList
     {
         {.x = 381, .y = 345, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 28, .endY = 231},
         {.x = 382, .y = 346, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 29, .endY = 232},
@@ -652,7 +652,7 @@
 {   .name = u8"沙漠_42", // 66
     .bgmID = 0X00010007,
     .miniMapID = 0X19001021,
-    .mapSwitchList
+    .switchList
     {
         {.x = 372, .y = 328, .w = 1, .h = 1, .endName = u8"诺玛村庄_41", .endX = 30, .endY = 141},
         {.x = 373, .y = 327, .w = 1, .h = 1, .endName = u8"诺玛村庄_41", .endX = 31, .endY = 140},
@@ -670,7 +670,7 @@
 {   .name = u8"沙漠_43", // 67
     .bgmID = 0X00010007,
     .miniMapID = 0X19001022,
-    .mapSwitchList
+    .switchList
     {
         {.x = 333, .y = 64, .w = 1, .h = 1, .endName = u8"沙漠_42", .endX = 35, .endY = 188},
         {.x = 334, .y = 65, .w = 1, .h = 1, .endName = u8"沙漠_42", .endX = 36, .endY = 189},
@@ -689,7 +689,7 @@
 {   .name = u8"沙漠_44", // 68
     .bgmID = 0X00010007,
     .miniMapID = 0X19001023,
-    .mapSwitchList
+    .switchList
     {
         {.x = 371, .y = 117, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 69, .endY = 466},
         {.x = 372, .y = 116, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 70, .endY = 465},
@@ -707,14 +707,14 @@
 },
 
 {   .name = u8"武器店_4_001", // 69
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 14, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 450, .endY = 74},
     }
 },
 
 {   .name = u8"民家_4_002", // 70
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 16, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 447, .endY = 94},
         {.x = 13, .y = 18, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 452, .endY = 96},
@@ -722,21 +722,21 @@
 },
 
 {   .name = u8"中药商_4_003", // 71
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 14, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 434, .endY = 73},
     }
 },
 
 {   .name = u8"布匹店_4_004", // 72
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 14, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 461, .endY = 90},
     }
 },
 
 {   .name = u8"占卜屋_4_005", // 73
-    .mapSwitchList
+    .switchList
     {
         {.x = 10, .y = 27, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 475, .endY = 58},
     }
@@ -745,7 +745,7 @@
 {   .name = u8"沙漠土城_5", // 74
     .bgmID = 0X00010007,
     .miniMapID = 0X19001007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 208, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 421, .endY = 548},
         {.x = 18, .y = 209, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 422, .endY = 549},
@@ -783,7 +783,7 @@
 },
 
 {   .name = u8"贵族屋_5_0011", // 75
-    .mapSwitchList
+    .switchList
     {
         {.x = 23, .y = 38, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 235, .endY = 161},
         {.x = 27, .y = 44, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 238, .endY = 165},
@@ -792,28 +792,28 @@
 },
 
 {   .name = u8"贵族屋_5_0012", // 76
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 24, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 239, .endY = 195},
     }
 },
 
 {   .name = u8"贵族屋_5_0013", // 77
-    .mapSwitchList
+    .switchList
     {
         {.x = 18, .y = 48, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 207, .endY = 170},
     }
 },
 
 {   .name = u8"武器商_5_002", // 78
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 18, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 191, .endY = 250},
     }
 },
 
 {   .name = u8"药房_5_003", // 79
-    .mapSwitchList
+    .switchList
     {
         {.x = 6, .y = 22, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 194, .endY = 232},
         {.x = 15, .y = 24, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 196, .endY = 232},
@@ -821,21 +821,21 @@
 },
 
 {   .name = u8"服饰店_5_004", // 80
-    .mapSwitchList
+    .switchList
     {
         {.x = 10, .y = 22, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 179, .endY = 279},
     }
 },
 
 {   .name = u8"饰品店_5_005", // 81
-    .mapSwitchList
+    .switchList
     {
         {.x = 5, .y = 12, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 203, .endY = 242},
     }
 },
 
 {   .name = u8"仓库_5_006", // 82
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 24, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 158, .endY = 267},
         {.x = 20, .y = 24, .w = 1, .h = 1, .endName = u8"沙漠土城_5", .endX = 171, .endY = 267},
@@ -845,7 +845,7 @@
 {   .name = u8"沙漠_6", // 83
     .bgmID = 0X00010007,
     .miniMapID = 0X19001008,
-    .mapSwitchList
+    .switchList
     {
         {.x = 179, .y = 79, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 181, .endY = 777},
         {.x = 180, .y = 80, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 182, .endY = 778},
@@ -872,7 +872,7 @@
 {   .name = u8"沙漠_71", // 84
     .bgmID = 0X00010006,
     .miniMapID = 0X19001009,
-    .mapSwitchList
+    .switchList
     {
         {.x = 380, .y = 36, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 87, .endY = 405},
         {.x = 381, .y = 37, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 88, .endY = 406},
@@ -894,7 +894,7 @@
 {   .name = u8"沙漠_72", // 85
     .bgmID = 0X00010006,
     .miniMapID = 0X19001010,
-    .mapSwitchList
+    .switchList
     {
         {.x = 379, .y = 45, .w = 1, .h = 1, .endName = u8"沙漠_71", .endX = 9, .endY = 96},
         {.x = 380, .y = 44, .w = 1, .h = 1, .endName = u8"沙漠_71", .endX = 10, .endY = 95},
@@ -916,7 +916,7 @@
 {   .name = u8"沙漠_73", // 86
     .bgmID = 0X00010006,
     .miniMapID = 0X19001011,
-    .mapSwitchList
+    .switchList
     {
         {.x = 350, .y = 145, .w = 1, .h = 1, .endName = u8"沙漠_72", .endX = 21, .endY = 63},
         {.x = 351, .y = 144, .w = 1, .h = 1, .endName = u8"沙漠_72", .endX = 22, .endY = 62},
@@ -937,7 +937,7 @@
 {   .name = u8"盟重县_74", // 87
     .bgmID = 0X00010006,
     .miniMapID = 0X19001012,
-    .mapSwitchList
+    .switchList
     {
         {.x = 578, .y = 297, .w = 1, .h = 1, .endName = u8"沙漠_73", .endX = 37, .endY = 112},
         {.x = 579, .y = 296, .w = 1, .h = 1, .endName = u8"沙漠_73", .endX = 37, .endY = 111},
@@ -963,7 +963,7 @@
 {   .name = u8"石阁庙_75", // 88
     .bgmID = 0X00010006,
     .miniMapID = 0X19001013,
-    .mapSwitchList
+    .switchList
     {
         {.x = 378, .y = 221, .w = 1, .h = 1, .endName = u8"盟重县_74", .endX = 21, .endY = 313},
         {.x = 379, .y = 220, .w = 1, .h = 1, .endName = u8"盟重县_74", .endX = 21, .endY = 312},
@@ -987,7 +987,7 @@
 {   .name = u8"沙漠_76", // 89
     .bgmID = 0X00010006,
     .miniMapID = 0X19001014,
-    .mapSwitchList
+    .switchList
     {
         {.x = 350, .y = 145, .w = 1, .h = 1, .endName = u8"石阁庙_75", .endX = 21, .endY = 213},
         {.x = 351, .y = 144, .w = 1, .h = 1, .endName = u8"石阁庙_75", .endX = 21, .endY = 212},
@@ -1008,7 +1008,7 @@
 {   .name = u8"沙漠_77", // 90
     .bgmID = 0X00010006,
     .miniMapID = 0X19001015,
-    .mapSwitchList
+    .switchList
     {
         {.x = 350, .y = 145, .w = 1, .h = 1, .endName = u8"沙漠_76", .endX = 36, .endY = 112},
         {.x = 351, .y = 144, .w = 1, .h = 1, .endName = u8"沙漠_76", .endX = 37, .endY = 111},
@@ -1029,7 +1029,7 @@
 {   .name = u8"沙漠_78", // 91
     .bgmID = 0X00010006,
     .miniMapID = 0X19001016,
-    .mapSwitchList
+    .switchList
     {
         {.x = 36, .y = 110, .w = 1, .h = 1, .endName = u8"沙漠_6", .endX = 766, .endY = 559},
         {.x = 37, .y = 109, .w = 1, .h = 1, .endName = u8"沙漠_6", .endX = 767, .endY = 558},
@@ -1050,7 +1050,7 @@
 {   .name = u8"潘夜岛_8", // 92
     .bgmID = 0X00010004,
     .miniMapID = 0X19001018,
-    .mapSwitchList
+    .switchList
     {
         {.x = 692, .y = 358, .w = 1, .h = 1, .endName = u8"潘夜神殿1层_D1101", .endX = 135, .endY = 180},
         {.x = 416, .y = 553, .w = 1, .h = 1, .endName = u8"潘夜石窟1层_D1211", .endX = 128, .endY = 172},
@@ -1060,7 +1060,7 @@
 {   .name = u8"流放岛_81", // 93
     .bgmID = 0X00010003,
     .miniMapID = 0X19001019,
-    .mapSwitchList
+    .switchList
     {
         {.x = 156, .y = 135, .w = 1, .h = 1, .endName = u8"罪孽洞穴1层_D1201", .endX = 19, .endY = 147},
     }
@@ -1069,7 +1069,7 @@
 {   .name = u8"失乐园_9", // 94
     .bgmID = 0X00010003,
     .miniMapID = 0X19001029,
-    .mapSwitchList
+    .switchList
     {
         {.x = 747, .y = 35, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 19, .endY = 563},
         {.x = 748, .y = 36, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 20, .endY = 564},
@@ -1269,7 +1269,7 @@
 {   .name = u8"半兽洞穴1层_D001", // 156
     .bgmID = 0X00020001,
     .miniMapID = 0X19000000,
-    .mapSwitchList
+    .switchList
     {
         {.x = 148, .y = 366, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 64, .endY = 175},
         {.x = 149, .y = 364, .w = 2, .h = 1, .endName = u8"比奇县_0", .endX = 64, .endY = 175},
@@ -1281,7 +1281,7 @@
 },
 
 {   .name = u8"半兽勇士洞_D001_001", // 157
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 9, .w = 1, .h = 1, .endName = u8"半兽洞穴1层_D001", .endX = 302, .endY = 66},
     }
@@ -1290,7 +1290,7 @@
 {   .name = u8"半兽洞穴2层_D002", // 158
     .bgmID = 0X00020001,
     .miniMapID = 0X19000001,
-    .mapSwitchList
+    .switchList
     {
         {.x = 34, .y = 322, .w = 1, .h = 1, .endName = u8"半兽洞穴1层_D001", .endX = 30, .endY = 329},
         {.x = 324, .y = 15, .w = 1, .h = 1, .endName = u8"半兽洞穴1层_D001", .endX = 381, .endY = 24},
@@ -1303,7 +1303,7 @@
 },
 
 {   .name = u8"骷髅精灵洞_D002_001", // 159
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 9, .w = 1, .h = 1, .endName = u8"半兽洞穴2层_D002", .endX = 254, .endY = 282},
     }
@@ -1312,7 +1312,7 @@
 {   .name = u8"半兽洞穴3层_D003", // 160
     .bgmID = 0X00020001,
     .miniMapID = 0X19000002,
-    .mapSwitchList
+    .switchList
     {
         {.x = 106, .y = 82, .w = 1, .h = 1, .endName = u8"半兽洞穴2层_D002", .endX = 117, .endY = 96},
         {.x = 78, .y = 229, .w = 1, .h = 1, .endName = u8"半兽天然洞穴_E001", .endX = 9, .endY = 14},
@@ -1323,7 +1323,7 @@
 {   .name = u8"天然洞穴1层_D011", // 161
     .bgmID = 0X00020002,
     .miniMapID = 0X19000003,
-    .mapSwitchList
+    .switchList
     {
         {.x = 155, .y = 367, .w = 1, .h = 2, .endName = u8"银杏山谷_02", .endX = 481, .endY = 324},
         {.x = 127, .y = 201, .w = 1, .h = 1, .endName = u8"天然洞穴2层_D012", .endX = 77, .endY = 198},
@@ -1334,7 +1334,7 @@
 {   .name = u8"天然洞穴2层_D012", // 162
     .bgmID = 0X00020002,
     .miniMapID = 0X19000004,
-    .mapSwitchList
+    .switchList
     {
         {.x = 77, .y = 197, .w = 1, .h = 1, .endName = u8"天然洞穴1层_D011", .endX = 127, .endY = 202},
         {.x = 337, .y = 104, .w = 1, .h = 1, .endName = u8"天然洞穴1层_D011", .endX = 330, .endY = 116},
@@ -1345,7 +1345,7 @@
 },
 
 {   .name = u8"天然洞穴2层_D012_001", // 163
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 7, .w = 1, .h = 1, .endName = u8"天然洞穴2层_D012", .endX = 228, .endY = 356},
     }
@@ -1354,7 +1354,7 @@
 {   .name = u8"沃玛神殿入口_D021", // 164
     .bgmID = 0X00020003,
     .miniMapID = 0X19000190,
-    .mapSwitchList
+    .switchList
     {
         {.x = 77, .y = 75, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 55, .endY = 371},
         {.x = 77, .y = 76, .w = 1, .h = 1, .endName = u8"道馆_1", .endX = 55, .endY = 370},
@@ -1370,7 +1370,7 @@
 {   .name = u8"沃玛神殿1层_D022", // 165
     .bgmID = 0X00020003,
     .miniMapID = 0X19000191,
-    .mapSwitchList
+    .switchList
     {
         {.x = 338, .y = 354, .w = 1, .h = 1, .endName = u8"沃玛神殿入口_D021", .endX = 25, .endY = 25},
         {.x = 338, .y = 355, .w = 1, .h = 1, .endName = u8"沃玛神殿入口_D021", .endX = 25, .endY = 26},
@@ -1380,7 +1380,7 @@
 },
 
 {   .name = u8"沃玛神殿1层_D022_001", // 166
-    .mapSwitchList
+    .switchList
     {
         {.x = 63, .y = 74, .w = 1, .h = 1, .endName = u8"沃玛神殿1层_D022", .endX = 145, .endY = 112},
         {.x = 64, .y = 73, .w = 1, .h = 2, .endName = u8"沃玛神殿1层_D022", .endX = 145, .endY = 112},
@@ -1392,7 +1392,7 @@
 {   .name = u8"沃玛神殿2层_D023", // 167
     .bgmID = 0X00020003,
     .miniMapID = 0X19000195,
-    .mapSwitchList
+    .switchList
     {
         {.x = 371, .y = 366, .w = 1, .h = 2, .endName = u8"困魔咒空间_1_015", .endX = 10, .endY = 17},
         {.x = 372, .y = 366, .w = 1, .h = 1, .endName = u8"困魔咒空间_1_015", .endX = 10, .endY = 17},
@@ -1404,14 +1404,14 @@
 },
 
 {   .name = u8"沃玛神殿师徒关_D023_001", // 168
-    .mapSwitchList
+    .switchList
     {
         {.x = 12, .y = 17, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D023", .endX = 65, .endY = 47},
     }
 },
 
 {   .name = u8"沃玛神殿师徒关_D023_002", // 169
-    .mapSwitchList
+    .switchList
     {
         {.x = 12, .y = 17, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D023", .endX = 65, .endY = 47},
     }
@@ -1420,7 +1420,7 @@
 {   .name = u8"沃玛神殿_D024", // 170
     .bgmID = 0X00020003,
     .miniMapID = 0X19000199,
-    .mapSwitchList
+    .switchList
     {
         {.x = 16, .y = 18, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D023", .endX = 51, .endY = 365},
         {.x = 46, .y = 28, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D033", .endX = 51, .endY = 365},
@@ -1432,7 +1432,7 @@
 {   .name = u8"沃玛神殿1层_D032", // 171
     .bgmID = 0X00020003,
     .miniMapID = 0X19000192,
-    .mapSwitchList
+    .switchList
     {
         {.x = 338, .y = 354, .w = 1, .h = 2, .endName = u8"沃玛神殿入口_D021", .endX = 46, .endY = 36},
         {.x = 251, .y = 206, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D033", .endX = 199, .endY = 194},
@@ -1443,7 +1443,7 @@
 {   .name = u8"沃玛神殿2层_D033", // 172
     .bgmID = 0X00020003,
     .miniMapID = 0X19000196,
-    .mapSwitchList
+    .switchList
     {
         {.x = 52, .y = 366, .w = 1, .h = 1, .endName = u8"沃玛神殿_D024", .endX = 47, .endY = 29},
         {.x = 198, .y = 193, .w = 1, .h = 1, .endName = u8"沃玛神殿1层_D032", .endX = 250, .endY = 205},
@@ -1454,7 +1454,7 @@
 {   .name = u8"沃玛神殿1层_D042", // 173
     .bgmID = 0X00020003,
     .miniMapID = 0X19000193,
-    .mapSwitchList
+    .switchList
     {
         {.x = 338, .y = 354, .w = 1, .h = 2, .endName = u8"沃玛神殿入口_D021", .endX = 33, .endY = 49},
         {.x = 251, .y = 206, .w = 1, .h = 1, .endName = u8"沃玛神殿2层_D043", .endX = 199, .endY = 194},
@@ -1465,7 +1465,7 @@
 {   .name = u8"沃玛神殿2层_D043", // 174
     .bgmID = 0X00020003,
     .miniMapID = 0X19000197,
-    .mapSwitchList
+    .switchList
     {
         {.x = 52, .y = 366, .w = 1, .h = 1, .endName = u8"沃玛神殿_D024", .endX = 29, .endY = 47},
         {.x = 198, .y = 193, .w = 1, .h = 1, .endName = u8"沃玛神殿1层_D042", .endX = 250, .endY = 205},
@@ -1476,7 +1476,7 @@
 {   .name = u8"沃玛神殿1层_D052", // 175
     .bgmID = 0X00020003,
     .miniMapID = 0X19000194,
-    .mapSwitchList
+    .switchList
     {
         {.x = 338, .y = 354, .w = 1, .h = 1, .endName = u8"沃玛神殿入口_D021", .endX = 25, .endY = 25},
         {.x = 338, .y = 355, .w = 1, .h = 1, .endName = u8"沃玛神殿入口_D021", .endX = 25, .endY = 26},
@@ -1488,7 +1488,7 @@
 {   .name = u8"沃玛神殿2层_D053", // 176
     .bgmID = 0X00020003,
     .miniMapID = 0X19000198,
-    .mapSwitchList
+    .switchList
     {
         {.x = 52, .y = 366, .w = 1, .h = 1, .endName = u8"沃玛神殿_D024", .endX = 16, .endY = 19},
         {.x = 198, .y = 193, .w = 1, .h = 1, .endName = u8"沃玛神殿1层_D052", .endX = 250, .endY = 205},
@@ -1499,7 +1499,7 @@
 {   .name = u8"赤月山谷1层_D1001", // 177
     .bgmID = 0X00020009,
     .miniMapID = 0X19000100,
-    .mapSwitchList
+    .switchList
     {
         {.x = 270, .y = 385, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 333, .endY = 53},
         {.x = 123, .y = 24, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1002", .endX = 62, .endY = 288},
@@ -1518,7 +1518,7 @@
 {   .name = u8"赤月山谷2层_D1002", // 181
     .bgmID = 0X00020009,
     .miniMapID = 0X19000101,
-    .mapSwitchList
+    .switchList
     {
         {.x = 61, .y = 289, .w = 1, .h = 1, .endName = u8"赤月山谷1层_D1001", .endX = 122, .endY = 25},
         {.x = 13, .y = 26, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10031", .endX = 289, .endY = 150},
@@ -1529,7 +1529,7 @@
 {   .name = u8"赤月山谷3层_D10031", // 182
     .bgmID = 0X00020009,
     .miniMapID = 0X19000102,
-    .mapSwitchList
+    .switchList
     {
         {.x = 290, .y = 151, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1002", .endX = 14, .endY = 27},
     }
@@ -1538,7 +1538,7 @@
 {   .name = u8"赤月山谷3层_D10032", // 183
     .bgmID = 0X00020009,
     .miniMapID = 0X19000103,
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 156, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1002", .endX = 288, .endY = 139},
         {.x = 201, .y = 148, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1004", .endX = 171, .endY = 88},
@@ -1548,7 +1548,7 @@
 {   .name = u8"赤月山谷4层_D1004", // 184
     .bgmID = 0X00020009,
     .miniMapID = 0X19000104,
-    .mapSwitchList
+    .switchList
     {
         {.x = 121, .y = 38, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10031", .endX = 150, .endY = 104},
         {.x = 170, .y = 89, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10032", .endX = 200, .endY = 149},
@@ -1560,7 +1560,7 @@
 {   .name = u8"赤月山谷5层_D10051", // 185
     .bgmID = 0X00020009,
     .miniMapID = 0X19000105,
-    .mapSwitchList
+    .switchList
     {
         {.x = 47, .y = 189, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1004", .endX = 145, .endY = 111},
         {.x = 11, .y = 27, .w = 1, .h = 1, .endName = u8"未命名地图_D10053", .endX = 40, .endY = 90},
@@ -1571,7 +1571,7 @@
 {   .name = u8"赤月山谷5层_D10052", // 186
     .bgmID = 0X00020009,
     .miniMapID = 0X19000106,
-    .mapSwitchList
+    .switchList
     {
         {.x = 98, .y = 185, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1004", .endX = 216, .endY = 132},
         {.x = 183, .y = 178, .w = 1, .h = 1, .endName = u8"未命名地图_D10054", .endX = 79, .endY = 13},
@@ -1581,7 +1581,7 @@
 
 {   .name = u8"未命名地图_D10053", // 187
     .miniMapID = 0X19000107,
-    .mapSwitchList
+    .switchList
     {
         {.x = 41, .y = 91, .w = 1, .h = 1, .endName = u8"赤月山谷5层_D10051", .endX = 11, .endY = 27},
     }
@@ -1589,14 +1589,14 @@
 
 {   .name = u8"未命名地图_D10054", // 188
     .miniMapID = 0X19000108,
-    .mapSwitchList
+    .switchList
     {
         {.x = 78, .y = 12, .w = 1, .h = 1, .endName = u8"赤月山谷5层_D10052", .endX = 182, .endY = 177},
     }
 },
 
 {   .name = u8"未命名地图_D10061", // 189
-    .mapSwitchList
+    .switchList
     {
         {.x = 21, .y = 26, .w = 1, .h = 1, .endName = u8"赤月山谷5层_D10051", .endX = 179, .endY = 54},
     }
@@ -1606,7 +1606,7 @@
 },
 
 {   .name = u8"未命名地图_D10071", // 191
-    .mapSwitchList
+    .switchList
     {
         {.x = 11, .y = 25, .w = 1, .h = 1, .endName = u8"未命名地图_D10061", .endX = 15, .endY = 19},
     }
@@ -1615,7 +1615,7 @@
 {   .name = u8"赤月山谷1层_D1011", // 192
     .bgmID = 0X00020009,
     .miniMapID = 0X19000110,
-    .mapSwitchList
+    .switchList
     {
         {.x = 53, .y = 287, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 109, .endY = 32},
         {.x = 290, .y = 76, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1012", .endX = 14, .endY = 143},
@@ -1625,7 +1625,7 @@
 {   .name = u8"赤月山谷2层_D1012", // 193
     .bgmID = 0X00020009,
     .miniMapID = 0X19000111,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 144, .w = 1, .h = 1, .endName = u8"赤月山谷1层_D1011", .endX = 289, .endY = 77},
         {.x = 274, .y = 109, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10131", .endX = 286, .endY = 142},
@@ -1636,7 +1636,7 @@
 {   .name = u8"赤月山谷3层_D10131", // 194
     .bgmID = 0X00020009,
     .miniMapID = 0X19000112,
-    .mapSwitchList
+    .switchList
     {
         {.x = 287, .y = 141, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1012", .endX = 275, .endY = 108},
         {.x = 11, .y = 99, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1014", .endX = 198, .endY = 290},
@@ -1646,7 +1646,7 @@
 {   .name = u8"赤月山谷3层_D10132", // 195
     .bgmID = 0X00020009,
     .miniMapID = 0X19000113,
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 83, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1012", .endX = 133, .endY = 16},
         {.x = 234, .y = 25, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1014", .endX = 153, .endY = 254},
@@ -1656,7 +1656,7 @@
 {   .name = u8"赤月山谷4层_D1014", // 196
     .bgmID = 0X00020009,
     .miniMapID = 0X19000114,
-    .mapSwitchList
+    .switchList
     {
         {.x = 199, .y = 291, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10131", .endX = 12, .endY = 100},
         {.x = 152, .y = 255, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10132", .endX = 233, .endY = 26},
@@ -1668,7 +1668,7 @@
 {   .name = u8"赤月山谷5层_D10151", // 197
     .bgmID = 0X00020009,
     .miniMapID = 0X19000115,
-    .mapSwitchList
+    .switchList
     {
         {.x = 88, .y = 52, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1014", .endX = 207, .endY = 22},
         {.x = 152, .y = 16, .w = 1, .h = 1, .endName = u8"赤月恶魔洞穴_D10162", .endX = 12, .endY = 24},
@@ -1678,7 +1678,7 @@
 {   .name = u8"赤月山谷5层_D10152", // 198
     .bgmID = 0X00020009,
     .miniMapID = 0X19000116,
-    .mapSwitchList
+    .switchList
     {
         {.x = 51, .y = 191, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1014", .endX = 92, .endY = 13},
     }
@@ -1686,7 +1686,7 @@
 
 {   .name = u8"赤月恶魔洞穴_D10162", // 199
     .bgmID = 0X00020009,
-    .mapSwitchList
+    .switchList
     {
         {.x = 11, .y = 25, .w = 1, .h = 1, .endName = u8"赤月山谷5层_D10151", .endX = 151, .endY = 17},
     }
@@ -1695,7 +1695,7 @@
 {   .name = u8"赤月山谷1层_D1021", // 200
     .bgmID = 0X00020009,
     .miniMapID = 0X19000120,
-    .mapSwitchList
+    .switchList
     {
         {.x = 289, .y = 288, .w = 1, .h = 1, .endName = u8"灌木林_12", .endX = 45, .endY = 144},
         {.x = 148, .y = 12, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1022", .endX = 32, .endY = 244},
@@ -1705,7 +1705,7 @@
 {   .name = u8"赤月山谷2层_D1022", // 201
     .bgmID = 0X00020009,
     .miniMapID = 0X19000121,
-    .mapSwitchList
+    .switchList
     {
         {.x = 31, .y = 245, .w = 1, .h = 1, .endName = u8"赤月山谷1层_D1021", .endX = 147, .endY = 13},
         {.x = 46, .y = 32, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10231", .endX = 148, .endY = 152},
@@ -1716,7 +1716,7 @@
 {   .name = u8"赤月山谷3层_D10231", // 202
     .bgmID = 0X00020009,
     .miniMapID = 0X19000122,
-    .mapSwitchList
+    .switchList
     {
         {.x = 149, .y = 153, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1022", .endX = 47, .endY = 33},
         {.x = 49, .y = 11, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1024", .endX = 194, .endY = 279},
@@ -1726,7 +1726,7 @@
 {   .name = u8"赤月山谷3层_D10232", // 203
     .bgmID = 0X00020009,
     .miniMapID = 0X19000123,
-    .mapSwitchList
+    .switchList
     {
         {.x = 51, .y = 99, .w = 1, .h = 1, .endName = u8"赤月山谷2层_D1022", .endX = 194, .endY = 23},
         {.x = 133, .y = 22, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1024", .endX = 282, .endY = 264},
@@ -1736,7 +1736,7 @@
 {   .name = u8"赤月山谷4层_D1024", // 204
     .bgmID = 0X00020009,
     .miniMapID = 0X19000124,
-    .mapSwitchList
+    .switchList
     {
         {.x = 195, .y = 280, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10231", .endX = 50, .endY = 12},
         {.x = 283, .y = 265, .w = 1, .h = 1, .endName = u8"赤月山谷3层_D10232", .endX = 134, .endY = 23},
@@ -1748,7 +1748,7 @@
 {   .name = u8"赤月山谷5层_D10251", // 205
     .bgmID = 0X00020009,
     .miniMapID = 0X19000125,
-    .mapSwitchList
+    .switchList
     {
         {.x = 10, .y = 59, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1024", .endX = 283, .endY = 52},
     }
@@ -1757,7 +1757,7 @@
 {   .name = u8"赤月山谷5层_D10252", // 206
     .bgmID = 0X00020009,
     .miniMapID = 0X19000126,
-    .mapSwitchList
+    .switchList
     {
         {.x = 183, .y = 144, .w = 1, .h = 1, .endName = u8"赤月山谷4层_D1024", .endX = 116, .endY = 14},
         {.x = 181, .y = 16, .w = 1, .h = 1, .endName = u8"未命名地图_D10262", .endX = 12, .endY = 24},
@@ -1776,7 +1776,7 @@
 {   .name = u8"潘夜神殿1层_D1101", // 210
     .bgmID = 0X00020003,
     .miniMapID = 0X19000200,
-    .mapSwitchList
+    .switchList
     {
         {.x = 134, .y = 181, .w = 1, .h = 1, .endName = u8"潘夜岛_8", .endX = 691, .endY = 359},
         {.x = 222, .y = 228, .w = 1, .h = 1, .endName = u8"潘夜神殿2层_D1102", .endX = 141, .endY = 141},
@@ -1786,7 +1786,7 @@
 {   .name = u8"潘夜神殿2层_D1102", // 211
     .bgmID = 0X00020003,
     .miniMapID = 0X19000201,
-    .mapSwitchList
+    .switchList
     {
         {.x = 140, .y = 140, .w = 1, .h = 1, .endName = u8"潘夜神殿1层_D1101", .endX = 221, .endY = 227},
         {.x = 255, .y = 254, .w = 1, .h = 1, .endName = u8"潘夜神殿3层西部_D11031", .endX = 207, .endY = 333},
@@ -1797,7 +1797,7 @@
 {   .name = u8"潘夜神殿3层西部_D11031", // 212
     .bgmID = 0X00020003,
     .miniMapID = 0X19000202,
-    .mapSwitchList
+    .switchList
     {
         {.x = 206, .y = 332, .w = 1, .h = 1, .endName = u8"潘夜神殿2层_D1102", .endX = 254, .endY = 253},
     }
@@ -1806,7 +1806,7 @@
 {   .name = u8"潘夜神殿3层东部_D11032", // 213
     .bgmID = 0X00020003,
     .miniMapID = 0X19000203,
-    .mapSwitchList
+    .switchList
     {
         {.x = 36, .y = 63, .w = 1, .h = 1, .endName = u8"潘夜神殿2层_D1102", .endX = 52, .endY = 45},
         {.x = 62, .y = 36, .w = 1, .h = 1, .endName = u8"潘夜神殿4层_D1104", .endX = 106, .endY = 94},
@@ -1816,7 +1816,7 @@
 {   .name = u8"潘夜神殿4层_D1104", // 214
     .bgmID = 0X00020003,
     .miniMapID = 0X19000204,
-    .mapSwitchList
+    .switchList
     {
         {.x = 107, .y = 93, .w = 1, .h = 1, .endName = u8"潘夜神殿3层东部_D11032", .endX = 63, .endY = 35},
         {.x = 157, .y = 152, .w = 1, .h = 1, .endName = u8"潘夜神殿5层_D1105", .endX = 105, .endY = 216},
@@ -1826,7 +1826,7 @@
 {   .name = u8"潘夜神殿5层_D1105", // 215
     .bgmID = 0X00020003,
     .miniMapID = 0X19000205,
-    .mapSwitchList
+    .switchList
     {
         {.x = 106, .y = 217, .w = 1, .h = 1, .endName = u8"潘夜神殿4层_D1104", .endX = 158, .endY = 153},
     }
@@ -1834,7 +1834,7 @@
 
 {   .name = u8"潘夜神殿大厅_D1110", // 216
     .bgmID = 0X00020003,
-    .mapSwitchList
+    .switchList
     {
         {.x = 25, .y = 22, .w = 1, .h = 1, .endName = u8"潘夜神殿4层_D1111", .endX = 221, .endY = 224},
     }
@@ -1843,7 +1843,7 @@
 {   .name = u8"潘夜神殿4层_D1111", // 217
     .bgmID = 0X00020003,
     .miniMapID = 0X19000210,
-    .mapSwitchList
+    .switchList
     {
         {.x = 220, .y = 225, .w = 1, .h = 1, .endName = u8"潘夜神殿大厅_D1110", .endX = 24, .endY = 23},
         {.x = 111, .y = 112, .w = 1, .h = 1, .endName = u8"潘夜神殿5层_D1112", .endX = 156, .endY = 157},
@@ -1853,7 +1853,7 @@
 {   .name = u8"潘夜神殿5层_D1112", // 218
     .bgmID = 0X00020003,
     .miniMapID = 0X19000211,
-    .mapSwitchList
+    .switchList
     {
         {.x = 155, .y = 156, .w = 1, .h = 1, .endName = u8"潘夜神殿4层_D1111", .endX = 110, .endY = 111},
         {.x = 373, .y = 378, .w = 1, .h = 1, .endName = u8"潘夜神殿6层_D1113", .endX = 35, .endY = 27},
@@ -1863,7 +1863,7 @@
 {   .name = u8"潘夜神殿6层_D1113", // 219
     .bgmID = 0X00020003,
     .miniMapID = 0X19000212,
-    .mapSwitchList
+    .switchList
     {
         {.x = 34, .y = 26, .w = 1, .h = 1, .endName = u8"潘夜神殿5层_D1112", .endX = 372, .endY = 377},
         {.x = 376, .y = 50, .w = 1, .h = 1, .endName = u8"潘夜神殿7层西部_D11141", .endX = 40, .endY = 108},
@@ -1875,7 +1875,7 @@
 {   .name = u8"潘夜神殿7层西部_D11141", // 220
     .bgmID = 0X00020003,
     .miniMapID = 0X19000213,
-    .mapSwitchList
+    .switchList
     {
         {.x = 39, .y = 109, .w = 1, .h = 1, .endName = u8"潘夜神殿6层_D1113", .endX = 375, .endY = 51},
         {.x = 125, .y = 63, .w = 1, .h = 1, .endName = u8"潘夜神殿8层_D1115", .endX = 384, .endY = 19},
@@ -1885,7 +1885,7 @@
 {   .name = u8"潘夜神殿7层东部_D11142", // 221
     .bgmID = 0X00020003,
     .miniMapID = 0X19000214,
-    .mapSwitchList
+    .switchList
     {
         {.x = 94, .y = 128, .w = 1, .h = 1, .endName = u8"潘夜神殿6层_D1113", .endX = 39, .endY = 374},
         {.x = 25, .y = 30, .w = 1, .h = 1, .endName = u8"潘夜神殿8层_D1115", .endX = 35, .endY = 382},
@@ -1895,7 +1895,7 @@
 {   .name = u8"潘夜神殿8层_D1115", // 222
     .bgmID = 0X00020003,
     .miniMapID = 0X19000215,
-    .mapSwitchList
+    .switchList
     {
         {.x = 380, .y = 383, .w = 1, .h = 1, .endName = u8"潘夜神殿6层_D1113", .endX = 376, .endY = 370},
         {.x = 385, .y = 18, .w = 1, .h = 1, .endName = u8"潘夜神殿7层西部_D11141", .endX = 126, .endY = 62},
@@ -1907,7 +1907,7 @@
 {   .name = u8"潘夜神殿_D1116", // 223
     .bgmID = 0X00020003,
     .miniMapID = 0X19000216,
-    .mapSwitchList
+    .switchList
     {
         {.x = 91, .y = 13, .w = 1, .h = 1, .endName = u8"潘夜神殿8层_D1115", .endX = 201, .endY = 198},
     }
@@ -1916,7 +1916,7 @@
 {   .name = u8"罪孽洞穴1层_D1201", // 224
     .bgmID = 0X00020002,
     .miniMapID = 0X19000220,
-    .mapSwitchList
+    .switchList
     {
         {.x = 18, .y = 148, .w = 1, .h = 1, .endName = u8"流放岛_81", .endX = 155, .endY = 136},
         {.x = 17, .y = 23, .w = 1, .h = 1, .endName = u8"罪孽洞穴2层_D1202", .endX = 179, .endY = 182},
@@ -1926,7 +1926,7 @@
 {   .name = u8"罪孽洞穴2层_D1202", // 225
     .bgmID = 0X00020002,
     .miniMapID = 0X19000221,
-    .mapSwitchList
+    .switchList
     {
         {.x = 179, .y = 183, .w = 1, .h = 1, .endName = u8"罪孽洞穴1层_D1201", .endX = 18, .endY = 24},
         {.x = 16, .y = 24, .w = 1, .h = 1, .endName = u8"罪孽洞穴3层西部_D12031", .endX = 50, .endY = 80},
@@ -1937,7 +1937,7 @@
 {   .name = u8"罪孽洞穴3层西部_D12031", // 226
     .bgmID = 0X00020002,
     .miniMapID = 0X19000222,
-    .mapSwitchList
+    .switchList
     {
         {.x = 51, .y = 81, .w = 1, .h = 1, .endName = u8"罪孽洞穴2层_D1202", .endX = 17, .endY = 25},
         {.x = 91, .y = 168, .w = 1, .h = 1, .endName = u8"罪孽洞穴4层_D1204", .endX = 172, .endY = 39},
@@ -1947,7 +1947,7 @@
 {   .name = u8"罪孽洞穴3层东部_D12032", // 227
     .bgmID = 0X00020002,
     .miniMapID = 0X19000223,
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 187, .w = 1, .h = 1, .endName = u8"罪孽洞穴2层_D1202", .endX = 119, .endY = 88},
         {.x = 29, .y = 35, .w = 1, .h = 1, .endName = u8"罪孽洞穴4层_D1204", .endX = 24, .endY = 267},
@@ -1957,7 +1957,7 @@
 {   .name = u8"罪孽洞穴4层_D1204", // 228
     .bgmID = 0X00020002,
     .miniMapID = 0X19000224,
-    .mapSwitchList
+    .switchList
     {
         {.x = 173, .y = 40, .w = 1, .h = 1, .endName = u8"罪孽洞穴3层西部_D12031", .endX = 92, .endY = 169},
         {.x = 23, .y = 268, .w = 1, .h = 1, .endName = u8"罪孽洞穴3层东部_D12032", .endX = 28, .endY = 36},
@@ -1968,7 +1968,7 @@
 {   .name = u8"罪孽洞穴5层_D1205", // 229
     .bgmID = 0X00020002,
     .miniMapID = 0X19000225,
-    .mapSwitchList
+    .switchList
     {
         {.x = 74, .y = 202, .w = 1, .h = 1, .endName = u8"罪孽洞穴4层_D1204", .endX = 264, .endY = 254},
         {.x = 203, .y = 148, .w = 1, .h = 1, .endName = u8"未命名地图_D12122", .endX = 25, .endY = 36},
@@ -1978,7 +1978,7 @@
 {   .name = u8"潘夜石窟1层_D1211", // 230
     .bgmID = 0X00020001,
     .miniMapID = 0X19000230,
-    .mapSwitchList
+    .switchList
     {
         {.x = 127, .y = 173, .w = 1, .h = 1, .endName = u8"潘夜岛_8", .endX = 415, .endY = 554},
         {.x = 10, .y = 96, .w = 1, .h = 1, .endName = u8"潘夜石窟2层西部_D12121", .endX = 281, .endY = 61},
@@ -1987,7 +1987,7 @@
 
 {   .name = u8"潘夜石窟2层西部_D12121", // 231
     .miniMapID = 0X19000231,
-    .mapSwitchList
+    .switchList
     {
         {.x = 282, .y = 62, .w = 1, .h = 1, .endName = u8"潘夜石窟1层_D1211", .endX = 11, .endY = 97},
         {.x = 27, .y = 23, .w = 1, .h = 1, .endName = u8"未命名地图_D12122", .endX = 79, .endY = 84},
@@ -1997,7 +1997,7 @@
 
 {   .name = u8"未命名地图_D12122", // 232
     .miniMapID = 0X19000232,
-    .mapSwitchList
+    .switchList
     {
         {.x = 24, .y = 35, .w = 1, .h = 1, .endName = u8"罪孽洞穴5层_D1205", .endX = 202, .endY = 147},
         {.x = 80, .y = 85, .w = 1, .h = 1, .endName = u8"潘夜石窟2层西部_D12121", .endX = 28, .endY = 24},
@@ -2007,7 +2007,7 @@
 {   .name = u8"潘夜石窟3层_D1213", // 233
     .bgmID = 0X00020001,
     .miniMapID = 0X19000233,
-    .mapSwitchList
+    .switchList
     {
         {.x = 267, .y = 276, .w = 1, .h = 1, .endName = u8"潘夜石窟2层西部_D12121", .endX = 280, .endY = 259},
         {.x = 107, .y = 130, .w = 1, .h = 1, .endName = u8"潘夜石窟4层_D1214", .endX = 59, .endY = 284},
@@ -2017,7 +2017,7 @@
 {   .name = u8"潘夜石窟4层_D1214", // 234
     .bgmID = 0X00020001,
     .miniMapID = 0X19000234,
-    .mapSwitchList
+    .switchList
     {
         {.x = 59, .y = 285, .w = 1, .h = 1, .endName = u8"潘夜石窟3层_D1213", .endX = 106, .endY = 131},
         {.x = 226, .y = 16, .w = 1, .h = 1, .endName = u8"潘夜石窟5层_D1215", .endX = 371, .endY = 47},
@@ -2027,7 +2027,7 @@
 {   .name = u8"潘夜石窟5层_D1215", // 235
     .bgmID = 0X00020001,
     .miniMapID = 0X19000235,
-    .mapSwitchList
+    .switchList
     {
         {.x = 371, .y = 48, .w = 1, .h = 1, .endName = u8"潘夜石窟4层_D1214", .endX = 227, .endY = 17},
     }
@@ -2036,7 +2036,7 @@
 {   .name = u8"东部银杏废矿1层_D1301", // 236
     .bgmID = 0X00020004,
     .miniMapID = 0X19000240,
-    .mapSwitchList
+    .switchList
     {
         {.x = 357, .y = 379, .w = 1, .h = 1, .endName = u8"银杏山谷_02", .endX = 345, .endY = 121},
         {.x = 155, .y = 31, .w = 1, .h = 1, .endName = u8"东部银杏废矿2层_D1302", .endX = 367, .endY = 353},
@@ -2046,7 +2046,7 @@
 {   .name = u8"东部银杏废矿2层_D1302", // 237
     .bgmID = 0X00020004,
     .miniMapID = 0X19000241,
-    .mapSwitchList
+    .switchList
     {
         {.x = 368, .y = 354, .w = 1, .h = 1, .endName = u8"东部银杏废矿1层_D1301", .endX = 156, .endY = 32},
         {.x = 119, .y = 23, .w = 1, .h = 1, .endName = u8"东部银杏废矿3层_D1303", .endX = 49, .endY = 362},
@@ -2056,7 +2056,7 @@
 {   .name = u8"东部银杏废矿3层_D1303", // 238
     .bgmID = 0X00020004,
     .miniMapID = 0X19000242,
-    .mapSwitchList
+    .switchList
     {
         {.x = 48, .y = 363, .w = 1, .h = 1, .endName = u8"东部银杏废矿2层_D1302", .endX = 118, .endY = 24},
         {.x = 359, .y = 27, .w = 1, .h = 1, .endName = u8"东部银杏废矿4层_D1304", .endX = 69, .endY = 352},
@@ -2066,7 +2066,7 @@
 {   .name = u8"东部银杏废矿4层_D1304", // 239
     .bgmID = 0X00020004,
     .miniMapID = 0X19000243,
-    .mapSwitchList
+    .switchList
     {
         {.x = 68, .y = 353, .w = 1, .h = 1, .endName = u8"东部银杏废矿3层_D1303", .endX = 358, .endY = 28},
         {.x = 347, .y = 37, .w = 1, .h = 1, .endName = u8"东部银杏废矿5层_D1305", .endX = 360, .endY = 354},
@@ -2076,7 +2076,7 @@
 {   .name = u8"东部银杏废矿5层_D1305", // 240
     .bgmID = 0X00020004,
     .miniMapID = 0X19000244,
-    .mapSwitchList
+    .switchList
     {
         {.x = 361, .y = 355, .w = 1, .h = 1, .endName = u8"东部银杏废矿4层_D1304", .endX = 348, .endY = 38},
     }
@@ -2085,7 +2085,7 @@
 {   .name = u8"北部银杏废矿1层_D1311", // 241
     .bgmID = 0X00020004,
     .miniMapID = 0X19000240,
-    .mapSwitchList
+    .switchList
     {
         {.x = 357, .y = 379, .w = 1, .h = 1, .endName = u8"银杏山谷_02", .endX = 280, .endY = 74},
         {.x = 155, .y = 31, .w = 1, .h = 1, .endName = u8"北部银杏废矿2层_D1312", .endX = 367, .endY = 353},
@@ -2095,7 +2095,7 @@
 {   .name = u8"北部银杏废矿2层_D1312", // 242
     .bgmID = 0X00020004,
     .miniMapID = 0X19000241,
-    .mapSwitchList
+    .switchList
     {
         {.x = 368, .y = 354, .w = 1, .h = 1, .endName = u8"北部银杏废矿1层_D1311", .endX = 156, .endY = 32},
         {.x = 119, .y = 23, .w = 1, .h = 1, .endName = u8"北部银杏废矿3层_D1313", .endX = 49, .endY = 362},
@@ -2105,7 +2105,7 @@
 {   .name = u8"北部银杏废矿3层_D1313", // 243
     .bgmID = 0X00020004,
     .miniMapID = 0X19000242,
-    .mapSwitchList
+    .switchList
     {
         {.x = 48, .y = 363, .w = 1, .h = 1, .endName = u8"北部银杏废矿2层_D1312", .endX = 118, .endY = 24},
         {.x = 359, .y = 27, .w = 1, .h = 1, .endName = u8"北部银杏废矿4层_D1314", .endX = 69, .endY = 352},
@@ -2115,7 +2115,7 @@
 {   .name = u8"北部银杏废矿4层_D1314", // 244
     .bgmID = 0X00020004,
     .miniMapID = 0X19000243,
-    .mapSwitchList
+    .switchList
     {
         {.x = 68, .y = 353, .w = 1, .h = 1, .endName = u8"北部银杏废矿3层_D1313", .endX = 358, .endY = 28},
         {.x = 347, .y = 37, .w = 1, .h = 1, .endName = u8"北部银杏废矿5层_D1315", .endX = 360, .endY = 354},
@@ -2125,7 +2125,7 @@
 {   .name = u8"北部银杏废矿5层_D1315", // 245
     .bgmID = 0X00020004,
     .miniMapID = 0X19000244,
-    .mapSwitchList
+    .switchList
     {
         {.x = 361, .y = 355, .w = 1, .h = 1, .endName = u8"北部银杏废矿4层_D1314", .endX = 348, .endY = 38},
     }
@@ -2134,7 +2134,7 @@
 {   .name = u8"西部银杏废矿1层_D1321", // 246
     .bgmID = 0X00020004,
     .miniMapID = 0X19000240,
-    .mapSwitchList
+    .switchList
     {
         {.x = 357, .y = 379, .w = 1, .h = 1, .endName = u8"银杏山谷_02", .endX = 128, .endY = 158},
         {.x = 155, .y = 31, .w = 1, .h = 1, .endName = u8"西部银杏废矿2层_D1322", .endX = 367, .endY = 353},
@@ -2144,7 +2144,7 @@
 {   .name = u8"西部银杏废矿2层_D1322", // 247
     .bgmID = 0X00020004,
     .miniMapID = 0X19000241,
-    .mapSwitchList
+    .switchList
     {
         {.x = 368, .y = 354, .w = 1, .h = 1, .endName = u8"西部银杏废矿1层_D1321", .endX = 156, .endY = 32},
         {.x = 119, .y = 23, .w = 1, .h = 1, .endName = u8"西部银杏废矿3层_D1323", .endX = 49, .endY = 362},
@@ -2154,7 +2154,7 @@
 {   .name = u8"西部银杏废矿3层_D1323", // 248
     .bgmID = 0X00020004,
     .miniMapID = 0X19000242,
-    .mapSwitchList
+    .switchList
     {
         {.x = 48, .y = 363, .w = 1, .h = 1, .endName = u8"西部银杏废矿2层_D1322", .endX = 118, .endY = 24},
         {.x = 359, .y = 27, .w = 1, .h = 1, .endName = u8"西部银杏废矿4层_D1324", .endX = 69, .endY = 352},
@@ -2164,7 +2164,7 @@
 {   .name = u8"西部银杏废矿4层_D1324", // 249
     .bgmID = 0X00020004,
     .miniMapID = 0X19000243,
-    .mapSwitchList
+    .switchList
     {
         {.x = 68, .y = 353, .w = 1, .h = 1, .endName = u8"西部银杏废矿3层_D1323", .endX = 358, .endY = 28},
         {.x = 347, .y = 37, .w = 1, .h = 1, .endName = u8"西部银杏废矿5层_D1325", .endX = 360, .endY = 354},
@@ -2174,7 +2174,7 @@
 {   .name = u8"西部银杏废矿5层_D1325", // 250
     .bgmID = 0X00020004,
     .miniMapID = 0X19000244,
-    .mapSwitchList
+    .switchList
     {
         {.x = 361, .y = 355, .w = 1, .h = 1, .endName = u8"西部银杏废矿4层_D1324", .endX = 348, .endY = 38},
     }
@@ -2203,7 +2203,7 @@
 {   .name = u8"东部石矿_D1405", // 255
     .bgmID = 0X00020005,
     .miniMapID = 0X19000254,
-    .mapSwitchList
+    .switchList
     {
         {.x = 85, .y = 366, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 496, .endY = 87},
     }
@@ -2212,7 +2212,7 @@
 {   .name = u8"北部石矿1层_D1411", // 256
     .bgmID = 0X00020005,
     .miniMapID = 0X19000250,
-    .mapSwitchList
+    .switchList
     {
         {.x = 91, .y = 388, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 354, .endY = 66},
         {.x = 347, .y = 47, .w = 1, .h = 1, .endName = u8"北部石矿2层_D1412", .endX = 314, .endY = 373},
@@ -2222,7 +2222,7 @@
 {   .name = u8"北部石矿2层_D1412", // 257
     .bgmID = 0X00020005,
     .miniMapID = 0X19000251,
-    .mapSwitchList
+    .switchList
     {
         {.x = 313, .y = 374, .w = 1, .h = 1, .endName = u8"北部石矿1层_D1411", .endX = 346, .endY = 48},
         {.x = 35, .y = 354, .w = 1, .h = 1, .endName = u8"北部石矿3层_D1413", .endX = 315, .endY = 354},
@@ -2232,7 +2232,7 @@
 {   .name = u8"北部石矿3层_D1413", // 258
     .bgmID = 0X00020005,
     .miniMapID = 0X19000252,
-    .mapSwitchList
+    .switchList
     {
         {.x = 314, .y = 355, .w = 1, .h = 1, .endName = u8"北部石矿2层_D1412", .endX = 36, .endY = 355},
         {.x = 101, .y = 44, .w = 1, .h = 1, .endName = u8"北部石矿4层_D1414", .endX = 50, .endY = 355},
@@ -2242,7 +2242,7 @@
 {   .name = u8"北部石矿4层_D1414", // 259
     .bgmID = 0X00020005,
     .miniMapID = 0X19000253,
-    .mapSwitchList
+    .switchList
     {
         {.x = 49, .y = 356, .w = 1, .h = 1, .endName = u8"北部石矿3层_D1413", .endX = 100, .endY = 45},
         {.x = 376, .y = 61, .w = 1, .h = 1, .endName = u8"北部石矿5层_D1415", .endX = 86, .endY = 365},
@@ -2252,7 +2252,7 @@
 {   .name = u8"北部石矿5层_D1415", // 260
     .bgmID = 0X00020005,
     .miniMapID = 0X19000254,
-    .mapSwitchList
+    .switchList
     {
         {.x = 85, .y = 366, .w = 1, .h = 1, .endName = u8"北部石矿4层_D1414", .endX = 375, .endY = 62},
     }
@@ -2261,7 +2261,7 @@
 {   .name = u8"西部石矿1层_D1421", // 261
     .bgmID = 0X00020005,
     .miniMapID = 0X19000250,
-    .mapSwitchList
+    .switchList
     {
         {.x = 91, .y = 388, .w = 1, .h = 1, .endName = u8"边境城市_01", .endX = 293, .endY = 154},
         {.x = 347, .y = 47, .w = 1, .h = 1, .endName = u8"西部石矿2层_D1422", .endX = 314, .endY = 373},
@@ -2271,7 +2271,7 @@
 {   .name = u8"西部石矿2层_D1422", // 262
     .bgmID = 0X00020005,
     .miniMapID = 0X19000251,
-    .mapSwitchList
+    .switchList
     {
         {.x = 313, .y = 374, .w = 1, .h = 1, .endName = u8"西部石矿1层_D1421", .endX = 346, .endY = 48},
         {.x = 35, .y = 354, .w = 1, .h = 1, .endName = u8"西部石矿3层_D1423", .endX = 315, .endY = 354},
@@ -2281,7 +2281,7 @@
 {   .name = u8"西部石矿3层_D1423", // 263
     .bgmID = 0X00020005,
     .miniMapID = 0X19000252,
-    .mapSwitchList
+    .switchList
     {
         {.x = 314, .y = 355, .w = 1, .h = 1, .endName = u8"西部石矿2层_D1422", .endX = 36, .endY = 355},
         {.x = 101, .y = 44, .w = 1, .h = 1, .endName = u8"西部石矿4层_D1424", .endX = 50, .endY = 355},
@@ -2291,7 +2291,7 @@
 {   .name = u8"西部石矿4层_D1424", // 264
     .bgmID = 0X00020005,
     .miniMapID = 0X19000253,
-    .mapSwitchList
+    .switchList
     {
         {.x = 49, .y = 356, .w = 1, .h = 1, .endName = u8"西部石矿3层_D1423", .endX = 100, .endY = 45},
         {.x = 376, .y = 61, .w = 1, .h = 1, .endName = u8"西部石矿5层_D1425", .endX = 86, .endY = 365},
@@ -2301,7 +2301,7 @@
 {   .name = u8"西部石矿5层_D1425", // 265
     .bgmID = 0X00020005,
     .miniMapID = 0X19000254,
-    .mapSwitchList
+    .switchList
     {
         {.x = 85, .y = 366, .w = 1, .h = 1, .endName = u8"西部石矿4层_D1424", .endX = 375, .endY = 62},
     }
@@ -2310,7 +2310,7 @@
 {   .name = u8"真天宫地下1层_D1500", // 266
     .bgmID = 0X00020008,
     .miniMapID = 0X19000260,
-    .mapSwitchList
+    .switchList
     {
         {.x = 171, .y = 225, .w = 1, .h = 1, .endName = u8"失乐园_9", .endX = 387, .endY = 306},
         {.x = 172, .y = 226, .w = 1, .h = 1, .endName = u8"失乐园_9", .endX = 387, .endY = 306},
@@ -2327,7 +2327,7 @@
 {   .name = u8"真天宫西馆1层_D15011", // 267
     .bgmID = 0X00020008,
     .miniMapID = 0X19000261,
-    .mapSwitchList
+    .switchList
     {
         {.x = 268, .y = 92, .w = 1, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 16, .endY = 46},
         {.x = 269, .y = 91, .w = 1, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 16, .endY = 46},
@@ -2339,7 +2339,7 @@
 {   .name = u8"真天宫南馆1层_D15012", // 268
     .bgmID = 0X00020008,
     .miniMapID = 0X19000262,
-    .mapSwitchList
+    .switchList
     {
         {.x = 241, .y = 26, .w = 2, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 28, .endY = 368},
     }
@@ -2348,7 +2348,7 @@
 {   .name = u8"真天宫东馆1层_D15013", // 269
     .bgmID = 0X00020008,
     .miniMapID = 0X19000263,
-    .mapSwitchList
+    .switchList
     {
         {.x = 39, .y = 37, .w = 2, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 351, .endY = 380},
         {.x = 149, .y = 152, .w = 2, .h = 1, .endName = u8"真天宫东馆2层_D15023", .endX = 160, .endY = 152},
@@ -2358,7 +2358,7 @@
 {   .name = u8"真天宫北馆1层_D15014", // 270
     .bgmID = 0X00020008,
     .miniMapID = 0X19000264,
-    .mapSwitchList
+    .switchList
     {
         {.x = 118, .y = 199, .w = 1, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 354, .endY = 42},
         {.x = 119, .y = 200, .w = 1, .h = 1, .endName = u8"真天宫地下1层_D1500", .endX = 354, .endY = 42},
@@ -2369,7 +2369,7 @@
 {   .name = u8"真天宫西馆2层_D15021", // 271
     .bgmID = 0X00020008,
     .miniMapID = 0X19000265,
-    .mapSwitchList
+    .switchList
     {
         {.x = 243, .y = 20, .w = 2, .h = 1, .endName = u8"真天宫西馆1层_D15011", .endX = 17, .endY = 275},
         {.x = 119, .y = 262, .w = 1, .h = 1, .endName = u8"真天宫南馆2层_D15022", .endX = 18, .endY = 18},
@@ -2380,7 +2380,7 @@
 {   .name = u8"真天宫南馆2层_D15022", // 272
     .bgmID = 0X00020008,
     .miniMapID = 0X19000266,
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 17, .w = 2, .h = 1, .endName = u8"真天宫西馆2层_D15021", .endX = 119, .endY = 260},
         {.x = 245, .y = 265, .w = 1, .h = 1, .endName = u8"真天宫南馆3层_D15032", .endX = 14, .endY = 19},
@@ -2392,7 +2392,7 @@
 {   .name = u8"真天宫东馆2层_D15023", // 273
     .bgmID = 0X00020008,
     .miniMapID = 0X19000267,
-    .mapSwitchList
+    .switchList
     {
         {.x = 160, .y = 154, .w = 1, .h = 1, .endName = u8"真天宫东馆1层_D15013", .endX = 150, .endY = 153},
         {.x = 161, .y = 153, .w = 1, .h = 1, .endName = u8"真天宫东馆1层_D15013", .endX = 150, .endY = 153},
@@ -2404,7 +2404,7 @@
 {   .name = u8"真天宫北馆2层_D15024", // 274
     .bgmID = 0X00020008,
     .miniMapID = 0X19000268,
-    .mapSwitchList
+    .switchList
     {
         {.x = 121, .y = 133, .w = 1, .h = 1, .endName = u8"真天宫北馆1层_D15014", .endX = 257, .endY = 36},
         {.x = 122, .y = 134, .w = 1, .h = 1, .endName = u8"真天宫北馆1层_D15014", .endX = 257, .endY = 36},
@@ -2416,7 +2416,7 @@
 {   .name = u8"真天宫南馆3层_D15032", // 275
     .bgmID = 0X00020008,
     .miniMapID = 0X19000269,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 18, .w = 2, .h = 1, .endName = u8"真天宫南馆2层_D15022", .endX = 245, .endY = 263},
         {.x = 269, .y = 238, .w = 2, .h = 1, .endName = u8"真天宫东馆3层_D15033", .endX = 66, .endY = 204},
@@ -2426,7 +2426,7 @@
 {   .name = u8"真天宫东馆3层_D15033", // 276
     .bgmID = 0X00020008,
     .miniMapID = 0X19000270,
-    .mapSwitchList
+    .switchList
     {
         {.x = 29, .y = 33, .w = 2, .h = 1, .endName = u8"真天宫东馆2层_D15023", .endX = 258, .endY = 274},
         {.x = 65, .y = 205, .w = 1, .h = 1, .endName = u8"真天宫南馆3层_D15032", .endX = 268, .endY = 239},
@@ -2440,7 +2440,7 @@
 {   .name = u8"真天宫北馆3层_D15034", // 277
     .bgmID = 0X00020008,
     .miniMapID = 0X19000271,
-    .mapSwitchList
+    .switchList
     {
         {.x = 268, .y = 35, .w = 2, .h = 1, .endName = u8"真天宫北馆2层_D15024", .endX = 218, .endY = 284},
     }
@@ -2449,7 +2449,7 @@
 {   .name = u8"真天宫北馆4层_D15043", // 278
     .bgmID = 0X00020008,
     .miniMapID = 0X19000272,
-    .mapSwitchList
+    .switchList
     {
         {.x = 11, .y = 19, .w = 2, .h = 1, .endName = u8"真天宫东馆3层_D15033", .endX = 285, .endY = 288},
         {.x = 255, .y = 259, .w = 2, .h = 1, .endName = u8"真天宫北馆4层_D15044", .endX = 22, .endY = 267},
@@ -2459,7 +2459,7 @@
 {   .name = u8"真天宫北馆4层_D15044", // 279
     .bgmID = 0X00020008,
     .miniMapID = 0X19000273,
-    .mapSwitchList
+    .switchList
     {
         {.x = 21, .y = 268, .w = 1, .h = 1, .endName = u8"真天宫北馆4层_D15043", .endX = 254, .endY = 260},
         {.x = 22, .y = 269, .w = 1, .h = 1, .endName = u8"真天宫北馆4层_D15043", .endX = 254, .endY = 260},
@@ -2470,7 +2470,7 @@
 {   .name = u8"真天宫北馆5层_D15054", // 280
     .bgmID = 0X00020008,
     .miniMapID = 0X19000274,
-    .mapSwitchList
+    .switchList
     {
         {.x = 181, .y = 185, .w = 1, .h = 1, .endName = u8"真天宫北馆4层_D15044", .endX = 246, .endY = 21},
         {.x = 182, .y = 184, .w = 1, .h = 1, .endName = u8"真天宫北馆4层_D15044", .endX = 246, .endY = 21},
@@ -2480,7 +2480,7 @@
 
 {   .name = u8"真天宫_D1506", // 281
     .bgmID = 0X00020008,
-    .mapSwitchList
+    .switchList
     {
         {.x = 45, .y = 64, .w = 1, .h = 1, .endName = u8"真天宫北馆5层_D15054", .endX = 286, .endY = 289},
     }
@@ -2489,7 +2489,7 @@
 {   .name = u8"黑度宫1层_D1510", // 282
     .bgmID = 0X00020008,
     .miniMapID = 0X19000280,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 46, .w = 1, .h = 1, .endName = u8"失乐园_9", .endX = 207, .endY = 92},
         {.x = 14, .y = 47, .w = 1, .h = 1, .endName = u8"失乐园_9", .endX = 207, .endY = 92},
@@ -2503,7 +2503,7 @@
 {   .name = u8"黑度宫2层_D15111", // 283
     .bgmID = 0X00020008,
     .miniMapID = 0X19000281,
-    .mapSwitchList
+    .switchList
     {
         {.x = 179, .y = 33, .w = 2, .h = 1, .endName = u8"黑度宫1层_D1510", .endX = 10, .endY = 171},
         {.x = 31, .y = 186, .w = 1, .h = 1, .endName = u8"黑度宫3层_D1512", .endX = 38, .endY = 23},
@@ -2514,7 +2514,7 @@
 {   .name = u8"黑度宫2层_D15112", // 284
     .bgmID = 0X00020008,
     .miniMapID = 0X19000282,
-    .mapSwitchList
+    .switchList
     {
         {.x = 94, .y = 58, .w = 2, .h = 1, .endName = u8"黑度宫1层_D1510", .endX = 189, .endY = 186},
         {.x = 30, .y = 181, .w = 1, .h = 1, .endName = u8"黑度宫3层_D1512", .endX = 186, .endY = 19},
@@ -2525,7 +2525,7 @@
 {   .name = u8"黑度宫3层_D1512", // 285
     .bgmID = 0X00020008,
     .miniMapID = 0X19000283,
-    .mapSwitchList
+    .switchList
     {
         {.x = 183, .y = 170, .w = 1, .h = 1, .endName = u8"真天宫南馆2层_D15022", .endX = 166, .endY = 63},
         {.x = 184, .y = 169, .w = 1, .h = 1, .endName = u8"真天宫南馆2层_D15022", .endX = 166, .endY = 63},
@@ -2539,7 +2539,7 @@
 {   .name = u8"黑度宫4层_D1513", // 286
     .bgmID = 0X00020008,
     .miniMapID = 0X19000284,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 124, .w = 1, .h = 1, .endName = u8"真天宫东馆3层_D15033", .endX = 280, .endY = 54},
         {.x = 14, .y = 125, .w = 1, .h = 1, .endName = u8"真天宫东馆3层_D15033", .endX = 280, .endY = 54},
@@ -2549,7 +2549,7 @@
 
 {   .name = u8"诺玛遗址1层_D1601", // 287
     .miniMapID = 0X19000300,
-    .mapSwitchList
+    .switchList
     {
         {.x = 39, .y = 148, .w = 1, .h = 2, .endName = u8"诺玛村庄_41", .endX = 116, .endY = 72},
         {.x = 91, .y = 345, .w = 1, .h = 1, .endName = u8"诺玛村庄_41", .endX = 140, .endY = 138},
@@ -2563,7 +2563,7 @@
 
 {   .name = u8"诺玛遗址2层_D1602", // 288
     .miniMapID = 0X19000301,
-    .mapSwitchList
+    .switchList
     {
         {.x = 195, .y = 198, .w = 1, .h = 2, .endName = u8"诺玛遗址1层_D1601", .endX = 208, .endY = 201},
         {.x = 383, .y = 204, .w = 1, .h = 2, .endName = u8"诺玛遗址3层_D16031", .endX = 357, .endY = 368},
@@ -2575,7 +2575,7 @@
 
 {   .name = u8"诺玛遗址3层_D16031", // 289
     .miniMapID = 0X19000302,
-    .mapSwitchList
+    .switchList
     {
         {.x = 356, .y = 367, .w = 1, .h = 2, .endName = u8"诺玛遗址2层_D1602", .endX = 382, .endY = 204},
         {.x = 199, .y = 219, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 190, .endY = 177},
@@ -2584,7 +2584,7 @@
 
 {   .name = u8"诺玛遗址3层_D16032", // 290
     .miniMapID = 0X19000303,
-    .mapSwitchList
+    .switchList
     {
         {.x = 340, .y = 78, .w = 1, .h = 2, .endName = u8"诺玛遗址2层_D1602", .endX = 198, .endY = 15},
         {.x = 200, .y = 216, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 191, .endY = 186},
@@ -2593,7 +2593,7 @@
 
 {   .name = u8"诺玛遗址3层_D16033", // 291
     .miniMapID = 0X19000304,
-    .mapSwitchList
+    .switchList
     {
         {.x = 43, .y = 54, .w = 1, .h = 2, .endName = u8"诺玛遗址2层_D1602", .endX = 13, .endY = 195},
         {.x = 198, .y = 217, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 199, .endY = 185},
@@ -2602,7 +2602,7 @@
 
 {   .name = u8"诺玛遗址3层_D16034", // 292
     .miniMapID = 0X19000305,
-    .mapSwitchList
+    .switchList
     {
         {.x = 63, .y = 355, .w = 1, .h = 2, .endName = u8"诺玛遗址2层_D1602", .endX = 189, .endY = 384},
         {.x = 199, .y = 217, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 200, .endY = 176},
@@ -2611,7 +2611,7 @@
 
 {   .name = u8"诺玛遗址4层_D1604", // 293
     .miniMapID = 0X19000306,
-    .mapSwitchList
+    .switchList
     {
         {.x = 191, .y = 177, .w = 2, .h = 1, .endName = u8"诺玛遗址3层_D16031", .endX = 200, .endY = 220},
         {.x = 192, .y = 184, .w = 1, .h = 2, .endName = u8"诺玛遗址3层_D16032", .endX = 201, .endY = 216},
@@ -2764,7 +2764,7 @@
 
 {   .name = u8"诺玛遗址5层_D1605", // 294
     .miniMapID = 0X19000307,
-    .mapSwitchList
+    .switchList
     {
         {.x = 88, .y = 158, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 335, .endY = 198},
         {.x = 112, .y = 95, .w = 1, .h = 2, .endName = u8"诺玛遗址4层_D1604", .endX = 190, .endY = 177},
@@ -2976,7 +2976,7 @@
 },
 
 {   .name = u8"诺玛勇士墓穴_D1606", // 295
-    .mapSwitchList
+    .switchList
     {
         {.x = 38, .y = 50, .w = 1, .h = 1, .endName = u8"诺玛遗址5层_D1605", .endX = 327, .endY = 213},
     }
@@ -3010,7 +3010,7 @@
 {   .name = u8"废矿矿山入口_D401", // 303
     .bgmID = 0X00020004,
     .miniMapID = 0X19000010,
-    .mapSwitchList
+    .switchList
     {
         {.x = 24, .y = 182, .w = 1, .h = 1, .endName = u8"比奇县_0", .endX = 763, .endY = 207},
         {.x = 80, .y = 172, .w = 1, .h = 1, .endName = u8"尸王房_D401_001", .endX = 15, .endY = 15},
@@ -3029,7 +3029,7 @@
 {   .name = u8"废矿东部洞穴_D402", // 305
     .bgmID = 0X00020004,
     .miniMapID = 0X19000011,
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 105, .w = 1, .h = 1, .endName = u8"尸王房_D402_001", .endX = 15, .endY = 15},
         {.x = 27, .y = 116, .w = 1, .h = 1, .endName = u8"尸王房_D402_001", .endX = 15, .endY = 15},
@@ -3047,7 +3047,7 @@
 {   .name = u8"地下1层采矿所_D403", // 307
     .bgmID = 0X00020004,
     .miniMapID = 0X19000012,
-    .mapSwitchList
+    .switchList
     {
         {.x = 28, .y = 144, .w = 1, .h = 1, .endName = u8"尸王房_D403_001", .endX = 15, .endY = 15},
         {.x = 86, .y = 118, .w = 1, .h = 1, .endName = u8"尸王房_D403_001", .endX = 15, .endY = 15},
@@ -3065,7 +3065,7 @@
 {   .name = u8"地下2层采矿所_D404", // 309
     .bgmID = 0X00020004,
     .miniMapID = 0X19000013,
-    .mapSwitchList
+    .switchList
     {
         {.x = 78, .y = 80, .w = 1, .h = 1, .endName = u8"尸王房_D404_001", .endX = 15, .endY = 15},
         {.x = 78, .y = 152, .w = 1, .h = 1, .endName = u8"尸王房_D404_001", .endX = 15, .endY = 15},
@@ -3083,7 +3083,7 @@
 },
 
 {   .name = u8"废矿矿山地下2层_D404_002", // 311
-    .mapSwitchList
+    .switchList
     {
         {.x = 3, .y = 12, .w = 1, .h = 1, .endName = u8"地下2层采矿所_D404", .endX = 54, .endY = 128},
     }
@@ -3092,7 +3092,7 @@
 {   .name = u8"矿石储藏所_D405", // 312
     .bgmID = 0X00020004,
     .miniMapID = 0X19000014,
-    .mapSwitchList
+    .switchList
     {
         {.x = 69, .y = 95, .w = 1, .h = 1, .endName = u8"尸王房_D405_001", .endX = 15, .endY = 15},
         {.x = 80, .y = 153, .w = 1, .h = 1, .endName = u8"尸王房_D405_001", .endX = 15, .endY = 15},
@@ -3110,7 +3110,7 @@
 {   .name = u8"废矿南部洞穴_D406", // 314
     .bgmID = 0X00020004,
     .miniMapID = 0X19000015,
-    .mapSwitchList
+    .switchList
     {
         {.x = 79, .y = 72, .w = 1, .h = 1, .endName = u8"尸王房_D406_001", .endX = 15, .endY = 15},
         {.x = 85, .y = 60, .w = 1, .h = 1, .endName = u8"尸王房_D406_001", .endX = 15, .endY = 15},
@@ -3128,7 +3128,7 @@
 {   .name = u8"地下1层第一间房_D411", // 316
     .bgmID = 0X00020004,
     .miniMapID = 0X19000016,
-    .mapSwitchList
+    .switchList
     {
         {.x = 60, .y = 7, .w = 1, .h = 1, .endName = u8"废矿矿山入口_D401", .endX = 77, .endY = 14},
         {.x = 95, .y = 49, .w = 1, .h = 1, .endName = u8"废矿南部洞穴_D406", .endX = 24, .endY = 16},
@@ -3138,7 +3138,7 @@
 {   .name = u8"天桥2_D412", // 317
     .bgmID = 0X00020004,
     .miniMapID = 0X19000017,
-    .mapSwitchList
+    .switchList
     {
         {.x = 54, .y = 23, .w = 1, .h = 1, .endName = u8"地下1层采矿所_D403", .endX = 120, .endY = 190},
         {.x = 53, .y = 52, .w = 1, .h = 1, .endName = u8"地下2层采矿所_D404", .endX = 130, .endY = 42},
@@ -3148,7 +3148,7 @@
 {   .name = u8"地下1层第二间房_D413", // 318
     .bgmID = 0X00020004,
     .miniMapID = 0X19000018,
-    .mapSwitchList
+    .switchList
     {
         {.x = 10, .y = 7, .w = 1, .h = 1, .endName = u8"废矿矿山入口_D401", .endX = 179, .endY = 108},
         {.x = 86, .y = 9, .w = 1, .h = 1, .endName = u8"废矿东部洞穴_D402", .endX = 9, .endY = 146},
@@ -3158,7 +3158,7 @@
 {   .name = u8"地下1层第三间房_D414", // 319
     .bgmID = 0X00020004,
     .miniMapID = 0X19000019,
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 79, .w = 1, .h = 1, .endName = u8"废矿东部洞穴_D402", .endX = 194, .endY = 82},
         {.x = 71, .y = 19, .w = 1, .h = 1, .endName = u8"地下1层采矿所_D403", .endX = 11, .endY = 105},
@@ -3168,7 +3168,7 @@
 {   .name = u8"天桥1_D415", // 320
     .bgmID = 0X00020004,
     .miniMapID = 0X19000020,
-    .mapSwitchList
+    .switchList
     {
         {.x = 84, .y = 16, .w = 1, .h = 1, .endName = u8"矿石储藏所_D405", .endX = 12, .endY = 147},
         {.x = 8, .y = 86, .w = 1, .h = 1, .endName = u8"废矿南部洞穴_D406", .endX = 185, .endY = 120},
@@ -3178,7 +3178,7 @@
 {   .name = u8"天桥3_D416", // 321
     .bgmID = 0X00020004,
     .miniMapID = 0X19000021,
-    .mapSwitchList
+    .switchList
     {
         {.x = 90, .y = 16, .w = 1, .h = 1, .endName = u8"地下2层采矿所_D404", .endX = 10, .endY = 151},
         {.x = 6, .y = 54, .w = 1, .h = 1, .endName = u8"矿石储藏所_D405", .endX = 165, .endY = 137},
@@ -3191,7 +3191,7 @@
 {   .name = u8"矿山1层_D421", // 323
     .bgmID = 0X00020005,
     .miniMapID = 0X19000022,
-    .mapSwitchList
+    .switchList
     {
         {.x = 30, .y = 375, .w = 1, .h = 1, .endName = u8"毒蛇山谷_2", .endX = 365, .endY = 201},
         {.x = 80, .y = 202, .w = 1, .h = 1, .endName = u8"未命名地图_D421_001", .endX = 15, .endY = 15},
@@ -3209,7 +3209,7 @@
 {   .name = u8"矿山2层_D422", // 325
     .bgmID = 0X00020005,
     .miniMapID = 0X19000023,
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 42, .w = 1, .h = 1, .endName = u8"矿山1层_D421", .endX = 361, .endY = 20},
         {.x = 128, .y = 101, .w = 1, .h = 1, .endName = u8"未命名地图_D422_001", .endX = 15, .endY = 15},
@@ -3226,7 +3226,7 @@
 },
 
 {   .name = u8"矿山2层_D422_002", // 327
-    .mapSwitchList
+    .switchList
     {
         {.x = 31, .y = 8, .w = 1, .h = 1, .endName = u8"矿山2层_D422", .endX = 168, .endY = 189},
     }
@@ -3238,7 +3238,7 @@
 {   .name = u8"北部矿山入口_D431", // 329
     .bgmID = 0X00020004,
     .miniMapID = 0X19000010,
-    .mapSwitchList
+    .switchList
     {
         {.x = 24, .y = 182, .w = 1, .h = 1, .endName = u8"毒蛇山谷_2", .endX = 341, .endY = 138},
         {.x = 80, .y = 172, .w = 1, .h = 1, .endName = u8"尸王房_D431_001", .endX = 15, .endY = 15},
@@ -3254,7 +3254,7 @@
 {   .name = u8"南部矿山_D431", // 330
     .bgmID = 0X00020004,
     .miniMapID = 0X19000010,
-    .mapSwitchList
+    .switchList
     {
         {.x = 24, .y = 182, .w = 1, .h = 1, .endName = u8"毒蛇山谷_2", .endX = 341, .endY = 138},
         {.x = 80, .y = 172, .w = 1, .h = 1, .endName = u8"尸王房_D431_001", .endX = 15, .endY = 15},
@@ -3273,7 +3273,7 @@
 {   .name = u8"北部矿山_D432", // 332
     .bgmID = 0X00020004,
     .miniMapID = 0X19000011,
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 105, .w = 1, .h = 1, .endName = u8"尸王房_D432_001", .endX = 15, .endY = 15},
         {.x = 27, .y = 116, .w = 1, .h = 1, .endName = u8"尸王房_D432_001", .endX = 15, .endY = 15},
@@ -3288,7 +3288,7 @@
 {   .name = u8"北部矿山东面洞穴_D432", // 333
     .bgmID = 0X00020004,
     .miniMapID = 0X19000011,
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 105, .w = 1, .h = 1, .endName = u8"尸王房_D432_001", .endX = 15, .endY = 15},
         {.x = 27, .y = 116, .w = 1, .h = 1, .endName = u8"尸王房_D432_001", .endX = 15, .endY = 15},
@@ -3306,7 +3306,7 @@
 {   .name = u8"北部地下1层采矿所_D433", // 335
     .bgmID = 0X00020004,
     .miniMapID = 0X19000012,
-    .mapSwitchList
+    .switchList
     {
         {.x = 28, .y = 144, .w = 1, .h = 1, .endName = u8"尸王房_D433_001", .endX = 15, .endY = 15},
         {.x = 86, .y = 118, .w = 1, .h = 1, .endName = u8"尸王房_D433_001", .endX = 15, .endY = 15},
@@ -3324,7 +3324,7 @@
 {   .name = u8"北部地下2层采矿所_D434", // 337
     .bgmID = 0X00020004,
     .miniMapID = 0X19000013,
-    .mapSwitchList
+    .switchList
     {
         {.x = 78, .y = 80, .w = 1, .h = 1, .endName = u8"尸王房_D434_001", .endX = 15, .endY = 15},
         {.x = 78, .y = 152, .w = 1, .h = 1, .endName = u8"尸王房_D434_001", .endX = 15, .endY = 15},
@@ -3345,7 +3345,7 @@
 {   .name = u8"北部矿石储藏所_D435", // 340
     .bgmID = 0X00020004,
     .miniMapID = 0X19000014,
-    .mapSwitchList
+    .switchList
     {
         {.x = 69, .y = 95, .w = 1, .h = 1, .endName = u8"尸王房_D435_001", .endX = 15, .endY = 15},
         {.x = 80, .y = 153, .w = 1, .h = 1, .endName = u8"尸王房_D435_001", .endX = 15, .endY = 15},
@@ -3363,7 +3363,7 @@
 {   .name = u8"北部废矿南面洞穴_D436", // 342
     .bgmID = 0X00020004,
     .miniMapID = 0X19000015,
-    .mapSwitchList
+    .switchList
     {
         {.x = 79, .y = 72, .w = 1, .h = 1, .endName = u8"尸王房_D436_001", .endX = 15, .endY = 15},
         {.x = 85, .y = 60, .w = 1, .h = 1, .endName = u8"尸王房_D436_001", .endX = 15, .endY = 15},
@@ -3381,7 +3381,7 @@
 {   .name = u8"北部地下1层第一间房_D441", // 344
     .bgmID = 0X00020004,
     .miniMapID = 0X19000016,
-    .mapSwitchList
+    .switchList
     {
         {.x = 60, .y = 7, .w = 1, .h = 1, .endName = u8"南部矿山_D431", .endX = 77, .endY = 14},
         {.x = 95, .y = 49, .w = 1, .h = 1, .endName = u8"北部废矿南面洞穴_D436", .endX = 24, .endY = 16},
@@ -3391,7 +3391,7 @@
 {   .name = u8"北部天桥2_D442", // 345
     .bgmID = 0X00020004,
     .miniMapID = 0X19000017,
-    .mapSwitchList
+    .switchList
     {
         {.x = 54, .y = 23, .w = 1, .h = 1, .endName = u8"北部地下1层采矿所_D433", .endX = 120, .endY = 190},
         {.x = 53, .y = 52, .w = 1, .h = 1, .endName = u8"北部地下2层采矿所_D434", .endX = 130, .endY = 42},
@@ -3401,7 +3401,7 @@
 {   .name = u8"北部地下1层第二间房_D443", // 346
     .bgmID = 0X00020004,
     .miniMapID = 0X19000018,
-    .mapSwitchList
+    .switchList
     {
         {.x = 10, .y = 7, .w = 1, .h = 1, .endName = u8"南部矿山_D431", .endX = 179, .endY = 108},
         {.x = 86, .y = 9, .w = 1, .h = 1, .endName = u8"北部矿山_D432", .endX = 9, .endY = 146},
@@ -3411,7 +3411,7 @@
 {   .name = u8"北部地下1层第三间房_D444", // 347
     .bgmID = 0X00020004,
     .miniMapID = 0X19000019,
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 79, .w = 1, .h = 1, .endName = u8"北部矿山_D432", .endX = 194, .endY = 82},
         {.x = 71, .y = 19, .w = 1, .h = 1, .endName = u8"北部地下1层采矿所_D433", .endX = 11, .endY = 105},
@@ -3421,7 +3421,7 @@
 {   .name = u8"北部天桥1_D445", // 348
     .bgmID = 0X00020004,
     .miniMapID = 0X19000020,
-    .mapSwitchList
+    .switchList
     {
         {.x = 84, .y = 16, .w = 1, .h = 1, .endName = u8"北部矿石储藏所_D435", .endX = 12, .endY = 147},
         {.x = 8, .y = 86, .w = 1, .h = 1, .endName = u8"北部废矿南面洞穴_D436", .endX = 185, .endY = 120},
@@ -3431,7 +3431,7 @@
 {   .name = u8"北部天桥3_D446", // 349
     .bgmID = 0X00020004,
     .miniMapID = 0X19000021,
-    .mapSwitchList
+    .switchList
     {
         {.x = 90, .y = 16, .w = 1, .h = 1, .endName = u8"北部地下2层采矿所_D434", .endX = 10, .endY = 151},
         {.x = 6, .y = 54, .w = 1, .h = 1, .endName = u8"北部矿石储藏所_D435", .endX = 165, .endY = 137},
@@ -3441,7 +3441,7 @@
 {   .name = u8"南部矿山1层_D451", // 350
     .bgmID = 0X00020005,
     .miniMapID = 0X19000022,
-    .mapSwitchList
+    .switchList
     {
         {.x = 30, .y = 375, .w = 1, .h = 1, .endName = u8"毒蛇山谷_2", .endX = 349, .endY = 262},
         {.x = 80, .y = 202, .w = 1, .h = 1, .endName = u8"尸王房_D451_001", .endX = 15, .endY = 15},
@@ -3459,7 +3459,7 @@
 {   .name = u8"南部矿山2层_D452", // 352
     .bgmID = 0X00020005,
     .miniMapID = 0X19000024,
-    .mapSwitchList
+    .switchList
     {
         {.x = 22, .y = 42, .w = 1, .h = 1, .endName = u8"南部矿山1层_D451", .endX = 361, .endY = 20},
         {.x = 128, .y = 101, .w = 1, .h = 1, .endName = u8"尸王房_D452_001", .endX = 15, .endY = 15},
@@ -3476,7 +3476,7 @@
 {   .name = u8"祖玛神殿1层_D501", // 354
     .bgmID = 0X00020006,
     .miniMapID = 0X19000030,
-    .mapSwitchList
+    .switchList
     {
         {.x = 165, .y = 217, .w = 1, .h = 1, .endName = u8"祖玛神殿大厅_0157", .endX = 19, .endY = 16},
         {.x = 350, .y = 170, .w = 1, .h = 1, .endName = u8"祖玛神殿2层_D502", .endX = 166, .endY = 216},
@@ -3488,7 +3488,7 @@
 {   .name = u8"祖玛神殿2层_D502", // 355
     .bgmID = 0X00020006,
     .miniMapID = 0X19000031,
-    .mapSwitchList
+    .switchList
     {
         {.x = 165, .y = 217, .w = 1, .h = 1, .endName = u8"祖玛神殿1层_D501", .endX = 350, .endY = 171},
         {.x = 112, .y = 231, .w = 1, .h = 1, .endName = u8"祖玛神殿3层_D503", .endX = 166, .endY = 216},
@@ -3500,7 +3500,7 @@
 {   .name = u8"祖玛神殿3层_D503", // 356
     .bgmID = 0X00020006,
     .miniMapID = 0X19000032,
-    .mapSwitchList
+    .switchList
     {
         {.x = 165, .y = 217, .w = 1, .h = 1, .endName = u8"祖玛神殿2层_D502", .endX = 112, .endY = 232},
         {.x = 295, .y = 146, .w = 1, .h = 1, .endName = u8"祖玛神殿4层_D504", .endX = 166, .endY = 216},
@@ -3510,7 +3510,7 @@
 {   .name = u8"祖玛神殿4层_D504", // 357
     .bgmID = 0X00020006,
     .miniMapID = 0X19000033,
-    .mapSwitchList
+    .switchList
     {
         {.x = 165, .y = 217, .w = 1, .h = 1, .endName = u8"祖玛神殿3层_D503", .endX = 295, .endY = 147},
         {.x = 51, .y = 173, .w = 1, .h = 1, .endName = u8"祖玛神殿5层_D505", .endX = 96, .endY = 101},
@@ -3520,7 +3520,7 @@
 {   .name = u8"祖玛神殿5层_D505", // 358
     .bgmID = 0X00020006,
     .miniMapID = 0X19000034,
-    .mapSwitchList
+    .switchList
     {
         {.x = 95, .y = 102, .w = 1, .h = 1, .endName = u8"祖玛神殿4层_D504", .endX = 52, .endY = 174},
         {.x = 123, .y = 10, .w = 1, .h = 1, .endName = u8"祖玛神殿6层大厅_D5071", .endX = 8, .endY = 10},
@@ -3566,7 +3566,7 @@
 {   .name = u8"祖玛神殿6层大厅_D5071", // 368
     .bgmID = 0X00020006,
     .miniMapID = 0X19000035,
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 9, .w = 1, .h = 1, .endName = u8"祖玛神殿5层_D505", .endX = 122, .endY = 11},
         {.x = 39, .y = 43, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5072", .endX = 7, .endY = 51},
@@ -3576,7 +3576,7 @@
 {   .name = u8"祖玛神殿6层_D5072", // 369
     .bgmID = 0X00020006,
     .miniMapID = 0X19000036,
-    .mapSwitchList
+    .switchList
     {
         {.x = 6, .y = 50, .w = 1, .h = 1, .endName = u8"祖玛神殿6层大厅_D5071", .endX = 38, .endY = 42},
         {.x = 90, .y = 20, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5073", .endX = 10, .endY = 69},
@@ -3586,7 +3586,7 @@
 {   .name = u8"祖玛神殿6层_D5073", // 370
     .bgmID = 0X00020006,
     .miniMapID = 0X19000037,
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 70, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5072", .endX = 89, .endY = 21},
         {.x = 60, .y = 9, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5074", .endX = 47, .endY = 90},
@@ -3596,7 +3596,7 @@
 {   .name = u8"祖玛神殿6层_D5074", // 371
     .bgmID = 0X00020006,
     .miniMapID = 0X19000038,
-    .mapSwitchList
+    .switchList
     {
         {.x = 48, .y = 91, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5073", .endX = 59, .endY = 10},
         {.x = 77, .y = 15, .w = 1, .h = 1, .endName = u8"祖玛教主宫廷_D515", .endX = 14, .endY = 31},
@@ -3604,28 +3604,28 @@
 },
 
 {   .name = u8"祖玛神殿_D511", // 372
-    .mapSwitchList
+    .switchList
     {
         {.x = 29, .y = 22, .w = 1, .h = 1, .endName = u8"祖玛神殿1层_D501", .endX = 303, .endY = 75},
     }
 },
 
 {   .name = u8"祖玛神殿_D512", // 373
-    .mapSwitchList
+    .switchList
     {
         {.x = 19, .y = 11, .w = 1, .h = 1, .endName = u8"祖玛神殿1层_D501", .endX = 325, .endY = 96},
     }
 },
 
 {   .name = u8"祖玛神殿_D513", // 374
-    .mapSwitchList
+    .switchList
     {
         {.x = 29, .y = 22, .w = 1, .h = 1, .endName = u8"祖玛神殿2层_D502", .endX = 303, .endY = 75},
     }
 },
 
 {   .name = u8"祖玛神殿_D514", // 375
-    .mapSwitchList
+    .switchList
     {
         {.x = 19, .y = 11, .w = 1, .h = 1, .endName = u8"祖玛神殿2层_D502", .endX = 325, .endY = 96},
     }
@@ -3633,7 +3633,7 @@
 
 {   .name = u8"祖玛教主宫廷_D515", // 376
     .bgmID = 0X00020006,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 32, .w = 1, .h = 1, .endName = u8"祖玛神殿6层_D5074", .endX = 76, .endY = 16},
     }
@@ -3642,7 +3642,7 @@
 {   .name = u8"绝命谷1层南部_D60011", // 377
     .bgmID = 0X00020007,
     .miniMapID = 0X19000040,
-    .mapSwitchList
+    .switchList
     {
         {.x = 208, .y = 238, .w = 1, .h = 1, .endName = u8"盟重县_74", .endX = 335, .endY = 73},
         {.x = 52, .y = 14, .w = 1, .h = 1, .endName = u8"石灯屋_D603", .endX = 17, .endY = 27},
@@ -3653,7 +3653,7 @@
 {   .name = u8"绝命谷1层西部_D60012", // 378
     .bgmID = 0X00020007,
     .miniMapID = 0X19000041,
-    .mapSwitchList
+    .switchList
     {
         {.x = 45, .y = 22, .w = 1, .h = 1, .endName = u8"绝命谷2层北部_D60022", .endX = 172, .endY = 61},
         {.x = 110, .y = 86, .w = 1, .h = 1, .endName = u8"石灯屋_D603", .endX = 31, .endY = 9},
@@ -3663,7 +3663,7 @@
 
 {   .name = u8"绝命谷1层北部_D60013", // 379
     .miniMapID = 0X19000042,
-    .mapSwitchList
+    .switchList
     {
         {.x = 41, .y = 194, .w = 1, .h = 1, .endName = u8"紫水晶洞_D604", .endX = 19, .endY = 23},
         {.x = 81, .y = 81, .w = 1, .h = 1, .endName = u8"奇岩石屋_D606", .endX = 29, .endY = 16},
@@ -3674,7 +3674,7 @@
 {   .name = u8"绝命谷2层西部_D60021", // 380
     .bgmID = 0X00020007,
     .miniMapID = 0X19000043,
-    .mapSwitchList
+    .switchList
     {
         {.x = 149, .y = 132, .w = 1, .h = 1, .endName = u8"紫水晶洞_D604", .endX = 18, .endY = 32},
         {.x = 155, .y = 36, .w = 1, .h = 1, .endName = u8"奇岩通路_D607", .endX = 33, .endY = 70},
@@ -3684,7 +3684,7 @@
 {   .name = u8"绝命谷2层北部_D60022", // 381
     .bgmID = 0X00020007,
     .miniMapID = 0X19000044,
-    .mapSwitchList
+    .switchList
     {
         {.x = 173, .y = 60, .w = 1, .h = 1, .endName = u8"绝命谷1层西部_D60012", .endX = 46, .endY = 23},
         {.x = 42, .y = 19, .w = 1, .h = 1, .endName = u8"紫水晶洞_D604", .endX = 31, .endY = 31},
@@ -3698,7 +3698,7 @@
 {   .name = u8"绝命谷3层_D6004", // 383
     .bgmID = 0X00020007,
     .miniMapID = 0X19000045,
-    .mapSwitchList
+    .switchList
     {
         {.x = 39, .y = 266, .w = 1, .h = 2, .endName = u8"蜈蚣洞穴_1_020", .endX = 184, .endY = 20},
         {.x = 40, .y = 267, .w = 1, .h = 1, .endName = u8"蜈蚣洞穴_1_020", .endX = 184, .endY = 20},
@@ -3709,7 +3709,7 @@
 {   .name = u8"万年谷_D6011", // 384
     .bgmID = 0X00020007,
     .miniMapID = 0X19000050,
-    .mapSwitchList
+    .switchList
     {
         {.x = 160, .y = 169, .w = 1, .h = 1, .endName = u8"盟重县_74", .endX = 78, .endY = 229},
         {.x = 29, .y = 32, .w = 1, .h = 1, .endName = u8"万年原谷_D6012", .endX = 12, .endY = 16},
@@ -3719,7 +3719,7 @@
 {   .name = u8"万年原谷_D6012", // 385
     .bgmID = 0X00020007,
     .miniMapID = 0X19000051,
-    .mapSwitchList
+    .switchList
     {
         {.x = 11, .y = 15, .w = 1, .h = 1, .endName = u8"万年谷_D6011", .endX = 30, .endY = 33},
         {.x = 202, .y = 187, .w = 1, .h = 1, .endName = u8"万年谷中部_D60131", .endX = 9, .endY = 51},
@@ -3732,7 +3732,7 @@
 {   .name = u8"万年谷中部_D60131", // 386
     .bgmID = 0X00020007,
     .miniMapID = 0X19000052,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 50, .w = 1, .h = 1, .endName = u8"万年原谷_D6012", .endX = 203, .endY = 188},
         {.x = 12, .y = 13, .w = 1, .h = 1, .endName = u8"万年独孤关_D6014", .endX = 150, .endY = 66},
@@ -3742,7 +3742,7 @@
 {   .name = u8"万年谷南部_D60132", // 387
     .bgmID = 0X00020007,
     .miniMapID = 0X19000053,
-    .mapSwitchList
+    .switchList
     {
         {.x = 69, .y = 65, .w = 1, .h = 1, .endName = u8"万年原谷_D6012", .endX = 10, .endY = 183},
         {.x = 13, .y = 19, .w = 1, .h = 1, .endName = u8"万年谷西部_D60133", .endX = 63, .endY = 83},
@@ -3752,7 +3752,7 @@
 {   .name = u8"万年谷西部_D60133", // 388
     .bgmID = 0X00020007,
     .miniMapID = 0X19000054,
-    .mapSwitchList
+    .switchList
     {
         {.x = 64, .y = 82, .w = 1, .h = 1, .endName = u8"万年谷南部_D60132", .endX = 14, .endY = 20},
         {.x = 88, .y = 75, .w = 1, .h = 1, .endName = u8"万年独孤关_D6014", .endX = 14, .endY = 84},
@@ -3762,7 +3762,7 @@
 {   .name = u8"万年谷北部_D60134", // 389
     .bgmID = 0X00020007,
     .miniMapID = 0X19000055,
-    .mapSwitchList
+    .switchList
     {
         {.x = 26, .y = 16, .w = 1, .h = 1, .endName = u8"万年原谷_D6012", .endX = 284, .endY = 233},
         {.x = 86, .y = 17, .w = 1, .h = 1, .endName = u8"万年谷东部_D60135", .endX = 44, .endY = 43},
@@ -3772,7 +3772,7 @@
 {   .name = u8"万年谷东部_D60135", // 390
     .bgmID = 0X00020007,
     .miniMapID = 0X19000056,
-    .mapSwitchList
+    .switchList
     {
         {.x = 43, .y = 42, .w = 1, .h = 1, .endName = u8"万年谷北部_D60134", .endX = 85, .endY = 18},
         {.x = 90, .y = 11, .w = 1, .h = 1, .endName = u8"万年独孤关_D6014", .endX = 52, .endY = 22},
@@ -3782,7 +3782,7 @@
 {   .name = u8"万年独孤关_D6014", // 391
     .bgmID = 0X00020007,
     .miniMapID = 0X19000057,
-    .mapSwitchList
+    .switchList
     {
         {.x = 149, .y = 65, .w = 1, .h = 1, .endName = u8"万年谷中部_D60131", .endX = 13, .endY = 14},
         {.x = 13, .y = 83, .w = 1, .h = 1, .endName = u8"万年谷西部_D60133", .endX = 87, .endY = 76},
@@ -3794,7 +3794,7 @@
 {   .name = u8"生死关_D6015", // 392
     .bgmID = 0X00020007,
     .miniMapID = 0X19000058,
-    .mapSwitchList
+    .switchList
     {
         {.x = 9, .y = 25, .w = 1, .h = 1, .endName = u8"万年独孤关_D6014", .endX = 159, .endY = 171},
     }
@@ -3803,7 +3803,7 @@
 {   .name = u8"虫峡谷1层_D6021", // 393
     .bgmID = 0X00020007,
     .miniMapID = 0X19000060,
-    .mapSwitchList
+    .switchList
     {
         {.x = 41, .y = 168, .w = 1, .h = 1, .endName = u8"盟重县_74", .endX = 130, .endY = 505},
         {.x = 170, .y = 23, .w = 1, .h = 1, .endName = u8"虫峡谷2层_D6022", .endX = 40, .endY = 173},
@@ -3813,7 +3813,7 @@
 {   .name = u8"虫峡谷2层_D6022", // 394
     .bgmID = 0X00020007,
     .miniMapID = 0X19000061,
-    .mapSwitchList
+    .switchList
     {
         {.x = 39, .y = 174, .w = 1, .h = 1, .endName = u8"虫峡谷1层_D6021", .endX = 169, .endY = 24},
         {.x = 148, .y = 31, .w = 1, .h = 1, .endName = u8"虫峡谷3层_D6023", .endX = 80, .endY = 166},
@@ -3823,7 +3823,7 @@
 {   .name = u8"虫峡谷3层_D6023", // 395
     .bgmID = 0X00020007,
     .miniMapID = 0X19000062,
-    .mapSwitchList
+    .switchList
     {
         {.x = 81, .y = 167, .w = 1, .h = 1, .endName = u8"虫峡谷2层_D6022", .endX = 149, .endY = 32},
         {.x = 161, .y = 33, .w = 1, .h = 1, .endName = u8"虫峡谷4层_D6024", .endX = 15, .endY = 191},
@@ -3833,7 +3833,7 @@
 {   .name = u8"虫峡谷4层_D6024", // 396
     .bgmID = 0X00020007,
     .miniMapID = 0X19000063,
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 192, .w = 1, .h = 1, .endName = u8"虫峡谷3层_D6023", .endX = 160, .endY = 34},
         {.x = 247, .y = 105, .w = 1, .h = 1, .endName = u8"虫峡谷5层_D6025", .endX = 218, .endY = 266},
@@ -3843,7 +3843,7 @@
 {   .name = u8"虫峡谷5层_D6025", // 397
     .bgmID = 0X00020007,
     .miniMapID = 0X19000064,
-    .mapSwitchList
+    .switchList
     {
         {.x = 219, .y = 267, .w = 1, .h = 1, .endName = u8"虫峡谷4层_D6024", .endX = 248, .endY = 106},
     }
@@ -3851,7 +3851,7 @@
 
 {   .name = u8"石灯屋_D603", // 398
     .bgmID = 0X00020007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 16, .y = 29, .w = 1, .h = 1, .endName = u8"绝命谷1层南部_D60011", .endX = 52, .endY = 15},
         {.x = 31, .y = 8, .w = 1, .h = 1, .endName = u8"绝命谷1层西部_D60012", .endX = 110, .endY = 87},
@@ -3860,7 +3860,7 @@
 
 {   .name = u8"紫水晶洞_D604", // 399
     .bgmID = 0X00020007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 18, .y = 22, .w = 1, .h = 1, .endName = u8"绝命谷1层北部_D60013", .endX = 40, .endY = 195},
         {.x = 17, .y = 33, .w = 1, .h = 1, .endName = u8"绝命谷2层西部_D60021", .endX = 149, .endY = 133},
@@ -3870,7 +3870,7 @@
 
 {   .name = u8"暗阁泉_D605", // 400
     .bgmID = 0X00020007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 34, .w = 1, .h = 1, .endName = u8"绝命谷2层北部_D60022", .endX = 43, .endY = 125},
         {.x = 22, .y = 13, .w = 1, .h = 1, .endName = u8"万年原谷_D6012", .endX = 200, .endY = 52},
@@ -3880,7 +3880,7 @@
 
 {   .name = u8"奇岩石屋_D606", // 401
     .bgmID = 0X00020007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 30, .y = 30, .w = 1, .h = 1, .endName = u8"绝命谷1层南部_D60011", .endX = 150, .endY = 56},
         {.x = 30, .y = 15, .w = 1, .h = 1, .endName = u8"绝命谷1层北部_D60013", .endX = 81, .endY = 82},
@@ -3891,7 +3891,7 @@
 
 {   .name = u8"奇岩通路_D607", // 402
     .bgmID = 0X00020007,
-    .mapSwitchList
+    .switchList
     {
         {.x = 32, .y = 40, .w = 1, .h = 1, .endName = u8"绝命谷1层西部_D60012", .endX = 177, .endY = 34},
         {.x = 55, .y = 37, .w = 1, .h = 1, .endName = u8"绝命谷1层北部_D60013", .endX = 186, .endY = 81},
@@ -3906,7 +3906,7 @@
 
 {   .name = u8"石阁入口_D7101", // 404
     .bgmID = 0X00020008,
-    .mapSwitchList
+    .switchList
     {
         {.x = 26, .y = 23, .w = 1, .h = 1, .endName = u8"石阁庙_75", .endX = 207, .endY = 67},
         {.x = 25, .y = 21, .w = 1, .h = 1, .endName = u8"石阁1层_D711", .endX = 205, .endY = 198},
@@ -3920,7 +3920,7 @@
 {   .name = u8"石阁1层_D711", // 406
     .bgmID = 0X00020008,
     .miniMapID = 0X19000090,
-    .mapSwitchList
+    .switchList
     {
         {.x = 205, .y = 197, .w = 1, .h = 1, .endName = u8"石阁入口_D7101", .endX = 26, .endY = 20},
         {.x = 364, .y = 229, .w = 1, .h = 1, .endName = u8"石阁2层_D712", .endX = 364, .endY = 226},
@@ -3930,7 +3930,7 @@
 {   .name = u8"石阁2层_D712", // 407
     .bgmID = 0X00020008,
     .miniMapID = 0X19000091,
-    .mapSwitchList
+    .switchList
     {
         {.x = 363, .y = 227, .w = 1, .h = 1, .endName = u8"石阁1层_D711", .endX = 363, .endY = 230},
         {.x = 31, .y = 193, .w = 1, .h = 1, .endName = u8"石阁3层_D713", .endX = 31, .endY = 191},
@@ -3940,7 +3940,7 @@
 {   .name = u8"石阁3层_D713", // 408
     .bgmID = 0X00020008,
     .miniMapID = 0X19000092,
-    .mapSwitchList
+    .switchList
     {
         {.x = 30, .y = 192, .w = 1, .h = 1, .endName = u8"石阁2层_D712", .endX = 30, .endY = 194},
         {.x = 350, .y = 244, .w = 1, .h = 1, .endName = u8"石阁4层_D714", .endX = 382, .endY = 190},
@@ -3950,7 +3950,7 @@
 {   .name = u8"石阁4层_D714", // 409
     .bgmID = 0X00020008,
     .miniMapID = 0X19000093,
-    .mapSwitchList
+    .switchList
     {
         {.x = 381, .y = 191, .w = 1, .h = 1, .endName = u8"石阁3层_D713", .endX = 349, .endY = 245},
         {.x = 16, .y = 200, .w = 1, .h = 1, .endName = u8"石阁5层_D715", .endX = 29, .endY = 344},
@@ -3960,7 +3960,7 @@
 {   .name = u8"石阁5层_D715", // 410
     .bgmID = 0X00020008,
     .miniMapID = 0X19000094,
-    .mapSwitchList
+    .switchList
     {
         {.x = 28, .y = 345, .w = 1, .h = 1, .endName = u8"石阁4层_D714", .endX = 16, .endY = 201},
         {.x = 83, .y = 81, .w = 1, .h = 1, .endName = u8"石阁6层_D716", .endX = 36, .endY = 17},
@@ -3970,7 +3970,7 @@
 {   .name = u8"石阁6层_D716", // 411
     .bgmID = 0X00020008,
     .miniMapID = 0X19000095,
-    .mapSwitchList
+    .switchList
     {
         {.x = 37, .y = 16, .w = 1, .h = 1, .endName = u8"石阁5层_D715", .endX = 84, .endY = 80},
         {.x = 25, .y = 26, .w = 1, .h = 1, .endName = u8"石阁7层_D717", .endX = 26, .endY = 74},
@@ -4096,7 +4096,7 @@
 {   .name = u8"石阁7层_D717", // 441
     .bgmID = 0X00020008,
     .miniMapID = 0X19000096,
-    .mapSwitchList
+    .switchList
     {
         {.x = 25, .y = 75, .w = 1, .h = 1, .endName = u8"石阁6层_D716", .endX = 24, .endY = 27},
     }
@@ -4105,7 +4105,7 @@
 {   .name = u8"南部蚂蚁洞穴1层4_D8001", // 442
     .bgmID = 0X00020009,
     .miniMapID = 0X19000160,
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 184, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层3_D8004", .endX = 128, .endY = 179},
         {.x = 12, .y = 125, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层3_D8004", .endX = 195, .endY = 143},
@@ -4116,7 +4116,7 @@
 {   .name = u8"南部蚂蚁洞穴1层1_D8002", // 443
     .bgmID = 0X00020009,
     .miniMapID = 0X19000161,
-    .mapSwitchList
+    .switchList
     {
         {.x = 178, .y = 189, .w = 1, .h = 1, .endName = u8"沙漠_6", .endX = 290, .endY = 720},
         {.x = 39, .y = 175, .w = 1, .h = 1, .endName = u8"失乐园_9", .endX = 732, .endY = 676},
@@ -4128,7 +4128,7 @@
 {   .name = u8"南部蚂蚁洞穴1层2_D8003", // 444
     .bgmID = 0X00020009,
     .miniMapID = 0X19000162,
-    .mapSwitchList
+    .switchList
     {
         {.x = 186, .y = 58, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层1_D8002", .endX = 7, .endY = 44},
         {.x = 29, .y = 185, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层3_D8004", .endX = 33, .endY = 21},
@@ -4139,7 +4139,7 @@
 {   .name = u8"南部蚂蚁洞穴1层3_D8004", // 445
     .bgmID = 0X00020009,
     .miniMapID = 0X19000163,
-    .mapSwitchList
+    .switchList
     {
         {.x = 129, .y = 178, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层4_D8001", .endX = 8, .endY = 183},
         {.x = 196, .y = 142, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层4_D8001", .endX = 13, .endY = 124},
@@ -4151,7 +4151,7 @@
 {   .name = u8"未命名地图_D801", // 446
     .bgmID = 0X00020009,
     .miniMapID = 0X19000164,
-    .mapSwitchList
+    .switchList
     {
         {.x = 4, .y = 17, .w = 1, .h = 1, .endName = u8"南部蚂蚁洞穴1层4_D8001", .endX = 158, .endY = 154},
     }
@@ -4239,7 +4239,7 @@
 {   .name = u8"北部蚂蚁洞穴1层4_D8101", // 465
     .bgmID = 0X00020009,
     .miniMapID = 0X19000160,
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 184, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层3_D8104", .endX = 128, .endY = 179},
         {.x = 12, .y = 125, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层3_D8104", .endX = 195, .endY = 143},
@@ -4250,7 +4250,7 @@
 {   .name = u8"北部蚂蚁洞穴1层1_D8102", // 466
     .bgmID = 0X00020009,
     .miniMapID = 0X19000172,
-    .mapSwitchList
+    .switchList
     {
         {.x = 178, .y = 189, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 374, .endY = 120},
         {.x = 6, .y = 43, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层2_D8103", .endX = 185, .endY = 57},
@@ -4260,7 +4260,7 @@
 {   .name = u8"北部蚂蚁洞穴1层2_D8103", // 467
     .bgmID = 0X00020009,
     .miniMapID = 0X19000162,
-    .mapSwitchList
+    .switchList
     {
         {.x = 186, .y = 58, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层1_D8102", .endX = 7, .endY = 44},
         {.x = 29, .y = 185, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层3_D8104", .endX = 33, .endY = 21},
@@ -4271,7 +4271,7 @@
 {   .name = u8"北部蚂蚁洞穴1层3_D8104", // 468
     .bgmID = 0X00020009,
     .miniMapID = 0X19000163,
-    .mapSwitchList
+    .switchList
     {
         {.x = 129, .y = 178, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层4_D8101", .endX = 8, .endY = 183},
         {.x = 196, .y = 142, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层4_D8101", .endX = 13, .endY = 124},
@@ -4283,7 +4283,7 @@
 {   .name = u8"未命名地图_D811", // 469
     .bgmID = 0X00020009,
     .miniMapID = 0X19000164,
-    .mapSwitchList
+    .switchList
     {
         {.x = 4, .y = 17, .w = 1, .h = 1, .endName = u8"北部蚂蚁洞穴1层4_D8101", .endX = 158, .endY = 154},
     }
@@ -4371,7 +4371,7 @@
 {   .name = u8"东部蚂蚁洞穴1层4_D8201", // 488
     .bgmID = 0X00020009,
     .miniMapID = 0X19000160,
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 184, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层3_D8204", .endX = 128, .endY = 179},
         {.x = 12, .y = 125, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层3_D8204", .endX = 195, .endY = 143},
@@ -4382,7 +4382,7 @@
 {   .name = u8"东部蚂蚁洞穴1层1_D8202", // 489
     .bgmID = 0X00020009,
     .miniMapID = 0X19000172,
-    .mapSwitchList
+    .switchList
     {
         {.x = 178, .y = 189, .w = 1, .h = 1, .endName = u8"绿洲_4", .endX = 475, .endY = 153},
         {.x = 6, .y = 43, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层2_D8203", .endX = 185, .endY = 57},
@@ -4392,7 +4392,7 @@
 {   .name = u8"东部蚂蚁洞穴1层2_D8203", // 490
     .bgmID = 0X00020009,
     .miniMapID = 0X19000162,
-    .mapSwitchList
+    .switchList
     {
         {.x = 186, .y = 58, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层1_D8202", .endX = 7, .endY = 44},
         {.x = 29, .y = 185, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层3_D8204", .endX = 33, .endY = 21},
@@ -4403,7 +4403,7 @@
 {   .name = u8"东部蚂蚁洞穴1层3_D8204", // 491
     .bgmID = 0X00020009,
     .miniMapID = 0X19000163,
-    .mapSwitchList
+    .switchList
     {
         {.x = 129, .y = 178, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层4_D8201", .endX = 8, .endY = 183},
         {.x = 196, .y = 142, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层4_D8201", .endX = 13, .endY = 124},
@@ -4415,7 +4415,7 @@
 {   .name = u8"未命名地图_D821", // 492
     .bgmID = 0X00020009,
     .miniMapID = 0X19000164,
-    .mapSwitchList
+    .switchList
     {
         {.x = 4, .y = 17, .w = 1, .h = 1, .endName = u8"东部蚂蚁洞穴1层4_D8201", .endX = 158, .endY = 154},
     }
@@ -4502,7 +4502,7 @@
 
 {   .name = u8"神舰入口_D900", // 511
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 48, .y = 59, .w = 1, .h = 1, .endName = u8"神舰地下三层_D901", .endX = 22, .endY = 83},
     }
@@ -4511,7 +4511,7 @@
 {   .name = u8"神舰地下三层_D901", // 512
     .bgmID = 0X00020005,
     .miniMapID = 0X19000145,
-    .mapSwitchList
+    .switchList
     {
         {.x = 21, .y = 85, .w = 1, .h = 1, .endName = u8"神舰入口_D900", .endX = 47, .endY = 60},
         {.x = 122, .y = 149, .w = 1, .h = 1, .endName = u8"木工室_D9011", .endX = 9, .endY = 18},
@@ -4526,7 +4526,7 @@
 
 {   .name = u8"木工仓库_D9012", // 514
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 19, .w = 1, .h = 1, .endName = u8"神舰地下三层_D901", .endX = 139, .endY = 130},
     }
@@ -4535,7 +4535,7 @@
 {   .name = u8"神舰地下二层_D9021", // 515
     .bgmID = 0X00020005,
     .miniMapID = 0X19000146,
-    .mapSwitchList
+    .switchList
     {
         {.x = 69, .y = 126, .w = 1, .h = 1, .endName = u8"神舰地下三层_D901", .endX = 88, .endY = 51},
         {.x = 75, .y = 71, .w = 1, .h = 1, .endName = u8"神舰地下三层_D901", .endX = 88, .endY = 51},
@@ -4560,7 +4560,7 @@
 
 {   .name = u8"医务室_D90211", // 516
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 29, .y = 25, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9021", .endX = 100, .endY = 53},
     }
@@ -4568,7 +4568,7 @@
 
 {   .name = u8"机械室_D90212", // 517
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 15, .y = 19, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9021", .endX = 39, .endY = 62},
     }
@@ -4586,7 +4586,7 @@
 {   .name = u8"神舰地下二层_D9022", // 521
     .bgmID = 0X00020005,
     .miniMapID = 0X19000147,
-    .mapSwitchList
+    .switchList
     {
         {.x = 33, .y = 68, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9021", .endX = 58, .endY = 22},
         {.x = 111, .y = 146, .w = 1, .h = 1, .endName = u8"医务室_D90221", .endX = 28, .endY = 24},
@@ -4598,7 +4598,7 @@
 
 {   .name = u8"医务室_D90221", // 522
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 29, .y = 25, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9022", .endX = 112, .endY = 147},
     }
@@ -4610,7 +4610,7 @@
 
 {   .name = u8"士兵食堂_D90223", // 524
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 15, .y = 19, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9022", .endX = 75, .endY = 27},
     }
@@ -4622,7 +4622,7 @@
 {   .name = u8"神舰地下一层_D903", // 526
     .bgmID = 0X00020005,
     .miniMapID = 0X19000148,
-    .mapSwitchList
+    .switchList
     {
         {.x = 105, .y = 132, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9022", .endX = 98, .endY = 151},
         {.x = 126, .y = 185, .w = 1, .h = 1, .endName = u8"神舰地下二层_D9022", .endX = 19, .endY = 11},
@@ -4639,7 +4639,7 @@
 
 {   .name = u8"参谋室_D9031", // 527
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 11, .y = 23, .w = 1, .h = 1, .endName = u8"神舰地下一层_D903", .endX = 144, .endY = 180},
     }
@@ -4647,7 +4647,7 @@
 
 {   .name = u8"长官食堂_D9032", // 528
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 6, .y = 17, .w = 1, .h = 1, .endName = u8"神舰地下一层_D903", .endX = 72, .endY = 60},
     }
@@ -4664,7 +4664,7 @@
 
 {   .name = u8"船长室_D9033", // 532
     .bgmID = 0X00020005,
-    .mapSwitchList
+    .switchList
     {
         {.x = 17, .y = 19, .w = 1, .h = 1, .endName = u8"神舰地下一层_D903", .endX = 86, .endY = 118},
     }
@@ -4673,7 +4673,7 @@
 {   .name = u8"调控室_D904", // 533
     .bgmID = 0X00020005,
     .miniMapID = 0X19000149,
-    .mapSwitchList
+    .switchList
     {
         {.x = 54, .y = 24, .w = 1, .h = 1, .endName = u8"神舰地下一层_D903", .endX = 53, .endY = 52},
     }
@@ -4689,21 +4689,21 @@
 },
 
 {   .name = u8"奸商_DM001", // 537
-    .mapSwitchList
+    .switchList
     {
         {.x = 6, .y = 10, .w = 1, .h = 1, .endName = u8"半兽洞穴2层_D002", .endX = 191, .endY = 232},
     }
 },
 
 {   .name = u8"王陵_DM002", // 538
-    .mapSwitchList
+    .switchList
     {
         {.x = 7, .y = 28, .w = 1, .h = 1, .endName = u8"半兽洞穴2层_D002", .endX = 225, .endY = 176},
     }
 },
 
 {   .name = u8"洞穴奸商_DM011", // 539
-    .mapSwitchList
+    .switchList
     {
         {.x = 6, .y = 10, .w = 1, .h = 1, .endName = u8"天然洞穴2层_D012", .endX = 189, .endY = 145},
     }
@@ -4712,7 +4712,7 @@
 {   .name = u8"半兽天然洞穴_E001", // 540
     .bgmID = 0X00020001,
     .miniMapID = 0X19000070,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 13, .w = 1, .h = 1, .endName = u8"半兽洞穴3层_D003", .endX = 77, .endY = 230},
         {.x = 85, .y = 15, .w = 1, .h = 1, .endName = u8"半兽天然洞穴_E002", .endX = 85, .endY = 10},
@@ -4722,7 +4722,7 @@
 {   .name = u8"行会大战_E001", // 541
     .bgmID = 0X00020001,
     .miniMapID = 0X19000070,
-    .mapSwitchList
+    .switchList
     {
         {.x = 8, .y = 13, .w = 1, .h = 1, .endName = u8"半兽洞穴3层_D003", .endX = 77, .endY = 230},
         {.x = 85, .y = 15, .w = 1, .h = 1, .endName = u8"行会大战_E002", .endX = 85, .endY = 10},
@@ -4732,7 +4732,7 @@
 {   .name = u8"半兽天然洞穴_E002", // 542
     .bgmID = 0X00020001,
     .miniMapID = 0X19000071,
-    .mapSwitchList
+    .switchList
     {
         {.x = 36, .y = 81, .w = 1, .h = 1, .endName = u8"天然洞穴2层_D012", .endX = 378, .endY = 65},
         {.x = 84, .y = 9, .w = 1, .h = 1, .endName = u8"半兽天然洞穴_E001", .endX = 84, .endY = 16},
@@ -4743,7 +4743,7 @@
 {   .name = u8"行会大战_E002", // 543
     .bgmID = 0X00020001,
     .miniMapID = 0X19000071,
-    .mapSwitchList
+    .switchList
     {
         {.x = 36, .y = 81, .w = 1, .h = 1, .endName = u8"天然洞穴2层_D012", .endX = 378, .endY = 65},
         {.x = 84, .y = 9, .w = 1, .h = 1, .endName = u8"行会大战_E001", .endX = 84, .endY = 16},
@@ -4752,7 +4752,7 @@
 },
 
 {   .name = u8"半兽天然洞穴_E002_001", // 544
-    .mapSwitchList
+    .switchList
     {
         {.x = 12, .y = 9, .w = 1, .h = 1, .endName = u8"半兽天然洞穴_E002", .endX = 64, .endY = 13},
     }
@@ -4766,7 +4766,7 @@
 {   .name = u8"连接通路_E402", // 546
     .bgmID = 0X00020001,
     .miniMapID = 0X19000073,
-    .mapSwitchList
+    .switchList
     {
         {.x = 14, .y = 72, .w = 1, .h = 1, .endName = u8"半兽洞穴3层_D003", .endX = 291, .endY = 294},
         {.x = 69, .y = 14, .w = 1, .h = 1, .endName = u8"地下2层采矿所_D404", .endX = 151, .endY = 20},
@@ -4775,7 +4775,7 @@
 },
 
 {   .name = u8"连接通路_E402_001", // 547
-    .mapSwitchList
+    .switchList
     {
         {.x = 26, .y = 12, .w = 1, .h = 1, .endName = u8"连接通路_E402", .endX = 63, .endY = 72},
     }
@@ -4793,7 +4793,7 @@
 
 {   .name = u8"竞技场_E601", // 550
     .miniMapID = 0X19000076,
-    .mapSwitchList
+    .switchList
     {
         {.x = 134, .y = 20, .w = 1, .h = 1, .endName = u8"矿山2层_D422", .endX = 273, .endY = 311},
         {.x = 13, .y = 50, .w = 1, .h = 1, .endName = u8"竞技场_E602", .endX = 73, .endY = 66},
@@ -4802,7 +4802,7 @@
 
 {   .name = u8"竞技场_E602", // 551
     .miniMapID = 0X19000077,
-    .mapSwitchList
+    .switchList
     {
         {.x = 72, .y = 65, .w = 1, .h = 1, .endName = u8"竞技场_E601", .endX = 12, .endY = 51},
         {.x = 10, .y = 9, .w = 1, .h = 1, .endName = u8"废矿秘密通路_E603", .endX = 25, .endY = 27},
@@ -4811,7 +4811,7 @@
 
 {   .name = u8"废矿秘密通路_E603", // 552
     .miniMapID = 0X19000078,
-    .mapSwitchList
+    .switchList
     {
         {.x = 26, .y = 26, .w = 1, .h = 1, .endName = u8"竞技场_E602", .endX = 11, .endY = 10},
         {.x = 107, .y = 184, .w = 1, .h = 1, .endName = u8"废矿秘密通路_E603", .endX = 111, .endY = 181},
@@ -4822,7 +4822,7 @@
 
 {   .name = u8"废矿秘密通路_E604", // 553
     .miniMapID = 0X19000079,
-    .mapSwitchList
+    .switchList
     {
         {.x = 90, .y = 44, .w = 1, .h = 1, .endName = u8"废矿秘密通路_E603", .endX = 9, .endY = 70},
         {.x = 10, .y = 9, .w = 1, .h = 1, .endName = u8"废矿秘密通路_E605", .endX = 12, .endY = 11},
@@ -4831,7 +4831,7 @@
 
 {   .name = u8"废矿秘密通路_E605", // 554
     .miniMapID = 0X19000080,
-    .mapSwitchList
+    .switchList
     {
         {.x = 13, .y = 63, .w = 1, .h = 1, .endName = u8"未命名地图_D601", .endX = 10, .endY = 198},
         {.x = 13, .y = 10, .w = 1, .h = 1, .endName = u8"废矿秘密通路_E604", .endX = 11, .endY = 10},

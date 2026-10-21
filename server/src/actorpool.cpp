@@ -943,6 +943,15 @@ bool ActorPool::checkUIDValid(uint64_t uid) const
     return p != subBucketCRef.mailboxList.end() && !(p->second->schedLock.detached());
 }
 
+bool ActorPool::checkUIDExist(uint64_t uid) const
+{
+    logProfiler();
+    const auto &subBucketCRef = getSubBucket(uid);
+    MailboxSubBucket::RLockGuard lockGuard(subBucketCRef.lock);
+
+    return subBucketCRef.mailboxList.contains(uid);
+}
+
 bool ActorPool::isActorThread() const
 {
     return isActorThread(getWorkerID());

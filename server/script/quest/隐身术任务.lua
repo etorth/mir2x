@@ -8,7 +8,7 @@
 -- torch slot both, and turns you away with a different line depending on which it was
 --
 -- like 抗拒火环任务 this runs across two maps, 试练场_1_010 into 试练场_1_011. both are loaded
--- as copies and the gate grids on the 1_010 copy get a trigger that refuses the mapSwitchList
+-- as copies and the gate grids on the 1_010 copy get a trigger that refuses the switchList
 -- destination — that would drop you on the shared base 1_011 — and hands you this run's copy
 --
 -- flags: [721] done, [507] trial started, [508] found him
@@ -31,7 +31,7 @@ _G.firstMap = '试练场_1_010'
 _G.firstX   = 21
 _G.firstY   = 85
 
--- the mapSwitchList destination of the 1_010 gate
+-- the switchList destination of the 1_010 gate
 _G.secondMap = '试练场_1_011'
 _G.secondX   = 22
 _G.secondY   = 83
@@ -44,7 +44,7 @@ _G.exitMap = '本馆_1_002'
 _G.exitX   = 12
 _G.exitY   = 11
 
--- the gate out of 1_010, from its mapSwitchList
+-- the gate out of 1_010, from its switchList
 _G.gateGrids =
 {
     {90, 15, 1, 2},

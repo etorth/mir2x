@@ -30,6 +30,7 @@
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
+extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -633,6 +634,11 @@ void ProcessRun::on_SM_OFFLINE(const uint8_t *bufPtr, size_t)
         //     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
         // }
     }
+}
+
+void ProcessRun::on_SM_LOGOUTOK(const uint8_t *, size_t)
+{
+    g_client->requestProcess(PROCESSID_SELECTCHAR);
 }
 
 void ProcessRun::on_SM_PICKUPERROR(const uint8_t *buf, size_t)

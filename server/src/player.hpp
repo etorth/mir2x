@@ -275,6 +275,8 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTDIE                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTREVIVE             (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTLOGOUT             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLATESTCHATMESSAGE  (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYRANKING              (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -390,7 +392,7 @@ class Player final: public BattleObject
         void onRevive();
 
     protected:
-        bool goOffline();
+        bool goOffline(bool = true); // false: soft logout, keep channel and return to character selection
 
         bool onHorse() const
         {

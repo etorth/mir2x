@@ -49,7 +49,7 @@ _G.villagerNPC = '泼皮路白_1'
 _G.trashCentipede = '蜈蚣0'
 _G.bossCentipede  = '蜈蚣'
 
--- the mouth of the cave, from 绝命谷3层_D6004's mapSwitchList
+-- the mouth of the cave, from 绝命谷3层_D6004's switchList
 _G.doorMap   = '绝命谷3层_D6004'
 _G.doorGrids = {{39, 266, 1, 2}, {40, 267, 1, 1}}
 
@@ -113,7 +113,7 @@ _G.caves =
     },
 }
 
--- 1_020's gate back out to 绝命谷, also from its mapSwitchList
+-- 1_020's gate back out to 绝命谷, also from its switchList
 _G.caveExitGrids = {{186, 17, 2, 1}, {187, 18, 1, 1}}
 
 -- massheal2, the trash in the water source comes back two at a time

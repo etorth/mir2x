@@ -69,7 +69,8 @@ class NetDriver final
         // actor thread can invalidate channel by calling close(channID), asio loop can invalidate by catching exception
         // but no method to check channel is valid, after actor thread invalidate it, actor thread should keep flag to prevent access an invalidated channel
         void close(uint32_t);                                           // request a channel to be closed
-        void bindPlayer(uint32_t, uint64_t);                            // request a channel to forward all net message to an UID
+        void   bindPlayer(uint32_t, uint64_t);                          // request a channel to forward all net message to an UID
+        void unbindPlayer(uint32_t, uint64_t);                          // request a channel to forward all net message back to service core
         void post(uint32_t, uint8_t, const void *, size_t, uint64_t);   // post message to a channel
 
     private:

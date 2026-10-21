@@ -12,7 +12,7 @@ end
 
 -- grid triggers
 --
--- a grid listed in the map record's mapSwitchList normally sends a player straight to the
+-- a grid listed in the map record's switchList normally sends a player straight to the
 -- next map. install a trigger on that grid and a script gets the decision instead: check an
 -- item, a finished quest, a level, a gender, then either let the player through or tell them
 -- why the door will not open

@@ -255,6 +255,14 @@ void ActorPod::bindNet(uint32_t channID)
     g_actorPool->m_netDriver->bindPlayer(channID, UID());
 }
 
+void ActorPod::unbindNet()
+{
+    if(m_channID){
+        g_actorPool->m_netDriver->unbindPlayer(m_channID, UID());
+        m_channID = 0;
+    }
+}
+
 void ActorPod::closeNet()
 {
     if(m_channID){

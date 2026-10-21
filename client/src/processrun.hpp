@@ -226,6 +226,7 @@ class ProcessRun: public Process
         _support_sm(SM_INVOPCOST);
         _support_sm(SM_ACTION);
         _support_sm(SM_OFFLINE);
+        _support_sm(SM_LOGOUTOK);
         _support_sm(SM_CODISAPPEAR);
         _support_sm(SM_VIEWRANGE);
         _support_sm(SM_NPCNAME);
@@ -479,6 +480,8 @@ class ProcessRun: public Process
         void requestEquipBelt(uint32_t, uint32_t, int);
         void requestGrabBelt(int);
         void requestConsumeBelt(int);
+        void requestRevive();
+        void requestLogout();
         void requestDropItem(uint32_t, uint32_t, size_t);
         void requestSetMagicKey(uint32_t, char);
         void requestRemoveSecuredItem(uint32_t, uint32_t);

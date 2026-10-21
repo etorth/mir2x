@@ -11,9 +11,11 @@
 #include "servicecore.hpp"
 #include "mapbindb.hpp"
 #include "deliverydb.hpp"
+#include "actorpool.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern Server *g_server;
+extern ActorPool *g_actorPool;
 
 // ServiceCore accepts net packages from *many* sessions and based on it to create
 // the player object for a one to one map
@@ -270,6 +272,25 @@ corof::awaitable<> ServiceCore::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
         }
     }
     return {};
+}
+
+corof::awaitable<> ServiceCore::on_AM_PLAYERLOGOUT(const ActorMsgPack &mpk)
+{
+    const auto amPL = mpk.conv<AMPlayerLogout>();
+    fflassert(uidf::isPlayer(amPL.uid), uidf::getUIDString(amPL.uid));
+
+    // player actor has been detached, but mailbox may not be erased yet
+    // need to wait until it's gone, otherwise CM_ONLINE fails to add the same player UID again
+
+    while(g_actorPool->checkUIDExist(amPL.uid)){
+        co_await asyncWait(10);
+    }
+
+    // channel may be closed during waiting, then AM_BADCHANNEL already erased the entry
+    if(auto p = m_dbidList.find(amPL.channID); (p != m_dbidList.end()) && (p->second.first == uidf::getPlayerDBID(amPL.uid))){
+        p->second.second = false;
+        m_actorPod->postNet(amPL.channID, SM_LOGOUTOK, nullptr, 0, 0);
+    }
 }
 
 corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)

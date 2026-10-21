@@ -113,6 +113,41 @@ corof::awaitable<> Player::net_CM_REQUESTADDHP(uint8_t, const uint8_t *buf, size
     return {};
 }
 
+corof::awaitable<> Player::net_CM_REQUESTREVIVE(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    if(!m_sdHealth.dead()){
+        co_return;
+    }
+
+    const auto [reviveMapID, reviveX, reviveY] = [this]() -> std::tuple<uint32_t, int, int>
+    {
+        if(const auto &rp = DBCOM_MAPRECORD(mapID()).revivePoint){
+            return {DBCOM_MAPID(rp.mapName), rp.x, rp.y};
+        }
+        return {DBCOM_MAPID(u8"道馆_1"), 405, 120};
+    }();
+
+    setHealth(std::max<int>(1, m_sdHealth.getMaxHP() / 10), std::max<int>(1, m_sdHealth.getMaxMP() / 10));
+    onRevive();
+
+    if(reviveMapID == mapID()){
+        if(co_await requestSpaceMove(reviveX, reviveY, false)){
+            dbUpdateMapGLoc();
+        }
+    }
+    else{
+        if(co_await requestMapSwitch(uidsf::getBaseMapUID(reviveMapID), reviveX, reviveY, false)){
+            dbUpdateMapGLoc();
+        }
+    }
+}
+
+corof::awaitable<> Player::net_CM_REQUESTLOGOUT(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    goOffline(false);
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRAE = ClientMsg::conv<CMRequestAddExp>(buf);

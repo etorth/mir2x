@@ -109,7 +109,9 @@ corof::awaitable<> Player::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
-    co_await operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
+    if(m_channID.value_or(0)){
+        co_await operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
+    }
     freeActorDataPackage(&(amRP.package));
 }
 
@@ -453,6 +455,13 @@ corof::awaitable<> Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
     fflassert(m_channID.has_value());
+
+    // check channID still valid
+    // channel can be closed before player unbinds it during soft logout
+
+    if(!m_channID.value()){
+        return {};
+    }
     fflassert(m_channID.value() == amBC.channID, m_channID.value(), amBC.channID);
 
     // AM_BADCHANNEL is sent by Channel::dtor

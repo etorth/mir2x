@@ -8,6 +8,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "inputstringboard.hpp"
 #include "cbleft.hpp"
 
 extern PNGTexDB *g_progUseDB;
@@ -265,6 +266,18 @@ CBLeft::CBLeft(
           {
               .on   = 0X00000020,
               .down = 0X00000021,
+          },
+
+          .onTrigger = [this](Widget *, int)
+          {
+              if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))){
+                  if(m_processRun->getMyHero()->dead().value_or(false)){
+                      inputBoard->waitChoice(u8R"###(<layout><par>返回复活点吗？</par></layout>)###", [this]{ m_processRun->requestRevive(); }, +[]{});
+                  }
+                  else{
+                      inputBoard->waitChoice(u8R"###(<layout><par>返回人物界面吗？</par></layout>)###", [this]{ m_processRun->requestLogout(); }, +[]{});
+                  }
+              }
           },
 
           .parent{this},

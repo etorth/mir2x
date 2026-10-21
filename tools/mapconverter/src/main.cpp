@@ -412,7 +412,7 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
 
         std::unordered_set<std::string> seenSwitchCodeList;
         if(const auto &switchPointList = parser->hasSwitchPoint(fileName, mergeTP); !switchPointList.empty()){
-            codeList.push_back(R"#(    .mapSwitchList)#");
+            codeList.push_back(R"#(    .switchList)#");
             codeList.push_back(R"#(    {             )#");
             for(const auto &switchPoint: switchPointList){
                 const auto toMapNameList = parser->hasMapName(switchPoint.to_fileName);

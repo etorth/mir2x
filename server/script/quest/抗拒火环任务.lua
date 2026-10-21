@@ -9,7 +9,7 @@
 -- 其它怪兽也都全不行了。
 --
 -- this is the only trial that spans two maps. both are loaded as copies and the gate grids on
--- the 02_002 copy get a trigger that refuses the mapSwitchList destination — that would land
+-- the 02_002 copy get a trigger that refuses the switchList destination — that would land
 -- you on the shared base 02_003 — and moves you into this run's own copy instead
 --
 -- flags: [749] done, [500] run started, [501] run passed
@@ -29,7 +29,7 @@ _G.firstMap = '试练场_02_002'
 _G.firstX   = 21
 _G.firstY   = 85
 
--- the mapSwitchList destination of the 02_002 gate, kept so the copies line up with the base
+-- the switchList destination of the 02_002 gate, kept so the copies line up with the base
 _G.secondMap = '试练场_02_003'
 _G.secondX   = 22
 _G.secondY   = 83
@@ -42,7 +42,7 @@ _G.exitMap = '银杏山谷_02'
 _G.exitX   = 266
 _G.exitY   = 146
 
--- the gate out of 02_002, from its mapSwitchList
+-- the gate out of 02_002, from its switchList
 _G.gateGrids =
 {
     {90, 15, 1, 2},

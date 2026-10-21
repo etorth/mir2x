@@ -412,7 +412,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     // grid triggers
     //
-    // a grid in mapSwitchList normally sends a player straight through, these let a script
+    // a grid in switchList normally sends a player straight through, these let a script
     // take that decision over. every trigger owns a rect array (each {x, y, w, h}), gets a
     // unique gridTriggerId from allocateGridTriggerId() and can be removed by that id, a
     // quest can install several triggers covering the same grid
@@ -479,7 +479,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return true;
     });
 
-    // send a player anywhere, for a gate that does not follow mapSwitchList
+    // send a player anywhere, for a gate that does not follow switchList
     bindFunction("uidMapSwitch", [this](uint64_t uid, std::string mapName, int x, int y) -> bool
     {
         const auto mapID = DBCOM_MAPID(mapName.c_str());
@@ -572,7 +572,7 @@ ServerMap::ServerMap(uint64_t argMapUID)
       }())
 {
     m_gridList.resize(mapBin()->w() * mapBin()->h());
-    for(const auto &entry: DBCOM_MAPRECORD(ID()).mapSwitchList){
+    for(const auto &entry: DBCOM_MAPRECORD(ID()).switchList){
         if(true
                 && entry.w > 0
                 && entry.h > 0
@@ -900,7 +900,7 @@ void ServerMap::dispatchGridSwitch(uint64_t playerUID, int x, int y)
     }
 
     // a trigger owns this grid, it decides whether the player goes anywhere and can say why
-    // not, mapSwitchList is deliberately ignored here
+    // not, switchList is deliberately ignored here
     if(!getGrid(x, y).triggerList.empty()){
         m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_runGridTrigger(%llu, %d, %d)", to_llu(playerUID), x, y));
         return;

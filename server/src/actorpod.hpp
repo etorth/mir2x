@@ -120,8 +120,9 @@ class ActorPod final
         void postNet(uint32_t, uint8_t, const void *, size_t, uint64_t);
 
     public:
-        void  bindNet(uint32_t);
-        void closeNet();
+        void   bindNet(uint32_t);
+        void unbindNet();
+        void  closeNet();
 
     private:
         std::optional<uint64_t> doPost(const std::pair<uint64_t, uint64_t> &, ActorMsgBuf, bool);

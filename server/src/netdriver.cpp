@@ -251,6 +251,28 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
     waitDone.wait(false);
 }
 
+void NetDriver::unbindPlayer(uint32_t channID, uint64_t uid)
+{
+    logProfiler();
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channelSlotList.size());
+    fflassert(uidf::isPlayer(uid));
+
+    std::atomic_flag waitDone;
+    asio::post(*m_context, [uid, channID, &waitDone, this]()
+    {
+        // channel may have been closed already, then AM_BADCHANNEL has been posted to the player
+
+        if(auto channPtr = m_channelSlotList[channID].channPtr.get()){
+            channPtr->unbindPlayer(uid);
+        }
+
+        waitDone.test_and_set();
+        waitDone.notify_all();
+    });
+    waitDone.wait(false);
+}
+
 void NetDriver::close(uint32_t channID)
 {
     logProfiler();

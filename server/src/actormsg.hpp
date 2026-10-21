@@ -151,6 +151,7 @@ enum ActorMsgPackType: int
     AM_REQUESTLEAVETEAM,
     AM_PLAYERSAY,
     AM_PLAYERBROADCAST,
+    AM_PLAYERLOGOUT,
     AM_ACCEPTDIRECTTRADE,
     AM_REJECTDIRECTTRADE,
     AM_STARTDIRECTTRADE,
@@ -300,6 +301,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REQUESTLEAVETEAM)
         _add_mpk_type_case(AM_PLAYERSAY)
         _add_mpk_type_case(AM_PLAYERBROADCAST)
+        _add_mpk_type_case(AM_PLAYERLOGOUT)
         _add_mpk_type_case(AM_ACCEPTDIRECTTRADE)
         _add_mpk_type_case(AM_REJECTDIRECTTRADE)
         _add_mpk_type_case(AM_STARTDIRECTTRADE)
@@ -322,6 +324,12 @@ struct AMPlayerBroadcast
 {
     uint64_t uid;
     char content[128];
+};
+
+struct AMPlayerLogout
+{
+    uint64_t uid;
+    uint32_t channID;
 };
 
 struct AMDirectTradePeer

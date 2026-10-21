@@ -31,6 +31,8 @@ enum CMType: uint8_t
     CM_REQUESTADDHP,
     CM_REQUESTADDEXP,
     CM_REQUESTDIE,
+    CM_REQUESTREVIVE,
+    CM_REQUESTLOGOUT,
     CM_REQUESTKILLPETS,
     CM_REQUESTRETRIEVESECUREDITEM,
     CM_REQUESTSPACEMOVE,
@@ -436,6 +438,8 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTADDHP,               1, sizeof(CMRequestAddHP)              );
         _RSVD_register_clientmsg(CM_REQUESTADDEXP,              1, sizeof(CMRequestAddExp)             );
         _RSVD_register_clientmsg(CM_REQUESTDIE,                 0                                      );
+        _RSVD_register_clientmsg(CM_REQUESTREVIVE,              0                                      );
+        _RSVD_register_clientmsg(CM_REQUESTLOGOUT,              0                                      );
         _RSVD_register_clientmsg(CM_REQUESTKILLPETS,            0                                      );
         _RSVD_register_clientmsg(CM_REQUESTRETRIEVESECUREDITEM, 1, sizeof(CMRequestRetrieveSecuredItem));
         _RSVD_register_clientmsg(CM_REQUESTSPACEMOVE,           1, sizeof(CMRequestSpaceMove)          );

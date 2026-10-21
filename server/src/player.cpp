@@ -778,6 +778,8 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTGRABWEAR           );
         _support_cm(CM_REQUESTJOINTEAM           );
         _support_cm(CM_REQUESTDIE                );
+        _support_cm(CM_REQUESTREVIVE             );
+        _support_cm(CM_REQUESTLOGOUT             );
         _support_cm(CM_REQUESTKILLPETS           );
         _support_cm(CM_REQUESTLEAVETEAM          );
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
@@ -1202,32 +1204,54 @@ void Player::reportOffline(uint64_t nUID, uint64_t nMapUID)
     }
 }
 
-bool Player::goOffline()
+bool Player::goOffline(bool disconnect)
 {
     if(!m_channID.value_or(0)){
         return false;
     }
 
+    const auto channID = m_channID.value();
+
     dispatchOffline();
-    reportOffline(UID(), mapUID()); // report self offline
+    if(disconnect){
+        reportOffline(UID(), mapUID()); // report self offline
+    }
     requestKillPets();
 
     m_channID = 0;
-    m_actorPod->closeNet(); // blocking call, channel slot has been destroyed
+    if(disconnect){
+        m_actorPod->closeNet(); // blocking call, channel slot has been destroyed
+    }
+    else{
+        m_actorPod->unbindNet(); // blocking call, channel forwards net messages to service core
+    }
 
     dbUpdateMapGLoc();
     if(m_sdHealth.dead()){
         setHealth(10);
     }
 
-    m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_trigger(SYS_ON_OFFLINE)", {}, [this](const sol::protected_function_result &)
+    const auto fnDeactivate = [disconnect, channID, this]()
     {
+        if(!disconnect){
+            AMPlayerLogout amPL;
+            std::memset(&amPL, 0, sizeof(amPL));
+
+            amPL.uid = UID();
+            amPL.channID = channID;
+            m_actorPod->post(uidf::getServiceCoreUID(), {AM_PLAYERLOGOUT, amPL});
+        }
         deactivate();
+    };
+
+    m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_trigger(SYS_ON_OFFLINE)", {}, [fnDeactivate](const sol::protected_function_result &)
+    {
+        fnDeactivate();
     },
 
-    [this]()
+    [fnDeactivate]()
     {
-        deactivate();
+        fnDeactivate();
     });
 
     return true;

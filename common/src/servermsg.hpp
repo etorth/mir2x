@@ -29,6 +29,7 @@ enum SMType: uint8_t
     SM_DELETECHAROK,
     SM_DELETECHARERROR,
     SM_ONLINEOK,
+    SM_LOGOUTOK,
     SM_ONLINEERROR,
     SM_STARTGAMESCENE,
     SM_PLAYERCONFIG,
@@ -487,6 +488,7 @@ namespace
         _RSVD_register_servermsg(SM_DELETECHAROK,           0                                  );
         _RSVD_register_servermsg(SM_DELETECHARERROR,        1, sizeof(SMDeleteCharError)       );
         _RSVD_register_servermsg(SM_ONLINEOK,               1, sizeof(SMOnlineOK)              );
+        _RSVD_register_servermsg(SM_LOGOUTOK,               0                                  );
         _RSVD_register_servermsg(SM_ONLINEERROR,            1, sizeof(SMOnlineError)           );
         _RSVD_register_servermsg(SM_STARTGAMESCENE,         3                                  );
         _RSVD_register_servermsg(SM_PLAYERCONFIG,           3                                  );

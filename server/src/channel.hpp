@@ -131,7 +131,8 @@ class Channel final: public std::enable_shared_from_this<Channel>
         void launch();
 
     public:
-        void bindPlayer(uint64_t);
+        void   bindPlayer(uint64_t);
+        void unbindPlayer(uint64_t);
 
     private:
         void prepareClientMsg(uint8_t headCode)

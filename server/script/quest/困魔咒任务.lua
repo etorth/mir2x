@@ -61,7 +61,7 @@ _G.stoneMaps =
     '沃玛神殿2层_D043',
 }
 
--- the way in, from 沃玛神殿2层_D023's mapSwitchList
+-- the way in, from 沃玛神殿2层_D023's switchList
 _G.doorMap   = '沃玛神殿2层_D023'
 _G.doorGrids = {{371, 366, 1, 2}, {372, 366, 1, 1}}
 
@@ -154,7 +154,7 @@ local function closeRooms(uid)
     end
 end
 
--- a gate between two copies: the mapSwitchList destination on a copy names the base room, so
+-- a gate between two copies: the switchList destination on a copy names the base room, so
 -- refuse it and hand the player to the copy this run owns
 local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
     setupInstanceUIDGridTrigger{uid = uid, name = 'forward', mapUID = fromUID, rects = forwardGrids,
