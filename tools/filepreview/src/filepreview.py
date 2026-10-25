@@ -34,9 +34,17 @@ def natural_key(s):
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
 
 
+def hex_name_key(name):
+    stem = os.path.splitext(name)[0]
+    if re.fullmatch(r"[0-9a-fA-F]+", stem):
+        return (0, int(stem, 16), name.lower(), name)
+    return (1, 0, name.lower(), name)
+
+
 # name -> key(entry); entries are (name, size, mtime) tuples
 SORT_METHODS = {
     "Name (natural)": lambda e: natural_key(e[0]),
+    "Name (hex)":     lambda e: hex_name_key(e[0]),
     "Name":           lambda e: e[0].lower(),
     "Extension":      lambda e: (os.path.splitext(e[0])[1].lower(), natural_key(e[0])),
     "Size":           lambda e: (e[1], natural_key(e[0])),
@@ -44,7 +52,8 @@ SORT_METHODS = {
 }
 
 
-def list_files(path, sort_name, descending, name_filter=""):
+def list_files(path, sort_name, descending, name_filter="", regex=False):
+    pattern = re.compile(name_filter, re.IGNORECASE) if regex else None
     entries = []
     try:
         for e in os.scandir(path):
@@ -54,8 +63,11 @@ def list_files(path, sort_name, descending, name_filter=""):
     except OSError:
         return []
     if name_filter:
-        pat = name_filter.lower()
-        entries = [e for e in entries if pat in e[0].lower()]
+        if pattern is not None:
+            entries = [e for e in entries if pattern.search(e[0])]
+        else:
+            pat = name_filter.lower()
+            entries = [e for e in entries if pat in e[0].lower()]
     entries.sort(key=SORT_METHODS[sort_name], reverse=descending)
     return entries
 
@@ -170,7 +182,7 @@ class PreviewPanel(QWidget):
         self.textView = QPlainTextEdit()
         self.textView.setReadOnly(True)
         self.textView.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self.textView.setStyleSheet("font-family: monospace;")
+        self.textView.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.stack = QStackedWidget()
         self.stack.addWidget(self.imageView)
         self.stack.addWidget(self.textView)
@@ -341,6 +353,12 @@ class FileListPanel(QWidget):
         self.filterEdit = QLineEdit()
         self.filterEdit.setPlaceholderText("filter")
         self.filterEdit.textChanged.connect(self.refresh)
+        self.regexCheck = QCheckBox("Regex")
+        self.regexCheck.setToolTip(
+            "Unchecked: case-insensitive substring. Checked: case-insensitive "
+            "regular expression search (use ^ and $ to match the whole filename)."
+        )
+        self.regexCheck.toggled.connect(self.refresh)
 
         self.list = QListWidget()
         self.list.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
@@ -354,11 +372,14 @@ class FileListPanel(QWidget):
         row2.addWidget(QLabel("Sort:"))
         row2.addWidget(self.sortCombo, 1)
         row2.addWidget(self.descCheck)
+        filterRow = QHBoxLayout()
+        filterRow.addWidget(self.filterEdit, 1)
+        filterRow.addWidget(self.regexCheck)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(row1)
         layout.addLayout(row2)
-        layout.addWidget(self.filterEdit)
+        layout.addLayout(filterRow)
         layout.addWidget(self.list, 1)
         layout.addWidget(self.countLabel)
 
@@ -377,8 +398,14 @@ class FileListPanel(QWidget):
 
     def refresh(self):
         current = self.list.currentItem().text() if self.list.currentItem() else None
-        entries = list_files(self.directory, self.sortCombo.currentText(),
-                             self.descCheck.isChecked(), self.filterEdit.text())
+        error = None
+        try:
+            entries = list_files(self.directory, self.sortCombo.currentText(),
+                                 self.descCheck.isChecked(), self.filterEdit.text(),
+                                 self.regexCheck.isChecked())
+        except re.error as exc:
+            entries = []
+            error = "Invalid regex: %s" % exc
         self.list.blockSignals(True)
         self.list.clear()
         row = 0
@@ -389,13 +416,14 @@ class FileListPanel(QWidget):
             if name == current:
                 row = i
         self.list.blockSignals(False)
-        self.countLabel.setText("%d files" % len(entries))
+        self.countLabel.setText(error if error else "%d files" % len(entries))
         if entries:
             self.list.setCurrentRow(row)
             self.itemChanged(self.list.currentItem())
         else:
             self.onSelect(None)
-        self.list.setFocus()
+        if not self.filterEdit.hasFocus():
+            self.list.setFocus()
 
     def itemChanged(self, item, _prev=None):
         self.onSelect(os.path.join(self.directory, item.text()) if item else None)
