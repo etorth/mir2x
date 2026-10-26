@@ -14,7 +14,7 @@ struct MapBinElement
     std::shared_ptr<Mir2xMapData> data {};
 };
 
-class MapBinDB: public innDB<uint32_t, MapBinElement, true> // threadSafe
+class MapBinDB final: public innDB<uint32_t, MapBinElement, true> // threadSafe
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
@@ -23,6 +23,12 @@ class MapBinDB: public innDB<uint32_t, MapBinElement, true> // threadSafe
         MapBinDB()
             : innDB<uint32_t, MapBinElement, true>(16)
         {}
+
+    public:
+        ~MapBinDB() override
+        {
+            clear();
+        }
 
     public:
         bool load(const char *mapDBName)

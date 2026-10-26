@@ -14,6 +14,7 @@
 #pragma once
 #include <list>
 #include <mutex>
+#include <cassert>
 #include <tuple>
 #include <memory>
 #include <concepts>
@@ -62,7 +63,7 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
     public:
         virtual ~innDB()
         {
-            clear();
+            assert(m_elemList.empty()); // calling clear() -> freeResource() here is UB
         }
 
     public:

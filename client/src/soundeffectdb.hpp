@@ -14,7 +14,7 @@ struct SoundEffectElement
     std::shared_ptr<SoundEffectHandle> handle = nullptr;
 };
 
-class SoundEffectDB: public innDB<uint32_t, SoundEffectElement>
+class SoundEffectDB final: public innDB<uint32_t, SoundEffectElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -25,7 +25,10 @@ class SoundEffectDB: public innDB<uint32_t, SoundEffectElement>
         {}
 
     public:
-        virtual ~SoundEffectDB() = default;
+        ~SoundEffectDB() override
+        {
+            clear();
+        }
 
     public:
         void load(const char *soundEffectDBName)

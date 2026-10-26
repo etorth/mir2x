@@ -13,7 +13,7 @@ struct PNGTexElement
     SDL_Texture *texture = nullptr;
 };
 
-class PNGTexDB: public innDB<uint32_t, PNGTexElement>
+class PNGTexDB final: public innDB<uint32_t, PNGTexElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -22,6 +22,12 @@ class PNGTexDB: public innDB<uint32_t, PNGTexElement>
         PNGTexDB(size_t resMax)
             : innDB<uint32_t, PNGTexElement>(resMax)
         {}
+
+    public:
+        ~PNGTexDB() override
+        {
+            clear();
+        }
 
     public:
         void load(const char *texDBName)

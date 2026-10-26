@@ -24,7 +24,7 @@ SDL_Texture *EmojiDB::retrieve(uint32_t key, int *srcXPtr, int *srcYPtr, int *sr
     return nullptr;
 }
 
-SDL_Texture *EmojiDB::retrieve(uint8_t emojiSet, uint16_t emojiSubset, uint8_t emojiIndex, int *srcXPtr, int *srcYPtr, int *srcWPtr, int *srcHPtr, int *fpsPtr, int *frameH1Ptr, int *frameCountPtr)
+SDL_Texture *EmojiDB::retrieve(uint8_t emojiSet, uint16_t emojiSubset, uint8_t emojiIndex, int *srcXPtr, int *srcYPtr, int *srcWPtr, int *srcHPtr, int *frameH1Ptr, int *fpsPtr, int *frameCountPtr)
 {
     return retrieve((to_u32(emojiSet) << 24) + to_u32(emojiSubset << 8) + to_u32(emojiIndex), srcXPtr, srcYPtr, srcWPtr, srcHPtr, frameH1Ptr, fpsPtr, frameCountPtr);
 }

@@ -46,7 +46,7 @@ struct EmojiElement
     SDL_Texture *texture = nullptr;
 };
 
-class EmojiDB: public innDB<uint32_t, EmojiElement>
+class EmojiDB final: public innDB<uint32_t, EmojiElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -72,6 +72,7 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
 
         ~EmojiDB() override
         {
+            clear();
             freeResource(m_fallback);
         }
 
@@ -83,7 +84,7 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
 
     public:
         SDL_Texture *retrieve(uint32_t,                   int *, int *, int *, int *, int *, int *, int *);
-        SDL_Texture *retrieve(uint8_t, uint16_t, uint8_t, int *, int *, int *, int *, int *, int *, int *);
+        SDL_Texture *retrieve(uint8_t, uint16_t, uint8_t, int *, int *, int *, int *, int *, int *, int *); // srcX, srcY, srcW, srcH, frameH1, fps, frameCount
 
     private:
         std::optional<std::tuple<EmojiElement, size_t>> loadResource(uint32_t) override;

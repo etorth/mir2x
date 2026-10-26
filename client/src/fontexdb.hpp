@@ -44,7 +44,7 @@ struct FontexElement
 //
 // 3. used as a long-string index
 
-class FontexDB: public innDB<uint64_t, FontexElement>
+class FontexDB final: public innDB<uint64_t, FontexElement>
 {
     private:
         constexpr static uint32_t R1_MAX = 0x0010FFFFU; // single unicode point
@@ -82,8 +82,9 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             : innDB<uint64_t, FontexElement>(resMax)
         {}
 
-        virtual ~FontexDB()
+        ~FontexDB() override
         {
+            clear(); // free textures before closing fonts
             for(auto &p: m_ttfCache){
                 TTF_CloseFont(p.second);
             }

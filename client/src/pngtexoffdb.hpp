@@ -19,7 +19,7 @@ struct PNGTexOffElement
     SDL_Texture *texture = nullptr;
 };
 
-class PNGTexOffDB: public innDB<uint32_t, PNGTexOffElement>
+class PNGTexOffDB final: public innDB<uint32_t, PNGTexOffElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -28,6 +28,12 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffElement>
         PNGTexOffDB(size_t resMax)
             : innDB<uint32_t, PNGTexOffElement>(resMax)
         {}
+
+    public:
+        ~PNGTexOffDB() override
+        {
+            clear();
+        }
 
     public:
         void load(const char *texOffDBName)

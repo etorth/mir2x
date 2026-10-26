@@ -12,7 +12,7 @@ struct BGMusicElement
     std::vector<uint8_t> musicFileData; // SDL_mixer streams from this buffer
 };
 
-class BGMusicDB: public innDB<uint32_t, BGMusicElement>
+class BGMusicDB final: public innDB<uint32_t, BGMusicElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -23,7 +23,10 @@ class BGMusicDB: public innDB<uint32_t, BGMusicElement>
         {}
 
     public:
-        virtual ~BGMusicDB() = default;
+        ~BGMusicDB() override
+        {
+            clear();
+        }
 
     public:
         void load(const char *bgmDBName)
