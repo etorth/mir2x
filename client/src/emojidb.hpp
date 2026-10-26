@@ -51,6 +51,9 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
 
+    private:
+        EmojiElement m_fallback {};
+
     public:
         static uint32_t u32Key(uint8_t emojiSet, uint16_t emojiSubset)
         {
@@ -67,6 +70,11 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
             : innDB<uint32_t, EmojiElement>(1024)
         {}
 
+        ~EmojiDB() override
+        {
+            freeResource(m_fallback);
+        }
+
     public:
         void load(const char *emojiDBName)
         {
@@ -77,9 +85,12 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
         SDL_Texture *retrieve(uint32_t,                   int *, int *, int *, int *, int *, int *, int *);
         SDL_Texture *retrieve(uint8_t, uint16_t, uint8_t, int *, int *, int *, int *, int *, int *, int *);
 
-    public:
+    private:
         std::optional<std::tuple<EmojiElement, size_t>> loadResource(uint32_t) override;
 
-    public:
+    private:
         void freeResource(EmojiElement &) override;
+
+    private:
+        EmojiElement &createFallback();
 };

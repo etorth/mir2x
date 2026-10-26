@@ -85,7 +85,7 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
         }
 
     protected:
-        ResT *innLoad(KeyT key)
+        template<typename Func> requires std::is_invocable_r_v<ResT *, Func &> ResT *innLoad(KeyT key, Func && fallback)
         {
             std::lock_guard<InnMutex> lockGurad(m_lock);
             if(auto p = m_elemList.find(key); p != m_elemList.end()){
@@ -98,7 +98,7 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
                 if(p->second.res.has_value()){
                     return std::addressof(p->second.res.value());
                 }
-                return nullptr;
+                return fallback();
             }
 
             if(m_resMax > 0){
@@ -142,6 +142,12 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
             if(emplaced->second.res.has_value()){
                 return std::addressof(emplaced->second.res.value());
             }
-            return nullptr;
+            return fallback();
+        }
+
+    protected:
+        ResT *innLoad(KeyT key, ResT *fallback = nullptr)
+        {
+            return innLoad(key, [fallback]{ return fallback; });
         }
 };

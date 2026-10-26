@@ -1,10 +1,12 @@
+#include <algorithm>
+#include "fflerror.hpp"
 #include "emojidb.hpp"
 #include "sdldevice.hpp"
 
 extern SDLDevice *g_sdlDevice;
 SDL_Texture *EmojiDB::retrieve(uint32_t key, int *srcXPtr, int *srcYPtr, int *srcWPtr, int *srcHPtr, int *frameH1Ptr, int *fpsPtr, int *frameCountPtr)
 {
-    if(auto p = innLoad(key & 0XFFFFFF00)){
+    if(auto p = innLoad(key & 0XFFFFFF00, [this]{ return std::addressof(createFallback()); })){
         const int texW = SDLDeviceHelper::getTextureWidth(p->texture);
         const int gridXCount = texW / p->frameW;
         const int frameIndex = to_d(key & 0X000000FF);
@@ -54,4 +56,28 @@ void EmojiDB::freeResource(EmojiElement &element)
         SDL_DestroyTexture(element.texture);
         element.texture = nullptr;
     }
+}
+
+EmojiElement &EmojiDB::createFallback()
+{
+    if(!m_fallback.texture){
+        constexpr uint8_t emojiDefData[]
+        {
+            #embed "emojidef.png"
+        };
+
+        if(auto tex = g_sdlDevice->loadPNGTexture(std::data(emojiDefData), std::size(emojiDefData))){
+            return m_fallback = EmojiElement
+            {
+                .frameW     = tex->w,
+                .frameH     = tex->h,
+                .frameH1    = std::max<int>(1, tex->h * 4 / 5),
+                .fps        = 0,
+                .frameCount = 1,
+                .texture    = tex,
+            };
+        }
+        throw fflpanic("failed to load emojidef.png");
+    }
+    return m_fallback;
 }

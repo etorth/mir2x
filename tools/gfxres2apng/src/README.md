@@ -1254,6 +1254,10 @@ Everything the client needs to change for emoji. File:line references are to
   the whole frame, `(0, 0, W, H)`. The `fps` output must be replaced by
   per-frame delay access.
 - An APNG read by a plain PNG decoder shows only frame 0.
+- Keep the missing-emoji fallback: `retrieve` never returns `nullptr`. For a
+  key not in the database it returns `client/src/emojidef.png` (embedded with
+  `#embed`, one frame, no animation, `frameH1` = 80% of its height), created on
+  first use on the main thread. The token keeps the requested key.
 
 #### XML layout
 

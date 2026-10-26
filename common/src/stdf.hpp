@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string_view>
 #include <type_traits>
+#include <variant>
 #include <utility>
 
 namespace stdf
