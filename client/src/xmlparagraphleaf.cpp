@@ -7,6 +7,8 @@
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "bevent.hpp"
+#include "emojidb.hpp"
+#include "fflerror.hpp"
 #include "xmlparagraphleaf.hpp"
 
 extern Log *g_mir2xLog;
@@ -47,6 +49,15 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
           switch(m_type){
               case LEAF_EMOJI:
                   {
+                      int emojiSet = 0;
+                      if((m_node->ToElement()->QueryIntAttribute("set", &emojiSet) != tinyxml2::XML_SUCCESS) &&
+                         (m_node->ToElement()->QueryIntAttribute("Set", &emojiSet) != tinyxml2::XML_SUCCESS) &&
+                         (m_node->ToElement()->QueryIntAttribute("SET", &emojiSet) != tinyxml2::XML_SUCCESS)){
+
+                          // no set attribute
+                          // use default emojiSet zero
+                      }
+
                       int emojiId = 0;
                       if((m_node->ToElement()->QueryIntAttribute("id", &emojiId) != tinyxml2::XML_SUCCESS) &&
                          (m_node->ToElement()->QueryIntAttribute("Id", &emojiId) != tinyxml2::XML_SUCCESS) &&
@@ -55,7 +66,11 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
                           // no id attribute
                           // use default emojiId zero
                       }
-                      return emojiId;
+
+                      fflassert(emojiSet >= 0 && emojiSet <=  UINT8_MAX, emojiSet);
+                      fflassert(emojiId  >= 0 && emojiId  <= UINT16_MAX, emojiId );
+
+                      return EmojiDB::u32Key(to_u8(emojiSet), to_u16(emojiId));
                   }
               default:
                   {
