@@ -11,10 +11,10 @@ import os
 import re
 import sys
 
-from PySide6.QtCore import Qt, QTimer, QRect, QEvent
+from PySide6.QtCore import Qt, QTimer, QRect, QEvent, QMimeData, QUrl
 from PySide6.QtGui import QImage, QPainter, QPixmap, QColor, QFontDatabase
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QSplitter, QListWidget, QListWidgetItem,
+    QApplication, QMainWindow, QWidget, QSplitter, QListWidget, QListWidgetItem, QMenu,
     QLabel, QComboBox, QCheckBox, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout,
     QFileDialog, QPlainTextEdit, QStackedWidget, QSpinBox,
 )
@@ -363,6 +363,8 @@ class FileListPanel(QWidget):
         self.list = QListWidget()
         self.list.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.list.currentItemChanged.connect(self.itemChanged)
+        self.list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self.showContextMenu)
         self.countLabel = QLabel()
 
         row1 = QHBoxLayout()
@@ -427,6 +429,24 @@ class FileListPanel(QWidget):
 
     def itemChanged(self, item, _prev=None):
         self.onSelect(os.path.join(self.directory, item.text()) if item else None)
+
+    def showContextMenu(self, pos):
+        item = self.list.itemAt(pos)
+        if item is None:
+            return
+        name = item.text()
+        path = os.path.join(self.directory, name)
+        menu = QMenu(self)
+        menu.addAction("Copy file", lambda: self.copyFile(path))
+        menu.addAction("Copy filename", lambda: QApplication.clipboard().setText(name))
+        menu.exec(self.list.viewport().mapToGlobal(pos))
+
+    @staticmethod
+    def copyFile(path):
+        # file URL on the clipboard lets Explorer paste the file itself
+        mime = QMimeData()
+        mime.setUrls([QUrl.fromLocalFile(path)])
+        QApplication.clipboard().setMimeData(mime)
 
 
 class MainWindow(QMainWindow):
