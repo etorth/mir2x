@@ -612,6 +612,38 @@ SDL_Texture *SDLDevice::loadPNGTexture(const void *data, size_t size)
     return nullptr;
 }
 
+std::vector<std::pair<SDL_Texture *, int>> SDLDevice::loadPNGAnimation(const void *data, size_t size)
+{
+    fflassert(data);
+    fflassert(size > 0);
+
+    if(!m_renderer){
+        return {};
+    }
+
+    std::vector<std::pair<SDL_Texture *, int>> res;
+    if(auto ioStream = SDL_IOFromConstMem(data, size)){
+        if(auto anim = IMG_LoadAPNGAnimation_IO(ioStream)){
+            res.reserve(anim->count);
+            for(int i = 0; i < anim->count; ++i){
+                if(auto texPtr = createTextureFromSurface(anim->frames[i])){
+                    res.emplace_back(texPtr, anim->delays[i]);
+                }
+                else{
+                    for(auto &[tex, _]: res){
+                        SDL_DestroyTexture(tex);
+                    }
+                    res.clear();
+                    break;
+                }
+            }
+            IMG_FreeAnimation(anim);
+        }
+        SDL_CloseIO(ioStream);
+    }
+    return res;
+}
+
 void SDLDevice::drawTexture(SDL_Texture *texPtr,
         int dstX, int dstY,
         int dstW, int dstH,

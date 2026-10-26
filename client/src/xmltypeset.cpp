@@ -1,3 +1,5 @@
+#include <cmath>
+#include <algorithm>
 #include <cinttypes>
 #include <ranges>
 #include "log.hpp"
@@ -653,25 +655,19 @@ TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
     std::memset(&(token), 0, sizeof(token));
     token.leaf = leafIndex;
 
-    int tokenW     = -1;
-    int tokenH     = -1;
-    int h1         = -1;
-    int fps        = -1;
-    int frameCount = -1;
-
     if(((emoji << 8) >> 8) != emoji){
         throw fflpanic("invalid emoji key: {}", emoji);
     }
 
-    emoji <<= 8;
-    if(g_emojiDB->retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
+    if(const auto elem = g_emojiDB->retrieveElement(emoji, 0); elem.texture){
+        const auto [tokenW, tokenH] = SDLDeviceHelper::getTextureSize(elem.texture);
         token.box.info.w       = tokenW;
         token.box.info.h       = tokenH;
-        token.box.state.h1     = h1;
-        token.box.state.h2     = tokenH - h1;
-        token.emoji.key     = emoji;
-        token.emoji.fps        = fps;
-        token.emoji.frameCount = frameCount;
+        token.box.state.h1     = elem.h1;
+        token.box.state.h2     = tokenH - elem.h1;
+        token.emoji.key        = emoji;
+        token.emoji.frameCount = elem.frameCount;
+        token.emoji.delay      = to_u16(std::clamp<size_t>(elem.delay, 1, UINT16_MAX));
     }
     return token;
 }
@@ -1410,20 +1406,9 @@ void XMLTypeset::draw(Widget::ROIMap m) const
                     }
                 case LEAF_EMOJI:
                     {
-                        const auto emojiKey = [tokenPtr]() -> uint32_t
-                        {
-                            if(tokenPtr->emoji.frameCount && tokenPtr->emoji.fps){
-                                return (tokenPtr->emoji.key & 0XFFFFFF00) + tokenPtr->emoji.frame % tokenPtr->emoji.frameCount;
-                            }
-                            return tokenPtr->emoji.key & 0XFFFFFF00;
-                        }();
-
-                        int xOnTex = 0;
-                        int yOnTex = 0;
-
-                        if(auto texPtr = g_emojiDB->retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
+                        if(auto texPtr = g_emojiDB->retrieveElement(tokenPtr->emoji.key, tokenPtr->emoji.frame).texture){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, Widget::evalU32(m_initArgs.imageMaskColor, nullptr, this));
-                            g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
+                            g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
                             g_sdlDevice->drawRectangle(colorf::compColor(bgColorVal), drawDstX, drawDstY, boxW, boxH);
@@ -1445,13 +1430,17 @@ void XMLTypeset::update(double fMS)
     for(int leafIndex = 0; leafIndex < m_paragraph->leafCount(); ++leafIndex){
         if(m_paragraph->leaf(leafIndex).type() == LEAF_EMOJI){
             const auto [x, y] = leafTokenLoc(leafIndex);
-            if(auto pToken= getToken(x, y); pToken->emoji.fps != 0){
-                double fPeroidMS = 1000.0 / pToken->emoji.fps;
-                double fCurrTick = fMS + pToken->emoji.tick;
-
-                auto nAdvancedFrame  = to_u8(fCurrTick / fPeroidMS);
-                pToken->emoji.tick   = to_u8(fCurrTick - nAdvancedFrame * fPeroidMS);
-                pToken->emoji.frame += nAdvancedFrame;
+            if(auto pToken = getToken(x, y); pToken->emoji.frameCount > 1){
+                if(auto tick = to_uz(pToken->emoji.tick) + to_uz(std::lround(std::max<double>(0, fMS))); tick >= pToken->emoji.delay){
+                    // current frame timeout
+                    // switch to next frame, but don't jump frame
+                    pToken->emoji.tick  = to_u16(std::min<size_t>(tick - pToken->emoji.delay, UINT16_MAX));
+                    pToken->emoji.frame = (pToken->emoji.frame + 1) % pToken->emoji.frameCount;
+                    pToken->emoji.delay = to_u16(std::clamp<size_t>(g_emojiDB->retrieveElement(pToken->emoji.key, pToken->emoji.frame).delay, 1, UINT16_MAX));
+                }
+                else{
+                    pToken->emoji.tick = to_u16(tick);
+                }
             }
         }
     }

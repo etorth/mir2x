@@ -74,17 +74,6 @@ Client            *g_client          = nullptr;
 
 namespace
 {
-    struct TestFonts: FontexDB
-    {
-        TestFonts(): FontexDB(1024 * 1024 * 64) {}
-        ~TestFonts() override { clear(); }
-    };
-
-    struct TestEmoji: EmojiDB
-    {
-        ~TestEmoji() override { clear(); }
-    };
-
     // a real captured NPC dialog paragraph (server/script/quest/野蛮冲撞任务.lua,
     // npc_ask_magic), kept verbatim so the suite exercises real CJK content with
     // embedded <t color="..."> tags, not just synthetic ASCII fixtures
@@ -498,11 +487,11 @@ TEST_CASE("Rich-text geometry, wrapping, alignment, and incremental edits", "[xm
     g_sdlDevice = &device;
     device.createMainWindow();
 
-    TestFonts fonts;
+    FontexDB fonts(1024 * 1024 * 64);
     g_fontexDB = &fonts;
     fonts.load((resDir + "/font/fontex.zsdb").c_str());
 
-    TestEmoji emoji;
+    EmojiDB emoji;
     g_emojiDB = &emoji;
     emoji.load((resDir + "/emoji/emoji.zsdb").c_str());
 

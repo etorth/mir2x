@@ -228,6 +228,9 @@ class SDLDevice final
        SDL_Texture *loadPNGTexture(const void *, size_t);
 
     public:
+       std::vector<std::pair<SDL_Texture *, int>> loadPNGAnimation(const void *, size_t);
+
+    public:
        void setWindowIcon();
 
     public:

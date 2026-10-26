@@ -66,11 +66,11 @@ struct TOKEN
         {
             uint32_t key;
 
-            uint8_t fps;
-            uint8_t frameCount;
+            uint16_t frameCount;
+            uint16_t frame;
 
-            uint8_t tick;
-            uint8_t frame;
+            uint16_t delay; // in ms
+            uint16_t tick;  // in ms
         }emoji;
 
         struct

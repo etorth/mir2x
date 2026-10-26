@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <string>
+#include <stdexcept>
 #include <algorithm>
 #include <type_traits>
 
@@ -72,5 +74,37 @@ namespace hexstr
             result = (result << 4) + strHexChunk[strBuf[i] - '0'];
         }
         return result;
+    }
+
+    // convert exactly the first bytes hex chars as a two's complement number
+    // the highest bit of the bytes * 4 bits is the sign bit, i.e.
+    //    to_2comp("FFF", 3) returns -1
+    //    to_2comp("800", 3) returns -2048
+    //    to_2comp("7FF", 3) returns  2047
+    inline int to_2comp(const char *strBuf, size_t bytes)
+    {
+        if(!strBuf || bytes == 0 || bytes > 8){
+            throw std::invalid_argument("hexstr::to_2comp(): invalid hex char count: " + std::to_string(bytes));
+        }
+
+        uint32_t value = 0;
+        for(size_t i = 0; i < bytes; ++i){
+            const char ch = strBuf[i];
+            uint32_t digit = 0;
+
+            if     (ch >= '0' && ch <= '9') digit = ch - '0';
+            else if(ch >= 'A' && ch <= 'F') digit = ch - 'A' + 10;
+            else if(ch >= 'a' && ch <= 'f') digit = ch - 'a' + 10;
+            else{
+                throw std::invalid_argument("hexstr::to_2comp(): invalid hex string: " + std::string(strBuf, std::strlen(strBuf) < bytes ? std::strlen(strBuf) : bytes));
+            }
+            value = (value << 4) | digit;
+        }
+
+        const size_t bits = bytes * 4;
+        if(value & (uint32_t(1) << (bits - 1))){
+            return static_cast<int>(static_cast<int64_t>(value) - (int64_t(1) << bits));
+        }
+        return static_cast<int>(value);
     }
 }

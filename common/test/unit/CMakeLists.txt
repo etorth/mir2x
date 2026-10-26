@@ -15,3 +15,9 @@ mir2x_add_unit_test(
     SOURCES test_servermsg.cpp
     LIBS common
 )
+
+mir2x_add_unit_test(
+    NAME hexstr
+    SOURCES test_hexstr.cpp
+    LIBS common
+)

@@ -4,80 +4,65 @@
 #include "sdldevice.hpp"
 
 extern SDLDevice *g_sdlDevice;
-SDL_Texture *EmojiDB::retrieve(uint32_t key, int *srcXPtr, int *srcYPtr, int *srcWPtr, int *srcHPtr, int *frameH1Ptr, int *fpsPtr, int *frameCountPtr)
+EmojiElement EmojiDB::retrieveElement(uint32_t key, size_t frame)
 {
-    if(auto p = innLoad(key & 0XFFFFFF00, [this]{ return std::addressof(createFallback()); })){
-        const int texW = SDLDeviceHelper::getTextureWidth(p->texture);
-        const int gridXCount = texW / p->frameW;
-        const int frameIndex = to_d(key & 0X000000FF);
+    const auto p = innLoad(key, [this]{ return createFallback(); }); // never fail
+    EmojiElement element
+    {
+        .h1 = p->h1,
+        .frameCount = p->animation.size(),
+    };
 
-        if(      srcXPtr){       *srcXPtr = (frameIndex % gridXCount) * p->frameW;     }
-        if(      srcYPtr){       *srcYPtr = (frameIndex / gridXCount) * p->frameH;     }
-        if(      srcWPtr){       *srcWPtr =                             p->frameW;     }
-        if(      srcHPtr){       *srcHPtr =                             p->frameH;     }
-        if(   frameH1Ptr){    *frameH1Ptr =                             p->frameH1;    }
-        if(       fpsPtr){        *fpsPtr =                             p->fps;        }
-        if(frameCountPtr){ *frameCountPtr =                             p->frameCount; }
-
-        return p->texture;
+    if(frame < p->animation.size()){
+        element.delay = to_uz(std::max<int>(1, p->animation[frame].second));
+        element.texture = p->animation[frame].first;
     }
-    return nullptr;
+    return element;
 }
 
-SDL_Texture *EmojiDB::retrieve(uint8_t emojiSet, uint16_t emojiSubset, uint8_t emojiIndex, int *srcXPtr, int *srcYPtr, int *srcWPtr, int *srcHPtr, int *frameH1Ptr, int *fpsPtr, int *frameCountPtr)
-{
-    return retrieve((to_u32(emojiSet) << 24) + to_u32(emojiSubset << 8) + to_u32(emojiIndex), srcXPtr, srcYPtr, srcWPtr, srcHPtr, frameH1Ptr, fpsPtr, frameCountPtr);
-}
-
-std::optional<std::tuple<EmojiElement, size_t>> EmojiDB::loadResource(uint32_t key)
+std::optional<std::tuple<_EmojiStoreElement, size_t>> EmojiDB::loadResource(uint32_t key)
 {
     char keyString[16];
     std::vector<uint8_t> dataBuf;
 
-    if(auto fileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
-        if(auto texPtr = g_sdlDevice->loadPNGTexture(dataBuf.data(), dataBuf.size())){
-            return std::make_tuple(EmojiElement
+    if(auto fileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 11)){
+        if(auto anim = g_sdlDevice->loadPNGAnimation(dataBuf.data(), dataBuf.size()); !anim.empty()){
+            return std::make_tuple(_EmojiStoreElement
             {
-                .frameW     = to_d(hexstr::to_hex<uint16_t, 2>(fileName + 12)),
-                .frameH     = to_d(hexstr::to_hex<uint16_t, 2>(fileName + 16)),
-                .frameH1    = to_d(hexstr::to_hex<uint16_t, 2>(fileName + 20)),
-                .fps        = to_d(hexstr::to_hex< uint8_t, 1>(fileName + 10)),
-                .frameCount = to_d(hexstr::to_hex< uint8_t, 1>(fileName +  8)),
-                .texture    = texPtr,
+                .h1 = hexstr::to_2comp(fileName + 8, 3),
+                .animation = std::move(anim),
             }, 1);
         }
     }
     return {};
 }
 
-void EmojiDB::freeResource(EmojiElement &element)
+void EmojiDB::freeResource(_EmojiStoreElement &element)
 {
-    if(element.texture){
-        SDL_DestroyTexture(element.texture);
-        element.texture = nullptr;
+    for(auto &[tex, _]: element.animation){
+        SDL_DestroyTexture(tex);
     }
+    element.animation.clear();
 }
 
-EmojiElement &EmojiDB::createFallback()
+_EmojiStoreElement *EmojiDB::createFallback()
 {
-    if(!m_fallback.texture){
+    if(m_fallback.animation.empty()){
         constexpr uint8_t emojiDefData[]
         {
             #embed "emojidef.png"
         };
 
-        if(auto tex = g_sdlDevice->loadPNGTexture(std::data(emojiDefData), std::size(emojiDefData))){
-            return m_fallback = EmojiElement
+        if(auto anim = g_sdlDevice->loadPNGAnimation(std::data(emojiDefData), std::size(emojiDefData)); !anim.empty()){
+            m_fallback = _EmojiStoreElement
             {
-                .frameW     = tex->w,
-                .frameH     = tex->h,
-                .frameH1    = std::max<int>(1, tex->h * 4 / 5),
-                .fps        = 0,
-                .frameCount = 1,
-                .texture    = tex,
+                .h1 = std::max<int>(1, anim.front().first->h * 4 / 5),
+                .animation = std::move(anim),
             };
         }
-        throw fflpanic("failed to load emojidef.png");
+        else{
+            throw fflpanic("failed to load emojidef.png");
+        }
     }
-    return m_fallback;
+    return &m_fallback;
 }
