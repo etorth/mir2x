@@ -87,18 +87,17 @@ class NameTest(unittest.TestCase):
         self.assertEqual(int(name[:-4], 16) >> 44, 0)
 
     def test_magic_identity_fields(self):
-        name = g.encode_magic_name((15, 0xFFFF, 15, (31, -56)), -296, 40, (-2048, 2047))
+        name = g.encode_magic_name((255, 0xFFFFF, 15, (31, -56)), -296, 40, (-2048, 2047))
         self.assertEqual(len(name), 30)
-        self.assertTrue(name.startswith("00"))
+        self.assertTrue(name.startswith("FFFFFFFF"))
         self.assertEqual(g.decode_magic_name(name), {
             "dx": -296, "dy": 40, "head": (31, -56), "tail": (-2048, 2047),
-            "direction": 15, "image": 0xFFFF, "file": 15,
+            "direction": 15, "image": 0xFFFFF, "file": 255,
         })
-        self.assertTrue(g.encode_magic_name((3, 0x100, 1, (0, 0)), 0, 0).startswith("00301001000000000000"))
-        with self.assertRaises(ValueError):
-            g.decode_magic_name("01" + name[2:])
-        with self.assertRaises(ValueError):
-            g.encode_magic_name((16, 0, 0, (0, 0)), 0, 0)
+        self.assertTrue(g.encode_magic_name((3, 0x100, 1, (0, 0)), 0, 0).startswith("03001001000000000000"))
+        for ident in [(256, 0, 0, (0, 0)), (0, 1 << 20, 0, (0, 0)), (0, 0, 16, (0, 0))]:
+            with self.assertRaises(ValueError):
+                g.encode_magic_name(ident, 0, 0)
 
     def test_invalid_names(self):
         for name in ["000000002000000000.PNG", "00000000100000000.PNG"]:

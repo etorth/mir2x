@@ -66,9 +66,8 @@ magic
       T: bits 48-59, tail x, 12-bit two's complement
          bits 60-71, tail y, 12-bit two's complement
       D: bits 72-75, direction index, [0, gfxDirType)
-      I: bits 76-91, image index of the sequence's base gfxID, same for all directions
-      F: bits 92-95, file index
-         bits 96-103 are zero, reserved
+      I: bits 76-95, image index of the sequence's base gfxID, same for all directions
+      F: bits 96-103, file index
 
     Offsets, head and tail are all relative to the same anchor. The head is the
     hit point of a flying magic, the tail->head vector is the flying direction,
@@ -274,7 +273,7 @@ def decode_human_name(fileName):
 
 def encode_magic_name(ident, dx, dy, tail=(0, 0)):
     fileIndex, imageIndex, direction, head = ident
-    if not (0 <= fileIndex < 16 and 0 <= imageIndex < 65536 and 0 <= direction < 16):
+    if not (0 <= fileIndex < 256 and 0 <= imageIndex < (1 << 20) and 0 <= direction < 16):
         raise ValueError(f"invalid magic sequence identity: {ident}")
 
     value = (
@@ -286,23 +285,21 @@ def encode_magic_name(ident, dx, dy, tail=(0, 0)):
         | (to_twos(tail[1], OFFSET_BITS) << 60)
         | (direction << 72)
         | (imageIndex << 76)
-        | (fileIndex << 92)
+        | (fileIndex << 96)
     )
     return f"{value:026X}.PNG"
 
 
 def decode_magic_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
-    if value >> 96:
-        raise ValueError(f"magic name has non-zero reserved bits: {fileName}")
     return {
         "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
         "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
         "head": (from_twos((value >> 24) & 0xFFF, OFFSET_BITS), from_twos((value >> 36) & 0xFFF, OFFSET_BITS)),
         "tail": (from_twos((value >> 48) & 0xFFF, OFFSET_BITS), from_twos((value >> 60) & 0xFFF, OFFSET_BITS)),
         "direction": (value >> 72) & 0x0F,
-        "image": (value >> 76) & 0xFFFF,
-        "file": (value >> 92) & 0x0F,
+        "image": (value >> 76) & 0xFFFFF,
+        "file": (value >> 96) & 0xFF,
     }
 
 

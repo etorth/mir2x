@@ -279,16 +279,14 @@ the range must belong to a sequence. Otherwise the run fails.
 | 48–59 | tail x, 12-bit two's complement |
 | 60–71 | tail y, 12-bit two's complement |
 | 72–75 | direction index, `[0, gfxDirType)` |
-| 76–91 | image index of the sequence's base gfxID, same for every direction |
-| 92–95 | file index |
-| 96–103 | reserved, `00` in this conversion's output, see below |
+| 76–95 | image index of the sequence's base gfxID, same for every direction, below 2^20 |
+| 96–103 | file index, 0 to 255 |
 
-The reserved bits are zero in every APNG this script writes. Magic added
-later, not converted from `mir2x_res`, may use them, so the client must not
-reject a name whose first two hex digits are not `00`. It should keep them as
-part of the 8-digit identity (`value >> 72`) and decode the other fields as
-usual. Only the converter checks that they are zero, when it verifies its
-own output.
+The first 8 digits, `FF IIIII D`, are the sequence identity: the 2-digit file,
+the 5-digit image and the direction. The converted data uses files `00` to
+`07` and `0F`, and images up to `0x16B7`. Magic added later, not converted
+from `mir2x_res`, can use any other file number, so the client must accept
+any value in all 8 digits.
 
 Example: `00001A45000000001044FD1FF4.PNG` is file 0, image 420, direction 5,
 head (68, 1), tail (0, 0), offset (-12, -47).
@@ -496,7 +494,7 @@ below). The conversion splits it:
    |---|---|---|---|
    | monster, npc, hero, hair, helmet, weapon, selectchar | 14 digits | `value >> 24` | first 8 digits |
    | equip | 14 digits | `value >> 24`, equals the old key | first 8 digits |
-   | magic | 26 digits | `value >> 72` = `dir \| image << 4 \| file << 20 \| reserved << 24` | first 8 digits, the first 2 reserved (`00` here, any value in the client) |
+   | magic | 26 digits | `value >> 72` = `dir \| image << 4 \| file << 24` | first 8 digits, `FF IIIII D` |
 
 2. **Frame index → APNG frame index.** Old frame `f` is APNG frame `f`. For
    magic, `f` counts from the first frame of the sequence. selectchar shadow
@@ -686,21 +684,20 @@ Keys `0x0700076C`–`0x070016B7` don't map to magic, they are the
 The name packs every field on hex-digit boundaries, so it can be read directly:
 
 ```text
-00 F IIII D TTT TTT HHH HHH YYY XXX
-│  │ │    │ │   │   │   │   │   └─ X offset   (bits  0-11)
-│  │ │    │ │   │   │   │   └───── Y offset   (bits 12-23)
-│  │ │    │ │   │   │   └───────── head x     (bits 24-35)
-│  │ │    │ │   │   └───────────── head y     (bits 36-47)
-│  │ │    │ │   └───────────────── tail x     (bits 48-59)
-│  │ │    │ └───────────────────── tail y     (bits 60-71)
-│  │ │    └─────────────────────── direction  (bits 72-75)
-│  │ └──────────────────────────── image      (bits 76-91)
-│  └────────────────────────────── file       (bits 92-95)
-└───────────────────────────────── reserved   (bits 96-103, 00 here, client accepts any)
+FF IIIII D TTT TTT HHH HHH YYY XXX
+│  │     │ │   │   │   │   │   └─ X offset   (bits  0-11)
+│  │     │ │   │   │   │   └───── Y offset   (bits 12-23)
+│  │     │ │   │   │   └───────── head x     (bits 24-35)
+│  │     │ │   │   └───────────── head y     (bits 36-47)
+│  │     │ │   └───────────────── tail x     (bits 48-59)
+│  │     │ └───────────────────── tail y     (bits 60-71)
+│  │     └─────────────────────── direction  (bits 72-75)
+│  └───────────────────────────── image      (bits 76-95)
+└──────────────────────────────── file       (bits 96-103)
 ```
 
 ```text
-identity = direction | image << 4 | file << 20     # reserved bits 24-31 = 0
+identity = direction | image << 4 | file << 24     # 8 hex digits, FF IIIII D
 name     = "%026X.PNG" % (identity << 72
                          | (tailY & 0xFFF) << 60 | (tailX & 0xFFF) << 48
                          | (headY & 0xFFF) << 36 | (headX & 0xFFF) << 24
@@ -713,21 +710,142 @@ Examples:
   `0x000003D4` (image 980), `frameCount` 3, `gfxIDCount` 10, `gfxDirType` 16,
   `targetOffList[2]` = (62, -45). Direction 2 starts at 980 + 2 × 10 = 1000:
   `000003E81000310035.PNG`, `000003E9...`, `000003EA...` become
-  `00003D42000000FD303EFC8031.PNG`, read as reserved `00`, file `0`, image
-  `03D4`, direction `2`, tail (0, 0), head y `FD3` = -45, head x `03E` = 62,
+  `00003D42000000FD303EFC8031.PNG`, read as file `00`, image
+  `003D4`, direction `2`, tail (0, 0), head y `FD3` = -45, head x `03E` = 62,
   Y `FC8` = -56, X `031` = 49.
 - **Longest prefix and shared frames.** Two entries use gfxID `0x010007BC`
-  with `frameCount` 10 and 15: one APNG `00107BC0000000000000F20FCE.PNG` with
+  with `frameCount` 10 and 15: one APNG `01007BC0000000000000F20FCE.PNG` with
   15 frames (`010007BC` to `010007CA`) serves both. Another entry uses gfxID
   `0x010007C6` with 5 frames, so `010007C6` to `010007CA` are also APNG
-  `00107C6...`, frames 0–4. Likewise `0200012A` is frame 8 of APNG
+  `01007C60...`, frames 0–4. Likewise `0200012A` is frame 8 of APNG
   `(2, 0x122, 0)` and frame 0 of `(2, 0x12A, 0)`. These 6 are the only old
   frames stored in two APNGs: 6,093 source frames become 6,099 APNG frames.
 - **Hardcoded image.** `0F0000DC00001C0015.PNG` becomes
-  `00F00DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
+  `0F000DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
 - **Unreferenced run.** `010004F6...`, `010004F7...`, `010004F8...` (images
   1270–1272 of file 1, no entry uses them) become
-  `00104F60000000000000FE0016.PNG`, offset (22, -32).
+  `01004F60000000000000FE0016.PNG`, offset (22, -32).
+
+### magic client changes
+
+Not done yet. This section lists the migration order and everything the client
+needs to change for magic. File:line references are to `client/src` at
+commit `f05d2151` unless another directory is given.
+
+#### Migration order
+
+1. **Converter emits the new names. Done.** `gfxres2apng.py` writes
+   `FF IIIII D ...` names. It still reads the current `magicrecord.inc`, where
+   `gfxID` is the old key of the first frame, `file << 24 | image`, and
+   directions are `gfxIDCount` images apart.
+2. **Convert the resources. Done** for the test tree
+   (`--types magic --skip-unconverted`): 927 APNGs, 6,099 frames. The magic
+   directory of the real resource repository is converted when the client
+   change below lands.
+3. **Change the client magic loader and every use site, and rewrite
+   `magicrecord.inc`, in one commit.** The client can't read both formats:
+   the old `texture/magic` has one PNG per frame, keyed by old key, and the
+   new one has one APNG per sequence, keyed by identity.
+4. **Convert the real resource repository** and rebuild with it. Old
+   resources don't work with the new client, and new resources don't work
+   with the old client.
+5. **Later, in `followuidmagiceditor`:** set the tails and fix the heads, and
+   write them back into the APNG names.
+
+After step 3, `magicrecord.inc` no longer has the old `gfxID` and
+`gfxIDCount`. To re-run the converter on the original WIL-derived PNGs, use
+the `magicrecord.inc` from before step 3 (from git), or change the converter
+to read the new fields; the new `gfxID` is enough to find the base image, but
+not the direction stride.
+
+#### magicrecord.inc
+
+- Rewrite every `gfxID` from the old key `file << 24 | image` to 7 hex
+  digits, `file << 20 | image`. Then the APNG identity of direction `d` is
+  `gfxID << 4 | d`, the first 8 digits of the name. For example `0x000003D4`
+  stays `0x00003D4`, `0x010007BC` becomes `0x01007BC`, `0x0F0000DC` becomes
+  `0x0F000DC`. `SYS_U32NIL` stays the "no gfx" marker; it is not a valid
+  28-bit `gfxID`.
+- Drop `gfxIDCount`. It was only the stride between directions in the old
+  key space; each direction is its own APNG now.
+- `frameCount` is still needed where an entry plays a prefix of its APNG
+  (for example two entries on `0x01007BC`, 10 and 15 frames, share one
+  15-frame APNG). Make it optional: when it is 0, use the APNG's frame count.
+  Keep the existing assert as `frameCount <= APNG frame count`.
+- `gfxDirType` stays: it is the number of direction APNGs, `[0, gfxDirType)`.
+- `targetOffList` is now in the names as the head. Keep it until the client
+  reads heads from the database, then remove it.
+- `MagicGfxEntryRef` and `modColor`, `speed`, `loop`, sound and the other
+  fields don't change.
+- `common/src/buffrecord.hpp:211` `icon.gfxID` is not a magic key; it does
+  not change.
+
+#### Loader
+
+- `g_magicDB` is a `PNGTexOffDB` (`main.cpp:29`, `main.cpp:75`), loaded from
+  `texture/magic.zsdb` in `initview.cpp:59`. Replace it with a magic DB that
+  loads one APNG per entry with `SDLDevice::loadPNGAnimation`, the same way
+  as `EmojiDB`.
+- Database key: the first 8 hex digits of the name, the identity
+  `file << 24 | image << 4 | dir`. Accept any value in all 8 digits, not only
+  the converted files `00`–`07` and `0F`.
+- Parse from the name, each a 12-bit two's complement with
+  `hexstr::to_2comp(name + pos, 3)`: tail y at chars 8–10, tail x 11–13,
+  head y 14–16, head x 17–19, Y offset 20–22, X offset 23–25.
+- Element: one texture per frame, the frame count, the offset, head and tail.
+  All frames of an APNG share one offset: the converter aligned and trimmed
+  them to one canvas. Per-frame delays are in the file (`--delay`, 100 ms by
+  default) but magic timing comes from `magicrecord.inc` `speed`, so the
+  client ignores them.
+- `retrieve(identity, frame)` returns the frame's texture and the shared
+  offset, `nullptr` texture if `frame >= frameCount`.
+- An APNG read by a plain PNG decoder shows only frame 0.
+
+#### Use sites
+
+Every site computes `gfxID + frame + dirIndex * gfxIDCount`. Each becomes
+`retrieve(gfxID << 4 | dirIndex, frame)`, with `dirIndex = 0` when
+`gfxDirType` is 1. The drawing code, `drawTexture(tex, x + offX, y + offY)`,
+doesn't change: the new offset keeps the old sign convention.
+
+| Site | Today | New |
+|---|---|---|
+| `attachmagic.cpp:16–27` `AttachMagic::drawShift` | `gfxID + frame()` or `+ m_gfxDirIndex * gfxIDCount` | `(gfxID << 4 \| m_gfxDirIndex, frame())` |
+| `attachmagic.cpp:40–51` `Thunderbolt::drawShift` | same | same |
+| `followuidmagic.cpp:60–75` `FollowUIDMagic::frameTexID` | same, returns one `uint32_t` | return `(identity, frame)` |
+| `followuidmagic.cpp:111–112` `drawViewOff` | `retrieve(texID)` | `retrieve(identity, frame)` |
+| `followuidmagic.hpp:59–60` `targetOff` | `targetOffList[m_gfxDirIndex]` | the head from the DB |
+| `fixedlocmagic.cpp:19–20` | `gfxID + gfxDirOff + frame()` | `(gfxID << 4 \| max(m_gfxDirIndex, 0), frame())` |
+| `fixedlocmagic.cpp:30` `FireAshEffect_RUN` | `0X0F0000DC` | `(0x0F000DC0, 0)` |
+| `fixedlocmagic.cpp:86` `IceThorn_RUN` | `0X0F000104` | `(0x0F001040, 0)` |
+| `fixedlocmagic.cpp:95` `IceThorn_RUN` | `0X0F000105` | `(0x0F001050, 0)` |
+| `motioneffect.cpp:40–46` `MotionEffect::frameTexID` | `gfxID + gfxIndex (+ (direction - DIR_BEGIN) * gfxIDCount)` | `(gfxID << 4 \| dir, gfxIndex)` |
+| `motioneffect.cpp:56–57` | `retrieve(texID)` | `retrieve(identity, frame)` |
+| `motioneffect.cpp:26–27`, `basemagic.hpp:62–63` | assert `frameCount <= gfxIDCount` | assert `frameCount <= APNG frame count`, or drop |
+| `tools/followuidmagiceditor/src/magicdrawarea.cpp:114` | `gfxID + m_frame + gfxDirIndex * gfxIDCount` | `(gfxID << 4 \| gfxDirIndex, m_frame)` |
+| `tools/followuidmagiceditor/src/magicframedb.hpp` | one PNG per old key | one APNG per identity |
+
+`basemagic.hpp:75` (`gfxDirIndex() < gfxDirType`) and the frame timing in
+`basemagic.hpp:165–196` (`frame()`, `absFrame()`, `done()`) don't change.
+
+#### Weapon 44 glow
+
+Images `0x0700076C`–`0x070016B7` are no longer in `texture/magic`. They are
+[weapon 44, layer 1](#weapon-44-effect-1) in `texture/weapon`. No client code
+draws them from `g_magicDB` today. To show the glow, draw the layer-1 weapon
+APNG over weapon 44 with the same motion, direction and frame, as part of the
+weapon change.
+
+#### Rotation
+
+New, not in the client today. Each APNG has a head and a tail in its name
+(see [magic](#magic)). With `head == tail` (every APNG today, tails are all
+(0, 0) and heads only come from `targetOffList`), draw as now. Otherwise,
+`FollowUIDMagic` picks the nearest of the `gfxDirType` directions and rotates
+the frame around the head by the angle between `tail -> head` and the vector
+to the target, with `SDL_RenderTextureRotated`, and uses the head as the hit
+point instead of `targetOffList`. This needs the editor to set the tails
+first.
 
 ### equip
 
@@ -1223,8 +1341,8 @@ Examples:
 
 ### emoji client changes
 
-Everything the client needs to change for emoji. File:line references are to
-`client/src` at commit `fa7d0ef9`.
+Done in commit `4303a189`. Kept as the record of what changed. File:line
+references are to `client/src` at commit `fa7d0ef9`, before the change.
 
 #### Loader
 
