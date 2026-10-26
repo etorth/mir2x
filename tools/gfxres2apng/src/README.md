@@ -1,7 +1,11 @@
 # gfxres2apng
 
-`gfxres2apng` converts the per-frame texture PNGs in `mir2x_res` into one
+`gfxres2apng` converts a `mir2x_res` tree into a new, APNG based assets tree.
+The per-frame texture PNGs and the emoji sprite sheets become one
 [APNG](https://wiki.mozilla.org/APNG_Specification) per animation sequence.
+Every other file, such as fonts, maps, sounds and the texture types that are
+not converted, is copied unchanged, so the output is a complete mirror of the
+input tree, see [Output tree](#output-tree).
 
 The old format stores one PNG per frame. The frame index, the sequence identity
 and the frame's draw offset are all encoded in the filename. The new format
@@ -16,6 +20,7 @@ The script never modifies the source resources.
 
 - [Requirements](#requirements)
 - [Usage](#usage)
+- [Output tree](#output-tree)
 - [Texture types](#texture-types)
 - [Input filename](#input-filename)
 - [Output filename](#output-filename)
@@ -44,31 +49,61 @@ python3 tools/gfxres2apng/src/gfxres2apng.py \
     --jobs 8
 ```
 
-This reads `<res-path>/texture/<type>` and writes `<output-dir>/texture/<type>`
-for every supported type. The directory tree under `--res-path` is fixed, so
-it is the only input option.
+This converts `<res-path>/texture/<type>` to `<output-dir>/texture/<type>` and
+`<res-path>/emoji` to `<output-dir>/emoji`, and copies every other file. The
+directory tree under `--res-path` is fixed, so it is the only input option.
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--res-path PATH` | required | `mir2x_res` root. |
-| `--output-dir PATH` | required | Output root. Must differ from `--res-path`. |
-| `--types a,b,...` | all | Comma-separated subset of `monster,npc,hero,hair,helmet,weapon,magic,equip,selectchar,proguse`. Each type at most once. |
+| `--output-dir PATH` | required | Output root, a mirror of `--res-path`. Must be missing or empty except for `.git`, and must not overlap `--res-path`. |
+| `--types a,b,...` | all | Comma-separated subset of `monster,npc,hero,hair,helmet,weapon,magic,equip,selectchar,proguse,emoji` to convert. Each type at most once. Types not listed are copied unchanged. |
 | `--magic-record PATH` | `common/src/magicrecord.inc` | Magic sequence definitions, see [magic](#magic). The default path is relative to the script. |
 | `--proguse-groups PATH` | `proguse_groups_v3.txt` | proguse animation and button groups, see [proguse](#proguse). The default path is next to the script. |
-| `--delay MS` | `100` | Frame delay written into every frame, 1 to 65535 ms. proguse `anim` groups use their own delay. |
+| `--delay MS` | `100` | Frame delay written into every frame, 1 to 65535 ms. proguse `anim` groups use their own delay, emoji use their fps. |
 | `--jobs N` | CPU count | Worker processes. |
 | `--apngopt PATH` | none | Run `apngopt -z2 -i15` on every output file. |
-| `--no-verify` | verify | Skip decoding each output and comparing it with the source frames. |
+| `--no-verify` | verify | Skip decoding each output and comparing it with the source frames, and comparing each copied file with its source. |
 
-Progress lines look like `gfxres2apng hero: 500/10816 sequences, 2652 frames`.
+Progress lines look like `gfxres2apng hero: 500/10816 sequences, 2652 frames`,
+and `gfxres2apng copy: 20000/488743 files` for the copied files.
 
 Notes:
 
-- Types run one after another and share one worker pool.
-- Existing files with the same name are overwritten. Stale files are not
-  removed, so use an empty `--output-dir`.
+- Types run one after another, then the remaining files are copied. All steps
+  share one worker pool.
 - Any malformed name, out-of-range key, broken sequence or verification failure
   stops the run with an error. Nothing is clamped or skipped silently.
+
+## Output tree
+
+`--output-dir` becomes a mirror of `--res-path`:
+
+- Each converted type's directory, `texture/<type>` or `emoji`, holds only the
+  converted output. Source files of a converted type are never copied.
+- Every other file is copied byte-for-byte (with its timestamps) to the same
+  relative path. That includes the types not in `--types`, `texture/map`,
+  `texture/item`, `font`, `map`, `sound`, `LICENSE` and `README.md`. Empty
+  directories are created too, and symbolic links are copied as links.
+- `<res-path>/.git` is not copied; the new tree has its own history.
+- `--output-dir` must be missing or empty. A `.git` directory in it is allowed
+  and kept, so the output can be a checkout of the new assets repository. This
+  rule means no stale file from an earlier run can remain.
+- `--output-dir` must not be inside `--res-path` or contain it.
+
+With the current `mir2x_res` and all types converted, the output tree is:
+
+| Path | Content |
+|---|---|
+| `texture/monster`, `npc`, `hero`, `hair`, `helmet`, `weapon`, `magic`, `selectchar` | APNGs |
+| `texture/equip` | renamed static PNGs |
+| `texture/proguse` | APNGs and static PNGs |
+| `emoji` | APNGs |
+| `texture/map`, `texture/item` | copied, PNG |
+| `font` | copied, TTF |
+| `map` | copied, `.bin` |
+| `sound/bgm`, `sound/seff` | copied |
+| `LICENSE`, `README.md` | copied |
 
 ## Texture types
 
@@ -84,11 +119,13 @@ Notes:
 | `equip` | yes | Static images, copied unchanged and renamed. |
 | `selectchar` | yes | Characters in the select/create character screens. Hero layout, overlays padded to the body's length. |
 | `proguse` | yes | UI images. Animations and button off/on/down states listed in `proguse_groups_v3.txt` become APNGs, everything else is copied unchanged. |
-| `map`, `item` | no | Loaded by `PNGTexDB`, not animation sequences. |
+| `emoji` | yes | Reads `<res-path>/emoji`, not under `texture`. One sprite sheet per emoji becomes one APNG, see [emoji](#emoji). |
+| `map`, `item` | no | Loaded by `PNGTexDB`, not animation sequences. Copied unchanged. |
 
 ## Input filename
 
-Every source frame, except proguse (see [proguse](#proguse)), is named with 18
+Every source frame, except proguse (see [proguse](#proguse)) and emoji (see
+[emoji](#emoji)), is named with 18
 characters plus `.PNG`, the same format `client/src/pngtexoffdb.cpp` reads:
 
 ```text
@@ -151,7 +188,8 @@ The magic WIL files are, in index order: `Magic`, `MagicEx`, `MagicEx2`,
 ## Output filename
 
 The output filename is a fixed number of uppercase hex digits plus `.PNG`.
-For every type, the lowest 24 bits are the sequence's offset:
+For every type except proguse and emoji, the lowest 24 bits are the sequence's
+offset:
 
 | Bits | Field |
 |---|---|
@@ -373,6 +411,57 @@ The new name is the 8-hex key plus `.PNG`:
 - Every key not in any group is a static image, copied byte-for-byte to
   `KKKKKKKK.PNG` (the extension is normalized to `.PNG`). Static names never
   clash with APNG names, because an APNG name is one of its group's keys.
+
+### emoji
+
+emoji is loaded by `EmojiDB` (`client/src/emojidb.hpp/.cpp`) from
+`<res-path>/emoji`, not from `texture`. Each old file is a sprite sheet holding
+all frames of one emoji. Its name is 24 hex digits plus `.PNG`:
+
+```text
+SS UUUU FF CC PP WWWW HHHH hhhh
+```
+
+| Field | Chars | Meaning |
+|---|---|---|
+| `SS` | 0–1 | emoji set |
+| `UUUU` | 2–5 | emoji subset, the emoji in its set |
+| `FF` | 6–7 | frame index, always `00` in the files; the client adds the frame index here at lookup |
+| `CC` | 8–9 | frame count |
+| `PP` | 10–11 | fps |
+| `WWWW` | 12–15 | frame width |
+| `HHHH` | 16–19 | frame height |
+| `hhhh` | 20–23 | `frameH1`, the frame's height above the text baseline |
+
+The sheet is a grid of `WWWW × HHHH` cells, `sheet width / WWWW` cells per
+row. Frame `i` is cell `i`, row-major: column `i % cols`, row `i / cols`.
+
+Each sheet becomes one APNG:
+
+- Frames are cells 0 to `CC - 1`, each `WWWW × HHHH`, not trimmed, no offset.
+- Cells after `CC - 1` are spare grid slots and are dropped. The client never
+  draws them, because it plays frame `n % CC`. In the current data 3 sheets
+  have spare cells with a few stray edge pixels bled from the neighbouring
+  frame: `010020000F0A006400640064` (cell 15), `010021000E0A006400640064`
+  (cells 14, 15) and `01002A00120A006400640064` (cells 18, 19).
+- Blank frames inside `CC` are kept: `01001900150A006400640064` frame 1 and
+  `01003E000E0A006400640064` frame 0.
+- Every frame has its own delay in its `fcTL` chunk, written as exactly
+  `1/PP` s (`delay_num = 1`, `delay_den = PP`), so 6 fps is exactly 1/6 s.
+  All frames of an emoji have the same delay today, but the client must read
+  the delay per frame, so later APNGs can have a different delay per frame.
+- Frame count, frame width and frame height are read from the APNG and are not
+  in the new name.
+
+The new name is 11 hex digits plus `.PNG`, `00SSUUUUhhh`:
+
+| Bits | Field |
+|---|---|
+| 0–11 | `frameH1`, 12-bit two's complement, -2048 to 2047 |
+| 12–43 | emoji key `0x00SSUUUU` = set << 16 \| subset |
+
+The key is the same 24-bit value as the `<emoji id="...">` tag's id in the
+client's XML layout, see [emoji client changes](#emoji-client-changes).
 
 ## Old to new filename mapping
 
@@ -1083,6 +1172,92 @@ consecutive keys (or, for the quest marks, by the user):
 `000000E0`, `000000E2`, `000000E4`, `000000E6`, `000000E8`, `000000EA`, `000000EC`, `00000110`, `00000120`, `00000130`, `00000320`, `00000610`, `00000820`, `00000830`, `00000840`, `00000870`, `00000880`, `00000890`, `000008A0`, `000008C0`, `000008D0`, `000008E0`, `00002000`, `07000007`.
 `000000E0`–`000000EC` are the quest `!`/`?` marks, with off = on.
 
+### emoji
+
+```text
+old  SS UUUU 00 CC PP WWWW HHHH hhhh .PNG     sprite sheet, CC frames of WWWW x HHHH
+new  "%011X.PNG" % ((set << 16 | subset) << 12 | (frameH1 & 0xFFF))
+     = 00 SS UUUU hhh .PNG
+
+old cell i, i < CC   ->  new APNG frame i, delay 1/PP s
+old cell i, i >= CC  ->  dropped
+```
+
+```python
+# inverse
+value   = int(stem, 16)
+frameH1 = (value & 0xFFF) - 0x1000 if value & 0x800 else value & 0xFFF
+key     = value >> 12            # 0x00SSUUUU
+set     = key >> 16
+subset  = key & 0xFFFF
+```
+
+Old `hhhh` is 16 bits, the new field is 12-bit two's complement. Every current
+`frameH1` is between 17 and 100, so it fits; a value outside -2048 to 2047 is
+an error.
+
+Examples:
+
+- `01002A00120A006400640064.PNG` (set 1, subset 0x2A, 18 frames, 10 fps,
+  100×100, frameH1 100) becomes `0001002A064.PNG`, 18 frames of 100×100,
+  1/10 s each.
+- `00006C0005050035001B001B.PNG` (set 0, subset 0x6C, 5 frames, 5 fps,
+  53×27, frameH1 27) becomes `0000006C01B.PNG`, 5 frames of 53×27, 1/5 s each.
+
+### emoji client changes
+
+Everything the client needs to change for emoji. File:line references are to
+`client/src` at commit `fa7d0ef9`.
+
+#### Loader
+
+- `g_emojiDB` is an `EmojiDB` (`emojidb.hpp/.cpp`), created in `main.cpp:80` and
+  loaded from `emoji/emoji.zsdb` in `initview.cpp:65`. The zsdb is still packed
+  by `tools/zsdbmaker` from the `emoji` directory.
+- Key: today `EmojiDB::u32Key(set, subset)` is `set << 24 | subset << 8`, the
+  low byte being the frame index, and `loadResource` looks up the 8-hex prefix
+  `SSUUUU00`. The new file key is `0x00SSUUUU` = `set << 16 | subset`, so the
+  8-hex lookup prefix becomes `00SSUUUU`, with no frame index in it.
+- `loadResource` checks `strlen(fileName) >= 22` and parses `CC`, `PP`, `WWWW`,
+  `HHHH` and `hhhh` from fixed name positions. The new name has 11 hex digits:
+  parse only `frameH1` from chars 8–10, as 12-bit two's complement, and get
+  the rest from the APNG.
+- `EmojiElement` today is `{frameW, frameH, frameH1, fps, frameCount, texture}`
+  with one sheet texture. It needs:
+  - one texture per APNG frame (or an atlas the client builds itself),
+  - the frame count from `acTL`,
+  - each frame's delay from its `fcTL`, `delay_num / delay_den` s, where
+    `delay_den == 0` means 100 (APNG spec),
+  - frame width and height from the APNG,
+  - `frameH1` from the name.
+  `fps` goes away.
+- `retrieve(key, srcX, srcY, srcW, srcH, frameH1, fps, frameCount)` computes the
+  source rectangle of frame `key & 0xFF` in the sheet grid. With per-frame
+  textures, the frame index selects the texture and the source rectangle is
+  the whole frame, `(0, 0, W, H)`. The `fps` output must be replaced by
+  per-frame delay access.
+- An APNG read by a plain PNG decoder shows only frame 0.
+
+#### XML layout
+
+- `<emoji id="N">` (`xmlparagraphleaf.cpp:50–58`) gives a 24-bit `N` =
+  `set << 16 | subset`. `XMLTypeset::buildEmojiToken` (`xmltypeset.cpp:650–676`)
+  rejects `N >= 2^24`, then shifts it left by 8 to make the old key. With the
+  new key, `N` is the file key itself, no shift.
+- `buildEmojiToken` fills `token.emoji.{key, fps, frameCount}` and the box size
+  `(frameW, frameH)`, `h1 = frameH1`, `h2 = frameH - frameH1`. `fps` must be
+  replaced by per-frame delays (`TOKEN::emoji` in `token.hpp:66–74`).
+- Drawing, `xmltypeset.cpp:1412–1427`, computes
+  `(key & 0xFFFFFF00) + frame % frameCount` and draws the sheet sub-rectangle.
+  It becomes: draw frame `frame % frameCount` of the APNG, the whole frame.
+- Animation, `XMLTypeset::update` (`xmltypeset.cpp:1443–1457`), advances
+  `frame` by `elapsed / (1000 / fps)` and keeps the remainder in `tick`. It must
+  instead subtract the current frame's delay from the accumulated time, move to
+  the next frame, and repeat while the time left is at least the new current
+  frame's delay. `tick` and `frame` are `uint8_t` today: a delay longer than
+  255 ms doesn't fit in `tick`, and `frame` must stay below the frame count
+  (at most 29 now).
+
 ## Sequence grouping
 
 ### monster, npc, hero, hair, helmet, weapon
@@ -1167,7 +1342,9 @@ frame count. So the converter builds the chunks itself:
 - `IHDR`, then `acTL` with the frame count and loop count 0 (loop forever).
 - One `fcTL` per frame:
   - full canvas size at (0, 0),
-  - delay `--delay`/1000 s, or the group's DELAY for proguse `anim` groups,
+  - delay `--delay`/1000 s, the group's DELAY/1000 s for proguse `anim`
+    groups, or exactly 1/fps s (`delay_num` 1, `delay_den` fps) for emoji;
+    every frame has its own delay field,
   - dispose op `NONE`,
   - blend op `SOURCE`.
 - The first frame's image data is in `IDAT`, so it is also the default image
@@ -1193,6 +1370,12 @@ byte-identical to the source. proguse static images are checked the same way.
 Each proguse APNG must have one frame per listed state or animation frame,
 each equal to its full source image, after zeroing RGB where alpha is 0.
 
+Each emoji APNG must decode back to the same set, subset and `frameH1`, have
+exactly `CC` frames, each equal to its sheet cell after zeroing RGB where
+alpha is 0, and have `delay_num/delay_den = 1/PP` in every `fcTL`.
+
+Every mirror-copied file is compared byte-for-byte with its source.
+
 ## Expected results
 
 A full run over the current `mir2x_res`:
@@ -1209,6 +1392,7 @@ A full run over the current `mir2x_res`:
 | equip | 351 | 351 (copies) | 351 |
 | selectchar | 952 | 74 | 988 |
 | proguse | 1,652 | 110 + 1,397 copies | 348 + 1,397 |
+| emoji | 186 sheets | 186 | 2,013 |
 
 - weapon includes 384 effect APNGs (2,160 frames) from `texture/magic`.
 - magic has 145 `magicrecord.inc` entries, 496 referenced sequences (including
@@ -1217,6 +1401,12 @@ A full run over the current `mir2x_res`:
 - selectchar has 36 blank padding frames in its overlay APNGs.
 - proguse has 3 `anim` APNGs (27 frames) and 107 button APNGs (321 frames),
   using 255 source images; `00000300` and `00000302` are in two APNGs each.
+- emoji: 120 in set 0 (5 fps) and 66 in set 1 (65 at 10 fps, one at 6 fps).
+  5 spare cells are dropped.
+- The mirror copy holds every other file. With `--types emoji,proguse`, it
+  copies 488,743 files (all other texture types, `texture/map`,
+  `texture/item`, `font`, `map`, `sound`, `LICENSE`, `README.md`) in about
+  25 s.
 
 With `--jobs 8`, a full verified run takes about two minutes.
 
@@ -1239,12 +1429,19 @@ The tests use small synthetic frames and cover:
 - selectchar overlay padding and its missing-body / too-long errors,
 - proguse group parsing, `name=`, shared keys, per-group delay, static copies
   and their extension normalization,
+- emoji sheet cutting, dropped spare cells, exact 1/fps per-frame delays, the
+  new name with a negative `frameH1`, and invalid old names,
+- the mirror tree: rejecting a non-empty output (except `.git`), skipping
+  `<res-path>/.git`, converting the selected types, and copying everything
+  else, including unselected types, byte-for-byte,
 - frame alignment, trimming, partial alpha and repeated frames,
 - placeholder frames, and magic heads in the output name.
 
 ## Adding a texture type
 
-1. Add the type name to `TEXTURE_TYPES`.
+1. Add the type name to `TEXTURE_TYPES` (types under `texture/`), or to
+   `CONVERT_TYPES` and `TYPE_DIRS` for a type in another directory, as emoji
+   does.
 2. Add its filename encoder/decoder to `NAME_CODECS`. Keep the offset in bits
    0–23 and document the layout in this README and in the script's docstring.
 3. Return its sequences from `collect_sequences()` as

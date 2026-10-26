@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""gfxres2apng: convert per-frame texture PNGs into one APNG per animation sequence.
+"""gfxres2apng: convert a mir2x_res tree into an APNG based tree, one APNG per animation sequence.
 
 Usage:
     python3 tools/gfxres2apng/src/gfxres2apng.py --res-path MIR2X_RES --output-dir OUTPUT_DIR [--types monster,hero] --jobs 8
 
-Reads <res-path>/texture/<type>, writes <output-dir>/texture/<type>, for every
-type in TEXTURE_TYPES, or the subset given by --types.
+OUTPUT_DIR becomes a mirror of MIR2X_RES. It must be missing or empty, except
+for a .git directory. Every type in CONVERT_TYPES, or the subset given by
+--types, is converted from <res-path>/<dir> to <output-dir>/<dir>, where <dir>
+is texture/<type>, or emoji for emoji. Every other file is copied byte-for-byte
+to the same relative path, including types not in --types and non-PNG assets
+(font, map, sound, texture/map, texture/item, ...). <res-path>/.git is not copied.
 
 Input filename (old per-frame format), 18 chars + ".PNG":
 
@@ -117,6 +121,18 @@ proguse
     Every key not in any group is a static image, copied byte-for-byte to
     KKKKKKKK.PNG, a lowercase ".png" extension becomes ".PNG".
 
+emoji
+    reads <res-path>/emoji, one sprite sheet per emoji, see client/src/emojidb.hpp
+    old name, 24 hex digits: SS UUUU FF CC PP WWWW HHHH hhhh
+      SS: set, UUUU: subset, FF: frame index, always 00, CC: frame count,
+      PP: fps, WWWW/HHHH: frame width/height, hhhh: frameH1
+    frames are the first CC cells of a WWWW x HHHH grid, row-major, spare cells are dropped
+    new name, 11 hex digits:
+      h: bits  0-11, frameH1, 12-bit two's complement
+      k: bits 12-43, emoji key 00SSUUUU
+    frame count, width and height come from the APNG, every frame has its own
+    delay, written as exactly 1/fps s (delay_num 1, delay_den fps).
+
 The frame index is no longer in the filename, it's the APNG frame order.
 All frames are aligned on one canvas, the transparent margin shared by all
 frames is trimmed, so one x/y offset applies to every frame.
@@ -148,7 +164,10 @@ OFFSET_MAX = (1 << (OFFSET_BITS - 1)) - 1
 PNG_SIG = b"\x89PNG\r\n\x1a\n"
 
 TEXTURE_TYPES = ("monster", "npc", "hero", "hair", "helmet", "weapon", "magic", "equip", "selectchar", "proguse")
+CONVERT_TYPES = TEXTURE_TYPES + ("emoji",)
+TYPE_DIRS = {**{t: os.path.join("texture", t) for t in TEXTURE_TYPES}, "emoji": "emoji"}  # relative to --res-path
 COPY_TYPES = ("equip",)  # static images, copied unchanged and renamed
+MIRROR_SKIP = (".git",)  # top-level entries of --res-path not copied to --output-dir
 
 # old keys must be below these limits, see the old key layouts above
 KEY_LIMITS = {
@@ -311,6 +330,50 @@ def decode_proguse_name(fileName):
     return int(stem, 16)
 
 
+def parse_emoji_old_name(fileName):
+    """Old emoji sheet name: SS UUUU FF CC PP WWWW HHHH hhhh .PNG, see client/src/emojidb.hpp.
+    Returns {set, subset, frameCount, fps, frameW, frameH, frameH1}."""
+    stem, ext = os.path.splitext(fileName)
+    if not re.fullmatch(r"[0-9A-Fa-f]{24}", stem) or ext.upper() != ".PNG":
+        raise ValueError(f"invalid emoji filename: {fileName}")
+
+    meta = {
+        "set": int(stem[0:2], 16),
+        "subset": int(stem[2:6], 16),
+        "frameCount": int(stem[8:10], 16),
+        "fps": int(stem[10:12], 16),
+        "frameW": int(stem[12:16], 16),
+        "frameH": int(stem[16:20], 16),
+        "frameH1": int(stem[20:24], 16),
+    }
+    if int(stem[6:8], 16) != 0:
+        raise ValueError(f"invalid emoji filename: {fileName}, frame index field must be 00")
+    if meta["frameCount"] == 0 or meta["fps"] == 0 or meta["frameW"] == 0 or meta["frameH"] == 0:
+        raise ValueError(f"invalid emoji filename: {fileName}, frame count, fps, frame width and height must be positive")
+    return meta
+
+
+def encode_emoji_name(key, frameH1):
+    if not (0 <= key < (1 << 24)):
+        raise ValueError(f"invalid emoji key: {key}")
+    if not (OFFSET_MIN <= frameH1 <= OFFSET_MAX):
+        raise ValueError(f"emoji frameH1 {frameH1} out of 12-bit range")
+    return f"{(key << 12) | to_twos(frameH1, OFFSET_BITS):011X}.PNG"
+
+
+def decode_emoji_name(fileName):
+    stem, ext = os.path.splitext(fileName)
+    if not re.fullmatch(r"[0-9A-Fa-f]{11}", stem) or ext.upper() != ".PNG":
+        raise ValueError(f"invalid emoji filename: {fileName}")
+    value = int(stem, 16)
+    return {
+        "frameH1": from_twos(value & 0xFFF, OFFSET_BITS),
+        "key": value >> 12,
+        "set": (value >> 28) & 0xFF,
+        "subset": (value >> 12) & 0xFFFF,
+    }
+
+
 NAME_CODECS = {
     "monster": (encode_creature_name, decode_creature_name),
     "npc": (encode_creature_name, decode_creature_name),
@@ -322,6 +385,7 @@ NAME_CODECS = {
     "equip": (encode_static_name, decode_static_name),
     "selectchar": (encode_human_name, decode_human_name),
     "proguse": (encode_proguse_name, decode_proguse_name),
+    "emoji": (encode_emoji_name, decode_emoji_name),
 }
 
 
@@ -601,10 +665,25 @@ def collect_proguse_sequences(inputDir, groupsPath):
     return sequences
 
 
+def collect_emoji_sequences(inputDir):
+    """Returns {key: (path, meta)}, key = set << 16 | subset, meta from parse_emoji_old_name()."""
+    sequences = {}
+    for fileName in os.listdir(inputDir):
+        meta = parse_emoji_old_name(fileName)
+        key = (meta["set"] << 16) | meta["subset"]
+        if key in sequences:
+            raise RuntimeError(f"duplicated emoji key {key:08X}: {sequences[key][0]}, {fileName}")
+        sequences[key] = (os.path.abspath(os.path.join(inputDir, fileName)), meta)
+    return sequences
+
+
 def collect_sequences(resPath, typeName, magicRecord=DEFAULT_MAGIC_RECORD, proguseGroups=DEFAULT_PROGUSE_GROUPS):
     """Returns {ident: [(path, dx, dy)]}, ident is what NAME_CODECS[typeName] encodes.
-    proguse is different, see collect_proguse_sequences()."""
-    inputDir = os.path.join(resPath, "texture", typeName)
+    proguse and emoji are different, see collect_proguse_sequences() and collect_emoji_sequences()."""
+    inputDir = os.path.join(resPath, TYPE_DIRS[typeName])
+    if typeName == "emoji":
+        return collect_emoji_sequences(inputDir)
+
     if typeName == "magic":
         return collect_magic_sequences(inputDir, magicRecord)
 
@@ -688,9 +767,14 @@ def png_chunks(pngBytes):
         pos += 12 + length
 
 
-def encode_apng(images, delayMs):
+def encode_apng(images, delay):
+    """delay: frame delay in ms for every frame, or [(delay_num, delay_den)] per frame, in seconds."""
     # Pillow's APNG writer merges identical consecutive frames, which changes the frame count
     # assemble chunks manually, every frame is a full frame with dispose NONE and blend SOURCE
+    delays = [(delay, 1000)] * len(images) if isinstance(delay, int) else list(delay)
+    if len(delays) != len(images) or any(not (0 <= v < 65536) for d in delays for v in d):
+        raise ValueError(f"invalid APNG delays: {delays}")
+
     width, height = images[0].size
     out = [PNG_SIG]
     seq = 0
@@ -705,7 +789,7 @@ def encode_apng(images, delayMs):
             out.append(png_chunk(b"IHDR", ihdr))
             out.append(png_chunk(b"acTL", struct.pack(">II", len(images), 0)))
 
-        out.append(png_chunk(b"fcTL", struct.pack(">IIIIIHHBB", seq, width, height, 0, 0, delayMs, 1000, 0, 0)))
+        out.append(png_chunk(b"fcTL", struct.pack(">IIIIIHHBB", seq, width, height, 0, 0, *delays[index], 0, 0)))
         seq += 1
 
         for chunkType, data in chunks:
@@ -811,8 +895,53 @@ def convert_proguse_one(outputDir, key, paths, delayMs, isAPNG, apngopt, verify)
     return len(set(paths))
 
 
+def read_apng_delays(path):
+    """Returns [(delay_num, delay_den)] of every fcTL chunk in file order."""
+    with open(path, "rb") as fp:
+        return [struct.unpack(">HH", data[20:24]) for chunkType, data in png_chunks(fp.read()) if chunkType == b"fcTL"]
+
+
+def convert_emoji_one(outputDir, key, path, meta, apngopt, verify):
+    # the old sheet holds frames row-major in a grid of frameW x frameH cells
+    # cells after frameCount are never drawn by the client and are dropped
+    sheet = clear_transparent_rgb(load_rgba(path))
+    frameW, frameH, frameCount = meta["frameW"], meta["frameH"], meta["frameCount"]
+    cols = sheet.width // frameW
+    if sheet.width % frameW or sheet.height % frameH or cols * (sheet.height // frameH) < frameCount:
+        raise RuntimeError(f"{path}: sheet {sheet.size} doesn't hold {frameCount} frames of {frameW}x{frameH}")
+
+    images = [sheet.crop(((i % cols) * frameW, (i // cols) * frameH, (i % cols + 1) * frameW, (i // cols + 1) * frameH)) for i in range(frameCount)]
+    delays = [(1, meta["fps"])] * frameCount
+
+    outputPath = os.path.join(outputDir, encode_emoji_name(key, meta["frameH1"]))
+    with open(outputPath, "wb") as fp:
+        fp.write(encode_apng(images, delays))
+
+    if apngopt:
+        optimize_apng(apngopt, outputPath)
+
+    if verify:
+        decoded = decode_emoji_name(os.path.basename(outputPath))
+        if (decoded["set"], decoded["subset"], decoded["frameH1"]) != (meta["set"], meta["subset"], meta["frameH1"]):
+            raise RuntimeError(f"{outputPath}: filename round-trip failed")
+        if read_apng_delays(outputPath) != delays:
+            raise RuntimeError(f"{outputPath}: frame delays differ from 1/{meta['fps']} s")
+        with Image.open(outputPath) as apng:
+            if getattr(apng, "n_frames", 1) != frameCount:
+                raise RuntimeError(f"{outputPath}: expect {frameCount} frames, got {getattr(apng, 'n_frames', 1)}")
+            for index, img in enumerate(images):
+                apng.seek(index)
+                frame = clear_transparent_rgb(apng.convert("RGBA"))
+                if frame.size != img.size or frame.tobytes() != img.tobytes():
+                    raise RuntimeError(f"{outputPath}: frame {index} differs from cell {index} of {path}")
+    return frameCount
+
+
 def convert_one(task):
     typeName, outputDir, ident, frames, delayMs, apngopt, verify = task
+    if typeName == "emoji":
+        return convert_emoji_one(outputDir, ident, *frames, apngopt, verify)
+
     if typeName == "proguse":
         paths, groupDelayMs, isAPNG = frames
         return convert_proguse_one(outputDir, ident, paths, groupDelayMs or delayMs, isAPNG, apngopt, verify)
@@ -836,11 +965,55 @@ def convert_one(task):
     return sum(1 for f in frames if f)
 
 
+def check_output_dir(resPath, outputDir):
+    """Returns an error message, or None if outputDir is missing or empty except .git, and doesn't overlap resPath."""
+    res = os.path.realpath(resPath)
+    out = os.path.realpath(outputDir)
+    if out == res or out.startswith(res + os.sep) or res.startswith(out + os.sep):
+        return "--output-dir and --res-path must not overlap"
+    if os.path.lexists(out):
+        if not os.path.isdir(out):
+            return f"--output-dir {outputDir} is not a directory"
+        stale = sorted(set(os.listdir(out)) - {".git"})
+        if stale:
+            return f"--output-dir {outputDir} must be missing or empty except .git, found: {', '.join(stale[:5])}"
+    return None
+
+
+def mirror_tasks(resPath, outputDir, convertedDirs):
+    """Creates the mirror directory tree, returns [(src, dst)] for every file not under a converted dir.
+    Top-level MIRROR_SKIP entries are skipped, symbolic links are copied as links."""
+    tasks = []
+    for root, dirNames, fileNames in os.walk(resPath):
+        rel = os.path.relpath(root, resPath)
+        if rel == ".":
+            dirNames[:] = [d for d in dirNames if d not in MIRROR_SKIP]
+            fileNames = [f for f in fileNames if f not in MIRROR_SKIP]
+
+        links = [d for d in dirNames if os.path.islink(os.path.join(root, d))]
+        dirNames[:] = sorted(d for d in dirNames if d not in links and os.path.normpath(os.path.join(rel, d)) not in convertedDirs)
+
+        os.makedirs(os.path.join(outputDir, rel), exist_ok=True)
+        for name in sorted(fileNames + links):
+            tasks.append((os.path.join(root, name), os.path.join(outputDir, rel, name)))
+    return tasks
+
+
+def mirror_one(task):
+    src, dst, verify = task
+    shutil.copy2(src, dst, follow_symlinks=False)
+    if verify and not os.path.islink(src):
+        with open(src, "rb") as fsrc, open(dst, "rb") as fdst:
+            if fsrc.read() != fdst.read():
+                raise RuntimeError(f"{dst}: differs from {src}")
+    return 1
+
+
 def main():
-    parser = argparse.ArgumentParser(description="gfxres2apng: convert per-frame texture PNGs into one APNG per animation sequence.")
-    parser.add_argument("--res-path", required=True, help="mir2x_res root, reads <res-path>/texture/<type>")
-    parser.add_argument("--output-dir", required=True, help="writes <output-dir>/texture/<type>")
-    parser.add_argument("--types", default=",".join(TEXTURE_TYPES), help=f"comma separated texture types, default all: {','.join(TEXTURE_TYPES)}")
+    parser = argparse.ArgumentParser(description="gfxres2apng: convert a mir2x_res tree into an APNG based tree, one APNG per animation sequence.")
+    parser.add_argument("--res-path", required=True, help="mir2x_res root, reads <res-path>/texture/<type> and <res-path>/emoji")
+    parser.add_argument("--output-dir", required=True, help="mirror of <res-path> with converted types, must be missing or empty except .git")
+    parser.add_argument("--types", default=",".join(CONVERT_TYPES), help=f"comma separated types to convert, others are copied unchanged, default all: {','.join(CONVERT_TYPES)}")
     parser.add_argument("--magic-record", default=DEFAULT_MAGIC_RECORD, help="path to magicrecord.inc, default common/src/magicrecord.inc")
     parser.add_argument("--proguse-groups", default=DEFAULT_PROGUSE_GROUPS, help="proguse group list, default proguse_groups_v3.txt next to this script")
     parser.add_argument("--delay", type=int, default=100, help="frame delay in ms, default 100, proguse anim groups use their own DELAY")
@@ -850,18 +1023,21 @@ def main():
     args = parser.parse_args()
 
     types = [t for t in args.types.split(",") if t]
-    if not types or any(t not in TEXTURE_TYPES for t in types) or len(set(types)) != len(types):
-        parser.error(f"--types must be distinct values of {','.join(TEXTURE_TYPES)}")
+    if not types or any(t not in CONVERT_TYPES for t in types) or len(set(types)) != len(types):
+        parser.error(f"--types must be distinct values of {','.join(CONVERT_TYPES)}")
 
     if not (0 < args.delay < 65536):
         parser.error("--delay must be in [1, 65535]")
 
-    if os.path.abspath(args.res_path) == os.path.abspath(args.output_dir):
-        parser.error("--output-dir must differ from --res-path")
+    if not os.path.isdir(args.res_path):
+        parser.error(f"--res-path {args.res_path} is not a directory")
+
+    if error := check_output_dir(args.res_path, args.output_dir):
+        parser.error(error)
 
     with Pool(max(1, args.jobs)) as pool:
         for typeName in types:
-            outputDir = os.path.join(args.output_dir, "texture", typeName)
+            outputDir = os.path.join(args.output_dir, TYPE_DIRS[typeName])
             os.makedirs(outputDir, exist_ok=True)
 
             sequences = collect_sequences(args.res_path, typeName, args.magic_record, args.proguse_groups)
@@ -874,6 +1050,13 @@ def main():
                 doneFrame += frameCount
                 if doneSeq % 500 == 0 or doneSeq == len(tasks):
                     print(f"gfxres2apng {typeName}: {doneSeq}/{len(tasks)} sequences, {doneFrame} frames", flush=True)
+
+        tasks = [(src, dst, args.verify) for src, dst in mirror_tasks(args.res_path, args.output_dir, {TYPE_DIRS[t] for t in types})]
+        doneCopy = 0
+        for _ in pool.imap_unordered(mirror_one, tasks, chunksize=64):
+            doneCopy += 1
+            if doneCopy % 20000 == 0 or doneCopy == len(tasks):
+                print(f"gfxres2apng copy: {doneCopy}/{len(tasks)} files", flush=True)
     return 0
 
 

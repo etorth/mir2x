@@ -1,6 +1,8 @@
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from PIL import Image
 
@@ -297,6 +299,68 @@ class ConvertTest(TmpDirTest):
                           ("anim 00000301-00000300 100", "FIRST > LAST")]:
             with self.assertRaisesRegex(ValueError, msg):
                 g.parse_proguse_groups(line)
+    def test_emoji_sheet_to_apng(self):
+        # 5 frames of 2x3 in a 3x2 grid, the spare cell 5 has a stray pixel and is dropped
+        sheet = Image.new("RGBA", (6, 6), (9, 9, 9, 0))
+        for cell in range(6):
+            sheet.putpixel(((cell % 3) * 2, (cell // 3) * 3), (cell, 7, 8, 255))
+        sheet.save(self.source / "01002A00050600020003000A.PNG")
+
+        sequences = g.collect_emoji_sequences(self.source)
+        self.assertEqual(list(sequences), [0x01002A])
+        self.assertEqual(g.convert_one(("emoji", self.output, 0x01002A, sequences[0x01002A], 100, None, True)), 5)
+
+        path, = self.output.iterdir()
+        self.assertEqual(path.name, "0001002A00A.PNG")
+        self.assertEqual(g.decode_emoji_name(path.name), {"frameH1": 10, "key": 0x01002A, "set": 1, "subset": 0x2A})
+        self.assertEqual(g.decode_emoji_name(g.encode_emoji_name(0xFFFFFF, -2))["frameH1"], -2)
+        self.assertEqual(g.read_apng_delays(path), [(1, 6)] * 5)
+        with Image.open(path) as apng:
+            self.assertEqual((apng.size, apng.n_frames), ((2, 3), 5))
+            for index in range(5):
+                apng.seek(index)
+                self.assertEqual(apng.convert("RGBA").getpixel((0, 0)), (index, 7, 8, 255))
+
+        for name in ["01002A01050600020003000A.PNG", "01002A00000600020003000A.PNG", "01002A0005060002000.PNG"]:
+            with self.assertRaises(ValueError):
+                g.parse_emoji_old_name(name)
+
+
+class MirrorTest(TmpDirTest):
+    def run_main(self, *args):
+        with mock.patch.object(sys, "argv", ["gfxres2apng.py", "--res-path", str(self.source), "--output-dir", str(self.output), "--jobs", "1", *args]):
+            return g.main()
+
+    def test_mirror_tree(self):
+        files = {
+            ".git/HEAD": b"ref",
+            "LICENSE": b"license",
+            "font/00_A.TTF": b"font",
+            "sound/bgm/01.mp3": b"mp3",
+            "texture/monster/000000001000010020.PNG": b"not converted",
+        }
+        for rel, data in files.items():
+            (self.source / rel).parent.mkdir(parents=True, exist_ok=True)
+            (self.source / rel).write_bytes(data)
+        (self.source / "emoji").mkdir()
+        Image.new("RGBA", (2, 2), (1, 2, 3, 255)).save(self.source / "emoji" / "000001000105000200020002.PNG")
+
+        (self.output / "stale").touch()
+        with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+            self.run_main("--types", "emoji")
+
+        (self.output / "stale").unlink()
+        (self.output / ".git").mkdir()
+        self.assertEqual(self.run_main("--types", "emoji"), 0)
+
+        self.assertEqual(sorted(str(p.relative_to(self.output)) for p in self.output.rglob("*") if p.is_file()),
+                         sorted(["emoji/00000001002.PNG", "LICENSE", "font/00_A.TTF", "sound/bgm/01.mp3", "texture/monster/000000001000010020.PNG"]))
+        for rel, data in files.items():
+            if not rel.startswith(".git"):
+                self.assertEqual((self.output / rel).read_bytes(), data)
+
+        with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+            self.run_main()
 
 
 if __name__ == "__main__":
