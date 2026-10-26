@@ -1,0 +1,168 @@
+# proguse animation groups for gfxres2apng.py (v2, reviewed)
+#
+# One group per line; each group becomes one APNG. Every proguse PNG that is
+# not used by any group is a static image and is copied unchanged.
+#
+#   anim    FIRST-LAST  DELAY                frames are keys FIRST, FIRST+1, ..., LAST,
+#                                            each shown for DELAY milliseconds
+#   button  OFF  ON  DOWN  [name=KEY]        3-frame APNG: frame 0/1/2 = off/on/down
+#
+# Keys are proguse filenames without the extension (8 hex digits).
+# "-" means the state has no image: nothing is drawn (e.g. no off state).
+# Repeat a key to share one image between states (e.g. off == on).
+# States need not be consecutive or ascending (e.g. 00000033 00000033 00000032).
+# Everything after "#" is a comment: image size and the client code using the group.
+#
+# Output rules:
+#   - Each APNG is named KEY.PNG. KEY is the smallest key in the group, unless
+#     "name=KEY" sets it; KEY must be one of the group's own keys.
+#   - APNG names must be unique. A key may appear in more than one group only
+#     if the groups end up with different names (e.g. the two 00000300 groups).
+#   - Static images keep their 8-hex name, normalized to the ".PNG" extension.
+#   - No trimming: every frame keeps the full source image size with offset 0.
+#   - All images of a group must have the same size.
+#   - A "-" state is a fully transparent frame of the group's size.
+#   - Button frames are selected by state, not played; their delay is unused.
+#
+# Client loader update (later task): this file is the map from old keys to
+# (APNG name, frame index). Where a key is in more than one group, each use
+# site picks its group by the states it needs.
+
+# ---- animations ----------------------------------------------------------
+#       FIRST-LAST         DELAY(ms)
+
+anim    04000000-04000003  200   # 5 fps
+anim    04000010-04000019  125   # 8 fps, WMDAniBoard (wmdaniboard.hpp:22)
+anim    00000210-0000021C  200   # 5 fps, team flag cursor (processrun.cpp:531, m_teamFlag(5))
+
+# ---- buttons ---------------------------------------------------------------
+#       OFF       ON        DOWN      [name=KEY]
+
+button  00000005  00000006  00000007                 # 96x26  processlogin.cpp:32
+button  00000008  00000009  0000000A                 # 96x26  processlogin.cpp:33
+button  0000000B  0000000C  0000000D                 # 96x26  processlogin.cpp:34
+button  0000000E  0000000F  00000010                 # 96x24  processlogin.cpp:35
+button  -         0000001C  0000001D                 # 32x30  baseframeboard.cpp:54, guildboard.cpp:40 (+17)
+button  -         0000001E  0000001F                 # 24x24  cbleft.cpp:247
+button  -         00000020  00000021                 # 24x24  cbleft.cpp:268
+button  00000023  00000023  00000024                 # 34x34  friendchatboard.cpp:207
+button  -         00000025  00000026                 # 34x34  cbmiddleexpand.cpp:139
+button  00000030  00000030  00000031                 # 32x34  cbright.cpp:158
+button  00000033  00000033  00000032                 # 32x38  cbright.cpp:180
+button  00000035  00000035  00000034                 # 32x34  cbright.cpp:202
+button  00000036  00000036  00000037                 # 36x28  cbright.cpp:224
+button  00000038  00000038  00000039                 # 40x20  cbright.cpp:246
+button  0000003A  0000003A  0000003B                 # 36x28  cbright.cpp:277
+button  0000003C  0000003C  0000003D                 # 36x28  cbright.cpp:301
+button  0000003E  0000003E  0000003F                 # 40x20  cbright.cpp:323
+button  00000040  00000040  00000041                 # 36x28  cbright.cpp:345
+button  00000061  00000061  00000062                 # 16x16  quickaccessboard.cpp:64
+button  000000B1  000000B1  000000B2                 # 34x34  inventoryboard.cpp:97
+button  000000B3  000000B3  000000B4                 # 34x34  inventoryboard.cpp:95, inventoryboard.cpp:98 (+1)
+button  000000B5  000000B5  000000B6                 # 34x34  inventoryboard.cpp:96, directtradeboard.cpp:238
+button  -         000000B7  000000B8                 # 34x34  auctionboard.cpp:302
+button  -         000000C0  000000C1                 # 50x26  inventoryboard.cpp:53
+button  000000E0  000000E0  000000E1                 # 14x16  quest !/? mark, off/on shared
+button  000000E2  000000E2  000000E3                 # 14x16  quest !/? mark, off/on shared
+button  000000E4  000000E4  000000E5                 # 14x16  quest !/? mark, off/on shared
+button  000000E6  000000E6  000000E7                 # 14x16  quest !/? mark, off/on shared
+button  000000E8  000000E8  000000E9                 # 14x16  quest !/? mark, off/on shared
+button  000000EA  000000EA  000000EB                 # 14x16  quest !/? mark, off/on shared
+button  000000EC  000000EC  000000ED                 # 14x16  quest !/? mark, off/on shared
+button  -         00000110  00000111                 # 59x24  guess: no code reference
+button  -         00000120  00000121                 # 59x24  guess: no code reference
+button  -         00000130  00000131                 # 59x24  guess: no code reference
+button  00000160  00000160  00000161                 # 34x34  friendchatboard.cpp:339
+button  00000170  00000170  00000171                 # 34x34  teamstateboard.cpp:78, friendchatboard.cpp:457
+button  00000180  00000180  00000181                 # 34x34  teamstateboard.cpp:100
+button  00000190  00000190  00000191                 # 34x34  directtradeboard.cpp:237
+button  -         00000200  00000201                 # 23x24  teamstateboard.cpp:37
+button  00000301  00000300  00000302  name=00000301  # 32x32  auctionboard.cpp:205, pullmenu.cpp:54
+button  00000300  00000300  00000302                 # 32x32  queststateboard.cpp:101
+button  00000311  00000310  00000312                 # 32x32  auctionboard.cpp:183
+button  00000321  00000320  00000322                 # 32x32  guess: no code reference
+button  00000331  00000330  00000332                 # 32x30  auctionboard.cpp:227
+button  00000370  00000370  00000371                 # 78x78  radioselector.cpp:47
+button  -         00000510  00000511                 # 34x34  guildboard.cpp:59
+button  -         00000520  00000521                 # 34x34  guildboard.cpp:77
+button  -         00000530  00000531                 # 34x34  guildboard.cpp:95
+button  -         00000540  00000541                 # 34x34  guildboard.cpp:113
+button  -         00000550  00000551                 # 34x34  guildboard.cpp:131
+button  -         00000560  00000561                 # 34x34  guildboard.cpp:149
+button  -         00000570  00000571                 # 34x34  guildboard.cpp:167
+button  -         00000580  00000581                 # 34x34  guildboard.cpp:185
+button  00000590  00000590  00000591                 # 34x34  friendchatboard.cpp:243
+button  -         00000610  00000611                 # 51x27  guess: no code reference
+button  -         00000710  00000711                 # 47x26  horseboard.cpp:85
+button  -         00000720  00000721                 # 47x26  horseboard.cpp:103
+button  -         00000730  00000731                 # 47x26  horseboard.cpp:121
+button  -         00000740  00000741                 # 47x26  horseboard.cpp:139
+button  00000820  00000820  00000821                 # 34x34  guess: no code reference
+button  00000830  00000830  00000831                 # 34x34  guess: no code reference
+button  00000840  00000840  00000841                 # 34x34  guess: no code reference
+button  00000850  00000850  00000851                 # 34x34  auctionboard.cpp:334
+button  00000860  00000860  00000861                 # 34x34  friendchatboard.cpp:705
+button  00000870  00000870  00000871                 # 34x34  guess: no code reference
+button  00000880  00000880  00000881                 # 34x34  guess: no code reference
+button  00000890  00000890  00000891                 # 34x34  guess: no code reference
+button  000008A0  000008A0  000008A1                 # 34x34  guess: no code reference
+button  000008B0  000008B0  000008B1                 # 34x34  friendchatboard.cpp:225
+button  000008C0  000008C0  000008C1                 # 34x34  guess: no code reference
+button  000008D0  000008D0  000008D1                 # 34x34  guess: no code reference
+button  000008E0  000008E0  000008E1                 # 34x34  guess: no code reference
+button  000008F0  000008F0  000008F1                 # 34x34  friendchatboard.cpp:188, friendchatboard.cpp:419 (+2)
+button  00000900  00000900  00000901                 # 34x34  friendchatboard.cpp:438
+button  00000910  00000910  00000911                 # 34x34  friendchatboard.cpp:631
+button  -         00001420  00001421                 # 46x24  auctionboard.cpp:244, auctionboard.cpp:259
+button  -         00002000  00002001                 # 34x34  guess: no code reference
+button  -         05000020  05000030                 # 36x32  skillboard.cpp:99 tab 0
+button  -         05000021  05000031                 # 36x32  skillboard.cpp:99 tab 1
+button  -         05000022  05000032                 # 36x32  skillboard.cpp:99 tab 2
+button  -         05000023  05000033                 # 36x32  skillboard.cpp:99 tab 3
+button  -         05000024  05000034                 # 36x32  skillboard.cpp:99 tab 4
+button  -         05000025  05000035                 # 36x32  skillboard.cpp:99 tab 5
+button  -         05000026  05000036                 # 36x32  skillboard.cpp:99 tab 6
+button  -         05000027  05000037                 # 36x32  skillboard.cpp:99 tab 7
+button  07000001  07000002  07000003                 # 79x32  inputstringboard.cpp:123
+button  07000004  07000005  07000006                 # 79x32  inputstringboard.cpp:152
+button  07000007  07000008  07000009                 # 79x32  guess: no code reference
+button  -         08000003  08000004                 # 58x22  purchaseboard.cpp:57
+button  -         08000005  08000006                 # 42x23  itemlistboard.cpp:74, purchaseboard.cpp:116
+button  -         08000007  08000008                 # 36x23  itemlistboard.cpp:55, purchaseboard.cpp:97
+button  -         08000009  0800000A                 # 36x23  itemlistboard.cpp:93, purchaseboard.cpp:138
+button  -         0800000B  0800000C                 # 70x26  processchangepassword.cpp:169, processcreateaccount.cpp:128 (+1)
+button  09000010  09000010  09000011                 # 19x19  minimapboard.cpp toggle, off/on shared
+button  09000020  09000020  09000021                 # 19x19  minimapboard.cpp toggle, off/on shared
+button  09000030  09000030  09000031                 # 19x19  minimapboard.cpp toggle, off/on shared
+button  09000040  09000040  09000041                 # 19x19  minimapboard.cpp toggle, off/on shared
+button  -         0B000000  0B000001                 # 24x16  cbleft.cpp:226
+button  0C000010  0C000010  0C000011                 # 96x26  processselectchar.cpp:30
+button  0C000020  0C000020  0C000021                 # 96x26  processselectchar.cpp:31
+button  0C000030  0C000030  0C000031                 # 96x24  processselectchar.cpp:29
+button  0C000040  0C000040  0C000041                 # 48x26  processselectchar.cpp:32
+button  0D000010  0D000011  0D000012                 # 28x28  processcreatechar.cpp:28
+button  0D000020  0D000021  0D000022                 # 28x28  processcreatechar.cpp:29
+button  0D000030  0D000031  0D000032                 # 40x38  processcreatechar.cpp:25
+button  0D000040  0D000041  0D000042                 # 40x38  processcreatechar.cpp:26
+button  0D000050  0D000051  0D000052                 # 40x38  processcreatechar.cpp:27
+
+# ---- client code to fix later ----------------------------------------------
+# These use sites disagree with the groups above and are wrong; change them to
+# the group's states when updating the client loader:
+#   directtradeboard.cpp:276           should use - 0000001C 0000001D
+#   cbmiddleexpand.cpp:125             should use 00000023 00000023 00000024
+#   auctionregisterboard.cpp:89        should use 000000B3 000000B3 000000B4
+#   teamstateboard.cpp:51              should use 00000160 00000160 00000161
+#   teamstateboard.cpp:122             should use 00000190 00000190 00000191
+#   auctionregisterboard.cpp:105       should use 00000850 00000850 00000851
+
+# ---- not grouped, kept static ----------------------------------------------
+# Same-size consecutive runs judged not to be button states:
+#   00000014-00000015  32x4   hp bar empty/full (hpbarboard.cpp:167)
+#   00000018-0000001A  36x88  hp/mp orbs (cbleft.cpp:81)
+#   00000042-00000044  24x20  three different icons
+#   00000046-00000049  29x18  ACButton AC/DC/MA/MC labels (acbutton.cpp:29)
+#   00000055-00000058  24x18  four different icons
+#   000000D0-000000D2  64x64  three different icons
+#   09000006-09000009  32x35  frame corners
+#   00000028           13x17  cbmiddle.cpp:132 on only; its down 00000029 does not exist
