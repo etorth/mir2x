@@ -3,19 +3,22 @@
 
 Usage: python3 filepreview.py [directory]
 
-Keys: Up/Down move selection, Space play/pause animation,
+Keys: Ctrl+O open directory, Up/Down move selection, Space play/pause animation,
       Left/Right step animation frames, F toggle fit-to-window.
 """
 
+import fnmatch
 import os
 import re
 import sys
 
 from PySide6.QtCore import Qt, QTimer, QRect, QEvent, QMimeData, QUrl
-from PySide6.QtGui import QImage, QPainter, QPixmap, QColor, QFontDatabase
+from PySide6.QtGui import (
+    QImage, QPainter, QPixmap, QColor, QFontDatabase, QActionGroup, QKeySequence,
+)
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QSplitter, QListWidget, QListWidgetItem, QMenu,
-    QLabel, QComboBox, QCheckBox, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout,
+    QLabel, QCheckBox, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout,
     QFileDialog, QPlainTextEdit, QStackedWidget, QSpinBox,
 )
 
@@ -52,8 +55,28 @@ SORT_METHODS = {
 }
 
 
-def list_files(path, sort_name, descending, name_filter="", regex=False):
-    pattern = re.compile(name_filter, re.IGNORECASE) if regex else None
+FILTER_WILDCARD = "Wildcard"
+FILTER_REGEX = "Regex"
+
+
+def compile_filter(name_filter, mode):
+    """Return a case-insensitive compiled pattern, or None for no filtering.
+
+    Wildcard: * and ? glob syntax matched against the whole name; text
+    without wildcard characters matches anywhere in the name.
+    Regex: re.search semantics (use ^ and $ to anchor). Raises re.error.
+    """
+    if not name_filter:
+        return None
+    if mode == FILTER_REGEX:
+        return re.compile(name_filter, re.IGNORECASE)
+    if not any(c in name_filter for c in "*?["):
+        name_filter = "*%s*" % name_filter
+    return re.compile(fnmatch.translate(name_filter), re.IGNORECASE)
+
+
+def list_files(path, sort_name, descending, name_filter="", mode=FILTER_WILDCARD):
+    pattern = compile_filter(name_filter, mode)
     entries = []
     try:
         for e in os.scandir(path):
@@ -62,12 +85,8 @@ def list_files(path, sort_name, descending, name_filter="", regex=False):
                 entries.append((e.name, st.st_size, st.st_mtime))
     except OSError:
         return []
-    if name_filter:
-        if pattern is not None:
-            entries = [e for e in entries if pattern.search(e[0])]
-        else:
-            pat = name_filter.lower()
-            entries = [e for e in entries if pat in e[0].lower()]
+    if pattern is not None:
+        entries = [e for e in entries if pattern.search(e[0])]
     entries.sort(key=SORT_METHODS[sort_name], reverse=descending)
     return entries
 
@@ -129,7 +148,8 @@ def load_png_frames(path):
 # ---------------------------------------------------------------------------
 
 class ImageView(QWidget):
-    """Draws an image centered on a checkerboard; fit-to-window or fixed zoom."""
+    """Draws an image centered on a checkerboard (or clear background);
+    fit-to-window or fixed zoom."""
 
     def __init__(self):
         super().__init__()
@@ -137,6 +157,7 @@ class ImageView(QWidget):
         self.image = None
         self.fit = True
         self.zoom = 1
+        self.clearBackground = False
         self.checker = QPixmap(16, 16)
         self.checker.fill(QColor(190, 190, 190))
         p = QPainter(self.checker)
@@ -164,7 +185,8 @@ class ImageView(QWidget):
         w, h = max(1, int(iw * scale)), max(1, int(ih * scale))
         rect = QRect((self.width() - w) // 2, (self.height() - h) // 2, w, h)
 
-        p.drawTiledPixmap(rect, self.checker)
+        if not self.clearBackground:
+            p.drawTiledPixmap(rect, self.checker)
         p.setRenderHint(QPainter.SmoothPixmapTransform, scale < 1)
         p.drawImage(rect, self.image)
 
@@ -334,77 +356,62 @@ class PreviewPanel(QWidget):
 
 
 class FileListPanel(QWidget):
-    def __init__(self, onSelect):
+    def __init__(self, onSelect, onStatus):
         super().__init__()
         self.onSelect = onSelect
+        self.onStatus = onStatus
         self.directory = ""
+        self.sortName = next(iter(SORT_METHODS))
+        self.descending = False
+        self.filterMode = FILTER_WILDCARD
 
-        self.dirEdit = QLineEdit()
-        self.dirEdit.returnPressed.connect(lambda: self.setDirectory(self.dirEdit.text()))
-        browse = QPushButton("...")
-        browse.setFixedWidth(30)
-        browse.clicked.connect(self.browse)
-
-        self.sortCombo = QComboBox()
-        self.sortCombo.addItems(SORT_METHODS.keys())
-        self.sortCombo.currentIndexChanged.connect(self.refresh)
-        self.descCheck = QCheckBox("Desc")
-        self.descCheck.toggled.connect(self.refresh)
         self.filterEdit = QLineEdit()
-        self.filterEdit.setPlaceholderText("filter")
         self.filterEdit.textChanged.connect(self.refresh)
-        self.regexCheck = QCheckBox("Regex")
-        self.regexCheck.setToolTip(
-            "Unchecked: case-insensitive substring. Checked: case-insensitive "
-            "regular expression search (use ^ and $ to match the whole filename)."
-        )
-        self.regexCheck.toggled.connect(self.refresh)
+        self.updateFilterHint()
 
         self.list = QListWidget()
         self.list.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.list.currentItemChanged.connect(self.itemChanged)
         self.list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.list.customContextMenuRequested.connect(self.showContextMenu)
-        self.countLabel = QLabel()
 
-        row1 = QHBoxLayout()
-        row1.addWidget(self.dirEdit)
-        row1.addWidget(browse)
-        row2 = QHBoxLayout()
-        row2.addWidget(QLabel("Sort:"))
-        row2.addWidget(self.sortCombo, 1)
-        row2.addWidget(self.descCheck)
-        filterRow = QHBoxLayout()
-        filterRow.addWidget(self.filterEdit, 1)
-        filterRow.addWidget(self.regexCheck)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(row1)
-        layout.addLayout(row2)
-        layout.addLayout(filterRow)
+        layout.addWidget(self.filterEdit)
         layout.addWidget(self.list, 1)
-        layout.addWidget(self.countLabel)
-
-    def browse(self):
-        d = QFileDialog.getExistingDirectory(self, "Select directory", self.directory)
-        if d:
-            self.setDirectory(d)
 
     def setDirectory(self, path):
         path = os.path.abspath(os.path.expanduser(path))
         if not os.path.isdir(path):
             return
         self.directory = path
-        self.dirEdit.setText(path)
         self.refresh()
+
+    def setSort(self, name):
+        self.sortName = name
+        self.refresh()
+
+    def setDescending(self, descending):
+        self.descending = descending
+        self.refresh()
+
+    def setFilterMode(self, mode):
+        self.filterMode = mode
+        self.updateFilterHint()
+        self.refresh()
+
+    def updateFilterHint(self):
+        if self.filterMode == FILTER_REGEX:
+            self.filterEdit.setPlaceholderText("regex filter, e.g. ^[0-9a-f]+\\.png$")
+        else:
+            self.filterEdit.setPlaceholderText("wildcard filter, e.g. *.png")
 
     def refresh(self):
         current = self.list.currentItem().text() if self.list.currentItem() else None
         error = None
         try:
-            entries = list_files(self.directory, self.sortCombo.currentText(),
-                                 self.descCheck.isChecked(), self.filterEdit.text(),
-                                 self.regexCheck.isChecked())
+            entries = list_files(self.directory, self.sortName, self.descending,
+                                 self.filterEdit.text(), self.filterMode)
         except re.error as exc:
             entries = []
             error = "Invalid regex: %s" % exc
@@ -418,7 +425,7 @@ class FileListPanel(QWidget):
             if name == current:
                 row = i
         self.list.blockSignals(False)
-        self.countLabel.setText(error if error else "%d files" % len(entries))
+        self.onStatus("%s | %s" % (self.directory, error if error else "%d files" % len(entries)))
         if entries:
             self.list.setCurrentRow(row)
             self.itemChanged(self.list.currentItem())
@@ -456,7 +463,7 @@ class MainWindow(QMainWindow):
         self.resize(1100, 700)
 
         self.preview = PreviewPanel()
-        self.files = FileListPanel(self.onFileSelected)
+        self.files = FileListPanel(self.onFileSelected, self.statusBar().showMessage)
 
         splitter = QSplitter()
         splitter.addWidget(self.preview)
@@ -465,9 +472,53 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([800, 300])
         self.setCentralWidget(splitter)
+        self.createMenus()
 
         self.files.list.installEventFilter(self)
         self.files.setDirectory(directory)
+
+    def createMenus(self):
+        bar = self.menuBar()
+
+        openMenu = bar.addMenu("&Open")
+        openDir = openMenu.addAction("Open &Directory...", self.openDirectory)
+        openDir.setShortcut(QKeySequence.Open)
+
+        viewMenu = bar.addMenu("&View")
+        clearBg = viewMenu.addAction("&Clear Background")
+        clearBg.setCheckable(True)
+        clearBg.toggled.connect(self.setClearBackground)
+
+        sortMenu = bar.addMenu("&Sort")
+        sortGroup = QActionGroup(self)
+        for name in SORT_METHODS:
+            act = sortMenu.addAction(name)
+            act.setCheckable(True)
+            act.setChecked(name == self.files.sortName)
+            act.triggered.connect(lambda _checked, n=name: self.files.setSort(n))
+            sortGroup.addAction(act)
+        sortMenu.addSeparator()
+        desc = sortMenu.addAction("&Descending")
+        desc.setCheckable(True)
+        desc.toggled.connect(self.files.setDescending)
+
+        filterMenu = bar.addMenu("&Filter")
+        filterGroup = QActionGroup(self)
+        for mode in (FILTER_WILDCARD, FILTER_REGEX):
+            act = filterMenu.addAction(mode)
+            act.setCheckable(True)
+            act.setChecked(mode == self.files.filterMode)
+            act.triggered.connect(lambda _checked, m=mode: self.files.setFilterMode(m))
+            filterGroup.addAction(act)
+
+    def openDirectory(self):
+        d = QFileDialog.getExistingDirectory(self, "Open Directory", self.files.directory)
+        if d:
+            self.files.setDirectory(d)
+
+    def setClearBackground(self, clear):
+        self.preview.imageView.clearBackground = clear
+        self.preview.imageView.update()
 
     def onFileSelected(self, path):
         if path is None:
