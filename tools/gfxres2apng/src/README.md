@@ -5,7 +5,8 @@ The per-frame texture PNGs and the emoji sprite sheets become one
 [APNG](https://wiki.mozilla.org/APNG_Specification) per animation sequence.
 Every other file, such as fonts, maps, sounds and the texture types that are
 not converted, is copied unchanged, so the output is a complete mirror of the
-input tree, see [Output tree](#output-tree).
+input tree, see [Output tree](#output-tree). With `--skip-unconverted` the
+copy is skipped and the output holds only the converted types.
 
 The old format stores one PNG per frame. The frame index, the sequence identity
 and the frame's draw offset are all encoded in the filename. The new format
@@ -50,14 +51,16 @@ python3 tools/gfxres2apng/src/gfxres2apng.py \
 ```
 
 This converts `<res-path>/texture/<type>` to `<output-dir>/texture/<type>` and
-`<res-path>/emoji` to `<output-dir>/emoji`, and copies every other file. The
+`<res-path>/emoji` to `<output-dir>/emoji`, and copies every other file unless
+`--skip-unconverted` is given. The
 directory tree under `--res-path` is fixed, so it is the only input option.
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--res-path PATH` | required | `mir2x_res` root. |
 | `--output-dir PATH` | required | Output root, a mirror of `--res-path`. Must be missing or empty except for `.git`, and must not overlap `--res-path`. |
-| `--types a,b,...` | all | Comma-separated subset of `monster,npc,hero,hair,helmet,weapon,magic,equip,selectchar,proguse,emoji` to convert. Each type at most once. Types not listed are copied unchanged. |
+| `--types a,b,...` | all | Comma-separated subset of `monster,npc,hero,hair,helmet,weapon,magic,equip,selectchar,proguse,emoji` to convert. Each type at most once. Types not listed are copied unchanged, or skipped with `--skip-unconverted`. |
+| `--skip-unconverted` | copy | Don't copy any file outside the converted types. The output then holds only `texture/<type>` and `emoji` for the types in `--types`. |
 | `--magic-record PATH` | `common/src/magicrecord.inc` | Magic sequence definitions, see [magic](#magic). The default path is relative to the script. |
 | `--proguse-groups PATH` | `proguse_groups_v3.txt` | proguse animation and button groups, see [proguse](#proguse). The default path is next to the script. |
 | `--delay MS` | `100` | Frame delay written into every frame, 1 to 65535 ms. proguse `anim` groups use their own delay, emoji use their fps. |
@@ -70,8 +73,8 @@ and `gfxres2apng copy: 20000/488743 files` for the copied files.
 
 Notes:
 
-- Types run one after another, then the remaining files are copied. All steps
-  share one worker pool.
+- Types run one after another, then the remaining files are copied, unless
+  `--skip-unconverted` is given. All steps share one worker pool.
 - Any malformed name, out-of-range key, broken sequence or verification failure
   stops the run with an error. Nothing is clamped or skipped silently.
 
@@ -86,6 +89,9 @@ Notes:
   `texture/item`, `font`, `map`, `sound`, `LICENSE` and `README.md`. Empty
   directories are created too, and symbolic links are copied as links.
 - `<res-path>/.git` is not copied; the new tree has its own history.
+- With `--skip-unconverted`, no file is copied and no directory is mirrored:
+  the output holds only the converted types' directories. Use it to convert a
+  few types quickly without copying the whole tree.
 - `--output-dir` must be missing or empty. A `.git` directory in it is allowed
   and kept, so the output can be a checkout of the new assets repository. This
   rule means no stale file from an earlier run can remain.
@@ -263,7 +269,7 @@ the range must belong to a sequence. Otherwise the run fails.
 
 ### magic
 
-24 hex digits, 96 bits:
+26 hex digits, 104 bits:
 
 | Bits | Field |
 |---|---|
@@ -275,8 +281,16 @@ the range must belong to a sequence. Otherwise the run fails.
 | 72–75 | direction index, `[0, gfxDirType)` |
 | 76–91 | image index of the sequence's base gfxID, same for every direction |
 | 92–95 | file index |
+| 96–103 | reserved, `00` in this conversion's output, see below |
 
-Example: `001A45000000001044FD1FF4.PNG` is file 0, image 420, direction 5,
+The reserved bits are zero in every APNG this script writes. Magic added
+later, not converted from `mir2x_res`, may use them, so the client must not
+reject a name whose first two hex digits are not `00`. It should keep them as
+part of the 8-digit identity (`value >> 72`) and decode the other fields as
+usual. Only the converter checks that they are zero, when it verifies its
+own output.
+
+Example: `00001A45000000001044FD1FF4.PNG` is file 0, image 420, direction 5,
 head (68, 1), tail (0, 0), offset (-12, -47).
 
 The offset, head and tail all use the same anchor:
@@ -482,7 +496,7 @@ below). The conversion splits it:
    |---|---|---|---|
    | monster, npc, hero, hair, helmet, weapon, selectchar | 14 digits | `value >> 24` | first 8 digits |
    | equip | 14 digits | `value >> 24`, equals the old key | first 8 digits |
-   | magic | 24 digits | `value >> 72` = `dir \| image << 4 \| file << 20` | first 6 digits |
+   | magic | 26 digits | `value >> 72` = `dir \| image << 4 \| file << 20 \| reserved << 24` | first 8 digits, the first 2 reserved (`00` here, any value in the client) |
 
 2. **Frame index → APNG frame index.** Old frame `f` is APNG frame `f`. For
    magic, `f` counts from the first frame of the sequence. selectchar shadow
@@ -672,21 +686,22 @@ Keys `0x0700076C`–`0x070016B7` don't map to magic, they are the
 The name packs every field on hex-digit boundaries, so it can be read directly:
 
 ```text
-F IIII D TTT TTT HHH HHH YYY XXX
-│ │    │ │   │   │   │   │   └─ X offset   (bits  0-11)
-│ │    │ │   │   │   │   └───── Y offset   (bits 12-23)
-│ │    │ │   │   │   └───────── head x     (bits 24-35)
-│ │    │ │   │   └───────────── head y     (bits 36-47)
-│ │    │ │   └───────────────── tail x     (bits 48-59)
-│ │    │ └───────────────────── tail y     (bits 60-71)
-│ │    └─────────────────────── direction  (bits 72-75)
-│ └──────────────────────────── image      (bits 76-91)
-└────────────────────────────── file       (bits 92-95)
+00 F IIII D TTT TTT HHH HHH YYY XXX
+│  │ │    │ │   │   │   │   │   └─ X offset   (bits  0-11)
+│  │ │    │ │   │   │   │   └───── Y offset   (bits 12-23)
+│  │ │    │ │   │   │   └───────── head x     (bits 24-35)
+│  │ │    │ │   │   └───────────── head y     (bits 36-47)
+│  │ │    │ │   └───────────────── tail x     (bits 48-59)
+│  │ │    │ └───────────────────── tail y     (bits 60-71)
+│  │ │    └─────────────────────── direction  (bits 72-75)
+│  │ └──────────────────────────── image      (bits 76-91)
+│  └────────────────────────────── file       (bits 92-95)
+└───────────────────────────────── reserved   (bits 96-103, 00 here, client accepts any)
 ```
 
 ```text
-identity = direction | image << 4 | file << 20
-name     = "%024X.PNG" % (identity << 72
+identity = direction | image << 4 | file << 20     # reserved bits 24-31 = 0
+name     = "%026X.PNG" % (identity << 72
                          | (tailY & 0xFFF) << 60 | (tailX & 0xFFF) << 48
                          | (headY & 0xFFF) << 36 | (headX & 0xFFF) << 24
                          | (Y & 0xFFF) << 12 | (X & 0xFFF))
@@ -698,21 +713,21 @@ Examples:
   `0x000003D4` (image 980), `frameCount` 3, `gfxIDCount` 10, `gfxDirType` 16,
   `targetOffList[2]` = (62, -45). Direction 2 starts at 980 + 2 × 10 = 1000:
   `000003E81000310035.PNG`, `000003E9...`, `000003EA...` become
-  `003D42000000FD303EFC8031.PNG`, read as file `0`, image `03D4`, direction
-  `2`, tail (0, 0), head y `FD3` = -45, head x `03E` = 62, Y `FC8` = -56,
-  X `031` = 49.
+  `00003D42000000FD303EFC8031.PNG`, read as reserved `00`, file `0`, image
+  `03D4`, direction `2`, tail (0, 0), head y `FD3` = -45, head x `03E` = 62,
+  Y `FC8` = -56, X `031` = 49.
 - **Longest prefix and shared frames.** Two entries use gfxID `0x010007BC`
-  with `frameCount` 10 and 15: one APNG `107BC0000000000000F20FCE.PNG` with
+  with `frameCount` 10 and 15: one APNG `00107BC0000000000000F20FCE.PNG` with
   15 frames (`010007BC` to `010007CA`) serves both. Another entry uses gfxID
   `0x010007C6` with 5 frames, so `010007C6` to `010007CA` are also APNG
-  `107C6...`, frames 0–4. Likewise `0200012A` is frame 8 of APNG
+  `00107C6...`, frames 0–4. Likewise `0200012A` is frame 8 of APNG
   `(2, 0x122, 0)` and frame 0 of `(2, 0x12A, 0)`. These 6 are the only old
   frames stored in two APNGs: 6,093 source frames become 6,099 APNG frames.
 - **Hardcoded image.** `0F0000DC00001C0015.PNG` becomes
-  `F00DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
+  `00F00DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
 - **Unreferenced run.** `010004F6...`, `010004F7...`, `010004F8...` (images
   1270–1272 of file 1, no entry uses them) become
-  `104F60000000000000FE0016.PNG`, offset (22, -32).
+  `00104F60000000000000FE0016.PNG`, offset (22, -32).
 
 ### equip
 
@@ -862,7 +877,7 @@ these have a lower down or on key):
 
 #### APNG table
 
-All 110 APNGs in manifest order. Frame `f` of a button is off/on/down for
+All 112 APNGs in manifest order. Frame `f` of a button is off/on/down for
 `f` = 0/1/2. "Used by" lists every client site found, including the
 indirect ones described under Special cases.
 
@@ -889,6 +904,8 @@ indirect ones described under Special cases.
 | `0000003C.PNG` | button | 0000003C, 0000003C, 0000003D | — | 36×28 | `gui/controlboard/cbright.cpp:301` |
 | `0000003E.PNG` | button | 0000003E, 0000003E, 0000003F | — | 40×20 | `gui/controlboard/cbright.cpp:323` |
 | `00000040.PNG` | button | 00000040, 00000040, 00000041 | — | 36×28 | `gui/controlboard/cbright.cpp:345` |
+| `00000055.PNG` | button | 00000055, 00000055, 00000056 | — | 24×18 | — |
+| `00000057.PNG` | button | 00000057, 00000057, 00000058 | — | 24×18 | — |
 | `00000061.PNG` | button | 00000061, 00000061, 00000062 | — | 16×16 | `gui/quickaccessboard/quickaccessboard.cpp:64` |
 | `000000B1.PNG` | button | 000000B1, 000000B1, 000000B2 | — | 34×34 | `inventoryboard.cpp:97` |
 | `000000B3.PNG` | button | 000000B3, 000000B3, 000000B4 | — | 34×34 | `gui/auctionboard/auctionboard.cpp:274`, `gui/auctionboard/auctionregisterboard.cpp:89`, `inventoryboard.cpp:95`, `inventoryboard.cpp:98` |
@@ -1167,9 +1184,9 @@ change. Computed ones are listed with their range:
 
 #### Unreferenced groups
 
-These 24 APNGs have no client reference yet. They were grouped by size and
-consecutive keys (or, for the quest marks, by the user):
-`000000E0`, `000000E2`, `000000E4`, `000000E6`, `000000E8`, `000000EA`, `000000EC`, `00000110`, `00000120`, `00000130`, `00000320`, `00000610`, `00000820`, `00000830`, `00000840`, `00000870`, `00000880`, `00000890`, `000008A0`, `000008C0`, `000008D0`, `000008E0`, `00002000`, `07000007`.
+These 26 APNGs have no client reference yet. They were grouped by size and
+consecutive keys (or, for the quest marks and `00000055`/`00000057`, by the user):
+`00000055`, `00000057`, `000000E0`, `000000E2`, `000000E4`, `000000E6`, `000000E8`, `000000EA`, `000000EC`, `00000110`, `00000120`, `00000130`, `00000320`, `00000610`, `00000820`, `00000830`, `00000840`, `00000870`, `00000880`, `00000890`, `000008A0`, `000008C0`, `000008D0`, `000008E0`, `00002000`, `07000007`.
 `000000E0`–`000000EC` are the quest `!`/`?` marks, with off = on.
 
 ### emoji
@@ -1391,7 +1408,7 @@ A full run over the current `mir2x_res`:
 | magic | 6,093 | 927 | 6,099 |
 | equip | 351 | 351 (copies) | 351 |
 | selectchar | 952 | 74 | 988 |
-| proguse | 1,652 | 110 + 1,397 copies | 348 + 1,397 |
+| proguse | 1,652 | 112 + 1,393 copies | 354 + 1,393 |
 | emoji | 186 sheets | 186 | 2,013 |
 
 - weapon includes 384 effect APNGs (2,160 frames) from `texture/magic`.
@@ -1399,8 +1416,8 @@ A full run over the current `mir2x_res`:
   the hardcoded images) and 431 unreferenced runs. 116 sequences have a
   non-zero head. 6 source frames are in two APNGs each.
 - selectchar has 36 blank padding frames in its overlay APNGs.
-- proguse has 3 `anim` APNGs (27 frames) and 107 button APNGs (321 frames),
-  using 255 source images; `00000300` and `00000302` are in two APNGs each.
+- proguse has 3 `anim` APNGs (27 frames) and 109 button APNGs (327 frames),
+  using 259 source images; `00000300` and `00000302` are in two APNGs each.
 - emoji: 120 in set 0 (5 fps) and 66 in set 1 (65 at 10 fps, one at 6 fps).
   5 spare cells are dropped.
 - The mirror copy holds every other file. With `--types emoji,proguse`, it
@@ -1433,7 +1450,8 @@ The tests use small synthetic frames and cover:
   new name with a negative `frameH1`, and invalid old names,
 - the mirror tree: rejecting a non-empty output (except `.git`), skipping
   `<res-path>/.git`, converting the selected types, and copying everything
-  else, including unselected types, byte-for-byte,
+  else, including unselected types, byte-for-byte, and copying nothing with
+  `--skip-unconverted`,
 - frame alignment, trimming, partial alpha and repeated frames,
 - placeholder frames, and magic heads in the output name.
 

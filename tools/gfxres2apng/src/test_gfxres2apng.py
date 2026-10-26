@@ -1,3 +1,4 @@
+import shutil
 import sys
 import tempfile
 import unittest
@@ -87,12 +88,15 @@ class NameTest(unittest.TestCase):
 
     def test_magic_identity_fields(self):
         name = g.encode_magic_name((15, 0xFFFF, 15, (31, -56)), -296, 40, (-2048, 2047))
-        self.assertEqual(len(name), 28)
+        self.assertEqual(len(name), 30)
+        self.assertTrue(name.startswith("00"))
         self.assertEqual(g.decode_magic_name(name), {
             "dx": -296, "dy": 40, "head": (31, -56), "tail": (-2048, 2047),
             "direction": 15, "image": 0xFFFF, "file": 15,
         })
-        self.assertTrue(g.encode_magic_name((3, 0x100, 1, (0, 0)), 0, 0).startswith("301001000000000000"))
+        self.assertTrue(g.encode_magic_name((3, 0x100, 1, (0, 0)), 0, 0).startswith("00301001000000000000"))
+        with self.assertRaises(ValueError):
+            g.decode_magic_name("01" + name[2:])
         with self.assertRaises(ValueError):
             g.encode_magic_name((16, 0, 0, (0, 0)), 0, 0)
 
@@ -361,6 +365,10 @@ class MirrorTest(TmpDirTest):
 
         with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
             self.run_main()
+
+        shutil.rmtree(self.output)
+        self.assertEqual(self.run_main("--types", "emoji", "--skip-unconverted"), 0)
+        self.assertEqual([str(p.relative_to(self.output)) for p in self.output.rglob("*") if p.is_file()], ["emoji/00000001002.PNG"])
 
 
 if __name__ == "__main__":

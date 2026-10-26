@@ -10,6 +10,7 @@ for a .git directory. Every type in CONVERT_TYPES, or the subset given by
 is texture/<type>, or emoji for emoji. Every other file is copied byte-for-byte
 to the same relative path, including types not in --types and non-PNG assets
 (font, map, sound, texture/map, texture/item, ...). <res-path>/.git is not copied.
+With --skip-unconverted nothing is copied, OUTPUT_DIR holds only the converted types.
 
 Input filename (old per-frame format), 18 chars + ".PNG":
 
@@ -59,7 +60,7 @@ hero, hair, helmet, weapon
 
 magic
     old key: image index in the WIL file(0-23), file index(24-31), see magicwil2png
-    new name, 24 hex digits:
+    new name, 26 hex digits:
       H: bits 24-35, head x, 12-bit two's complement
          bits 36-47, head y, 12-bit two's complement
       T: bits 48-59, tail x, 12-bit two's complement
@@ -67,6 +68,7 @@ magic
       D: bits 72-75, direction index, [0, gfxDirType)
       I: bits 76-91, image index of the sequence's base gfxID, same for all directions
       F: bits 92-95, file index
+         bits 96-103 are zero, reserved
 
     Offsets, head and tail are all relative to the same anchor. The head is the
     hit point of a flying magic, the tail->head vector is the flying direction,
@@ -286,11 +288,13 @@ def encode_magic_name(ident, dx, dy, tail=(0, 0)):
         | (imageIndex << 76)
         | (fileIndex << 92)
     )
-    return f"{value:024X}.PNG"
+    return f"{value:026X}.PNG"
 
 
 def decode_magic_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
+    if value >> 96:
+        raise ValueError(f"magic name has non-zero reserved bits: {fileName}")
     return {
         "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
         "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
@@ -1020,6 +1024,7 @@ def main():
     parser.add_argument("--jobs", type=int, default=os.cpu_count(), help="parallel workers, default CPU count")
     parser.add_argument("--apngopt", default=None, help="path to apngopt, run 'apngopt -z2 -i15' on every output")
     parser.add_argument("--no-verify", dest="verify", action="store_false", help="skip decoding and comparing outputs")
+    parser.add_argument("--skip-unconverted", action="store_true", help="don't copy files outside the converted types, output holds only the converted types")
     args = parser.parse_args()
 
     types = [t for t in args.types.split(",") if t]
@@ -1050,6 +1055,9 @@ def main():
                 doneFrame += frameCount
                 if doneSeq % 500 == 0 or doneSeq == len(tasks):
                     print(f"gfxres2apng {typeName}: {doneSeq}/{len(tasks)} sequences, {doneFrame} frames", flush=True)
+
+        if args.skip_unconverted:
+            return 0
 
         tasks = [(src, dst, args.verify) for src, dst in mirror_tasks(args.res_path, args.output_dir, {TYPE_DIRS[t] for t in types})]
         doneCopy = 0

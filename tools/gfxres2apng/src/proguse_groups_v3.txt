@@ -58,6 +58,8 @@ button  0000003A  0000003A  0000003B                 # 36x28  cbright.cpp:277
 button  0000003C  0000003C  0000003D                 # 36x28  cbright.cpp:301
 button  0000003E  0000003E  0000003F                 # 40x20  cbright.cpp:323
 button  00000040  00000040  00000041                 # 36x28  cbright.cpp:345
+button  00000055  00000055  00000056                 # 24x18
+button  00000057  00000057  00000058                 # 24x18
 button  00000061  00000061  00000062                 # 16x16  quickaccessboard.cpp:64
 button  000000B1  000000B1  000000B2                 # 34x34  inventoryboard.cpp:97
 button  000000B3  000000B3  000000B4                 # 34x34  inventoryboard.cpp:95, inventoryboard.cpp:98 (+1)
@@ -154,7 +156,6 @@ button  0D000050  0D000051  0D000052                 # 40x38  processcreatechar.
 #   00000018-0000001A  36x88  hp/mp orbs (cbleft.cpp:81)
 #   00000042-00000044  24x20  three different icons
 #   00000046-00000049  29x18  ACButton AC/DC/MA/MC labels (acbutton.cpp:29)
-#   00000055-00000058  24x18  four different icons
 #   000000D0-000000D2  64x64  three different icons
 #   09000006-09000009  32x35  frame corners
 #   00000028           13x17  cbmiddle.cpp:132 on only; its down 00000029 does not exist
