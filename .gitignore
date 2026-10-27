@@ -2,3 +2,4 @@ build
 vcpkg
 .vcpkg
 __pycache__
+/tools/filepreview/src/dist/

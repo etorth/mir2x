@@ -14,7 +14,7 @@ import sys
 
 from PySide6.QtCore import Qt, QTimer, QRect, QEvent, QMimeData, QUrl
 from PySide6.QtGui import (
-    QImage, QPainter, QPixmap, QColor, QFontDatabase, QActionGroup, QKeySequence,
+    QImage, QPainter, QPixmap, QColor, QFontDatabase, QActionGroup, QKeySequence, QIcon,
 )
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QSplitter, QListWidget, QListWidgetItem, QMenu,
@@ -27,6 +27,12 @@ import apng
 PNG_EXTS = {".png", ".apng"}
 IMAGE_EXTS = {".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tga", ".ico"}
 TEXT_PREVIEW_BYTES = 64 * 1024
+
+
+def resource_path(name):
+    """Locate a bundled data file, both from source and in a PyInstaller build."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, name)
 
 
 # ---------------------------------------------------------------------------
@@ -425,7 +431,12 @@ class FileListPanel(QWidget):
             if name == current:
                 row = i
         self.list.blockSignals(False)
-        self.onStatus("%s | %s" % (self.directory, error if error else "%d files" % len(entries)))
+        if error:
+            self.onStatus(error)
+        elif not entries:
+            self.onStatus("No files")
+        else:
+            self.onStatus("%d file%s" % (len(entries), "" if len(entries) == 1 else "s"))
         if entries:
             self.list.setCurrentRow(row)
             self.itemChanged(self.list.currentItem())
@@ -547,7 +558,12 @@ class MainWindow(QMainWindow):
 
 
 def main():
+    if sys.platform == "win32":
+        # own taskbar identity so Windows shows our icon instead of python.exe's
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("mir2x.filepreview")
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(resource_path("favicon.ico")))
     win = MainWindow(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
     win.show()
     sys.exit(app.exec())
