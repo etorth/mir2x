@@ -11,7 +11,7 @@ python3 -m PyInstaller --noconfirm --clean --onefile --windowed ^
     --distpath "%~dp0dist" ^
     --workpath "%~dp0build" ^
     --specpath "%~dp0build" ^
-    "%~dp0filepreview.py"
+    "%~dp0main.py"
 
 if errorlevel 1 (
     echo.

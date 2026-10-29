@@ -11,6 +11,7 @@ more generic previewers. Explicit imports also keep PyInstaller bundling it.
 from .basic import DirectoryPreviewer, TextPreviewer, HexPreviewer
 from .code import CodePreviewer
 from .image import PngPreviewer, ImagePreviewer
+from .markdown import MarkdownPreviewer
 from .pdf import PdfPreviewer
 
 PREVIEWERS = [
@@ -18,6 +19,7 @@ PREVIEWERS = [
     PdfPreviewer(),
     PngPreviewer(),
     ImagePreviewer(),
+    MarkdownPreviewer(),  # before CodePreviewer, which would highlight it as source
     CodePreviewer(),
     TextPreviewer(),
     HexPreviewer(),  # matches everything, keep last
