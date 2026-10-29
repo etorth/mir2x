@@ -28,8 +28,8 @@ how the entry is shown:</p>
 <p><b>Apply</b> checks the code and turns on <b>Transform &gt; Enable</b>;
 <b>OK</b> also closes this window. <b>Save &amp; Apply</b> also writes the code to the
 loaded file. The applied code is remembered between runs.</p>
-<p>Sorting by name uses the shown text; <b>Sort &gt; Transform Errors Last</b> puts pink
-entries at the end.</p>
+<p>Sorting by name uses the shown text; <b>Sort &gt; Sink Failed Transforms</b> puts pink
+entries at the end, sorted among themselves.</p>
 <p>The packaged filepreview.exe can only import the Python standard library, PySide6, Pygments, python-magic and mammoth.
 A transform that never returns freezes the app.</p>'''
 

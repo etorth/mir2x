@@ -46,7 +46,6 @@ class FileListPanel(QWidget):
         self.descending = False
         self.filterMode = FILTER_WILDCARD
         self.showDirs = False
-        self.mixDirs = False
         self.errorsLast = True
         self.selectName = None  # entry to select on the next refresh
         self.transformEnabled = False
@@ -98,10 +97,6 @@ class FileListPanel(QWidget):
         self.descending = descending
         self.refresh()
 
-    def setMixDirs(self, mix):
-        self.mixDirs = mix
-        self.refresh()
-
     def setErrorsLast(self, last):
         self.errorsLast = last
         self.refresh()
@@ -150,7 +145,7 @@ class FileListPanel(QWidget):
         except re.error as exc:
             entries = []
             error = "Invalid regex: %s" % exc
-        sort_entries(entries, self.sortName, self.descending, self.mixDirs, self.errorsLast)
+        sort_entries(entries, self.sortName, self.descending, self.errorsLast)
 
         self.list.blockSignals(True)
         self.list.clear()

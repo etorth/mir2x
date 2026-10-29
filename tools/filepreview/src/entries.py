@@ -42,12 +42,12 @@ SORT_METHODS = {
 }
 
 
-def sort_entries(entries, sort_name, descending, mix_dirs=False, errors_last=True):
-    """Sort in place. Unless mix_dirs, directories go before files; with
-    errors_last, entries the filename transform failed on go after all others."""
+def sort_entries(entries, sort_name, descending, errors_last=True):
+    """Sort in place, directories before files; with errors_last, entries
+    the filename transform failed on go after all others."""
     entries.sort(key=SORT_METHODS[sort_name], reverse=descending)
     # stable sort keeps the order above inside each group
-    entries.sort(key=lambda e: (errors_last and e.error is not None, not mix_dirs and not e.isDir))
+    entries.sort(key=lambda e: (errors_last and e.error is not None, not e.isDir))
     return entries
 
 

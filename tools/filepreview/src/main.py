@@ -95,13 +95,11 @@ class MainWindow(QMainWindow):
         desc = sortMenu.addAction("&Descending")
         desc.setCheckable(True)
         desc.toggled.connect(self.files.setDescending)
-        mixDirs = sortMenu.addAction("Sort &Including Directory")
-        mixDirs.setCheckable(True)
-        mixDirs.setToolTip("Sort directories together with files instead of listing them first")
-        mixDirs.toggled.connect(self.files.setMixDirs)
-        errorsLast = sortMenu.addAction("Transform &Errors Last")
+        errorsLast = sortMenu.addAction("Sin&k Failed Transforms")
         errorsLast.setCheckable(True)
         errorsLast.setChecked(self.files.errorsLast)
+        errorsLast.setToolTip("List entries the filename transform failed on after all the others, "
+                              "sorted separately; off: sort them together with the others")
         errorsLast.toggled.connect(self.files.setErrorsLast)
         sortMenu.setToolTipsVisible(True)
 
