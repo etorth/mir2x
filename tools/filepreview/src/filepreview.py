@@ -3,6 +3,14 @@
 
 Usage: python3 filepreview.py [directory]
 
+The preview depends on the file type, detected from the content by libmagic:
+PNG/APNG and other images, the first page of PDFs, source code highlighted by
+Pygments, plain text, or a hex dump. File types are pluggable, see
+preview/registry.py.
+
+Requires: pip install PySide6 pygments python-magic-bin
+(python-magic-bin bundles libmagic for Windows; on Linux use python-magic.)
+
 Keys: Ctrl+O open directory, Up/Down move selection, Space play/pause animation,
       Left/Right step animation frames, F toggle fit-to-window,
       Enter or double-click enter a directory (View > Show Directory).
@@ -132,12 +140,12 @@ class MainWindow(QMainWindow):
             self.files.setDirectory(d)
 
     def setClearBackground(self, clear):
-        self.preview.imageView.clearBackground = clear
-        self.preview.imageView.update()
+        self.preview.imagePane.imageView.clearBackground = clear
+        self.preview.imagePane.imageView.update()
 
     def setDrawBorder(self, draw):
-        self.preview.imageView.drawBorder = draw
-        self.preview.imageView.update()
+        self.preview.imagePane.imageView.drawBorder = draw
+        self.preview.imagePane.imageView.update()
 
     def onFileSelected(self, path):
         if path is None:
@@ -151,16 +159,16 @@ class MainWindow(QMainWindow):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.NoModifier:
             key = event.key()
             if key == Qt.Key_Space:
-                self.preview.togglePlay()
+                self.preview.imagePane.togglePlay()
                 return True
             if key == Qt.Key_Left:
-                self.preview.stepFrame(-1)
+                self.preview.imagePane.stepFrame(-1)
                 return True
             if key == Qt.Key_Right:
-                self.preview.stepFrame(1)
+                self.preview.imagePane.stepFrame(1)
                 return True
             if key == Qt.Key_F:
-                self.preview.fitCheck.toggle()
+                self.preview.imagePane.fitCheck.toggle()
                 return True
         return super().eventFilter(obj, event)
 

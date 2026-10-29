@@ -1,60 +1,11 @@
-"""Preview pane: images, APNG animation and text."""
+"""Reusable preview widgets. A previewer gets one with panel.view(cls);
+each view class needs a clear() method."""
 
-import os
-
-from PySide6.QtCore import Qt, QTimer, QRect
-from PySide6.QtGui import QImage, QPainter, QPixmap, QColor, QFontDatabase
+from PySide6.QtCore import QTimer, QRect
+from PySide6.QtGui import QPainter, QPixmap, QColor, QFontDatabase, QTextCursor
 from PySide6.QtWidgets import (
-    QWidget, QLabel, QCheckBox, QPushButton, QHBoxLayout, QVBoxLayout, QPlainTextEdit,
-    QStackedWidget, QSpinBox,
+    QWidget, QLabel, QCheckBox, QPushButton, QHBoxLayout, QVBoxLayout, QPlainTextEdit, QSpinBox,
 )
-
-import apng
-from entries import human_size
-
-
-PNG_EXTS = {".png", ".apng"}
-IMAGE_EXTS = {".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tga", ".ico"}
-TEXT_PREVIEW_BYTES = 64 * 1024
-
-
-def load_png_frames(path):
-    """Return (frames, info): frames is [(QImage, delay_ms)], fully composited."""
-    with open(path, "rb") as f:
-        data = f.read()
-    info = apng.parse_png(data)
-
-    if not info.is_animated:
-        img = QImage.fromData(data, "PNG")
-        if img.isNull():
-            raise apng.PNGError("failed to decode PNG")
-        return [(img, 0)], info
-
-    canvas = QImage(info.width, info.height, QImage.Format_ARGB32_Premultiplied)
-    canvas.fill(Qt.transparent)
-    frames = []
-    for fr in info.frames:
-        img = QImage.fromData(fr.png, "PNG")
-        if img.isNull():
-            raise apng.PNGError("failed to decode APNG frame")
-        saved = canvas.copy() if fr.dispose_op == apng.DISPOSE_PREVIOUS else None
-
-        p = QPainter(canvas)
-        p.setCompositionMode(QPainter.CompositionMode_SourceOver if fr.blend_op == apng.BLEND_OVER
-                             else QPainter.CompositionMode_Source)
-        p.drawImage(fr.x, fr.y, img)
-        p.end()
-
-        frames.append((canvas.copy(), fr.delay_ms if fr.delay_ms > 0 else 100))
-
-        if fr.dispose_op == apng.DISPOSE_BACKGROUND:
-            p = QPainter(canvas)
-            p.setCompositionMode(QPainter.CompositionMode_Source)
-            p.fillRect(fr.x, fr.y, fr.width, fr.height, Qt.transparent)
-            p.end()
-        elif saved is not None:
-            canvas = saved
-    return frames, info
 
 
 ZOOM_OUT_LEVELS = [16, 8, 4, 2]
@@ -82,6 +33,7 @@ class ZoomSpinBox(QSpinBox):
     def valueFromText(self, text):
         labels = [label for _, label in self.LEVELS]
         return labels.index(text) if text in labels else self.value()
+
 
 class ImageView(QWidget):
     """Draws an image centered on a checkerboard (or clear background);
@@ -137,7 +89,10 @@ class ImageView(QWidget):
             p.fillRect(x + w, y, 1, h, color)
 
 
-class PreviewPanel(QWidget):
+class ImagePane(QWidget):
+    """ImageView with fit/zoom controls; plays a list of (QImage, delay_ms)
+    frames, with animation controls when there is more than one."""
+
     def __init__(self):
         super().__init__()
         self.frames = []
@@ -147,16 +102,6 @@ class PreviewPanel(QWidget):
         self.timer.timeout.connect(self.nextFrame)
 
         self.imageView = ImageView()
-        self.textView = QPlainTextEdit()
-        self.textView.setReadOnly(True)
-        self.textView.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self.textView.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
-        self.stack = QStackedWidget()
-        self.stack.addWidget(self.imageView)
-        self.stack.addWidget(self.textView)
-
-        self.info = QLabel()
-        self.info.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         self.playButton = QPushButton("Pause")
         self.playButton.clicked.connect(self.togglePlay)
@@ -182,10 +127,25 @@ class PreviewPanel(QWidget):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.stack, 1)
+        layout.addWidget(self.imageView, 1)
         layout.addLayout(controls)
-        layout.addWidget(self.info)
         self.showAnimControls(False)
+
+    def clear(self):
+        self.timer.stop()
+        self.frames = []
+        self.imageView.setImage(None)
+        self.showAnimControls(False)
+
+    def setFrames(self, frames):
+        """Show [(QImage, delay_ms)]; more than one frame starts playing."""
+        self.clear()
+        self.frames = frames
+        self.setFrame(0)
+        if self.isAnimated():
+            self.showAnimControls(True)
+            self.playButton.setText("Pause")
+            self.timer.start(self.frames[0][1])
 
     def updateZoom(self):
         self.imageView.fit = self.fitCheck.isChecked()
@@ -197,84 +157,12 @@ class PreviewPanel(QWidget):
         for w in (self.prevButton, self.playButton, self.nextButton, self.frameLabel):
             w.setVisible(show)
 
-    def clear(self, message=""):
-        self.timer.stop()
-        self.frames = []
-        self.imageView.setImage(None)
-        self.textView.clear()
-        self.stack.setCurrentWidget(self.imageView)
-        self.showAnimControls(False)
-        self.info.setText(message)
-
-    def showFile(self, path):
-        self.clear()
-        if os.path.isdir(path):
-            self.info.setText("%s | directory" % path)
-            return
-        ext = os.path.splitext(path)[1].lower()
-        try:
-            size = os.path.getsize(path)
-            if ext in PNG_EXTS or self.isPNG(path):
-                self.showPNG(path, size)
-            elif ext in IMAGE_EXTS:
-                self.showImage(path, size)
-            else:
-                self.showText(path, size)
-        except (OSError, apng.PNGError) as e:
-            self.clear("%s\nError: %s" % (path, e))
-
-    @staticmethod
-    def isPNG(path):
-        with open(path, "rb") as f:
-            return f.read(8) == apng.PNG_SIGNATURE
-
-    def showPNG(self, path, size):
-        self.frames, info = load_png_frames(path)
-        kind = "APNG" if info.is_animated else "PNG"
-        text = "%s | %s | %dx%d | %s" % (os.path.basename(path), kind, info.width, info.height, human_size(size))
-        if info.is_animated:
-            total = sum(d for _, d in self.frames)
-            plays = "infinite" if info.num_plays == 0 else str(info.num_plays)
-            text += " | %d frames | %d ms | loops: %s" % (len(self.frames), total, plays)
-        self.info.setText(text)
-        self.setFrame(0)
-        if len(self.frames) > 1:
-            self.showAnimControls(True)
-            self.playButton.setText("Pause")
-            self.timer.start(self.frames[0][1])
-
-    def showImage(self, path, size):
-        img = QImage(path)
-        if img.isNull():
-            raise apng.PNGError("unsupported or corrupted image")
-        self.frames = [(img, 0)]
-        self.setFrame(0)
-        self.info.setText("%s | %dx%d | %s" % (os.path.basename(path), img.width(), img.height(), human_size(size)))
-
-    def showText(self, path, size):
-        with open(path, "rb") as f:
-            data = f.read(TEXT_PREVIEW_BYTES)
-        if b"\0" in data:
-            lines = []
-            for off in range(0, min(len(data), 4096), 16):
-                chunk = data[off:off + 16]
-                hexs = " ".join("%02x" % b for b in chunk)
-                asc = "".join(chr(b) if 32 <= b < 127 else "." for b in chunk)
-                lines.append("%08x  %-47s  %s" % (off, hexs, asc))
-            self.textView.setPlainText("\n".join(lines))
-            kind = "binary (hex dump)"
-        else:
-            self.textView.setPlainText(data.decode("utf-8", errors="replace"))
-            kind = "text"
-        self.stack.setCurrentWidget(self.textView)
-        self.info.setText("%s | %s | %s" % (os.path.basename(path), kind, human_size(size)))
-
     def setFrame(self, index):
         if not self.frames:
             return
         self.index = index % len(self.frames)
         self.imageView.setImage(self.frames[self.index][0])
-        if len(self.frames) > 1:
+        if self.isAnimated():
             self.frameLabel.setText("%d / %d (%d ms)" % (self.index + 1, len(self.frames), self.frames[self.index][1]))
 
     def nextFrame(self):
@@ -300,3 +188,24 @@ class PreviewPanel(QWidget):
         self.timer.stop()
         self.playButton.setText("Play")
         self.setFrame(self.index + delta)
+
+
+class TextView(QPlainTextEdit):
+    """Read-only monospace text, plain or as formatted runs."""
+
+    def __init__(self):
+        super().__init__()
+        self.setReadOnly(True)
+        self.setUndoRedoEnabled(False)
+        self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+
+    def setRuns(self, runs):
+        """Show text given as [(str, QTextCharFormat)]."""
+        self.clear()
+        cursor = QTextCursor(self.document())
+        cursor.beginEditBlock()
+        for text, fmt in runs:
+            cursor.insertText(text, fmt)
+        cursor.endEditBlock()
+        self.moveCursor(QTextCursor.Start)
