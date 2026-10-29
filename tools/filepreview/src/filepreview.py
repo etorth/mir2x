@@ -6,21 +6,33 @@ Usage: python3 filepreview.py [directory]
 Keys: Ctrl+O open directory, Up/Down move selection, Space play/pause animation,
       Left/Right step animation frames, F toggle fit-to-window,
       Enter or double-click enter a directory (View > Show Directory).
+
+Transform > Enable runs a user-defined transform(path: pathlib.Path)
+on every entry before the wildcard/regex filter; it can rename or hide entries.
+It is edited via Transform > Edit... and saved between runs.
 """
 
+import builtins
 import fnmatch
+import keyword
 import os
+import pathlib
 import re
+import reprlib
 import sys
+import traceback
+from dataclasses import dataclass
 
-from PySide6.QtCore import Qt, QTimer, QRect, QEvent, QMimeData, QUrl
+from PySide6.QtCore import Qt, QTimer, QRect, QEvent, QMimeData, QUrl, QSettings
 from PySide6.QtGui import (
-    QImage, QPainter, QPixmap, QColor, QFontDatabase, QActionGroup, QKeySequence, QIcon,
+    QImage, QPainter, QPixmap, QColor, QFontDatabase, QActionGroup, QKeySequence, QIcon, QPalette, QTextCursor,
+    QFont, QSyntaxHighlighter, QTextCharFormat,
 )
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QSplitter, QListWidget, QListWidgetItem, QMenu,
     QLabel, QCheckBox, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout,
     QFileDialog, QPlainTextEdit, QStackedWidget, QSpinBox,
+    QDialog, QDialogButtonBox, QStyledItemDelegate, QStyle, QMenuBar, QMessageBox,
 )
 
 import apng
@@ -32,6 +44,13 @@ TEXT_PREVIEW_BYTES = 64 * 1024
 PARENT_DIR = ".."
 ROLE_NAME = Qt.UserRole        # real entry name; display text adds "/" to dirs
 ROLE_IS_DIR = Qt.UserRole + 1
+ROLE_TRANSFORM_ERROR = Qt.UserRole + 2
+
+TRANSFORM_ERROR_BG = QColor(255, 210, 220)
+TRANSFORM_ERROR_MARK = QColor(220, 40, 90)
+
+SETTING_TRANSFORM_CODE = "transform/code"
+SETTING_TRANSFORM_FILE = "transform/file"
 
 
 def resource_path(name):
@@ -55,19 +74,115 @@ def hex_name_key(name):
     return (1, 0, name.lower(), name)
 
 
-# name -> key(entry); entries are (name, size, mtime) tuples
+@dataclass
+class Entry:
+    name: str           # real name on disk
+    size: int
+    mtime: float
+    isDir: bool
+    text: str = None    # displayed name; the filename transform may change it
+    error: str = None   # set when the filename transform misbehaved for this entry
+
+    def __post_init__(self):
+        if self.text is None:
+            self.text = self.name
+
+
+# name -> key(entry); name-based keys use the displayed text
 SORT_METHODS = {
-    "Name (natural)": lambda e: natural_key(e[0]),
-    "Name (hex)":     lambda e: hex_name_key(e[0]),
-    "Name":           lambda e: e[0].lower(),
-    "Extension":      lambda e: (os.path.splitext(e[0])[1].lower(), natural_key(e[0])),
-    "Size":           lambda e: (e[1], natural_key(e[0])),
-    "Modified time":  lambda e: (e[2], natural_key(e[0])),
+    "Name (natural)": lambda e: natural_key(e.text),
+    "Name (hex)":     lambda e: hex_name_key(e.text),
+    "Name":           lambda e: e.text.lower(),
+    "Extension":      lambda e: (os.path.splitext(e.text)[1].lower(), natural_key(e.text)),
+    "Size":           lambda e: (e.size, natural_key(e.text)),
+    "Modified time":  lambda e: (e.mtime, natural_key(e.text)),
 }
+
+
+def sort_entries(entries, sort_name, descending, mix_dirs=False, errors_last=True):
+    """Sort in place. Unless mix_dirs, directories go before files; with
+    errors_last, entries the filename transform failed on go after all others."""
+    entries.sort(key=SORT_METHODS[sort_name], reverse=descending)
+    # stable sort keeps the order above inside each group
+    entries.sort(key=lambda e: (errors_last and e.error is not None, not mix_dirs and not e.isDir))
+    return entries
 
 
 FILTER_WILDCARD = "Wildcard"
 FILTER_REGEX = "Regex"
+
+TRANSFORM_TEMPLATE = '''\
+import pathlib
+
+
+def transform(path: pathlib.Path):
+    # Called for every file and directory in the list (never for "..").
+    #   True           -> show the original name
+    #   False          -> hide the entry
+    #   non-empty str  -> show this text instead of the name
+    # Anything else, or an exception, shows the original name in pink.
+    return True
+'''
+
+TRANSFORM_HELP = '''\
+<p>The code must define <code>transform(path)</code>. It is called with a <code>pathlib.Path</code>
+for every file and directory in the list (never for ".."), and its return value decides
+how the entry is shown:</p>
+<table cellspacing="0" cellpadding="3" style="margin-left: 16px">
+<tr><td><code>True</code></td><td>show the original name</td></tr>
+<tr><td><code>False</code></td><td>hide the entry</td></tr>
+<tr><td>non-empty <code>str</code></td><td>show this text instead of the name</td></tr>
+<tr><td>anything else, or an exception&nbsp;&nbsp;</td>
+    <td>show the original name in pink; hover over it to see why</td></tr>
+</table>
+<p>The wildcard/regex filter then matches the shown text.</p>
+<p><b>Apply</b> checks the code and turns on <b>Transform &gt; Enable</b>;
+<b>OK</b> also closes this window. <b>Save &amp; Apply</b> also writes the code to the
+loaded file. The applied code is remembered between runs.</p>
+<p>Sorting by name uses the shown text; <b>Sort &gt; Transform Errors Last</b> puts pink
+entries at the end.</p>
+<p>The packaged filepreview.exe can only import the Python standard library and PySide6.
+A transform that never returns freezes the app.</p>'''
+
+TRANSFORM_FILENAME = "<filename transform>"
+
+
+def compile_transform(code):
+    """Run code and return the function it defines as `transform`; raises on error."""
+    namespace = {"__name__": "filename_transform"}
+    exec(compile(code, TRANSFORM_FILENAME, "exec"), namespace)
+    func = namespace.get("transform")
+    if not callable(func):
+        raise ValueError("the code must define a function named 'transform'")
+    return func
+
+
+def format_error(exc):
+    """One-line description; includes the line number inside the transform code."""
+    text = "%s: %s" % (type(exc).__name__, exc)
+    frames = [fr for fr in traceback.extract_tb(exc.__traceback__) if fr.filename == TRANSFORM_FILENAME]
+    if frames:
+        text += " (line %d)" % frames[-1].lineno
+    return text
+
+
+def apply_transform(entries, directory, func):
+    """Return the entries func keeps, with text/error updated."""
+    kept = []
+    for e in entries:
+        try:
+            result = func(pathlib.Path(directory, e.name))
+        except Exception as exc:
+            e.error = "transform raised " + format_error(exc)
+        else:
+            if result is False:
+                continue
+            if isinstance(result, str) and result:
+                e.text = result
+            elif result is not True:
+                e.error = "transform returned %s; expected True, False or a non-empty str" % reprlib.repr(result)
+        kept.append(e)
+    return kept
 
 
 def compile_filter(name_filter, mode):
@@ -86,28 +201,29 @@ def compile_filter(name_filter, mode):
     return re.compile(fnmatch.translate(name_filter), re.IGNORECASE)
 
 
-def list_files(path, sort_name, descending, name_filter="", mode=FILTER_WILDCARD, show_dirs=False):
-    """Return (dirs, files), each a sorted list of (name, size, mtime).
-
-    The name filter applies to files only, so directories stay navigable.
-    """
-    pattern = compile_filter(name_filter, mode)
-    dirs, files = [], []
+def scan_dir(path, show_dirs=False):
+    """Return unsorted [Entry] for the files (and directories) in path."""
+    entries = []
     try:
         for e in os.scandir(path):
             if e.is_dir():
                 if show_dirs:
-                    dirs.append((e.name, 0, e.stat().st_mtime))
+                    entries.append(Entry(e.name, 0, e.stat().st_mtime, True))
             elif e.is_file():
                 st = e.stat()
-                files.append((e.name, st.st_size, st.st_mtime))
+                entries.append(Entry(e.name, st.st_size, st.st_mtime, False))
     except OSError:
-        return [], []
-    if pattern is not None:
-        files = [e for e in files if pattern.search(e[0])]
-    dirs.sort(key=SORT_METHODS[sort_name], reverse=descending)
-    files.sort(key=SORT_METHODS[sort_name], reverse=descending)
-    return dirs, files
+        return []
+    return entries
+
+
+def filter_entries(entries, name_filter, mode):
+    """Wildcard/regex filtering of the shown text; applies to files only so
+    directories stay navigable."""
+    pattern = compile_filter(name_filter, mode)
+    if pattern is None:
+        return entries
+    return [e for e in entries if e.isDir or pattern.search(e.text)]
 
 
 def human_size(n):
@@ -411,6 +527,307 @@ class PreviewPanel(QWidget):
         self.setFrame(self.index + delta)
 
 
+class EntryDelegate(QStyledItemDelegate):
+    """Keeps transform-error entries recognizable while selected: the selection
+    highlight hides the pink background, so draw a marker bar on the left."""
+
+    def paint(self, painter, option, index):
+        super().paint(painter, option, index)
+        if index.data(ROLE_TRANSFORM_ERROR) and option.state & QStyle.State_Selected:
+            r = option.rect
+            painter.fillRect(r.x(), r.y(), 4, r.height(), TRANSFORM_ERROR_MARK)
+
+
+class PythonHighlighter(QSyntaxHighlighter):
+    TOKEN_RE = re.compile(r"""
+        (?P<comment>\#.*)
+      | (?P<tstring>[rRbBuUfF]{0,2}(?:'''|\"\"\"))
+      | (?P<string>[rRbBuUfF]{0,2}(?:"(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?))
+      | (?P<decorator>^\s*@[\w.]+)
+      | (?P<number>\b(?:0[xXoObB][\da-fA-F_]+|\d[\d_]*(?:\.[\d_]*)?(?:[eE][+-]?\d+)?[jJ]?)\b)
+      | (?P<word>[A-Za-z_]\w*)
+    """, re.VERBOSE)
+    # block state of a line that ends inside a triple-quoted string
+    TRIPLE_STATES = {"'''": 1, '"""': 2}
+    BUILTINS = frozenset(n for n in dir(builtins) if not n.startswith("_"))
+
+    def __init__(self, document):
+        super().__init__(document)
+
+        def fmt(color, bold=False, italic=False):
+            f = QTextCharFormat()
+            f.setForeground(QColor(color))
+            if bold:
+                f.setFontWeight(QFont.Bold)
+            f.setFontItalic(italic)
+            return f
+
+        self.formats = {
+            "keyword": fmt("#0000c0", bold=True),
+            "builtin": fmt("#7a3e9d"),
+            "self": fmt("#9a4f00"),
+            "defname": fmt("#00627a", bold=True),
+            "string": fmt("#a31515"),
+            "comment": fmt("#008000", italic=True),
+            "number": fmt("#098658"),
+            "decorator": fmt("#808000"),
+        }
+
+    def closeString(self, text, start, bodyStart, quote):
+        """Highlight a triple-quoted string from start; return its end, or -1 if it continues on the next line."""
+        end = bodyStart
+        while (end := text.find(quote, end)) >= 0:
+            slashes = end - len(text[:end].rstrip("\\"))
+            if slashes % 2 == 0:  # an odd run of backslashes escapes the quote
+                end += 3
+                self.setFormat(start, end - start, self.formats["string"])
+                return end
+            end += 1
+        self.setFormat(start, len(text) - start, self.formats["string"])
+        self.setCurrentBlockState(self.TRIPLE_STATES[quote])
+        return -1
+
+    def highlightBlock(self, text):
+        self.setCurrentBlockState(0)
+        pos = 0
+        for quote, state in self.TRIPLE_STATES.items():
+            if self.previousBlockState() == state:
+                pos = self.closeString(text, 0, 0, quote)
+                if pos < 0:
+                    return
+
+        prevWord = None
+        while (m := self.TOKEN_RE.search(text, pos)):
+            kind, start, pos = m.lastgroup, m.start(), m.end()
+            if kind == "tstring":
+                pos = self.closeString(text, start, pos, m.group()[-3:])
+                if pos < 0:
+                    return
+                prevWord = None
+                continue
+            if kind == "word":
+                word = m.group()
+                if prevWord in ("def", "class"):
+                    kind = "defname"
+                elif keyword.iskeyword(word):
+                    kind = "keyword"
+                elif word in ("self", "cls"):
+                    kind = "self"
+                elif word in self.BUILTINS:
+                    kind = "builtin"
+                else:
+                    kind = None
+                prevWord = word
+            else:
+                prevWord = None
+            if kind:
+                self.setFormat(start, pos - start, self.formats[kind])
+
+
+class LineNumberArea(QWidget):
+    def __init__(self, editor):
+        super().__init__(editor)
+        self.editor = editor
+
+    def paintEvent(self, event):
+        self.editor.paintLineNumbers(event)
+
+
+class CodeEdit(QPlainTextEdit):
+    """Plain text code editor with a line-number gutter; Tab inserts 4 spaces."""
+
+    def __init__(self):
+        super().__init__()
+        self.lineNumbers = LineNumberArea(self)
+        self.blockCountChanged.connect(self.updateGutterWidth)
+        self.updateRequest.connect(self.updateGutter)
+        self.cursorPositionChanged.connect(self.lineNumbers.update)  # bold current line
+        self.updateGutterWidth()
+
+    def gutterWidth(self):
+        digits = max(2, len(str(self.blockCount())))
+        return 12 + self.fontMetrics().horizontalAdvance("9") * digits
+
+    def updateGutterWidth(self):
+        self.setViewportMargins(self.gutterWidth(), 0, 0, 0)
+
+    def updateGutter(self, rect, dy):
+        if dy:
+            self.lineNumbers.scroll(0, dy)
+        else:
+            self.lineNumbers.update(0, rect.y(), self.lineNumbers.width(), rect.height())
+
+    def setFont(self, font):
+        super().setFont(font)
+        self.updateGutterWidth()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        r = self.contentsRect()
+        self.lineNumbers.setGeometry(r.left(), r.top(), self.gutterWidth(), r.height())
+
+    def paintLineNumbers(self, event):
+        p = QPainter(self.lineNumbers)
+        p.fillRect(event.rect(), self.palette().color(QPalette.Window))
+        p.setPen(self.palette().color(QPalette.PlaceholderText))
+        current = self.textCursor().blockNumber()
+        block = self.firstVisibleBlock()
+        top = round(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
+        width = self.lineNumbers.width() - 6
+        height = self.fontMetrics().height()
+        while block.isValid() and top <= event.rect().bottom():
+            bottom = top + round(self.blockBoundingRect(block).height())
+            if block.isVisible() and bottom >= event.rect().top():
+                font = p.font()
+                font.setBold(block.blockNumber() == current)
+                p.setFont(font)
+                p.drawText(0, top, width, height, Qt.AlignRight, str(block.blockNumber() + 1))
+            block = block.next()
+            top = bottom
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Tab and event.modifiers() == Qt.NoModifier:
+            self.insertPlainText("    ")
+            return
+        super().keyPressEvent(event)
+
+
+class TransformDialog(QDialog):
+    def __init__(self, parent, code, filePath, onApply):
+        """onApply(code, filePath) installs code; it is only called once code compiles."""
+        super().__init__(parent)
+        self.onApply = onApply
+        self.filePath = filePath
+        self.resize(700, 450)
+
+        self.editor = CodeEdit()
+        self.editor.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        self.editor.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.editor.setPlainText(code)
+        self.highlighter = PythonHighlighter(self.editor.document())
+        self.editor.document().modificationChanged.connect(self.setWindowModified)
+        self.errorLabel = QLabel()
+        self.errorLabel.setStyleSheet("color: #c00000;")
+        self.errorLabel.setWordWrap(True)
+        self.errorLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        buttons.button(QDialogButtonBox.Apply).clicked.connect(self.apply)
+        buttons.addButton("&Save && Apply", QDialogButtonBox.ApplyRole).clicked.connect(self.saveAndApply)
+
+        layout = QVBoxLayout(self)
+        layout.setMenuBar(self.createMenuBar())
+        layout.addWidget(self.editor, 1)
+        layout.addWidget(self.errorLabel)
+        layout.addWidget(buttons)
+        self.updateTitle()
+
+    def createMenuBar(self):
+        bar = QMenuBar(self)
+        ed = self.editor
+
+        openMenu = bar.addMenu("&Open")
+        openMenu.addAction("&Load...", QKeySequence.Open, self.load)
+        openMenu.addAction("&Save && Apply", QKeySequence.Save, self.saveAndApply)
+        openMenu.addAction("Save &As && Apply...", QKeySequence.SaveAs, lambda: self.saveAndApply(askPath=True))
+        openMenu.addSeparator()
+        openMenu.addAction("&Restore Defaults", lambda: self.replaceText(TRANSFORM_TEMPLATE))
+
+        editMenu = bar.addMenu("&Edit")
+        undo = editMenu.addAction("&Undo", QKeySequence.Undo, ed.undo)
+        redo = editMenu.addAction("&Redo", QKeySequence.Redo, ed.redo)
+        editMenu.addSeparator()
+        cut = editMenu.addAction("Cu&t", QKeySequence.Cut, ed.cut)
+        copy = editMenu.addAction("&Copy", QKeySequence.Copy, ed.copy)
+        editMenu.addAction("&Paste", QKeySequence.Paste, ed.paste)
+        editMenu.addSeparator()
+        editMenu.addAction("Select &All", QKeySequence.SelectAll, ed.selectAll)
+        for act, signal in ((undo, ed.undoAvailable), (redo, ed.redoAvailable),
+                            (cut, ed.copyAvailable), (copy, ed.copyAvailable)):
+            act.setEnabled(False)
+            signal.connect(act.setEnabled)
+
+        helpMenu = bar.addMenu("&Help")
+        helpMenu.addAction("Filename &Transform Help", QKeySequence.HelpContents, self.showHelp)
+        return bar
+
+    def showHelp(self):
+        box = QMessageBox(QMessageBox.NoIcon, "Filename Transform Help", TRANSFORM_HELP, parent=self)
+        box.setTextFormat(Qt.RichText)
+        box.exec()
+
+    def updateTitle(self):
+        self.setWindowTitle("Filename Transform" + (f" - {self.filePath}" if self.filePath else "") + "[*]")
+
+    def replaceText(self, text):
+        # edit through a cursor instead of setPlainText() so Ctrl+Z can undo it
+        cursor = self.editor.textCursor()
+        cursor.select(QTextCursor.Document)
+        cursor.insertText(text)
+        cursor.movePosition(QTextCursor.Start)
+        self.editor.setTextCursor(cursor)
+
+    def showError(self, text):
+        self.errorLabel.setText(text)
+
+    def load(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Load Filename Transform", self.filePath,
+                                              "Python files (*.py);;All files (*)")
+        if not path:
+            return
+        try:
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+        except (OSError, UnicodeDecodeError) as exc:
+            self.showError(f"cannot load {path}: {exc}")
+            return
+        self.replaceText(text)
+        self.editor.document().setModified(False)
+        self.filePath = path
+        self.updateTitle()
+        self.errorLabel.clear()
+
+    def apply(self):
+        code = self.editor.toPlainText()
+        try:
+            compile_transform(code)
+        except Exception as exc:
+            # full form keeps the caret under a syntax error
+            self.showError("".join(traceback.format_exception_only(type(exc), exc)).strip())
+            return False
+        self.errorLabel.clear()
+        self.onApply(code, self.filePath)
+        return True
+
+    def saveAndApply(self, askPath=False):
+        path = self.filePath
+        if askPath or not path:
+            path, _ = QFileDialog.getSaveFileName(self, "Save Filename Transform", path or "transform.py",
+                                                  "Python files (*.py);;All files (*)")
+            if not path:
+                return
+        try:
+            compile_transform(self.editor.toPlainText())
+        except Exception:
+            return self.apply()  # shows the error; nothing is saved
+        try:
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                f.write(self.editor.toPlainText())
+        except OSError as exc:
+            self.showError(f"cannot save {path}: {exc}")
+            return
+        self.editor.document().setModified(False)
+        self.filePath = path
+        self.updateTitle()
+        self.apply()
+
+    def accept(self):
+        if self.apply():
+            super().accept()
+
+
 class FileListPanel(QWidget):
     def __init__(self, onSelect, onStatus):
         super().__init__()
@@ -421,13 +838,20 @@ class FileListPanel(QWidget):
         self.descending = False
         self.filterMode = FILTER_WILDCARD
         self.showDirs = False
+        self.mixDirs = False
+        self.errorsLast = True
         self.selectName = None  # entry to select on the next refresh
+        self.transformEnabled = False
+        self.transformCode = TRANSFORM_TEMPLATE
+        self.transformFunc = compile_transform(TRANSFORM_TEMPLATE)
+        self.transformError = None
 
         self.filterEdit = QLineEdit()
         self.filterEdit.textChanged.connect(self.refresh)
         self.updateFilterHint()
 
         self.list = QListWidget()
+        self.list.setItemDelegate(EntryDelegate(self.list))
         self.list.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.list.currentItemChanged.connect(self.itemChanged)
         self.list.itemActivated.connect(self.itemActivated)  # double-click or Enter
@@ -459,6 +883,30 @@ class FileListPanel(QWidget):
         self.descending = descending
         self.refresh()
 
+    def setMixDirs(self, mix):
+        self.mixDirs = mix
+        self.refresh()
+
+    def setErrorsLast(self, last):
+        self.errorsLast = last
+        self.refresh()
+
+    def setTransformCode(self, code):
+        """Install filename transform code; returns an error message or None.
+        Broken code is kept (so it can be edited) and transforms nothing."""
+        self.transformCode = code
+        try:
+            self.transformFunc, self.transformError = compile_transform(code), None
+        except Exception as exc:
+            self.transformFunc, self.transformError = None, "Filename transform: " + format_error(exc)
+        if self.transformEnabled:
+            self.refresh()
+        return self.transformError
+
+    def setTransformEnabled(self, enabled):
+        self.transformEnabled = enabled
+        self.refresh()
+
     def setFilterMode(self, mode):
         self.filterMode = mode
         self.updateFilterHint()
@@ -476,43 +924,60 @@ class FileListPanel(QWidget):
         else:
             current = self.list.currentItem().data(ROLE_NAME) if self.list.currentItem() else None
         error = None
+        entries = scan_dir(self.directory, self.showDirs)
+        if self.transformEnabled:
+            if self.transformFunc is None:
+                error = self.transformError
+            else:
+                entries = apply_transform(entries, self.directory, self.transformFunc)
         try:
-            dirs, files = list_files(self.directory, self.sortName, self.descending,
-                                     self.filterEdit.text(), self.filterMode, self.showDirs)
+            entries = filter_entries(entries, self.filterEdit.text(), self.filterMode)
         except re.error as exc:
-            dirs, files = [], []
+            entries = []
             error = "Invalid regex: %s" % exc
-
-        rows = []  # (display text, real name, is dir, tooltip)
-        if self.showDirs and os.path.dirname(self.directory) != self.directory:
-            rows.append(("..", PARENT_DIR, True, "parent directory"))
-        rows += [(name + "/", name, True, "directory") for name, _, _ in dirs]
-        rows += [(name, name, False, human_size(size)) for name, size, _ in files]
+        sort_entries(entries, self.sortName, self.descending, self.mixDirs, self.errorsLast)
 
         self.list.blockSignals(True)
         self.list.clear()
-        # default to the first real entry rather than ".."
-        row = 1 if len(rows) > 1 and rows[0][1] == PARENT_DIR else 0
-        for i, (text, name, isDir, tip) in enumerate(rows):
-            item = QListWidgetItem(text)
-            item.setData(ROLE_NAME, name)
-            item.setData(ROLE_IS_DIR, isDir)
-            item.setToolTip(tip)
+        if self.showDirs and os.path.dirname(self.directory) != self.directory:
+            item = QListWidgetItem("..")
+            item.setData(ROLE_NAME, PARENT_DIR)
+            item.setData(ROLE_IS_DIR, True)
+            item.setToolTip("parent directory")
             self.list.addItem(item)
-            if name == current:
-                row = i
+        # default to the first real entry rather than ".."
+        row = 1 if self.list.count() and entries and current != PARENT_DIR else 0
+        for e in entries:
+            item = QListWidgetItem(e.text + "/" if e.isDir else e.text)
+            item.setData(ROLE_NAME, e.name)
+            item.setData(ROLE_IS_DIR, e.isDir)
+            tip = [e.name] if e.text != e.name else []
+            tip.append(e.error or ("directory" if e.isDir else human_size(e.size)))
+            item.setToolTip("\n".join(tip))
+            if e.error:
+                item.setData(ROLE_TRANSFORM_ERROR, True)
+                item.setBackground(TRANSFORM_ERROR_BG)
+                item.setForeground(QColor(Qt.black))  # stay readable in dark mode
+            if e.name == current:
+                row = self.list.count()
+            self.list.addItem(item)
         self.list.blockSignals(False)
 
+        nDirs = sum(e.isDir for e in entries)
+        nFiles = len(entries) - nDirs
+        nErrors = sum(e.error is not None for e in entries)
         if error:
             self.onStatus(error)
-        elif not dirs and not files:
+        elif not entries:
             self.onStatus("No files")
         else:
-            status = "%d file%s" % (len(files), "" if len(files) == 1 else "s")
-            if dirs:
-                status += ", %d dir%s" % (len(dirs), "" if len(dirs) == 1 else "s")
+            status = "%d file%s" % (nFiles, "" if nFiles == 1 else "s")
+            if nDirs:
+                status += ", %d dir%s" % (nDirs, "" if nDirs == 1 else "s")
+            if nErrors:
+                status += ", %d transform error%s" % (nErrors, "" if nErrors == 1 else "s")
             self.onStatus(status)
-        if rows:
+        if self.list.count():
             self.list.setCurrentRow(row)
             self.itemChanged(self.list.currentItem())
         else:
@@ -564,6 +1029,8 @@ class MainWindow(QMainWindow):
 
         self.preview = PreviewPanel()
         self.files = FileListPanel(self.onFileSelected, self.statusBar().showMessage)
+        self.settings = QSettings("mir2x", "filepreview")
+        self.files.setTransformCode(self.settings.value(SETTING_TRANSFORM_CODE, TRANSFORM_TEMPLATE))
 
         splitter = QSplitter()
         splitter.addWidget(self.preview)
@@ -607,6 +1074,15 @@ class MainWindow(QMainWindow):
         desc = sortMenu.addAction("&Descending")
         desc.setCheckable(True)
         desc.toggled.connect(self.files.setDescending)
+        mixDirs = sortMenu.addAction("Sort &Including Directory")
+        mixDirs.setCheckable(True)
+        mixDirs.setToolTip("Sort directories together with files instead of listing them first")
+        mixDirs.toggled.connect(self.files.setMixDirs)
+        errorsLast = sortMenu.addAction("Transform &Errors Last")
+        errorsLast.setCheckable(True)
+        errorsLast.setChecked(self.files.errorsLast)
+        errorsLast.toggled.connect(self.files.setErrorsLast)
+        sortMenu.setToolTipsVisible(True)
 
         filterMenu = bar.addMenu("&Filter")
         filterGroup = QActionGroup(self)
@@ -616,6 +1092,24 @@ class MainWindow(QMainWindow):
             act.setChecked(mode == self.files.filterMode)
             act.triggered.connect(lambda _checked, m=mode: self.files.setFilterMode(m))
             filterGroup.addAction(act)
+
+        transformMenu = bar.addMenu("&Transform")
+        self.transformAction = transformMenu.addAction("&Enable")
+        self.transformAction.setCheckable(True)
+        self.transformAction.setToolTip("Rename or hide entries with Python code before the wildcard/regex filter")
+        self.transformAction.toggled.connect(self.files.setTransformEnabled)
+        transformMenu.addAction("&Edit...", self.editTransform)
+        transformMenu.setToolTipsVisible(True)
+
+    def editTransform(self):
+        TransformDialog(self, self.files.transformCode, self.settings.value(SETTING_TRANSFORM_FILE, ""),
+                        self.applyTransform).exec()
+
+    def applyTransform(self, code, filePath):
+        self.settings.setValue(SETTING_TRANSFORM_CODE, code)
+        self.settings.setValue(SETTING_TRANSFORM_FILE, filePath)
+        self.files.setTransformCode(code)
+        self.transformAction.setChecked(True)
 
     def openDirectory(self):
         d = QFileDialog.getExistingDirectory(self, "Open Directory", self.files.directory)
