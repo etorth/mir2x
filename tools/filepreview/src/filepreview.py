@@ -4,7 +4,8 @@
 Usage: python3 filepreview.py [directory]
 
 Keys: Ctrl+O open directory, Up/Down move selection, Space play/pause animation,
-      Left/Right step animation frames, F toggle fit-to-window.
+      Left/Right step animation frames, F toggle fit-to-window,
+      Enter or double-click enter a directory (View > Show Directory).
 """
 
 import fnmatch
@@ -27,6 +28,10 @@ import apng
 PNG_EXTS = {".png", ".apng"}
 IMAGE_EXTS = {".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tga", ".ico"}
 TEXT_PREVIEW_BYTES = 64 * 1024
+
+PARENT_DIR = ".."
+ROLE_NAME = Qt.UserRole        # real entry name; display text adds "/" to dirs
+ROLE_IS_DIR = Qt.UserRole + 1
 
 
 def resource_path(name):
@@ -81,20 +86,28 @@ def compile_filter(name_filter, mode):
     return re.compile(fnmatch.translate(name_filter), re.IGNORECASE)
 
 
-def list_files(path, sort_name, descending, name_filter="", mode=FILTER_WILDCARD):
+def list_files(path, sort_name, descending, name_filter="", mode=FILTER_WILDCARD, show_dirs=False):
+    """Return (dirs, files), each a sorted list of (name, size, mtime).
+
+    The name filter applies to files only, so directories stay navigable.
+    """
     pattern = compile_filter(name_filter, mode)
-    entries = []
+    dirs, files = [], []
     try:
         for e in os.scandir(path):
-            if e.is_file():
+            if e.is_dir():
+                if show_dirs:
+                    dirs.append((e.name, 0, e.stat().st_mtime))
+            elif e.is_file():
                 st = e.stat()
-                entries.append((e.name, st.st_size, st.st_mtime))
+                files.append((e.name, st.st_size, st.st_mtime))
     except OSError:
-        return []
+        return [], []
     if pattern is not None:
-        entries = [e for e in entries if pattern.search(e[0])]
-    entries.sort(key=SORT_METHODS[sort_name], reverse=descending)
-    return entries
+        files = [e for e in files if pattern.search(e[0])]
+    dirs.sort(key=SORT_METHODS[sort_name], reverse=descending)
+    files.sort(key=SORT_METHODS[sort_name], reverse=descending)
+    return dirs, files
 
 
 def human_size(n):
@@ -153,6 +166,32 @@ def load_png_frames(path):
 # widgets
 # ---------------------------------------------------------------------------
 
+ZOOM_OUT_LEVELS = [16, 8, 4, 2]
+ZOOM_IN_MAX = 16
+
+
+class ZoomSpinBox(QSpinBox):
+    """Steps through 1/16x .. 1/2x, 1x .. 16x; value() is an index, zoom() the factor."""
+
+    LEVELS = [(1.0 / d, "1/%dx" % d) for d in ZOOM_OUT_LEVELS] + \
+             [(float(m), "%dx" % m) for m in range(1, ZOOM_IN_MAX + 1)]
+
+    def __init__(self):
+        super().__init__()
+        self.setRange(0, len(self.LEVELS) - 1)
+        self.setValue(len(ZOOM_OUT_LEVELS))  # 1x
+        self.lineEdit().setReadOnly(True)  # step with arrows/wheel only
+
+    def zoom(self):
+        return self.LEVELS[self.value()][0]
+
+    def textFromValue(self, value):
+        return self.LEVELS[value][1]
+
+    def valueFromText(self, text):
+        labels = [label for _, label in self.LEVELS]
+        return labels.index(text) if text in labels else self.value()
+
 class ImageView(QWidget):
     """Draws an image centered on a checkerboard (or clear background);
     fit-to-window or fixed zoom."""
@@ -164,6 +203,7 @@ class ImageView(QWidget):
         self.fit = True
         self.zoom = 1
         self.clearBackground = False
+        self.drawBorder = False
         self.checker = QPixmap(16, 16)
         self.checker.fill(QColor(190, 190, 190))
         p = QPainter(self.checker)
@@ -195,6 +235,15 @@ class ImageView(QWidget):
             p.drawTiledPixmap(rect, self.checker)
         p.setRenderHint(QPainter.SmoothPixmapTransform, scale < 1)
         p.drawImage(rect, self.image)
+        if self.drawBorder:
+            # 1px box just outside the image; filled strips instead of drawRect
+            # because a pen stroke lands off by half a pixel on high-DPI screens
+            color = QColor(255, 0, 255)
+            x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+            p.fillRect(x - 1, y - 1, w + 2, 1, color)
+            p.fillRect(x - 1, y + h, w + 2, 1, color)
+            p.fillRect(x - 1, y, 1, h, color)
+            p.fillRect(x + w, y, 1, h, color)
 
 
 class PreviewPanel(QWidget):
@@ -229,9 +278,7 @@ class PreviewPanel(QWidget):
         self.fitCheck = QCheckBox("Fit")
         self.fitCheck.setChecked(True)
         self.fitCheck.toggled.connect(self.updateZoom)
-        self.zoomSpin = QSpinBox()
-        self.zoomSpin.setRange(1, 16)
-        self.zoomSpin.setSuffix("x")
+        self.zoomSpin = ZoomSpinBox()
         self.zoomSpin.setEnabled(False)
         self.zoomSpin.valueChanged.connect(self.updateZoom)
 
@@ -252,7 +299,7 @@ class PreviewPanel(QWidget):
     def updateZoom(self):
         self.imageView.fit = self.fitCheck.isChecked()
         self.zoomSpin.setEnabled(not self.imageView.fit)
-        self.imageView.zoom = self.zoomSpin.value()
+        self.imageView.zoom = self.zoomSpin.zoom()
         self.imageView.update()
 
     def showAnimControls(self, show):
@@ -270,6 +317,9 @@ class PreviewPanel(QWidget):
 
     def showFile(self, path):
         self.clear()
+        if os.path.isdir(path):
+            self.info.setText("%s | directory" % path)
+            return
         ext = os.path.splitext(path)[1].lower()
         try:
             size = os.path.getsize(path)
@@ -295,11 +345,11 @@ class PreviewPanel(QWidget):
             total = sum(d for _, d in self.frames)
             plays = "infinite" if info.num_plays == 0 else str(info.num_plays)
             text += " | %d frames | %d ms | loops: %s" % (len(self.frames), total, plays)
-            self.showAnimControls(True)
-            self.playButton.setText("Pause")
         self.info.setText(text)
         self.setFrame(0)
         if len(self.frames) > 1:
+            self.showAnimControls(True)
+            self.playButton.setText("Pause")
             self.timer.start(self.frames[0][1])
 
     def showImage(self, path, size):
@@ -370,6 +420,8 @@ class FileListPanel(QWidget):
         self.sortName = next(iter(SORT_METHODS))
         self.descending = False
         self.filterMode = FILTER_WILDCARD
+        self.showDirs = False
+        self.selectName = None  # entry to select on the next refresh
 
         self.filterEdit = QLineEdit()
         self.filterEdit.textChanged.connect(self.refresh)
@@ -378,6 +430,7 @@ class FileListPanel(QWidget):
         self.list = QListWidget()
         self.list.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.list.currentItemChanged.connect(self.itemChanged)
+        self.list.itemActivated.connect(self.itemActivated)  # double-click or Enter
         self.list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.list.customContextMenuRequested.connect(self.showContextMenu)
 
@@ -386,11 +439,16 @@ class FileListPanel(QWidget):
         layout.addWidget(self.filterEdit)
         layout.addWidget(self.list, 1)
 
-    def setDirectory(self, path):
+    def setDirectory(self, path, select=None):
         path = os.path.abspath(os.path.expanduser(path))
         if not os.path.isdir(path):
             return
         self.directory = path
+        self.selectName = select
+        self.refresh()
+
+    def setShowDirs(self, show):
+        self.showDirs = show
         self.refresh()
 
     def setSort(self, name):
@@ -413,31 +471,48 @@ class FileListPanel(QWidget):
             self.filterEdit.setPlaceholderText("wildcard filter, e.g. *.png")
 
     def refresh(self):
-        current = self.list.currentItem().text() if self.list.currentItem() else None
+        if self.selectName is not None:
+            current, self.selectName = self.selectName, None
+        else:
+            current = self.list.currentItem().data(ROLE_NAME) if self.list.currentItem() else None
         error = None
         try:
-            entries = list_files(self.directory, self.sortName, self.descending,
-                                 self.filterEdit.text(), self.filterMode)
+            dirs, files = list_files(self.directory, self.sortName, self.descending,
+                                     self.filterEdit.text(), self.filterMode, self.showDirs)
         except re.error as exc:
-            entries = []
+            dirs, files = [], []
             error = "Invalid regex: %s" % exc
+
+        rows = []  # (display text, real name, is dir, tooltip)
+        if self.showDirs and os.path.dirname(self.directory) != self.directory:
+            rows.append(("..", PARENT_DIR, True, "parent directory"))
+        rows += [(name + "/", name, True, "directory") for name, _, _ in dirs]
+        rows += [(name, name, False, human_size(size)) for name, size, _ in files]
+
         self.list.blockSignals(True)
         self.list.clear()
-        row = 0
-        for i, (name, size, _) in enumerate(entries):
-            item = QListWidgetItem(name)
-            item.setToolTip(human_size(size))
+        # default to the first real entry rather than ".."
+        row = 1 if len(rows) > 1 and rows[0][1] == PARENT_DIR else 0
+        for i, (text, name, isDir, tip) in enumerate(rows):
+            item = QListWidgetItem(text)
+            item.setData(ROLE_NAME, name)
+            item.setData(ROLE_IS_DIR, isDir)
+            item.setToolTip(tip)
             self.list.addItem(item)
             if name == current:
                 row = i
         self.list.blockSignals(False)
+
         if error:
             self.onStatus(error)
-        elif not entries:
+        elif not dirs and not files:
             self.onStatus("No files")
         else:
-            self.onStatus("%d file%s" % (len(entries), "" if len(entries) == 1 else "s"))
-        if entries:
+            status = "%d file%s" % (len(files), "" if len(files) == 1 else "s")
+            if dirs:
+                status += ", %d dir%s" % (len(dirs), "" if len(dirs) == 1 else "s")
+            self.onStatus(status)
+        if rows:
             self.list.setCurrentRow(row)
             self.itemChanged(self.list.currentItem())
         else:
@@ -445,18 +520,32 @@ class FileListPanel(QWidget):
         if not self.filterEdit.hasFocus():
             self.list.setFocus()
 
+    def itemPath(self, item):
+        return os.path.normpath(os.path.join(self.directory, item.data(ROLE_NAME)))
+
     def itemChanged(self, item, _prev=None):
-        self.onSelect(os.path.join(self.directory, item.text()) if item else None)
+        self.onSelect(self.itemPath(item) if item else None)
+
+    def itemActivated(self, item):
+        if not item.data(ROLE_IS_DIR):
+            return
+        if item.data(ROLE_NAME) == PARENT_DIR:
+            # land on the directory we just left
+            self.setDirectory(os.path.dirname(self.directory), os.path.basename(self.directory))
+        else:
+            self.setDirectory(self.itemPath(item))
 
     def showContextMenu(self, pos):
         item = self.list.itemAt(pos)
-        if item is None:
+        if item is None or item.data(ROLE_NAME) == PARENT_DIR:
             return
-        name = item.text()
-        path = os.path.join(self.directory, name)
+        name = item.data(ROLE_NAME)
+        path = self.itemPath(item)
+        kind = "directory" if item.data(ROLE_IS_DIR) else "file"
         menu = QMenu(self)
-        menu.addAction("Copy file", lambda: self.copyFile(path))
-        menu.addAction("Copy filename", lambda: QApplication.clipboard().setText(name))
+        menu.addAction("Copy %s" % kind, lambda: self.copyFile(path))
+        menu.addAction("Copy %sname" % ("directory " if kind == "directory" else "file"),
+                       lambda: QApplication.clipboard().setText(name))
         menu.exec(self.list.viewport().mapToGlobal(pos))
 
     @staticmethod
@@ -499,6 +588,12 @@ class MainWindow(QMainWindow):
         clearBg = viewMenu.addAction("&Clear Background")
         clearBg.setCheckable(True)
         clearBg.toggled.connect(self.setClearBackground)
+        border = viewMenu.addAction("Draw &Border")
+        border.setCheckable(True)
+        border.toggled.connect(self.setDrawBorder)
+        showDirs = viewMenu.addAction("Show &Directory")
+        showDirs.setCheckable(True)
+        showDirs.toggled.connect(self.files.setShowDirs)
 
         sortMenu = bar.addMenu("&Sort")
         sortGroup = QActionGroup(self)
@@ -529,6 +624,10 @@ class MainWindow(QMainWindow):
 
     def setClearBackground(self, clear):
         self.preview.imageView.clearBackground = clear
+        self.preview.imageView.update()
+
+    def setDrawBorder(self, draw):
+        self.preview.imageView.drawBorder = draw
         self.preview.imageView.update()
 
     def onFileSelected(self, path):
