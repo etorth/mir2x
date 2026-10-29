@@ -51,12 +51,13 @@ def detect(name, head):
     return MIME_ALIASES.get(mime, mime), charset or "binary", description
 
 
-def text_codec(charset):
-    """Python codec to decode text libmagic reported with this charset."""
+def text_codec(charset, eightBit="system"):
+    """Python codec to decode text libmagic reported with this charset;
+    eightBit is the codec for 8-bit text that isn't UTF-8 ("system": the ANSI code page)."""
     charset = charset.lower()
     if charset.startswith(("utf-16", "utf-32")):
         return charset
     if charset in ("iso-8859-1", "unknown-8bit"):
         # 8-bit but not UTF-8: most likely the Windows ANSI code page (e.g. GBK)
-        return locale.getencoding()
+        return locale.getencoding() if eightBit == "system" else eightBit
     return "utf-8"

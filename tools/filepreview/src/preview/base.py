@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 
 from .filetype import detect, text_codec
+from .options import TEXT_ENCODING
 
 HEAD_BYTES = 8192
 TEXT_PREVIEW_BYTES = 64 * 1024
@@ -39,7 +40,7 @@ class FileInfo:
         """Return (text, truncated): the first limit bytes, decoded by the detected charset."""
         with open(self.path, "rb") as f:
             data = f.read(limit)
-        text = data.decode(text_codec(self.charset), errors="replace")
+        text = data.decode(text_codec(self.charset, TEXT_ENCODING.value()), errors="replace")
         return text.removeprefix("\ufeff"), self.size > limit
 
 
@@ -49,6 +50,9 @@ class Previewer:
     To support a new file type, subclass this, implement match() and show(),
     and add an instance to PREVIEWERS in registry.py.
     """
+
+    name = ""     # shown in Config > Preview Type
+    options = ()  # options.Option list shown in Config > Preview Options; read them in show()
 
     def match(self, f):
         """Return True if this previewer handles FileInfo f, normally by its

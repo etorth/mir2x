@@ -6,10 +6,22 @@ from PySide6.QtGui import QImage, QImageReader, QPainter
 import apng
 from .base import Previewer
 from .filetype import UNKNOWN_MIME
+from .options import Option
 from .views import ImagePane
 
 MAX_FRAMES = 1000
 MAX_FRAME_BYTES = 512 * 1024 * 1024  # decoded frames of one animation
+
+CLEAR_BACKGROUND = Option("image/clearBackground", "Clear Background", False)
+DRAW_BORDER = Option("image/drawBorder", "Draw Border", False)
+IMAGE_OPTIONS = (CLEAR_BACKGROUND, DRAW_BORDER)
+
+
+def show_frames(panel, frames):
+    pane = panel.view(ImagePane)
+    pane.imageView.clearBackground = CLEAR_BACKGROUND.value()
+    pane.imageView.drawBorder = DRAW_BORDER.value()
+    pane.setFrames(frames)
 
 
 def load_png_frames(path):
@@ -52,12 +64,15 @@ def load_png_frames(path):
 
 
 class PngPreviewer(Previewer):
+    name = "PNG/APNG"
+    options = IMAGE_OPTIONS
+
     def match(self, f):
         return f.mime in ("image/png", "image/apng")
 
     def show(self, f, panel):
         frames, info = load_png_frames(f.path)
-        panel.view(ImagePane).setFrames(frames)
+        show_frames(panel, frames)
         fields = ["APNG" if info.is_animated else "PNG", "%dx%d" % (info.width, info.height)]
         if info.is_animated:
             plays = "infinite" if info.num_plays == 0 else str(info.num_plays)
@@ -68,6 +83,9 @@ class PngPreviewer(Previewer):
 class ImagePreviewer(Previewer):
     """Any type Qt's image plugins read (jpeg, bmp, gif, webp, svg, ...);
     animated GIF/WebP play like APNG."""
+
+    name = "Image"
+    options = IMAGE_OPTIONS
 
     def __init__(self):
         self.mimes = {bytes(m).decode() for m in QImageReader.supportedMimeTypes()} - {"application/pdf"}
@@ -99,7 +117,7 @@ class ImagePreviewer(Previewer):
         if not frames:
             raise ValueError(reader.errorString())
 
-        panel.view(ImagePane).setFrames(frames)
+        show_frames(panel, frames)
         img = frames[0][0]
         fields = [kind, "%dx%d" % (img.width(), img.height())]
         if len(frames) > 1:

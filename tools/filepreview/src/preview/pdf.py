@@ -5,12 +5,15 @@ big documents open quickly and scrolling renders new pages as they appear.
 """
 
 from .base import Previewer
+from .options import Option
 
 try:
     from PySide6.QtPdf import QPdfDocument
     from PySide6.QtPdfWidgets import QPdfView
 except ImportError:
     QPdfDocument = QPdfView = None
+
+FIT = Option("pdf/fit", "Fit", "width", (("width", "Page Width"), ("page", "Whole Page")))
 
 
 if QPdfView is not None:
@@ -40,11 +43,18 @@ if QPdfView is not None:
 
 
 class PdfPreviewer(Previewer):
+    name = "PDF"
+    options = (FIT,)
+
     def match(self, f):
         return QPdfView is not None and f.mime == "application/pdf"
 
     def show(self, f, panel):
-        doc = panel.view(PdfView).load(f.path)
+        if QPdfView is None:
+            raise ValueError("QtPdf is not available")
+        view = panel.view(PdfView)
+        view.setZoomMode(QPdfView.ZoomMode.FitInView if FIT.value() == "page" else QPdfView.ZoomMode.FitToWidth)
+        doc = view.load(f.path)
         count, page = doc.pageCount(), doc.pagePointSize(0)
         fields = ["PDF", "%d page%s" % (count, "" if count == 1 else "s")]
         if count:

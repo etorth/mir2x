@@ -6,7 +6,7 @@ import re
 from PySide6.QtCore import Qt, QMimeData, QUrl
 from PySide6.QtGui import QColor, QFontDatabase
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QListWidget, QListWidgetItem, QMenu, QLineEdit, QVBoxLayout,
+    QApplication, QCheckBox, QWidget, QListWidget, QListWidgetItem, QMenu, QLineEdit, QHBoxLayout, QVBoxLayout,
     QStyledItemDelegate, QStyle,
 )
 
@@ -57,6 +57,9 @@ class FileListPanel(QWidget):
         self.filterEdit = QLineEdit()
         self.filterEdit.textChanged.connect(self.refresh)
         self.updateFilterHint()
+        self.dirCheck = QCheckBox()
+        self.dirCheck.setToolTip("Show directories; Enter or double-click opens one")
+        self.dirCheck.toggled.connect(self.setShowDirs)
 
         self.list = QListWidget()
         self.list.setItemDelegate(EntryDelegate(self.list))
@@ -66,9 +69,13 @@ class FileListPanel(QWidget):
         self.list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.list.customContextMenuRequested.connect(self.showContextMenu)
 
+        filterRow = QHBoxLayout()
+        filterRow.addWidget(self.filterEdit, 1)
+        filterRow.addWidget(self.dirCheck)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.filterEdit)
+        layout.addLayout(filterRow)
         layout.addWidget(self.list, 1)
 
     def setDirectory(self, path, select=None):

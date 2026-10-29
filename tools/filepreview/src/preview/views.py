@@ -2,7 +2,7 @@
 each view class needs a clear() method."""
 
 from PySide6.QtCore import QTimer, QRect
-from PySide6.QtGui import QPainter, QPixmap, QColor, QFontDatabase, QTextCursor
+from PySide6.QtGui import QPainter, QPalette, QPixmap, QColor, QFontDatabase, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import (
     QWidget, QLabel, QCheckBox, QPushButton, QHBoxLayout, QVBoxLayout, QPlainTextEdit, QSpinBox,
 )
@@ -190,6 +190,38 @@ class ImagePane(QWidget):
         self.setFrame(self.index + delta)
 
 
+def set_colors(widget, background=None, text=None, link=None):
+    """Recolor a text widget's page; no arguments restore the application palette."""
+    palette = QPalette()
+    if background is not None:
+        palette.setColor(QPalette.Base, QColor(background))
+        palette.setColor(QPalette.Text, QColor(text))
+        if link is not None:
+            palette.setColor(QPalette.Link, QColor(link))
+    widget.setPalette(palette)
+
+
+DARK_PAGE = ("#1e1e1e", "#d4d4d4", "#4ea1ff")  # background, text, link
+
+
+def recolor_links(doc, color):
+    """Qt bakes the application palette's link color into loaded Markdown/HTML: replace it."""
+    fmt = QTextCharFormat()
+    fmt.setForeground(QColor(color))
+    cursor = QTextCursor(doc)
+    block = doc.begin()
+    while block.isValid():
+        it = block.begin()
+        while not it.atEnd():
+            fragment = it.fragment()
+            if fragment.charFormat().isAnchor():
+                cursor.setPosition(fragment.position())
+                cursor.setPosition(fragment.position() + fragment.length(), QTextCursor.KeepAnchor)
+                cursor.mergeCharFormat(fmt)
+            it += 1
+        block = block.next()
+
+
 class TextView(QPlainTextEdit):
     """Read-only monospace text, plain or as formatted runs."""
 
@@ -197,12 +229,22 @@ class TextView(QPlainTextEdit):
         super().__init__()
         self.setReadOnly(True)
         self.setUndoRedoEnabled(False)
-        self.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        self.clear()
+
+    def clear(self):
+        super().clear()
+        # setPlainText() uses the cursor's format, which setRuns() left at a highlight color
+        self.setCurrentCharFormat(QTextCharFormat())
+        self.setWordWrap(False)
+        set_colors(self)
+
+    def setWordWrap(self, wrap):
+        self.setLineWrapMode(QPlainTextEdit.WidgetWidth if wrap else QPlainTextEdit.NoWrap)
 
     def setRuns(self, runs):
         """Show text given as [(str, QTextCharFormat)]."""
-        self.clear()
+        super().clear()
         cursor = QTextCursor(self.document())
         cursor.beginEditBlock()
         for text, fmt in runs:

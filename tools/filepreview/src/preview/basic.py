@@ -1,12 +1,15 @@
 """Fallbacks: directories, plain text and a hex dump for anything else."""
 
 from .base import Previewer, truncated_note
+from .options import TEXT_ENCODING, WORD_WRAP
 from .views import ImagePane, TextView
 
 HEX_DUMP_BYTES = 4096
 
 
 class DirectoryPreviewer(Previewer):
+    name = "Directory"
+
     def match(self, f):
         return f.isDir
 
@@ -16,16 +19,23 @@ class DirectoryPreviewer(Previewer):
 
 
 class TextPreviewer(Previewer):
+    name = "Text"
+    options = (WORD_WRAP, TEXT_ENCODING)
+
     def match(self, f):
         return f.isText()
 
     def show(self, f, panel):
         text, truncated = f.readText()
-        panel.view(TextView).setPlainText(text)
+        view = panel.view(TextView)
+        view.setPlainText(text)
+        view.setWordWrap(WORD_WRAP.value())
         return [f.description or "text"] + truncated_note(truncated)
 
 
 class HexPreviewer(Previewer):
+    name = "Hex"
+
     def match(self, f):
         return True
 
