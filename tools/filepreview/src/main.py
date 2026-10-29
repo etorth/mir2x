@@ -4,9 +4,9 @@
 Usage: python3 main.py [directory]
 
 The preview depends on the file type, detected from the content by libmagic:
-PNG/APNG and other images, the first page of PDFs, rendered Markdown, source
-code highlighted by Pygments, plain text, or a hex dump. File types are
-pluggable, see preview/registry.py.
+PNG/APNG and other images, PDFs (all pages, rendered as they scroll into view),
+rendered Markdown, source code highlighted by Pygments, plain text, or a hex
+dump. File types are pluggable, see preview/registry.py.
 
 Requires: pip install PySide6 pygments python-magic-bin
 (python-magic-bin bundles libmagic for Windows; on Linux use python-magic.)
