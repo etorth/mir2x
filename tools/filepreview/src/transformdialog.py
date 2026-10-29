@@ -30,7 +30,7 @@ how the entry is shown:</p>
 loaded file. The applied code is remembered between runs.</p>
 <p>Sorting by name uses the shown text; <b>Sort &gt; Transform Errors Last</b> puts pink
 entries at the end.</p>
-<p>The packaged filepreview.exe can only import the Python standard library, PySide6, Pygments and python-magic.
+<p>The packaged filepreview.exe can only import the Python standard library, PySide6, Pygments, python-magic and mammoth.
 A transform that never returns freezes the app.</p>'''
 
 
