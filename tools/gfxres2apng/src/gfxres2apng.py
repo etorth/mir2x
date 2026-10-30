@@ -80,10 +80,15 @@ magic
          frames up to gfxIDCount, MagicGfxEntry::frameCount selects the prefix
          the magic uses. Entries sharing a sequence keep the longest one.
          Named by (file, image index of gfxID, d).
-      2. Single images hardcoded in client/src/fixedlocmagic.cpp.
+      2. MAGIC_HARDCODED_SEQUENCES: sequences no entry describes, such as
+         single images used by client/src/fixedlocmagic.cpp and animations
+         that share one contiguous run of images. Each keeps exactly its
+         frameCount frames per direction. Slots in MAGIC_PADDED_KEYS are
+         missing on disk and become blank frames.
       3. Frames not used by the above, magicwil2png skips empty WIL slots, so
          each contiguous run of image indices is one sequence, named by its
-         first frame with direction 0.
+         first frame with direction 0. Runs whose frames are all fully
+         transparent are dropped.
 
     Frames in MAGIC_EXCLUDED_KEY_RANGES are skipped, they are the weapon effect.
 
@@ -189,7 +194,63 @@ EFFECT_IMAGE_END = 5815  # inclusive
 EFFECT_GENDER_BASE = {1: 1900, 0: 3900}
 EFFECT_MOTION_COUNT = 25  # 2000 slots per gender
 
-MAGIC_HARDCODED_GFX_IDS = (0x0F0000DC, 0x0F000104, 0x0F000105)  # client/src/fixedlocmagic.cpp
+# sequences not in magicrecord.inc, (gfxID, frameCount, gfxDirType, gfxIDCount)
+# keeps exactly frameCount frames per direction, direction d starts at gfxID + d * gfxIDCount
+MAGIC_HARDCODED_SEQUENCES = (
+    (0x0F0000DC,  1, 1,  1),  # client/src/fixedlocmagic.cpp
+    (0x0F000104,  1, 1,  1),
+    (0x0F000105,  1, 1,  1),
+    (0x00000956, 20, 1, 20),  # teleport, someone arrives
+    (0x0000096A, 20, 1, 20),  # teleport, someone leaves
+    (0x00000D8E,  3, 8, 10),  # 8 directions, 3 frames each, the other 7 slots are blank
+    (0x00000DE8,  6, 1,  6),
+    (0x010003B6, 10, 1, 10),  # MagicEx images 950-959 and 960-965 are two animations in one run
+    (0x010003C0,  6, 1,  6),
+    # 8 directions 10 images apart, the slots after each direction are empty
+    (0x00000889,  5, 8, 10),  # Magic images 2185-2259
+    (0x01000442,  6, 8, 10),  # MagicEx images 1090-1165
+    (0x010004F6,  3, 8, 10),  # MagicEx images 1270-1342
+    (0x01000546,  3, 8, 10),  # MagicEx images 1350-1422
+    (0x010005A0,  3, 8, 10),  # MagicEx images 1440-1512
+    (0x010005F0,  3, 8, 10),  # MagicEx images 1520-1592
+    (0x0100064A,  3, 8, 10),  # MagicEx images 1610-1682
+    (0x0100069A,  3, 8, 10),  # MagicEx images 1690-1762
+    (0x0300042E,  1, 8, 10),  # MonMagic images 1070-1140
+    (0x0300047E,  1, 8, 10),  # MonMagic images 1150-1220
+    (0x03000848,  4, 8, 10),  # MonMagic images 2120-2193
+    (0x040000DE,  3, 8, 10),  # MonMagicEx images 222-294
+    (0x04000136,  6, 8, 10),  # MonMagicEx images 310-385
+    (0x04000190,  6, 8, 10),  # MonMagicEx images 400-475
+    (0x040001FE,  6, 8, 10),  # MonMagicEx images 510-585
+    (0x0400056E,  6, 8, 10),  # MonMagicEx images 1390-1465
+    (0x040005BE,  6, 8, 10),  # MonMagicEx images 1470-1545
+    (0x04000708,  6, 8, 10),  # MonMagicEx images 1800-1875
+    (0x04000762,  6, 8, 10),  # MonMagicEx images 1890-1965
+    (0x040007BC,  6, 8, 10),  # MonMagicEx images 1980-2055
+    (0x04000870,  1, 8, 10),  # MonMagicEx images 2160-2230
+    (0x040008C0,  1, 8, 10),  # MonMagicEx images 2240-2310
+    (0x05000000,  1, 8, 10),  # MonMagicEx2 images 0-70
+    (0x050000A0,  4, 8, 10),  # MonMagicEx2 images 160-233
+    (0x050000FA,  6, 8, 10),  # MonMagicEx2 images 250-325
+    (0x05000154,  5, 8, 10),  # MonMagicEx2 images 340-414
+    (0x0500028A,  2, 8, 10),  # MonMagicEx2 images 650-721
+    (0x050002F8,  9, 8, 10),  # MonMagicEx2 images 760-838
+    (0x05000384,  1, 8, 10),  # MonMagicEx2 images 900-970
+    (0x050003DE,  9, 8, 10),  # MonMagicEx2 images 990-1068
+    (0x05000438,  6, 8, 10),  # MonMagicEx2 images 1080-1155
+    (0x05000488,  6, 8, 10),  # MonMagicEx2 images 1160-1235
+    (0x06000000,  4, 8, 10),  # MonMagicEx3 images 0-73
+    (0x060000BE,  1, 8, 10),  # MonMagicEx3 images 190-260
+    (0x0600010E,  1, 8, 10),  # MonMagicEx3 images 270-340
+    (0x0600015E,  1, 8, 10),  # MonMagicEx3 images 350-420
+    (0x07000000,  4, 8, 10),  # MonMagicEx4 images 0-73
+    (0x070001F4,  4, 8, 10),  # MonMagicEx4 images 500-573
+    (0x07000244,  6, 8, 10),  # MonMagicEx4 images 580-655, direction 0 misses 580 and 585
+    (0x07000294,  6, 8, 10),  # MonMagicEx4 images 660-735
+    (0x07000514,  9, 8, 10),  # MonMagicEx4 images 1300-1378
+    (0x07000640,  8, 8, 10),  # MonMagicEx4 images 1600-1677
+)
+MAGIC_PADDED_KEYS = frozenset((0x07000244, 0x07000249))  # missing on disk, blank frames in hardcoded sequences
 MAGIC_EXCLUDED_KEY_RANGES = ((0x0700076C, 0x070016B7),)  # weapon 44 effect
 DEFAULT_MAGIC_RECORD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "common", "src", "magicrecord.inc")
 DEFAULT_PROGUSE_GROUPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proguse_groups_v3.txt")
@@ -510,8 +571,13 @@ def parse_magic_record(text):
     return entries
 
 
-def build_magic_sequences(frameKeys, entries, hardcodedGfxIDs=MAGIC_HARDCODED_GFX_IDS):
-    """Returns ({(file, image, direction): (head, [old keys])}, referencedCount, runCount)."""
+def build_magic_sequences(frameKeys, entries, hardcodedSequences=MAGIC_HARDCODED_SEQUENCES, isBlank=lambda key: False, paddedKeys=frozenset()):
+    """Returns ({(file, image, direction): (head, [old keys])}, referencedCount, runCount, [dropped blank runs]).
+
+    Keys in paddedKeys count as present in hardcoded sequences, the caller fills them with blank frames."""
+    if paddedKeys & set(frameKeys):
+        raise RuntimeError(f"padded magic keys exist on disk: {', '.join(f'{k:08X}' for k in sorted(paddedKeys & set(frameKeys)))}")
+
     sequences = {}
 
     def add(ident, head, keys, origin):
@@ -522,12 +588,16 @@ def build_magic_sequences(frameKeys, entries, hardcodedGfxIDs=MAGIC_HARDCODED_GF
             raise RuntimeError(f"{origin}: sequence {ident} conflicts with another definition")
         sequences[ident] = (head, longer)
 
-    entries = list(entries) + [{"gfxID": k, "frameCount": 1, "stride": 1, "dirType": 1, "heads": None, "line": "hardcoded"} for k in hardcodedGfxIDs]
+    entries = list(entries) + [{"gfxID": k, "frameCount": n, "stride": stride, "dirType": dirType, "heads": None, "line": "hardcoded", "maxCount": n}
+                               for k, n, dirType, stride in hardcodedSequences]
+    padded = set()
     for entry in entries:
         for direction in range(entry["dirType"]):
             start = entry["gfxID"] + direction * entry["stride"]
             count = 0
-            while count < entry["stride"] and start + count in frameKeys:
+            while count < entry.get("maxCount", entry["stride"]) and (start + count in frameKeys or ("maxCount" in entry and start + count in paddedKeys)):
+                if start + count in paddedKeys:
+                    padded.add(start + count)
                 count += 1
 
             origin = f"magicrecord.inc line {entry['line']}, gfxID {entry['gfxID']:08X}, direction {direction}"
@@ -536,6 +606,9 @@ def build_magic_sequences(frameKeys, entries, hardcodedGfxIDs=MAGIC_HARDCODED_GF
 
             head = entry["heads"][direction] if entry["heads"] else (0, 0)
             add((entry["gfxID"] >> 24, entry["gfxID"] & 0xFFFFFF, direction), head, list(range(start, start + count)), origin)
+
+    if paddedKeys - padded:
+        raise RuntimeError(f"padded magic keys not in any hardcoded sequence: {', '.join(f'{k:08X}' for k in sorted(paddedKeys - padded))}")
 
     referencedCount = len(sequences)
     covered = {key for _, keys in sequences.values() for key in keys}
@@ -547,9 +620,11 @@ def build_magic_sequences(frameKeys, entries, hardcodedGfxIDs=MAGIC_HARDCODED_GF
         else:
             runs.append([key])
 
+    blankRuns = [run for run in runs if all(isBlank(key) for key in run)]
+    runs = [run for run in runs if run not in blankRuns]
     for run in runs:
         add((run[0] >> 24, run[0] & 0xFFFFFF, 0), (0, 0), run, f"unreferenced run {run[0]:08X}")
-    return sequences, referencedCount, len(runs)
+    return sequences, referencedCount, len(runs), blankRuns
 
 
 def collect_magic_sequences(magicDir, magicRecord):
@@ -564,9 +639,10 @@ def collect_magic_sequences(magicDir, magicRecord):
     with open(magicRecord, encoding="utf-8") as fp:
         entries = parse_magic_record(fp.read())
 
-    sequences, referencedCount, runCount = build_magic_sequences(frames, entries)
-    print(f"gfxres2apng magic: {len(entries)} gfx entries, {referencedCount} referenced sequences, {runCount} unreferenced runs", flush=True)
-    return {(*ident, head): [frames[k] for k in keys] for ident, (head, keys) in sequences.items()}
+    sequences, referencedCount, runCount, blankRuns = build_magic_sequences(frames, entries, isBlank=lambda key: load_rgba(frames[key][0]).getchannel("A").getbbox() is None, paddedKeys=MAGIC_PADDED_KEYS)
+    print(f"gfxres2apng magic: {len(entries)} gfx entries, {referencedCount} referenced sequences, {runCount} unreferenced runs, "
+          f"{len(blankRuns)} fully transparent runs ({sum(map(len, blankRuns))} frames) dropped", flush=True)
+    return {(*ident, head): [frames.get(k) for k in keys] for ident, (head, keys) in sequences.items()}
 
 
 def collect_selectchar_sequences(inputDir):
