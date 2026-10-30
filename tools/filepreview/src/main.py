@@ -9,12 +9,12 @@ Word .docx documents, rendered Markdown, source code highlighted by Pygments,
 plain text, or a hex dump. File types are pluggable, see preview/registry.py.
 Config > Preview Type shows the current file as another type; Config > Preview
 Options has settings for the current type (image background, code theme, text
-encoding, ...), saved between runs.
+encoding, ...), and Config > Theme picks the Qt widget style; all saved between runs.
 
 Requires: pip install PySide6 pygments python-magic-bin mammoth
 (python-magic-bin bundles libmagic for Windows; on Linux use python-magic.)
 
-Keys: Ctrl+O open directory, Up/Down move selection, Space play/pause animation,
+Keys: Ctrl+O open directory, Ctrl+Q exit, Up/Down move selection, Space play/pause animation,
       Left/Right step animation frames, F toggle fit-to-window,
       Enter or double-click enter a directory (shown with the checkbox next to the filter).
 
@@ -28,7 +28,7 @@ import sys
 
 from PySide6.QtCore import Qt, QEvent, QSettings
 from PySide6.QtGui import QActionGroup, QKeySequence, QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow, QSplitter, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QSplitter, QFileDialog, QStyleFactory
 
 from entries import FILTER_REGEX, FILTER_WILDCARD, SORT_METHODS
 from filelist import FileListPanel
@@ -39,6 +39,16 @@ from transformdialog import TransformDialog
 
 SETTING_TRANSFORM_CODE = "transform/code"
 SETTING_TRANSFORM_FILE = "transform/file"
+SETTING_THEME = "ui/theme"
+DEFAULT_THEME = "Fusion"  # clear hover/pressed states; looks the same on every platform
+
+# Qt style keys -> menu labels; Qt's "Windows" style is the Windows 95/2000 classic look
+THEME_LABELS = {
+    "windows11": "Windows 11",
+    "windowsvista": "Windows Vista",
+    "windows": "Windows Classic",
+    "fusion": "Fusion",
+}
 
 
 def resource_path(name):
@@ -76,12 +86,25 @@ class MainWindow(QMainWindow):
         openMenu = bar.addMenu("&Open")
         openDir = openMenu.addAction("Open &Directory...", self.openDirectory)
         openDir.setShortcut(QKeySequence.Open)
+        openMenu.addSeparator()
+        exitAction = openMenu.addAction("E&xit", self.close)
+        exitAction.setShortcut("Ctrl+Q")
 
         configMenu = bar.addMenu("&Config")
         typeMenu = configMenu.addMenu("Preview &Type")
         typeMenu.aboutToShow.connect(lambda: self.preview.fillTypeMenu(typeMenu))
         optionsMenu = configMenu.addMenu("Preview &Options")
         optionsMenu.aboutToShow.connect(lambda: self.preview.fillOptionsMenu(optionsMenu))
+        configMenu.addSeparator()
+        themeMenu = configMenu.addMenu("T&heme")
+        themeGroup = QActionGroup(self)
+        current = QApplication.style().name().lower()
+        for name in QStyleFactory.keys():
+            act = themeMenu.addAction(THEME_LABELS.get(name.lower(), name))
+            act.setCheckable(True)
+            act.setChecked(name.lower() == current)
+            act.triggered.connect(lambda _checked, n=name: self.setTheme(n))
+            themeGroup.addAction(act)
 
         sortMenu = bar.addMenu("&Sort")
         sortGroup = QActionGroup(self)
@@ -119,6 +142,10 @@ class MainWindow(QMainWindow):
         self.transformAction.toggled.connect(self.files.setTransformEnabled)
         transformMenu.addAction("&Edit...", self.editTransform)
         transformMenu.setToolTipsVisible(True)
+
+    def setTheme(self, name):
+        QApplication.setStyle(name)
+        self.settings.setValue(SETTING_THEME, name)
 
     def editTransform(self):
         TransformDialog(self, self.files.transformCode, self.settings.value(SETTING_TRANSFORM_FILE, ""),
@@ -167,6 +194,9 @@ def main():
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("mir2x.filepreview")
     app = QApplication(sys.argv)
+    theme = QSettings("mir2x", "filepreview").value(SETTING_THEME, DEFAULT_THEME)
+    if theme in QStyleFactory.keys():
+        app.setStyle(theme)
     app.setWindowIcon(QIcon(resource_path("favicon.ico")))
     win = MainWindow(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
     win.show()

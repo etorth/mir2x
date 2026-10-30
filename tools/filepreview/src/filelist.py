@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, QMimeData, QUrl
 from PySide6.QtGui import QColor, QFontDatabase
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QWidget, QListWidget, QListWidgetItem, QMenu, QLineEdit, QHBoxLayout, QVBoxLayout,
-    QStyledItemDelegate, QStyle,
+    QStyledItemDelegate, QStyle, QToolButton,
 )
 
 from entries import (
@@ -52,6 +52,9 @@ class FileListPanel(QWidget):
         self.transformCode = TRANSFORM_TEMPLATE
         self.transformFunc = compile_transform(TRANSFORM_TEMPLATE)
         self.transformError = None
+        self.entries = []         # scanned and transformed by rescan(); refresh() filters and sorts them
+        self.scanError = None
+        self.shownPath = None     # path last passed to onSelect
 
         self.filterEdit = QLineEdit()
         self.filterEdit.textChanged.connect(self.refresh)
@@ -59,6 +62,10 @@ class FileListPanel(QWidget):
         self.dirCheck = QCheckBox()
         self.dirCheck.setToolTip("Show directories; Enter or double-click opens one")
         self.dirCheck.toggled.connect(self.setShowDirs)
+        self.reloadButton = QToolButton()
+        self.reloadButton.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        self.reloadButton.setToolTip("Reload the directory from disk")
+        self.reloadButton.clicked.connect(self.rescan)
 
         self.list = QListWidget()
         self.list.setItemDelegate(EntryDelegate(self.list))
@@ -71,6 +78,7 @@ class FileListPanel(QWidget):
         filterRow = QHBoxLayout()
         filterRow.addWidget(self.filterEdit, 1)
         filterRow.addWidget(self.dirCheck)
+        filterRow.addWidget(self.reloadButton)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -83,11 +91,11 @@ class FileListPanel(QWidget):
             return
         self.directory = path
         self.selectName = select
-        self.refresh()
+        self.rescan()
 
     def setShowDirs(self, show):
         self.showDirs = show
-        self.refresh()
+        self.rescan()
 
     def setSort(self, name):
         self.sortName = name
@@ -110,12 +118,12 @@ class FileListPanel(QWidget):
         except Exception as exc:
             self.transformFunc, self.transformError = None, "Filename transform: " + format_error(exc)
         if self.transformEnabled:
-            self.refresh()
+            self.rescan()
         return self.transformError
 
     def setTransformEnabled(self, enabled):
         self.transformEnabled = enabled
-        self.refresh()
+        self.rescan()
 
     def setFilterMode(self, mode):
         self.filterMode = mode
@@ -128,20 +136,30 @@ class FileListPanel(QWidget):
         else:
             self.filterEdit.setPlaceholderText("wildcard filter, e.g. *.png")
 
+    def rescan(self):
+        """Read the directory and run the transform again; refresh() then filters and sorts."""
+        QApplication.setOverrideCursor(Qt.WaitCursor)  # slow on network paths or with a transform
+        try:
+            self.scanError = None
+            self.entries = scan_dir(self.directory, self.showDirs)
+            if self.transformEnabled:
+                if self.transformFunc is None:
+                    self.scanError = self.transformError
+                else:
+                    self.entries = apply_transform(self.entries, self.directory, self.transformFunc)
+        finally:
+            QApplication.restoreOverrideCursor()
+        self.shownPath = None  # the selected file may have changed on disk: preview it again
+        self.refresh()
+
     def refresh(self):
         if self.selectName is not None:
             current, self.selectName = self.selectName, None
         else:
             current = self.list.currentItem().data(ROLE_NAME) if self.list.currentItem() else None
-        error = None
-        entries = scan_dir(self.directory, self.showDirs)
-        if self.transformEnabled:
-            if self.transformFunc is None:
-                error = self.transformError
-            else:
-                entries = apply_transform(entries, self.directory, self.transformFunc)
+        error = self.scanError
         try:
-            entries = filter_entries(entries, self.filterEdit.text(), self.filterMode)
+            entries = filter_entries(self.entries, self.filterEdit.text(), self.filterMode)
         except re.error as exc:
             entries = []
             error = "Invalid regex: %s" % exc
@@ -171,6 +189,8 @@ class FileListPanel(QWidget):
             if e.name == current:
                 row = self.list.count()
             self.list.addItem(item)
+        if self.list.count():
+            self.list.setCurrentRow(row)
         self.list.blockSignals(False)
 
         nDirs = sum(e.isDir for e in entries)
@@ -187,11 +207,7 @@ class FileListPanel(QWidget):
             if nErrors:
                 status += ", %d transform error%s" % (nErrors, "" if nErrors == 1 else "s")
             self.onStatus(status)
-        if self.list.count():
-            self.list.setCurrentRow(row)
-            self.itemChanged(self.list.currentItem())
-        else:
-            self.onSelect(None)
+        self.itemChanged(self.list.currentItem())
         if not self.filterEdit.hasFocus():
             self.list.setFocus()
 
@@ -199,7 +215,11 @@ class FileListPanel(QWidget):
         return os.path.normpath(os.path.join(self.directory, item.data(ROLE_NAME)))
 
     def itemChanged(self, item, _prev=None):
-        self.onSelect(self.itemPath(item) if item else None)
+        path = self.itemPath(item) if item else None
+        # filtering or sorting keeps the selection: don't reload its preview
+        if path is None or path != self.shownPath:
+            self.shownPath = path
+            self.onSelect(path)
 
     def itemActivated(self, item):
         if not item.data(ROLE_IS_DIR):
