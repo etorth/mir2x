@@ -110,6 +110,17 @@ class ImagePane(QWidget):
         self.nextButton = QPushButton(">")
         self.nextButton.clicked.connect(lambda: self.stepFrame(1))
         self.frameLabel = QLabel()
+        # 1-based frame range the animation loops over
+        self.firstSpin = QSpinBox()
+        self.firstSpin.setPrefix("Frame ")
+        self.firstSpin.setToolTip("First frame played")
+        self.lastSpin = QSpinBox()
+        self.lastSpin.setPrefix("Frame ")
+        self.lastSpin.setToolTip("Last frame played")
+        self.firstSpin.valueChanged.connect(self.firstChanged)
+        self.lastSpin.valueChanged.connect(self.lastChanged)
+        self.animControls = (self.prevButton, self.playButton, self.nextButton, self.frameLabel,
+                             self.firstSpin, QLabel("to"), self.lastSpin)
 
         self.fitCheck = QCheckBox("Fit")
         self.fitCheck.setChecked(True)
@@ -119,7 +130,7 @@ class ImagePane(QWidget):
         self.zoomSpin.valueChanged.connect(self.updateZoom)
 
         controls = QHBoxLayout()
-        for w in (self.prevButton, self.playButton, self.nextButton, self.frameLabel):
+        for w in self.animControls:
             controls.addWidget(w)
         controls.addStretch()
         controls.addWidget(self.fitCheck)
@@ -141,6 +152,11 @@ class ImagePane(QWidget):
         """Show [(QImage, delay_ms)]; more than one frame starts playing."""
         self.clear()
         self.frames = frames
+        for spin, value in ((self.firstSpin, 1), (self.lastSpin, len(frames))):
+            spin.blockSignals(True)
+            spin.setRange(1, max(1, len(frames)))
+            spin.setValue(value)
+            spin.blockSignals(False)
         self.setFrame(0)
         if self.isAnimated():
             self.showAnimControls(True)
@@ -154,13 +170,33 @@ class ImagePane(QWidget):
         self.imageView.update()
 
     def showAnimControls(self, show):
-        for w in (self.prevButton, self.playButton, self.nextButton, self.frameLabel):
+        for w in self.animControls:
             w.setVisible(show)
 
+    def frameRange(self):
+        """0-based (first, last) frames to play."""
+        return self.firstSpin.value() - 1, self.lastSpin.value() - 1
+
+    def firstChanged(self, value):
+        if self.lastSpin.value() < value:
+            self.lastSpin.setValue(value)
+        self.clampFrame()
+
+    def lastChanged(self, value):
+        if self.firstSpin.value() > value:
+            self.firstSpin.setValue(value)
+        self.clampFrame()
+
+    def clampFrame(self):
+        first, last = self.frameRange()
+        self.setFrame(self.index if first <= self.index <= last else first)
+
     def setFrame(self, index):
+        """Show frame index, wrapped into the First..Last range."""
         if not self.frames:
             return
-        self.index = index % len(self.frames)
+        first, last = self.frameRange()
+        self.index = first + (index - first) % (last - first + 1)
         self.imageView.setImage(self.frames[self.index][0])
         if self.isAnimated():
             self.frameLabel.setText("%d / %d (%d ms)" % (self.index + 1, len(self.frames), self.frames[self.index][1]))
