@@ -844,6 +844,11 @@ not the direction stride.
   client ignores them.
 - `retrieve(identity, frame)` returns the frame's texture and the shared
   offset, `nullptr` texture if `frame >= frameCount`.
+- Frames that were missing on disk (`MAGIC_PADDED_KEYS`) or were 4×2 /
+  huge-offset placeholders are fully transparent frames in the APNG. The old
+  client got `nullptr` or drew the placeholder off screen; the new client
+  draws a transparent frame, so nothing visible changes and no special case
+  is needed.
 - An APNG read by a plain PNG decoder shows only frame 0.
 
 #### Use sites
