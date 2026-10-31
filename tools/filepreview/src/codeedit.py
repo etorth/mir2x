@@ -22,26 +22,27 @@ class PythonHighlighter(QSyntaxHighlighter):
     TRIPLE_STATES = {"'''": 1, '"""': 2}
     BUILTINS = frozenset(n for n in dir(builtins) if not n.startswith("_"))
 
-    def __init__(self, document):
+    def __init__(self, document, dark=False):
+        """dark: use colors readable on a dark editor background."""
         super().__init__(document)
 
-        def fmt(color, bold=False, italic=False):
+        def fmt(lightColor, darkColor, bold=False, italic=False):
             f = QTextCharFormat()
-            f.setForeground(QColor(color))
+            f.setForeground(QColor(darkColor if dark else lightColor))
             if bold:
                 f.setFontWeight(QFont.Bold)
             f.setFontItalic(italic)
             return f
 
         self.formats = {
-            "keyword": fmt("#0000c0", bold=True),
-            "builtin": fmt("#7a3e9d"),
-            "self": fmt("#9a4f00"),
-            "defname": fmt("#00627a", bold=True),
-            "string": fmt("#a31515"),
-            "comment": fmt("#008000", italic=True),
-            "number": fmt("#098658"),
-            "decorator": fmt("#808000"),
+            "keyword": fmt("#0000c0", "#569cd6", bold=True),
+            "builtin": fmt("#7a3e9d", "#c586c0"),
+            "self": fmt("#9a4f00", "#e0a060"),
+            "defname": fmt("#00627a", "#4ec9b0", bold=True),
+            "string": fmt("#a31515", "#ce9178"),
+            "comment": fmt("#008000", "#6a9955", italic=True),
+            "number": fmt("#098658", "#b5cea8"),
+            "decorator": fmt("#808000", "#dcdcaa"),
         }
 
     def closeString(self, text, start, bodyStart, quote):

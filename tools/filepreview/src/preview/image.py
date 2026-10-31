@@ -25,7 +25,8 @@ def show_frames(panel, frames):
 
 
 def load_png_frames(path):
-    """Return (frames, info): frames is [(QImage, delay_ms)], fully composited."""
+    """Return (frames, info): frames is [(QImage, delay_ms)], fully composited;
+    an animation stops at MAX_FRAMES frames or MAX_FRAME_BYTES."""
     with open(path, "rb") as f:
         data = f.read()
     info = apng.parse_png(data)
@@ -40,6 +41,9 @@ def load_png_frames(path):
     canvas.fill(Qt.transparent)
     frames = []
     for fr in info.frames:
+        # every frame is a full copy of the canvas
+        if len(frames) >= MAX_FRAMES or len(frames) * canvas.sizeInBytes() >= MAX_FRAME_BYTES:
+            break
         img = QImage.fromData(fr.png, "PNG")
         if img.isNull():
             raise apng.PNGError("failed to decode APNG frame")
@@ -76,7 +80,9 @@ class PngPreviewer(Previewer):
         fields = ["APNG" if info.is_animated else "PNG", "%dx%d" % (info.width, info.height)]
         if info.is_animated:
             plays = "infinite" if info.num_plays == 0 else str(info.num_plays)
-            fields += ["%d frames" % len(frames), "%d ms" % sum(d for _, d in frames), "loops: %s" % plays]
+            partial = len(frames) < len(info.frames)
+            fields += ["%s%d frames" % ("first " if partial else "", len(frames)),
+                       "%d ms" % sum(d for _, d in frames), "loops: %s" % plays]
         return fields
 
 

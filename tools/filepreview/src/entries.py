@@ -7,7 +7,8 @@ from dataclasses import dataclass
 
 
 def natural_key(s):
-    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
+    # isdecimal() matches \d exactly; isdigit() also takes "²" or "①", which int() rejects
+    return [int(t) if t.isdecimal() else t.lower() for t in re.split(r"(\d+)", s)]
 
 
 def hex_name_key(name):
@@ -71,19 +72,31 @@ def compile_filter(name_filter, mode):
     return re.compile(fnmatch.translate(name_filter), re.IGNORECASE)
 
 
+# Linux FIFOs, sockets and devices seen through \\wsl.localhost look like regular
+# files to Windows, but opening a FIFO blocks forever; only these tags tell them apart
+WSL_SPECIAL_FILE_TAGS = {
+    0x80000023,  # IO_REPARSE_TAG_AF_UNIX
+    0x80000024,  # IO_REPARSE_TAG_LX_FIFO
+    0x80000025,  # IO_REPARSE_TAG_LX_CHR
+    0x80000026,  # IO_REPARSE_TAG_LX_BLK
+}
+
+
+def is_special_file(e):
+    return getattr(e.stat(follow_symlinks=False), "st_reparse_tag", 0) in WSL_SPECIAL_FILE_TAGS
+
+
 def scan_dir(path, show_dirs=False):
-    """Return unsorted [Entry] for the files (and directories) in path."""
+    """Return unsorted [Entry] for the files (and directories) in path;
+    raises OSError if path can't be read."""
     entries = []
-    try:
-        for e in os.scandir(path):
-            if e.is_dir():
-                if show_dirs:
-                    entries.append(Entry(e.name, 0, e.stat().st_mtime, True))
-            elif e.is_file():
-                st = e.stat()
-                entries.append(Entry(e.name, st.st_size, st.st_mtime, False))
-    except OSError:
-        return []
+    for e in os.scandir(path):
+        if e.is_dir():
+            if show_dirs:
+                entries.append(Entry(e.name, 0, e.stat().st_mtime, True))
+        elif e.is_file() and not is_special_file(e):
+            st = e.stat()
+            entries.append(Entry(e.name, st.st_size, st.st_mtime, False))
     return entries
 
 

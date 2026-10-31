@@ -165,6 +165,7 @@ class MainWindow(QMainWindow):
     def onFileSelected(self, path):
         if path is None:
             self.preview.clear("No file")
+            self.setWindowTitle("File Preview")
         else:
             self.preview.showFile(path)
             self.setWindowTitle("File Preview - %s" % path)

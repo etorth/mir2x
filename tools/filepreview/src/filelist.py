@@ -141,8 +141,11 @@ class FileListPanel(QWidget):
         QApplication.setOverrideCursor(Qt.WaitCursor)  # slow on network paths or with a transform
         try:
             self.scanError = None
-            self.entries = scan_dir(self.directory, self.showDirs)
-            if self.transformEnabled:
+            try:
+                self.entries = scan_dir(self.directory, self.showDirs)
+            except OSError as exc:  # e.g. access denied
+                self.entries, self.scanError = [], "Cannot read directory: %s" % (exc.strerror or exc)
+            if self.transformEnabled and self.scanError is None:
                 if self.transformFunc is None:
                     self.scanError = self.transformError
                 else:

@@ -3,7 +3,7 @@
 import traceback
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFontDatabase, QKeySequence, QTextCursor
+from PySide6.QtGui import QFontDatabase, QKeySequence, QPalette, QTextCursor
 from PySide6.QtWidgets import (
     QLabel, QVBoxLayout, QFileDialog, QPlainTextEdit, QDialog, QDialogButtonBox, QMenuBar,
     QMessageBox,
@@ -30,7 +30,9 @@ how the entry is shown:</p>
 loaded file. The applied code is remembered between runs.</p>
 <p>Sorting by name uses the shown text; <b>Sort &gt; Sink Failed Transforms</b> puts pink
 entries at the end, sorted among themselves.</p>
-<p>The packaged filepreview.exe can only import the Python standard library, PySide6, Pygments, python-magic and mammoth.
+<p>The packaged filepreview.exe has PySide6, Pygments, python-magic, mammoth and only the
+standard library modules the app itself uses: re, json, hashlib, datetime and the like work,
+others such as sqlite3, uuid or shlex don't. Running main.py from source has every installed module.
 A transform that never returns freezes the app.</p>'''
 
 
@@ -46,10 +48,12 @@ class TransformDialog(QDialog):
         self.editor.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.editor.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.editor.setPlainText(code)
-        self.highlighter = PythonHighlighter(self.editor.document())
+        self.appliedCode = self.editor.toPlainText()  # as the editor returns it, to compare in reject()
+        dark = self.editor.palette().color(QPalette.Base).lightness() < 128
+        self.highlighter = PythonHighlighter(self.editor.document(), dark)
         self.editor.document().modificationChanged.connect(self.setWindowModified)
         self.errorLabel = QLabel()
-        self.errorLabel.setStyleSheet("color: #c00000;")
+        self.errorLabel.setStyleSheet("color: %s;" % ("#ff6b6b" if dark else "#c00000"))
         self.errorLabel.setWordWrap(True)
         self.errorLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
@@ -141,6 +145,7 @@ class TransformDialog(QDialog):
             return False
         self.errorLabel.clear()
         self.onApply(code, self.filePath)
+        self.appliedCode = code
         return True
 
     def saveAndApply(self, askPath=False):
@@ -168,3 +173,16 @@ class TransformDialog(QDialog):
     def accept(self):
         if self.apply():
             super().accept()
+
+    def reject(self):
+        """Esc, Cancel or the close button: ask before dropping code that was never applied."""
+        if self.editor.toPlainText() != self.appliedCode:
+            answer = QMessageBox.question(self, "Filename Transform", "Apply the changed code before closing?",
+                                          QMessageBox.Apply | QMessageBox.Discard | QMessageBox.Cancel,
+                                          QMessageBox.Apply)
+            if answer == QMessageBox.Apply:
+                self.accept()  # stays open if the code doesn't compile
+                return
+            if answer != QMessageBox.Discard:
+                return
+        super().reject()
