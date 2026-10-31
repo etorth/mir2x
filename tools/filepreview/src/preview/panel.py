@@ -107,6 +107,10 @@ class PreviewPanel(QWidget):
         except Exception as e:  # a broken file or previewer must not take the app down
             self.clearViews("%s\nError: %s" % (path, e))
             return
+        self.setInfo(f, fields)
+
+    def setInfo(self, f, fields):
+        """Show the info line for FileInfo f; previewers that load asynchronously call it again."""
         if f.isDir:
             self.info.setFields([f.path] + fields)
         else:

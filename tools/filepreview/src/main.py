@@ -5,8 +5,10 @@ Usage: python3 main.py [directory]
 
 The preview depends on the file type, detected from the content by libmagic:
 PNG/APNG and other images, PDFs (all pages, rendered as they scroll into view),
-Word .docx documents, rendered Markdown, source code highlighted by Pygments,
-plain text, or a hex dump. File types are pluggable, see preview/registry.py.
+Word .docx documents, fonts (sample text), ZIP/TAR archives (entry list), CSV/TSV
+tables, audio/video details (duration, codecs, resolution; not played), rendered
+Markdown, source code highlighted by Pygments, plain text, or a hex dump.
+File types are pluggable, see preview/registry.py.
 Config > Preview Type shows the current file as another type; Config > Preview
 Options has settings for the current type (image background, code theme, text
 encoding, ...), and Config > Theme picks the Qt widget style; all saved between runs.
