@@ -204,6 +204,8 @@ MAGIC_HARDCODED_SEQUENCES = (
     (0x0F0000DC,  1, 1,  1),  # client/src/fixedlocmagic.cpp
     (0x0F000104,  1, 1,  1),
     (0x0F000105,  1, 1,  1),
+    (0x00000366, 20, 1, 20),  # Magic images 870-889 and 890-899 are two animations in one run
+    (0x0000037A, 10, 1, 10),
     (0x00000956, 20, 1, 20),  # teleport, someone arrives
     (0x0000096A, 20, 1, 20),  # teleport, someone leaves
     (0x00000D8E,  3, 8, 10),  # 8 directions, 3 frames each, the other 7 slots are blank
@@ -236,6 +238,11 @@ MAGIC_HARDCODED_SEQUENCES = (
     (0x040007BC,  6, 8, 10),  # MonMagicEx images 1980-2055
     (0x04000870,  1, 8, 10),  # MonMagicEx images 2160-2230
     (0x040008C0,  1, 8, 10),  # MonMagicEx images 2240-2310
+    # 8 directions whose slots are full, one contiguous run without these entries
+    (0x0400028A, 10, 8, 10),  # MonMagicEx images 650-729
+    (0x0400065E, 19, 8, 20),  # MonMagicEx images 1630-1788, frame 18 is a placeholder except 1668, frame 19 is a placeholder
+    (0x04000816, 10, 8, 10),  # MonMagicEx images 2070-2149
+    (0x0400092E, 10, 8, 10),  # MonMagicEx images 2350-2429
     (0x05000000,  1, 8, 10),  # MonMagicEx2 images 0-70
     (0x050000A0,  4, 8, 10),  # MonMagicEx2 images 160-233
     (0x050000FA,  6, 8, 10),  # MonMagicEx2 images 250-325

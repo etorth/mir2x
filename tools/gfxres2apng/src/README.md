@@ -723,8 +723,8 @@ Examples:
   15 frames (`010007BC` to `010007CA`) serves both. Another entry uses gfxID
   `0x010007C6` with 5 frames, so `010007C6` to `010007CA` are also APNG
   `01007C60...`, frames 0–4. These 5 are the only old frames stored in two
-  APNGs. With 66 dropped blank frames and 3 padded blank frames, 6,093
-  source frames become 6,035 APNG frames.
+  APNGs. With 74 dropped blank frames and 3 padded blank frames, 6,093
+  source frames become 6,027 APNG frames.
 - **Hardcoded image.** `0F0000DC00001C0015.PNG` becomes
   `0F000DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
 - **Teleport.** Images `0x956`–`0x97D` of file 0 are one contiguous run of
@@ -762,7 +762,7 @@ commit `f05d2151` unless another directory is given.
    `gfxID` is the old key of the first frame, `file << 24 | image`, and
    directions are `gfxIDCount` images apart.
 2. **Convert the resources. Done** for the test tree
-   (`--types magic --skip-unconverted`): 961 APNGs, 6,035 frames. The magic
+   (`--types magic --skip-unconverted`): 990 APNGs, 6,027 frames. The magic
    directory of the real resource repository is converted when the client
    change below lands.
 3. **Change the client magic loader and every use site, and rewrite
@@ -809,6 +809,17 @@ not the direction stride.
   Then remove `0x0200012C` from `MAGIC_RECORD_OVERRIDES`, `0x0200012A` from
   `MAGIC_RECORD_SKIPPED` and `0x0200012F` from `MAGIC_HARDCODED_SEQUENCES`
   in the converter.
+- Fix 风震天 (MagicEx images 1980–2009, verified in the original game). 击风
+  and 风震天 share 启动 `0x010007B2`, attached to the caster. 击风 运行
+  plays `0x010007BC`, all 15 frames (1980–1994), at the target, then 裂解
+  `0x010007D0` (2000–2009). 风震天 运行 is only `0x010007C6` (1990–1994):
+  it starts at the caster's location and moves straight along one of the 8
+  directions, then after several grids becomes 裂解 `0x010007D0`. Today
+  风震天 has two 运行 entries, `0x010007BC` (10 frames) and `0x010007C6`,
+  and `DBCOM_MAGICGFXENTRY` returns the first one, so it plays 1980–1989
+  instead. Drop the `0x010007BC` entry from 风震天. The converter needs no
+  change: `01007BC0…` (15 frames) and `01007C60…` (5 frames) both exist,
+  and 1990–1994 are in both on purpose.
 - `MagicGfxEntryRef` and `modColor`, `speed`, `loop`, sound and the other
   fields don't change.
 - `common/src/buffrecord.hpp:211` `icon.gfxID` is not a magic key; it does
@@ -1491,6 +1502,8 @@ three sources, in this order:
    `MAGIC_OMITTED_DIRECTIONS`, which must have no frames and get no APNG:
    - `0x0F0000DC`, `0x0F000104`, `0x0F000105`: single images used by
      `client/src/fixedlocmagic.cpp`.
+   - `0x00000366`, 20 frames, and `0x0000037A`, 10 frames: Magic images
+     870–889 and 890–899, two animations in one 30-image run.
    - `0x00000956` and `0x0000096A`, 20 frames each: the teleport effect,
      someone arriving and someone leaving. The 40 images are one contiguous
      run, so without these entries they would become one 40-frame APNG.
@@ -1532,6 +1545,15 @@ three sources, in this order:
    - `0x070005A0`, MonMagicEx4 images 1440–1519, and `0x070006D6`, images
      1750–1829, each 8 directions of 10 frames, one contiguous 80-image run
      that would otherwise be one 80-frame APNG.
+   - `0x0400028A`, `0x04000816` and `0x0400092E`, MonMagicEx images 650–729,
+     2070–2149 and 2350–2429, each 8 directions of 10 frames, also one
+     contiguous 80-image run each.
+   - `0x0400065E`, MonMagicEx images 1630–1789, 8 directions 20 images
+     apart, 19 frames each. Frame 18 is a 4×2 placeholder, which becomes a
+     blank frame, except in direction 1, where image 1668 is a small 4×16
+     piece. The 20th image of every slot is a placeholder too, left out
+     and dropped as a blank run. Without this entry, 1630–1789 would be one
+     160-frame APNG.
    - `0x05000230`, MonMagicEx2 images 560–638, 8 directions of 9 frames.
      Frame 0 of direction 0 (560) is missing, so 560 is in
      `MAGIC_PADDED_KEYS`. Frame 0 of directions 1 and 7 (570, 630) is a 4×2
@@ -1544,8 +1566,9 @@ three sources, in this order:
    `magicwil2png` skips empty WIL slots, so each run of contiguous image
    indices becomes one APNG, named by its first frame with direction 0 and
    head (0, 0). Long runs are kept whole and not split. A run whose frames
-   are all fully transparent is dropped: 8 runs, 66 frames, all around
-   `0xD8E`.
+   are all fully transparent is dropped: 16 runs, 74 frames, 8 around
+   `0xD8E` (66 frames) and the blank last image of each of the 8 direction
+   slots of `0x0400065E`.
 
 Frames in the weapon 44 effect range (`0x0700076C` to `0x070016B7`) are
 skipped, because they go to `texture/weapon`.
@@ -1635,17 +1658,17 @@ A full run over the current `mir2x_res`:
 | hair | 11,040 | 2,080 | 11,040 |
 | helmet | 26,496 | 4,992 | 26,496 |
 | weapon | 162,096 | 29,952 | 162,096 |
-| magic | 6,093 | 961 | 6,035 |
+| magic | 6,093 | 990 | 6,027 |
 | equip | 351 | 351 (copies) | 351 |
 | selectchar | 952 | 74 | 988 |
 | proguse | 1,652 | 112 + 1,393 copies | 354 + 1,393 |
 | emoji | 186 sheets | 186 | 2,013 |
 
 - weapon includes 384 effect APNGs (2,160 frames) from `texture/magic`.
-- magic has 145 `magicrecord.inc` entries, 900 referenced sequences (including
-  the hardcoded sequences) and 61 unreferenced runs. 116 sequences have a
-  non-zero head. 5 source frames are in two APNGs each. 8 fully transparent
-  unreferenced runs (66 frames) are dropped, 3 blank frames are padded.
+- magic has 145 `magicrecord.inc` entries, 934 referenced sequences (including
+  the hardcoded sequences) and 56 unreferenced runs. 116 sequences have a
+  non-zero head. 5 source frames are in two APNGs each. 16 fully transparent
+  unreferenced runs (74 frames) are dropped, 3 blank frames are padded.
 - selectchar has 36 blank padding frames in its overlay APNGs.
 - proguse has 3 `anim` APNGs (27 frames) and 109 button APNGs (327 frames),
   using 259 source images; `00000300` and `00000302` are in two APNGs each.
@@ -1668,7 +1691,7 @@ python3 -m unittest test_gfxres2apng
 The tests use small synthetic frames and cover:
 
 - filename layout round-trips and invalid names,
-- key limits and non-contiguous frames,
+- the skipped weapon effect range in magic,
 - weapon effect grouping,
 - `magicrecord.inc` parsing, longest-prefix merging, missing frames and
   unreferenced runs,
