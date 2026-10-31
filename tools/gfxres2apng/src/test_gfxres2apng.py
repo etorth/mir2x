@@ -177,6 +177,30 @@ class CollectTest(TmpDirTest):
         _, _, runs, blankRuns = g.build_magic_sequences({0x05000010, 0x05000011}, [], hardcodedSequences=(), isBlank={0x05000010}.__contains__)
         self.assertEqual((runs, blankRuns), (1, []))
 
+    def test_magic_record_overrides(self):
+        # the entry plays 0x02000100 to 0x02000105 as one, the override splits them like a fixed record
+        entries = [{"gfxID": 0x02000100, "frameCount": 6, "stride": 6, "dirType": 1, "heads": None, "line": 1}]
+        keys = set(range(0x02000100, 0x02000106))
+        sequences, referenced, runs, _ = g.build_magic_sequences(keys, entries, hardcodedSequences=((0x02000103, 3, 1, 3),), recordOverrides={0x02000100: 3})
+        self.assertEqual((referenced, runs), (2, 0))
+        self.assertEqual(sequences, {
+            (2, 0x100, 0): ((0, 0), [0x02000100, 0x02000101, 0x02000102]),
+            (2, 0x103, 0): ((0, 0), [0x02000103, 0x02000104, 0x02000105]),
+        })
+
+        with self.assertRaisesRegex(RuntimeError, "match no entry: 02000200"):
+            g.build_magic_sequences(keys, entries, hardcodedSequences=(), recordOverrides={0x02000200: 3})
+
+        # a skipped entry is ignored, its frames become an unreferenced run
+        entries.append({"gfxID": 0x02000105, "frameCount": 1, "stride": 1, "dirType": 1, "heads": None, "line": 2})
+        sequences, referenced, runs, _ = g.build_magic_sequences(keys, entries, hardcodedSequences=(), recordOverrides={0x02000100: 5}, skippedRecords={0x02000105})
+        self.assertEqual((referenced, runs), (1, 1))
+        self.assertEqual(sorted(sequences), [(2, 0x100, 0), (2, 0x105, 0)])
+        self.assertEqual(sequences[(2, 0x105, 0)][1], [0x02000105])
+
+        with self.assertRaisesRegex(RuntimeError, "match no entry: 02000200"):
+            g.build_magic_sequences(keys, entries, hardcodedSequences=(), skippedRecords={0x02000200})
+
     def test_magic_padded_keys(self):
         # direction 0 misses its first and last slot, they are padded
         keys = {0x05000001, 0x05000002, *range(0x05000004, 0x05000008)}
@@ -192,12 +216,30 @@ class CollectTest(TmpDirTest):
         with self.assertRaisesRegex(RuntimeError, "not in any hardcoded sequence: 05000010"):
             g.build_magic_sequences(keys, [], hardcodedSequences=hardcoded, paddedKeys={0x05000000, 0x05000003, 0x05000010})
 
+    def test_magic_omitted_directions(self):
+        # 3 directions of 2 frames, direction 1 has no frames
+        keys = {0x07000000, 0x07000001, 0x07000014, 0x07000015}
+        hardcoded = ((0x07000000, 2, 3, 10),)
+        sequences, referenced, runs, _ = g.build_magic_sequences(keys, [], hardcodedSequences=hardcoded, omittedDirections={0x07000000: {1}})
+        self.assertEqual((referenced, runs), (2, 0))
+        self.assertEqual(sequences[(7, 0x0, 2)], ((0, 0), [0x07000014, 0x07000015]))
+        self.assertNotIn((7, 0x0, 1), sequences)
+
+        with self.assertRaisesRegex(RuntimeError, "needs 2 frames"):
+            g.build_magic_sequences(keys, [], hardcodedSequences=hardcoded)
+        with self.assertRaisesRegex(RuntimeError, "have frames: 07000014"):
+            g.build_magic_sequences(keys, [], hardcodedSequences=hardcoded, omittedDirections={0x07000000: {1, 2}})
+        with self.assertRaisesRegex(RuntimeError, "match no hardcoded sequence"):
+            g.build_magic_sequences(keys, [], hardcodedSequences=hardcoded, omittedDirections={0x07000000: {1, 3}})
+
     def test_magic_skips_weapon_effect(self):
         record = self.source / "magicrecord.inc"
-        record.write_text("")
+        record.write_text("".join(f"{{ .gfxID = 0X{k:08X}, .frameCount = {n}, }}\n" for k, n in [*g.MAGIC_RECORD_OVERRIDES.items(), *((k, 1) for k in g.MAGIC_RECORD_SKIPPED)]))
         save_frame(self.source, 0x0700076B, 0, 0, pixel=((0, 0), (255, 0, 0, 255)))
-        hardcodedKeys = {gfxID + d * stride + f for gfxID, n, dirType, stride in g.MAGIC_HARDCODED_SEQUENCES for d in range(dirType) for f in range(n)}
-        for key in [0x0700076C, 0x070016B7, *(hardcodedKeys - g.MAGIC_PADDED_KEYS)]:
+        hardcodedKeys = {gfxID + d * stride + f for gfxID, n, dirType, stride in g.MAGIC_HARDCODED_SEQUENCES for d in range(dirType) for f in range(n)
+                         if d not in g.MAGIC_OMITTED_DIRECTIONS.get(gfxID, ())}
+        overrideKeys = {gfxID + f for gfxID, n in g.MAGIC_RECORD_OVERRIDES.items() for f in range(n)}
+        for key in [0x0700076C, 0x070016B7, *(hardcodedKeys - g.MAGIC_PADDED_KEYS), *overrideKeys]:
             touch_frame(self.source, key)
         sequences = g.collect_magic_sequences(self.source, record)
         hardcoded = {(gfxID >> 24, gfxID & 0xFFFFFF) for gfxID, *_ in g.MAGIC_HARDCODED_SEQUENCES}
