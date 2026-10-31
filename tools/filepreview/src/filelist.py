@@ -2,9 +2,11 @@
 
 import os
 import re
+import subprocess
+import sys
 
 from PySide6.QtCore import Qt, QMimeData, QUrl
-from PySide6.QtGui import QColor, QFontDatabase
+from PySide6.QtGui import QColor, QDesktopServices, QFontDatabase
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QWidget, QListWidget, QListWidgetItem, QMenu, QLineEdit, QHBoxLayout, QVBoxLayout,
     QStyledItemDelegate, QStyle, QToolButton,
@@ -23,6 +25,14 @@ ROLE_TRANSFORM_ERROR = Qt.UserRole + 2
 
 TRANSFORM_ERROR_BG = QColor(255, 210, 220)
 TRANSFORM_ERROR_MARK = QColor(220, 40, 90)
+
+
+def show_in_explorer(directory, path=None):
+    """Open directory in the system file manager; on Windows also select path, an entry in it."""
+    if path and sys.platform == "win32":
+        subprocess.Popen('explorer /select,"%s"' % os.path.normpath(path))
+    else:
+        QDesktopServices.openUrl(QUrl.fromLocalFile(directory))
 
 
 class EntryDelegate(QStyledItemDelegate):
@@ -217,6 +227,14 @@ class FileListPanel(QWidget):
     def itemPath(self, item):
         return os.path.normpath(os.path.join(self.directory, item.data(ROLE_NAME)))
 
+    def showInExplorer(self):
+        """Open the current directory in the file manager, with the selected entry selected."""
+        item = self.list.currentItem()
+        if item is None or item.data(ROLE_NAME) == PARENT_DIR:
+            show_in_explorer(self.directory)
+        else:
+            show_in_explorer(self.directory, self.itemPath(item))
+
     def itemChanged(self, item, _prev=None):
         path = self.itemPath(item) if item else None
         # filtering or sorting keeps the selection: don't reload its preview
@@ -244,6 +262,8 @@ class FileListPanel(QWidget):
         menu.addAction("Copy %s" % kind, lambda: self.copyFile(path))
         menu.addAction("Copy %sname" % ("directory " if kind == "directory" else "file"),
                        lambda: QApplication.clipboard().setText(name))
+        menu.addSeparator()
+        menu.addAction("Show in Explorer", lambda: show_in_explorer(self.directory, path))
         menu.exec(self.list.viewport().mapToGlobal(pos))
 
     @staticmethod

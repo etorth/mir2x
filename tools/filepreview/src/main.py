@@ -16,7 +16,8 @@ encoding, ...), and Config > Theme picks the Qt widget style; all saved between 
 Requires: pip install PySide6 pygments python-magic-bin mammoth
 (python-magic-bin bundles libmagic for Windows; on Linux use python-magic.)
 
-Keys: Ctrl+O open directory, Ctrl+Q exit, Up/Down move selection, Space play/pause animation,
+Keys: Ctrl+O open directory, Ctrl+E open it in File Explorer, Ctrl+Q exit,
+      Up/Down move selection, Space play/pause animation,
       Left/Right step animation frames, F toggle fit-to-window,
       Enter or double-click enter a directory (shown with the checkbox next to the filter).
 
@@ -88,6 +89,7 @@ class MainWindow(QMainWindow):
         openMenu = bar.addMenu("&Open")
         openDir = openMenu.addAction("Open &Directory...", self.openDirectory)
         openDir.setShortcut(QKeySequence.Open)
+        openMenu.addAction("Open in File &Explorer", self.files.showInExplorer).setShortcut("Ctrl+E")
         openMenu.addSeparator()
         exitAction = openMenu.addAction("E&xit", self.close)
         exitAction.setShortcut("Ctrl+Q")
