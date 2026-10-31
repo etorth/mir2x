@@ -210,6 +210,8 @@ MAGIC_HARDCODED_SEQUENCES = (
     (0x00000DE8,  6, 1,  6),
     (0x010003B6, 10, 1, 10),  # MagicEx images 950-959 and 960-965 are two animations in one run
     (0x010003C0,  6, 1,  6),
+    (0x0100076C, 20, 1, 20),  # MagicEx images 1900-1919 and 1920-1933 are two animations in one run
+    (0x01000780, 14, 1, 14),
     (0x0200012F,  3, 1,  3),  # 阴阳法环 挨打, magicrecord.inc plays 300-305 as one, see MAGIC_RECORD_OVERRIDES
     # 8 directions 10 images apart, the slots after each direction are empty
     (0x00000889,  5, 8, 10),  # Magic images 2185-2259

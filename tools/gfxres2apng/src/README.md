@@ -762,7 +762,7 @@ commit `f05d2151` unless another directory is given.
    `gfxID` is the old key of the first frame, `file << 24 | image`, and
    directions are `gfxIDCount` images apart.
 2. **Convert the resources. Done** for the test tree
-   (`--types magic --skip-unconverted`): 960 APNGs, 6,035 frames. The magic
+   (`--types magic --skip-unconverted`): 961 APNGs, 6,035 frames. The magic
    directory of the real resource repository is converted when the client
    change below lands.
 3. **Change the client magic loader and every use site, and rewrite
@@ -1498,6 +1498,8 @@ three sources, in this order:
      frames. Without them, images 3470–3565 would become one 96-frame APNG.
    - `0x010003B6`, 10 frames, and `0x010003C0`, 6 frames: MagicEx (file 1)
      images 950–959 and 960–965, two animations in one 16-image run.
+   - `0x0100076C`, 20 frames, and `0x01000780`, 14 frames: MagicEx images
+     1900–1919 and 1920–1933, two animations in one 34-image run.
    - 39 directional magics, 8 directions 10 images apart, whose remaining
      slots after each direction are empty, for example `0x01000442`, MagicEx
      images 1090–1165, 6 frames per direction. Without these entries each
@@ -1633,15 +1635,15 @@ A full run over the current `mir2x_res`:
 | hair | 11,040 | 2,080 | 11,040 |
 | helmet | 26,496 | 4,992 | 26,496 |
 | weapon | 162,096 | 29,952 | 162,096 |
-| magic | 6,093 | 960 | 6,035 |
+| magic | 6,093 | 961 | 6,035 |
 | equip | 351 | 351 (copies) | 351 |
 | selectchar | 952 | 74 | 988 |
 | proguse | 1,652 | 112 + 1,393 copies | 354 + 1,393 |
 | emoji | 186 sheets | 186 | 2,013 |
 
 - weapon includes 384 effect APNGs (2,160 frames) from `texture/magic`.
-- magic has 145 `magicrecord.inc` entries, 898 referenced sequences (including
-  the hardcoded sequences) and 62 unreferenced runs. 116 sequences have a
+- magic has 145 `magicrecord.inc` entries, 900 referenced sequences (including
+  the hardcoded sequences) and 61 unreferenced runs. 116 sequences have a
   non-zero head. 5 source frames are in two APNGs each. 8 fully transparent
   unreferenced runs (66 frames) are dropped, 3 blank frames are padded.
 - selectchar has 36 blank padding frames in its overlay APNGs.
