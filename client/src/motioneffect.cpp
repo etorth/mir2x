@@ -3,11 +3,11 @@
 #include "pathf.hpp"
 #include "colorf.hpp"
 #include "sdldevice.hpp"
-#include "pngtexoffdb.hpp"
+#include "magicdb.hpp"
 #include "motioneffect.hpp"
 #include "clientcreature.hpp"
 
-extern PNGTexOffDB *g_magicDB;
+extern MagicDB *g_magicDB;
 extern SDLDevice *g_sdlDevice;
 
 MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, MotionNode *motionPtr)
@@ -23,28 +23,39 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
           fflassert(gfxPair.first->loop == 0);
           fflassert(gfxPair.first->checkType(u8"附着"));
 
-          fflassert(gfxPair.first->frameCount > 0);
-          fflassert(gfxPair.first->frameCount <= gfxPair.first->gfxIDCount);
-
           fflassert(gfxPair.first->speed >= SYS_MINSPEED);
           fflassert(gfxPair.first->speed <= SYS_MAXSPEED);
           return gfxPair;
       }())
+    , m_gfxFrameCount([this]()
+      {
+          fflassert(m_motion);
+          fflassert(pathf::dirValid(m_motion->direction));
+          return g_magicDB->frameCount(m_gfxEntry, gfxDirIndex());
+      }())
 {
-    fflassert(m_motion);
-    fflassert(pathf::dirValid(m_motion->direction));
+    fflassert(m_gfxFrameCount > 0, m_gfxFrameCount);
 }
 
-uint32_t MotionEffect::frameTexID() const
+int MotionEffect::gfxDirIndex() const
+{
+    if(m_gfxEntry->gfxDirType > 1){
+        return m_motion->direction - DIR_BEGIN;
+    }
+    return 0;
+}
+
+std::optional<std::tuple<uint32_t, int>> MotionEffect::gfxSeqFrame() const
 {
     fflassert(!done());
-    if(const auto gfxIndex = gfxFrame(); gfxIndex >= 0){
-        if(m_gfxEntry->gfxDirType > 1){
-            return m_gfxEntry->gfxID + gfxIndex + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
-        }
-        return m_gfxEntry->gfxID + gfxIndex;
+    if(m_gfxEntry->gfxID == SYS_U32NIL){
+        return {};
     }
-    return SYS_U32NIL;
+
+    if(const auto gfxIndex = gfxFrame(); gfxIndex >= 0){
+        return std::make_tuple(MagicDB::seqID(m_gfxEntry->gfxID, gfxDirIndex()), gfxIndex);
+    }
+    return {};
 }
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
@@ -53,8 +64,8 @@ void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
     // because we call it by currMotion: CO::m_currMotion->effect->drawShift()
 
     fflassert(!done());
-    if(const auto texID = frameTexID(); texID != SYS_U32NIL){
-        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+    if(const auto seqFrame = gfxSeqFrame()){
+        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(std::get<0>(seqFrame.value()), std::get<1>(seqFrame.value())); texPtr){
             SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor, modColor));
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
             g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
@@ -91,12 +102,12 @@ int HeroSpellMagicEffect::frameCount() const
     }
 }
 
-uint32_t HeroSpellMagicEffect::frameTexID() const
+std::optional<std::tuple<uint32_t, int>> HeroSpellMagicEffect::gfxSeqFrame() const
 {
     if(frame() < MotionEffect::frameCount()){
-        return MotionEffect::frameTexID();
+        return MotionEffect::gfxSeqFrame();
     }
-    return SYS_U32NIL;
+    return {};
 }
 
 void HeroSpellMagicEffect::update(double ms)
@@ -139,7 +150,7 @@ int MotionAlignedEffect::absFrame() const
     const auto fspeed = [this]() -> double
     {
         if(m_useMotionSpeed){
-            return to_df(m_motion->speed * m_gfxEntry->frameCount) / to_df(m_creature->getFrameCountEx(m_motion));
+            return to_df(m_motion->speed * m_gfxFrameCount) / to_df(m_creature->getFrameCountEx(m_motion));
         }
         return to_df(m_gfxEntry->speed);
     }();

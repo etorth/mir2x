@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
+#include <tuple>
 #include <cstdint>
+#include <optional>
 #include <algorithm>
 #include "totype.hpp"
 #include "sysconst.hpp"
@@ -27,6 +29,9 @@ class MotionEffect
     protected:
         const MagicGfxEntry    * m_gfxEntry    = m_gfxEntryPair.first;
         const MagicGfxEntryRef * m_gfxEntryRef = m_gfxEntryPair.second;
+
+    protected:
+        const int m_gfxFrameCount;
 
     public:
         MotionEffect(const char8_t *, const char8_t *, MotionNode *);
@@ -58,7 +63,7 @@ class MotionEffect
 
         virtual int frameCount() const
         {
-            return m_gfxEntry->frameCount;
+            return m_gfxFrameCount;
         }
 
     public:
@@ -68,7 +73,11 @@ class MotionEffect
         virtual void update(double) = 0;
 
     protected:
-        virtual uint32_t frameTexID() const;
+        int gfxDirIndex() const;
+
+    protected:
+        // magic APNG and its frame to draw, empty if nothing to draw
+        virtual std::optional<std::tuple<uint32_t, int>> gfxSeqFrame() const;
 
     public:
         void reset()
@@ -96,7 +105,7 @@ class HeroSpellMagicEffect: public MotionEffect
         int frameCount() const override;
 
     public:
-        uint32_t frameTexID() const override;
+        std::optional<std::tuple<uint32_t, int>> gfxSeqFrame() const override;
 
     public:
         void update(double) override;

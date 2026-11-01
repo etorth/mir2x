@@ -2,8 +2,8 @@
 // Location a is the <m_x, m_y>, offset (b - a) is where to draw frame gfxs
 // Location c is the magic gfx arrow head (or fireball head) in the frame animation, which is used as target point
 //
-//     g_magicDB->retrieve(texID, offX, offY): ( offX,  offY) is (b - a)
-//     FollowUIDMagic::targetOff()           : (txOff, tyOff) is (c - a)
+//     g_magicDB->retrieve(seqID, frame): ( offX,  offY) is (b - a)
+//     g_magicDB->head(seqID)           : (txOff, tyOff) is (c - a), FollowUIDMagic::targetOff()
 //
 //        b--------+
 //       /|     /  |
@@ -13,8 +13,8 @@
 //   a    |        |
 //        +--------+
 //
-//  unfortunately the gfx library doesn't have this information
-//  fortunately only follow uid magic needs this, mir2 also gives this hard-coded offset in src: Mir3EIClient/GameProcess/Magic.cpp
+//  the original gfx library doesn't have the head, it's stored in the magic APNG file name
+//  only follow uid magic needs it, mir2 also gives this hard-coded offset in src: Mir3EIClient/GameProcess/Magic.cpp
 
 #include <cmath>
 #include "pathf.hpp"
@@ -23,12 +23,12 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "attachmagic.hpp"
-#include "pngtexoffdb.hpp"
+#include "magicdb.hpp"
 #include "followuidmagic.hpp"
 #include "clientargparser.hpp"
 
 extern SDLDevice *g_sdlDevice;
-extern PNGTexOffDB *g_magicDB;
+extern MagicDB *g_magicDB;
 extern ClientArgParser *g_clientArgParser;
 
 FollowUIDMagic::FollowUIDMagic(
@@ -58,19 +58,12 @@ FollowUIDMagic::FollowUIDMagic(
     fflassert(m_x >= 0 && m_y >= 0 && m_process->onMap(m_x / SYS_MAPGRIDXP, m_y / SYS_MAPGRIDYP));
 }
 
-uint32_t FollowUIDMagic::frameTexID() const
+std::tuple<int, int> FollowUIDMagic::targetOff() const
 {
-    if(m_gfxEntry->gfxID == SYS_U32NIL){
-        return SYS_U32NIL;
+    if(const auto seqID = gfxSeqID(); seqID != SYS_U32NIL){
+        return g_magicDB->head(seqID);
     }
-
-    switch(m_gfxEntry->gfxDirType){
-        case  1: return m_gfxEntry->gfxID + frame();
-        case  4:
-        case  8:
-        case 16:
-        default: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-    }
+    return {0, 0};
 }
 
 bool FollowUIDMagic::update(double ms)
@@ -108,8 +101,8 @@ bool FollowUIDMagic::update(double ms)
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
-    if(const auto texID = frameTexID(); texID != SYS_U32NIL){
-        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+    if(const auto seqID = gfxSeqID(); seqID != SYS_U32NIL){
+        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(seqID, frame()); texPtr){
             const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor;
             SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);

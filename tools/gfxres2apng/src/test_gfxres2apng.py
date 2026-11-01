@@ -95,6 +95,7 @@ class NameTest(unittest.TestCase):
             "direction": 15, "image": 0xFFFFF, "file": 255,
         })
         self.assertTrue(g.encode_magic_name((3, 0x100, 1, (0, 0)), 0, 0).startswith("03001001000000000000"))
+        self.assertEqual(g.encode_magic_name((3, 0x100, 1, (1, 2)), 5, -6, (3, 4)), "03001001005FFA001002003004.PNG")
         for ident in [(256, 0, 0, (0, 0)), (0, 1 << 20, 0, (0, 0)), (0, 0, 16, (0, 0))]:
             with self.assertRaises(ValueError):
                 g.encode_magic_name(ident, 0, 0)

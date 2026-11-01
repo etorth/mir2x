@@ -544,7 +544,7 @@ void ProcessRun::on_SM_CASTMAGIC(const uint8_t *bufPtr, size_t)
                     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")))->addOnDone([smCM, this](BaseMagic *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
-                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
+                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"持续")));
                         }
                     });
                 }

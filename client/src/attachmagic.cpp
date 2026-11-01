@@ -2,10 +2,10 @@
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
 #include "attachmagic.hpp"
-#include "pngtexoffdb.hpp"
+#include "magicdb.hpp"
 
 extern SDLDevice *g_sdlDevice;
-extern PNGTexOffDB *g_magicDB;
+extern MagicDB *g_magicDB;
 
 void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
@@ -13,18 +13,7 @@ void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
         return;
     }
 
-    const auto texID = [this]() -> uint32_t
-    {
-        switch(m_gfxEntry->gfxDirType){
-            case  1: return m_gfxEntry->gfxID + frame();
-            case  4:
-            case  8:
-            case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflpanic("invalid gfxDirType: {}", m_gfxEntry->gfxDirType);
-        }
-    }();
-
-    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(gfxSeqID(), frame()); texPtr){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor, modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
@@ -37,18 +26,7 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, uint32_t modColor) const
         return;
     }
 
-    const auto texID = [this]() -> uint32_t
-    {
-        switch(m_gfxEntry->gfxDirType){
-            case  1: return m_gfxEntry->gfxID + frame();
-            case  4:
-            case  8:
-            case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflpanic("invalid gfxDirType: {}", m_gfxEntry->gfxDirType);
-        }
-    }();
-
-    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(gfxSeqID(), frame()); texPtr){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor, modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);

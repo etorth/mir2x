@@ -133,17 +133,15 @@ struct MagicGfxEntry
     const char8_t *stage = nullptr;
     const char8_t *type  = nullptr;
 
+    // magic APNG identity without direction, file << 20 | image, 7 hex digits
+    // direction d of the entry is APNG gfxID << 4 | d, the first 8 hex digits of its name in magic.zsdb
     const uint32_t gfxID = SYS_U32NIL;
     const uint32_t modColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF);
 
+    // 0 plays all frames of the APNG, otherwise plays its first frameCount frames
     const int frameCount = 0;
-    const int gfxIDCount = frameCount;
     const int gfxDirType = 1;
 
-    // target offset
-    // only needed for magic type: 跟随
-    // targetOffList.size() should be zero or equal to gfxDirType
-    const std::initializer_list<std::tuple<int, int>> targetOffList {};
     const struct MagicGfxEntrySoundEffect
     {
         // common cases of sound indexing

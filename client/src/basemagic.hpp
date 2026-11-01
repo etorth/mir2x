@@ -5,6 +5,7 @@
 #include <functional>
 #include "totype.hpp"
 #include "dbcomid.hpp"
+#include "magicdb.hpp"
 #include "fflerror.hpp"
 #include "magicrecord.hpp"
 
@@ -26,6 +27,7 @@ class BaseMagic
 
     protected:
         const int m_gfxDirIndex;
+        const int m_gfxFrameCount;
 
     protected:
         double m_accuTime = 0.0;
@@ -35,45 +37,7 @@ class BaseMagic
         std::list<std::function<bool(BaseMagic *)>> m_onUpdateCBList;
 
     public:
-        BaseMagic(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
-            : m_magicID([magicName]() -> uint32_t
-              {
-                  if(const auto magicID = DBCOM_MAGICID(magicName)){
-                      return magicID;
-                  }
-                  throw fflpanic("invalid magicName: {}", to_cstr(magicName));
-              }())
-            , m_magicRecord([this]() -> const auto &
-              {
-                  if(const auto &mr = DBCOM_MAGICRECORD(magicID())){
-                      return mr;
-                  }
-                  throw fflpanic("invalid magicID: {}", magicID());
-              }())
-            , m_gfxEntryPair([magicName, magicStage]()
-              {
-                  fflassert(str_haschar(magicName));
-                  fflassert(str_haschar(magicStage));
-
-                  const auto gfxPair = DBCOM_MAGICGFXENTRY(magicName, magicStage);
-                  fflassert(gfxPair.first);
-                  fflassert(gfxPair.first->checkStage(magicStage));
-
-                  fflassert(gfxPair.first->frameCount > 0);
-                  fflassert(gfxPair.first->frameCount <= gfxPair.first->gfxIDCount);
-
-                  fflassert(gfxPair.first->speed >= SYS_MINSPEED);
-                  fflassert(gfxPair.first->speed <= SYS_MAXSPEED);
-                  return gfxPair;
-              }())
-            , m_seffID(DBCOM_MAGICGFXSEFFID(to_u8sv(magicName), to_u8sv(magicStage)))
-            , m_gfxDirIndex(dirIndex)
-        {
-            // gfxDirIndex is the index of gfx set
-            // the gfx set can be for different direction or not
-            fflassert(gfxDirIndex() >= 0, gfxDirIndex());
-            fflassert(gfxDirIndex() < getGfxEntry()->gfxDirType, gfxDirIndex(), getGfxEntry()->gfxDirType);
-        }
+        BaseMagic(const char8_t *, const char8_t *, int);
 
     public:
         virtual ~BaseMagic() = default;
@@ -97,6 +61,19 @@ class BaseMagic
         int gfxDirIndex() const
         {
             return m_gfxDirIndex;
+        }
+
+        int gfxFrameCount() const
+        {
+            return m_gfxFrameCount;
+        }
+
+        uint32_t gfxSeqID() const // SYS_U32NIL if the entry has no gfx
+        {
+            if(m_gfxEntry->gfxID == SYS_U32NIL){
+                return SYS_U32NIL;
+            }
+            return MagicDB::seqID(m_gfxEntry->gfxID, m_gfxDirIndex);
         }
 
         std::optional<uint32_t> getSeffID() const
@@ -162,7 +139,7 @@ class BaseMagic
         int frame() const
         {
             if(m_gfxEntry->loop){
-                return absFrame() % m_gfxEntry->frameCount;
+                return absFrame() % m_gfxFrameCount;
             }
             else{
                 return absFrame();
@@ -193,7 +170,7 @@ class BaseMagic
             if(m_gfxEntry->loop){
                 return false;
             }
-            return absFrame() >= m_gfxEntry->frameCount;
+            return absFrame() >= m_gfxFrameCount;
         }
 
     protected:

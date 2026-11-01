@@ -60,11 +60,13 @@ hero, hair, helmet, weapon
 
 magic
     old key: image index in the WIL file(0-23), file index(24-31), see magicwil2png
-    new name, 26 hex digits:
-      H: bits 24-35, head x, 12-bit two's complement
-         bits 36-47, head y, 12-bit two's complement
-      T: bits 48-59, tail x, 12-bit two's complement
-         bits 60-71, tail y, 12-bit two's complement
+    new name, 26 hex digits, FF IIIII D XXX YYY HHH HHH TTT TTT:
+      T: bits  0-11, tail y, 12-bit two's complement
+         bits 12-23, tail x, 12-bit two's complement
+      H: bits 24-35, head y, 12-bit two's complement
+         bits 36-47, head x, 12-bit two's complement
+      Y: bits 48-59, dy, 12-bit two's complement
+      X: bits 60-71, dx, 12-bit two's complement
       D: bits 72-75, direction index, [0, gfxDirType)
       I: bits 76-95, image index of the sequence's base gfxID, same for all directions
       F: bits 96-103, file index
@@ -75,14 +77,15 @@ magic
     from MagicGfxEntry::targetOffList, tails are zero until set by the editor.
 
     Sequences:
-      1. Every MagicGfxEntry in common/src/magicrecord.inc, every direction d:
+      1. Every MagicGfxEntry in --magic-record, magicrecord_oldkey.inc by
+         default, every direction d:
          frames start at gfxID + d * gfxIDCount, the APNG keeps all contiguous
          frames up to gfxIDCount, MagicGfxEntry::frameCount selects the prefix
          the magic uses. Entries sharing a sequence keep the longest one.
-         Named by (file, image index of gfxID, d). Until magicrecord.inc is
-         fixed, MAGIC_RECORD_OVERRIDES shortens entries whose frames are
-         really several animations, and MAGIC_RECORD_SKIPPED entries are
-         ignored.
+         Named by (file, image index of gfxID, d). MAGIC_RECORD_OVERRIDES
+         shortens entries of that old record whose frames are really several
+         animations, and MAGIC_RECORD_SKIPPED entries are ignored, the client
+         record common/src/magicrecord.inc has these fixes.
       2. MAGIC_HARDCODED_SEQUENCES: sequences no entry describes, such as
          single images used by client/src/fixedlocmagic.cpp and animations
          that share one contiguous run of images. Each keeps exactly its
@@ -284,7 +287,8 @@ MAGIC_OMITTED_DIRECTIONS = {
     0x070002E4: frozenset((0, 2, 6)),  # MonMagicEx4 images 740-741, 760-761 and 800-801
 }
 MAGIC_EXCLUDED_KEY_RANGES = ((0x0700076C, 0x070016B7),)  # weapon 44 effect
-DEFAULT_MAGIC_RECORD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "common", "src", "magicrecord.inc")
+# copy of common/src/magicrecord.inc before the client switched to APNG identities, the converter needs its old gfxID and gfxIDCount
+DEFAULT_MAGIC_RECORD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "magicrecord_oldkey.inc")
 DEFAULT_PROGUSE_GROUPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proguse_groups_v3.txt")
 
 
@@ -370,12 +374,12 @@ def encode_magic_name(ident, dx, dy, tail=(0, 0)):
         raise ValueError(f"invalid magic sequence identity: {ident}")
 
     value = (
-        (to_twos(dx, OFFSET_BITS) << 0)
-        | (to_twos(dy, OFFSET_BITS) << 12)
-        | (to_twos(head[0], OFFSET_BITS) << 24)
-        | (to_twos(head[1], OFFSET_BITS) << 36)
-        | (to_twos(tail[0], OFFSET_BITS) << 48)
-        | (to_twos(tail[1], OFFSET_BITS) << 60)
+        (to_twos(tail[1], OFFSET_BITS) << 0)
+        | (to_twos(tail[0], OFFSET_BITS) << 12)
+        | (to_twos(head[1], OFFSET_BITS) << 24)
+        | (to_twos(head[0], OFFSET_BITS) << 36)
+        | (to_twos(dy, OFFSET_BITS) << 48)
+        | (to_twos(dx, OFFSET_BITS) << 60)
         | (direction << 72)
         | (imageIndex << 76)
         | (fileIndex << 96)
@@ -386,10 +390,10 @@ def encode_magic_name(ident, dx, dy, tail=(0, 0)):
 def decode_magic_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
     return {
-        "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
-        "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
-        "head": (from_twos((value >> 24) & 0xFFF, OFFSET_BITS), from_twos((value >> 36) & 0xFFF, OFFSET_BITS)),
-        "tail": (from_twos((value >> 48) & 0xFFF, OFFSET_BITS), from_twos((value >> 60) & 0xFFF, OFFSET_BITS)),
+        "dx": from_twos((value >> 60) & 0xFFF, OFFSET_BITS),
+        "dy": from_twos((value >> 48) & 0xFFF, OFFSET_BITS),
+        "head": (from_twos((value >> 36) & 0xFFF, OFFSET_BITS), from_twos((value >> 24) & 0xFFF, OFFSET_BITS)),
+        "tail": (from_twos((value >> 12) & 0xFFF, OFFSET_BITS), from_twos((value >> 0) & 0xFFF, OFFSET_BITS)),
         "direction": (value >> 72) & 0x0F,
         "image": (value >> 76) & 0xFFFFF,
         "file": (value >> 96) & 0xFF,
@@ -1145,7 +1149,7 @@ def main():
     parser.add_argument("--res-path", required=True, help="mir2x_res root, reads <res-path>/texture/<type> and <res-path>/emoji")
     parser.add_argument("--output-dir", required=True, help="mirror of <res-path> with converted types, must be missing or empty except .git")
     parser.add_argument("--types", default=",".join(CONVERT_TYPES), help=f"comma separated types to convert, others are copied unchanged, default all: {','.join(CONVERT_TYPES)}")
-    parser.add_argument("--magic-record", default=DEFAULT_MAGIC_RECORD, help="path to magicrecord.inc, default common/src/magicrecord.inc")
+    parser.add_argument("--magic-record", default=DEFAULT_MAGIC_RECORD, help="path to magicrecord.inc with old keys, default magicrecord_oldkey.inc next to this script")
     parser.add_argument("--proguse-groups", default=DEFAULT_PROGUSE_GROUPS, help="proguse group list, default proguse_groups_v3.txt next to this script")
     parser.add_argument("--delay", type=int, default=100, help="frame delay in ms, default 100, proguse anim groups use their own DELAY")
     parser.add_argument("--jobs", type=int, default=os.cpu_count(), help="parallel workers, default CPU count")

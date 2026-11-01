@@ -1,10 +1,10 @@
 #include "pathf.hpp"
 #include "sdldevice.hpp"
-#include "pngtexoffdb.hpp"
+#include "magicdb.hpp"
 #include "fixedlocmagic.hpp"
 
 extern SDLDevice *g_sdlDevice;
-extern PNGTexOffDB *g_magicDB;
+extern MagicDB *g_magicDB;
 
 void FixedLocMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
@@ -16,8 +16,7 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
         return;
     }
 
-    const int gfxDirOff = ((m_gfxDirIndex >= 0) ? m_gfxDirIndex : 0) * m_gfxEntry->gfxIDCount;
-    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(m_gfxEntry->gfxID + gfxDirOff + frame()); texPtr){
+    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(gfxSeqID(), frame()); texPtr){
         const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor;
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
@@ -27,7 +26,7 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
 void FireAshEffect_RUN::drawGroundAsh(int viewX, int viewY, uint32_t modColor) const
 {
-    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(0X0F0000DC); texPtr){
+    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(MagicDB::seqID(0X0F000DC, 0), 0); texPtr){
         const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor;
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(colorf::modRGBA(gfxEntryModColor, getPlainModColor()), modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
@@ -83,7 +82,7 @@ void IceThorn_RUN::drawGroundIce(int viewX, int viewY, uint32_t modColor) const
     const auto [texPtr, useTexW, useTexH, offX, offY] = [this]() -> std::tuple<SDL_Texture *, int, int, int, int>
     {
         if(m_iceSlagTexSelect){
-            if(const auto [texPtr, offX, offY] = g_magicDB->retrieve(0X0F000104); texPtr){
+            if(const auto [texPtr, offX, offY] = g_magicDB->retrieve(MagicDB::seqID(0X0F00104, 0), 0); texPtr){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 return {texPtr, std::min<int>(texW, 83), std::min<int>(texH, 53), offX, offY};
             }
@@ -92,7 +91,7 @@ void IceThorn_RUN::drawGroundIce(int viewX, int viewY, uint32_t modColor) const
             }
         }
         else{
-            if(const auto [texPtr, offX, offY] = g_magicDB->retrieve(0X0F000105); texPtr){
+            if(const auto [texPtr, offX, offY] = g_magicDB->retrieve(MagicDB::seqID(0X0F00105, 0), 0); texPtr){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 return {texPtr, std::min<int>(texW, 76), std::min<int>(texH, 43), offX, offY};
             }

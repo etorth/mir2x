@@ -5,6 +5,7 @@
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
 #include "emojidb.hpp"
+#include "magicdb.hpp"
 #include "imeboard.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
@@ -26,7 +27,7 @@ PNGTexOffDB       *g_monsterDB       = nullptr; // database for monster
 PNGTexOffDB       *g_weaponDB        = nullptr; // database for weapon
 PNGTexOffDB       *g_helmetDB        = nullptr; // database for helmet
 PNGTexOffDB       *g_equipDB         = nullptr; // database for equipment in player status board
-PNGTexOffDB       *g_magicDB         = nullptr; // database for magic
+MagicDB           *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB       *g_standNPCDB      = nullptr; // database for NPC
 PNGTexOffDB       *g_selectCharDB    = nullptr; // database for chars in ProcessSelectChar and ProcessCreateChar
 EmojiDB           *g_emojiDB         = nullptr; // database for emoticons
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
         g_weaponDB     = new PNGTexOffDB(1024);
         g_helmetDB     = new PNGTexOffDB(1024);
         g_equipDB      = new PNGTexOffDB(1024);
-        g_magicDB      = new PNGTexOffDB(1024);
+        g_magicDB      = new MagicDB(1024);
         g_standNPCDB   = new PNGTexOffDB(1024);
         g_selectCharDB = new PNGTexOffDB(512);
         g_fontexDB     = new FontexDB(1024L * 1024 * 512);

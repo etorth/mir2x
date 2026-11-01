@@ -61,7 +61,7 @@ directory tree under `--res-path` is fixed, so it is the only input option.
 | `--output-dir PATH` | required | Output root, a mirror of `--res-path`. Must be missing or empty except for `.git`, and must not overlap `--res-path`. |
 | `--types a,b,...` | all | Comma-separated subset of `monster,npc,hero,hair,helmet,weapon,magic,equip,selectchar,proguse,emoji` to convert. Each type at most once. Types not listed are copied unchanged, or skipped with `--skip-unconverted`. |
 | `--skip-unconverted` | copy | Don't copy any file outside the converted types. The output then holds only `texture/<type>` and `emoji` for the types in `--types`. |
-| `--magic-record PATH` | `common/src/magicrecord.inc` | Magic sequence definitions, see [magic](#magic). The default path is relative to the script. |
+| `--magic-record PATH` | `magicrecord_oldkey.inc` | Magic sequence definitions with old keys, see [magic](#magic). The default is next to the script: a copy of `common/src/magicrecord.inc` from before the client switched to APNG identities. |
 | `--proguse-groups PATH` | `proguse_groups_v3.txt` | proguse animation and button groups, see [proguse](#proguse). The default path is next to the script. |
 | `--delay MS` | `100` | Frame delay written into every frame, 1 to 65535 ms. proguse `anim` groups use their own delay, emoji use their fps. |
 | `--jobs N` | CPU count | Worker processes. |
@@ -273,14 +273,19 @@ the range must belong to a sequence. Otherwise the run fails.
 
 | Bits | Field |
 |---|---|
-| 0–23 | offset |
-| 24–35 | head x, 12-bit two's complement |
-| 36–47 | head y, 12-bit two's complement |
-| 48–59 | tail x, 12-bit two's complement |
-| 60–71 | tail y, 12-bit two's complement |
+| 0–11 | tail y, 12-bit two's complement |
+| 12–23 | tail x, 12-bit two's complement |
+| 24–35 | head y, 12-bit two's complement |
+| 36–47 | head x, 12-bit two's complement |
+| 48–59 | dy, 12-bit two's complement |
+| 60–71 | dx, 12-bit two's complement |
 | 72–75 | direction index, `[0, gfxDirType)` |
 | 76–95 | image index of the sequence's base gfxID, same for every direction, below 2^20 |
 | 96–103 | file index, 0 to 255 |
+
+Read left to right, the name is file, image, direction, offset (dx, dy), head
+(x, y), tail (x, y). Unlike the other types, the offset is not in the lowest
+bits, and x comes before y.
 
 The first 8 digits, `FF IIIII D`, are the sequence identity: the 2-digit file,
 the 5-digit image and the direction. The converted data uses files `00` to
@@ -288,15 +293,15 @@ the 5-digit image and the direction. The converted data uses files `00` to
 from `mir2x_res`, can use any other file number, so the client must accept
 any value in all 8 digits.
 
-Example: `00001A45000000001044FD1FF4.PNG` is file 0, image 420, direction 5,
-head (68, 1), tail (0, 0), offset (-12, -47).
+Example: `00001A45FF4FD1044001000000.PNG` is file 0, image 420, direction 5,
+offset (-12, -47), head (68, 1), tail (0, 0).
 
 The offset, head and tail all use the same anchor:
 
 - **Head** is the hit point of a flying magic. When it reaches the target, the
   magic hits. It is also the rotation center. Heads are seeded from
-  `MagicGfxEntry::targetOffList` in `magicrecord.inc`, and are (0, 0) for
-  sequences without one.
+  `MagicGfxEntry::targetOffList` in `magicrecord_oldkey.inc`, and are (0, 0)
+  for sequences without one. The client reads them from the name.
 - **Tail** is a point in the tail area of the gfx (for example, the tail of a
   fireball). The `tail -> head` vector is the gfx's flying direction, so the
   client can rotate the gfx around the head to point at the target. Tails are
@@ -525,10 +530,12 @@ below). The conversion splits it:
    the old `(dx, dy)`.
 
 4. **Hex digits.** Names are uppercase, zero-padded to a fixed width, with a
-   `.PNG` extension. The offset is bits 0–23, so it is always the last 6 hex
-   digits, `YYYXXX`, each 12-bit two's complement (`0xFFF` = -1, `0x800` =
-   -2048). The identity starts at bit 24, a hex-digit boundary, so it can be
-   read directly from the leading digits.
+   `.PNG` extension. Every offset, head and tail coordinate is 3 hex digits,
+   12-bit two's complement (`0xFFF` = -1, `0x800` = -2048). For every type
+   except magic, the offset is bits 0–23, the last 6 digits `YYYXXX`, and the
+   identity starts at bit 24. Magic is `FF IIIII D XXX YYY HHH HHH TTT TTT`,
+   with the identity at bit 72. Every identity starts at a hex-digit boundary,
+   so it can be read directly from the leading digits.
 
 ### monster, npc
 
@@ -652,7 +659,7 @@ the same ID, gender, motion and direction with layer 0 and shadow 0.
 ### magic
 
 The identity is not a function of the old key's bits: it comes from
-`magicrecord.inc`. Each old key `fileIndex << 24 | image` maps as follows,
+`magicrecord_oldkey.inc`. Each old key `fileIndex << 24 | image` maps as follows,
 first match wins:
 
 1. **Referenced by an entry.** For an entry with `gfxID`, `gfxIDCount` and
@@ -689,13 +696,13 @@ Keys `0x0700076C`–`0x070016B7` don't map to magic, they are the
 The name packs every field on hex-digit boundaries, so it can be read directly:
 
 ```text
-FF IIIII D TTT TTT HHH HHH YYY XXX
-│  │     │ │   │   │   │   │   └─ X offset   (bits  0-11)
-│  │     │ │   │   │   │   └───── Y offset   (bits 12-23)
-│  │     │ │   │   │   └───────── head x     (bits 24-35)
-│  │     │ │   │   └───────────── head y     (bits 36-47)
-│  │     │ │   └───────────────── tail x     (bits 48-59)
-│  │     │ └───────────────────── tail y     (bits 60-71)
+FF IIIII D XXX YYY HHH HHH TTT TTT
+│  │     │ │   │   │   │   │   └─ tail y     (bits  0-11)
+│  │     │ │   │   │   │   └───── tail x     (bits 12-23)
+│  │     │ │   │   │   └───────── head y     (bits 24-35)
+│  │     │ │   │   └───────────── head x     (bits 36-47)
+│  │     │ │   └───────────────── Y offset   (bits 48-59)
+│  │     │ └───────────────────── X offset   (bits 60-71)
 │  │     └─────────────────────── direction  (bits 72-75)
 │  └───────────────────────────── image      (bits 76-95)
 └──────────────────────────────── file       (bits 96-103)
@@ -704,179 +711,155 @@ FF IIIII D TTT TTT HHH HHH YYY XXX
 ```text
 identity = direction | image << 4 | file << 24     # 8 hex digits, FF IIIII D
 name     = "%026X.PNG" % (identity << 72
-                         | (tailY & 0xFFF) << 60 | (tailX & 0xFFF) << 48
-                         | (headY & 0xFFF) << 36 | (headX & 0xFFF) << 24
-                         | (Y & 0xFFF) << 12 | (X & 0xFFF))
+                         | (X & 0xFFF) << 60 | (Y & 0xFFF) << 48
+                         | (headX & 0xFFF) << 36 | (headY & 0xFFF) << 24
+                         | (tailX & 0xFFF) << 12 | (tailY & 0xFFF))
 ```
 
 Examples:
 
-- **Entry with direction and head.** `magicrecord.inc` line 60, gfxID
+- **Entry with direction and head.** `magicrecord_oldkey.inc` line 60, gfxID
   `0x000003D4` (image 980), `frameCount` 3, `gfxIDCount` 10, `gfxDirType` 16,
   `targetOffList[2]` = (62, -45). Direction 2 starts at 980 + 2 × 10 = 1000:
   `000003E81000310035.PNG`, `000003E9...`, `000003EA...` become
-  `00003D42000000FD303EFC8031.PNG`, read as file `00`, image
-  `003D4`, direction `2`, tail (0, 0), head y `FD3` = -45, head x `03E` = 62,
-  Y `FC8` = -56, X `031` = 49.
+  `00003D42031FC803EFD3000000.PNG`, read as file `00`, image
+  `003D4`, direction `2`, X `031` = 49, Y `FC8` = -56, head x `03E` = 62,
+  head y `FD3` = -45, tail (0, 0).
 - **Longest prefix and shared frames.** Two entries use gfxID `0x010007BC`
-  with `frameCount` 10 and 15: one APNG `01007BC0000000000000F20FCE.PNG` with
+  with `frameCount` 10 and 15: one APNG `01007BC0FCEF20000000000000.PNG` with
   15 frames (`010007BC` to `010007CA`) serves both. Another entry uses gfxID
   `0x010007C6` with 5 frames, so `010007C6` to `010007CA` are also APNG
   `01007C60...`, frames 0–4. These 5 are the only old frames stored in two
   APNGs. With 74 dropped blank frames and 3 padded blank frames, 6,093
   source frames become 6,027 APNG frames.
 - **Hardcoded image.** `0F0000DC00001C0015.PNG` becomes
-  `0F000DC0000000000000FEBFE4.PNG`, file 15, image 220, offset (-28, -21).
+  `0F000DC0FE4FEB000000000000.PNG`, file 15, image 220, offset (-28, -21).
 - **Teleport.** Images `0x956`–`0x97D` of file 0 are one contiguous run of
   40 images, but two animations: someone arriving, then someone leaving.
   `0000095600000600B6.PNG` to `0000096900004C001D.PNG` become
-  `00009560000000000000F4AFB4.PNG`, and `0000096A00004C001D.PNG` to
-  `0000097D00000600B6.PNG` become `000096A0000000000000F4AFB4.PNG`, 20
+  `00009560FB4F4A000000000000.PNG`, and `0000096A00004C001D.PNG` to
+  `0000097D00000600B6.PNG` become `000096A0FB4F4A000000000000.PNG`, 20
   frames each.
 - **Directions with blank slots.** Images 3470–3565 (`0xD8E`–`0xDED`) of
   file 0 are one contiguous run of 96 images:
   - 3470–3549: 8 directions, 10 slots apart. Each has 3 frames, then 7 fully
     transparent slots. Direction `d`, `0x00000D8E + d * 10` to `+ 2`, becomes
-    APNG `(0, 0xD8E, d)`, for example `0000D8E0000000000000FE2FF0.PNG`, 3
+    APNG `(0, 0xD8E, d)`, for example `0000D8E0FF0FE2000000000000.PNG`, 3
     frames.
   - 3550–3559: fully transparent, not part of any animation.
-  - 3560–3565: another animation, `0000DE80000000000000FFB00D.PNG`, 6 frames.
+  - 3560–3565: another animation, `0000DE8000DFFB000000000000.PNG`, 6 frames.
 
   The 7 blank slots after each direction are unreferenced runs; the last
   direction's 7 and the 10 at 3550–3559 form one 17-frame run. All 8 runs
   are fully transparent, so they are dropped.
 - **Unreferenced run.** `010004F6...`, `010004F7...`, `010004F8...` (images
   1270–1272 of file 1, no entry uses them) become
-  `01004F60000000000000FE0016.PNG`, offset (22, -32).
+  `01004F60016FE0000000000000.PNG`, offset (22, -32).
 
 ### magic client changes
 
-Not done yet. This section lists the migration order and everything the client
-needs to change for magic. File:line references are to `client/src` at
-commit `f05d2151` unless another directory is given.
+Done. The client reads `texture/magic.zsdb` as APNGs. File:line references
+are to `client/src` unless another directory is given.
 
 #### Migration order
 
-1. **Converter emits the new names. Done.** `gfxres2apng.py` writes
-   `FF IIIII D ...` names. It still reads the current `magicrecord.inc`, where
-   `gfxID` is the old key of the first frame, `file << 24 | image`, and
-   directions are `gfxIDCount` images apart.
+1. **Converter emits the new names. Done.**
 2. **Convert the resources. Done** for the test tree
-   (`--types magic --skip-unconverted`): 990 APNGs, 6,027 frames. The magic
-   directory of the real resource repository is converted when the client
-   change below lands.
-3. **Change the client magic loader and every use site, and rewrite
-   `magicrecord.inc`, in one commit.** The client can't read both formats:
-   the old `texture/magic` has one PNG per frame, keyed by old key, and the
-   new one has one APNG per sequence, keyed by identity.
+   (`--types magic --skip-unconverted`): 990 APNGs, 6,027 frames.
+3. **Client magic loader, every use site and `magicrecord.inc`, in one
+   commit. Done.** The client can't read both formats: the old
+   `texture/magic` has one PNG per frame, keyed by old key, and the new one
+   has one APNG per sequence, keyed by identity.
 4. **Convert the real resource repository** and rebuild with it. Old
    resources don't work with the new client, and new resources don't work
    with the old client.
-5. **Later, in `followuidmagiceditor`:** set the tails and fix the heads, and
-   write them back into the APNG names.
+5. **Later, a new `followuidmagiceditor`:** set the tails and fix the heads,
+   and write them back into the APNG names. The old Qt editor still uses
+   `gfxIDCount` and one PNG per old key, so it is no longer built
+   (`tools/CMakeLists.txt`); its source is kept until it is replaced.
 
-After step 3, `magicrecord.inc` no longer has the old `gfxID` and
-`gfxIDCount`. To re-run the converter on the original WIL-derived PNGs, use
-the `magicrecord.inc` from before step 3 (from git), or change the converter
-to read the new fields; the new `gfxID` is enough to find the base image, but
-not the direction stride.
+`common/src/magicrecord.inc` no longer has the old `gfxID` and `gfxIDCount`,
+so the converter reads `magicrecord_oldkey.inc` next to the script by default:
+a byte-identical copy of `magicrecord.inc` from before step 3. It also keeps
+`MAGIC_RECORD_OVERRIDES` and `MAGIC_RECORD_SKIPPED`, which describe that copy.
+Re-running the converter gives the same 990 APNGs, byte for byte.
 
 #### magicrecord.inc
 
-- Rewrite every `gfxID` from the old key `file << 24 | image` to 7 hex
-  digits, `file << 20 | image`. Then the APNG identity of direction `d` is
-  `gfxID << 4 | d`, the first 8 digits of the name. For example `0x000003D4`
-  stays `0x00003D4`, `0x010007BC` becomes `0x01007BC`, `0x0F0000DC` becomes
-  `0x0F000DC`. `SYS_U32NIL` stays the "no gfx" marker; it is not a valid
-  28-bit `gfxID`.
-- Drop `gfxIDCount`. It was only the stride between directions in the old
+- Every `gfxID` is 7 hex digits, `file << 20 | image`. The APNG identity of
+  direction `d` is `gfxID << 4 | d`, the first 8 digits of the name. For
+  example `0x000003D4` became `0x00003D4`, `0x010007BC` became `0x01007BC`.
+  `SYS_U32NIL` is still "no gfx"; it is not a valid 28-bit `gfxID`.
+- `gfxIDCount` is gone. It was only the stride between directions in the old
   key space; each direction is its own APNG now.
-- `frameCount` is still needed where an entry plays a prefix of its APNG
-  (for example two entries on `0x01007BC`, 10 and 15 frames, share one
-  15-frame APNG). Make it optional: when it is 0, use the APNG's frame count.
-  Keep the existing assert as `frameCount <= APNG frame count`.
-- `gfxDirType` stays: it is the number of direction APNGs, `[0, gfxDirType)`.
-  Some directions may have no APNG (see `MAGIC_OMITTED_DIRECTIONS`); the
-  client still looks them up, and when the lookup returns null it skips
-  drawing that gfx instead of failing.
-- `targetOffList` is now in the names as the head. Keep it until the client
-  reads heads from the database, then remove it.
-- Fix 阴阳法环 (MagicEx2 images 290–305, like 魔法盾): 290–298 is the
-  spawn, 300–302 the sustain loop, 303–305 the hit. Today 运行 loops only
-  the last spawn frame `0x0200012A` (298), and 挨打 plays `0x0200012C` with 6
-  frames (300–305). Change 运行 to `0x0200012C`, 3 frames, `loop = 1`,
-  change 挨打 to `0x0200012F`, 3 frames, and drop the `0x0200012A` entry.
-  Then remove `0x0200012C` from `MAGIC_RECORD_OVERRIDES`, `0x0200012A` from
-  `MAGIC_RECORD_SKIPPED` and `0x0200012F` from `MAGIC_HARDCODED_SEQUENCES`
-  in the converter.
-- Fix 风震天 (MagicEx images 1980–2009, verified in the original game). 击风
-  and 风震天 share 启动 `0x010007B2`, attached to the caster. 击风 运行
-  plays `0x010007BC`, all 15 frames (1980–1994), at the target, then 裂解
-  `0x010007D0` (2000–2009). 风震天 运行 is only `0x010007C6` (1990–1994):
-  it starts at the caster's location and moves straight along one of the 8
-  directions, then after several grids becomes 裂解 `0x010007D0`. Today
-  风震天 has two 运行 entries, `0x010007BC` (10 frames) and `0x010007C6`,
-  and `DBCOM_MAGICGFXENTRY` returns the first one, so it plays 1980–1989
-  instead. Drop the `0x010007BC` entry from 风震天. The converter needs no
-  change: `01007BC0…` (15 frames) and `01007C60…` (5 frames) both exist,
-  and 1990–1994 are in both on purpose.
+- `frameCount` is optional. When it is 0, the client plays every frame of the
+  APNG; otherwise it plays the first `frameCount` frames, which must not be
+  more than the APNG has. Every entry still sets it today. An entry without
+  gfx keeps its `frameCount`, which can be 0: 冰沙掌 运行 has neither, and
+  `IceThrust_RUN` decides when it's done.
+- `gfxDirType` is the number of direction APNGs, `[0, gfxDirType)`. A
+  direction without an APNG is not drawn; its entry must set `frameCount`.
+- `targetOffList` is gone. The heads are in the APNG names, the same values.
+- 阴阳法环 (MagicEx2 images 290–305, like 魔法盾): 运行 `0x0200122` is the
+  9-frame spawn (290–298). The new stage 持续 `0x020012C` is the 3-frame
+  sustain loop (300–302), and 挨打 `0x020012F` is the 3-frame hit
+  (303–305). The 1-frame 运行 entry `0x0200012A` (image 298) is dropped.
+  `TaoYellowBlueRing` (`attachmagic.hpp`), attached when 运行 is done
+  (`processrunnet.cpp`), plays 持续 and still pulses its alpha. No client
+  code triggers 挨打 yet.
+- 魔法盾: the second 运行 entry, `0x0000352` (3 frames, loop), is stage 持续
+  now. `DBCOM_MAGICGFXENTRY` returns the first entry of a stage, so it was
+  never used: when 运行 was done, `processrunnet.cpp` played 运行
+  `0x0000347` once more, and after 挨打 `hero.cpp` asked for 持续, which
+  didn't exist. Now 运行 is followed by 持续 in both places.
+- 风震天 (MagicEx images 1980–2009, verified in the original game): the 运行
+  entry `0x01007BC` is dropped, so 运行 is `0x01007C6` (1990–1994), not
+  1980–1989. 击风 still plays all 15 frames of `0x01007BC`. The client
+  chain in `hero.cpp` is unchanged: 风震天 starts at the grid in front of the
+  caster, not at the caster as in the original game.
 - `MagicGfxEntryRef` and `modColor`, `speed`, `loop`, sound and the other
-  fields don't change.
-- `common/src/buffrecord.hpp:211` `icon.gfxID` is not a magic key; it does
-  not change.
+  fields don't change. `common/src/buffrecord.hpp` `icon.gfxID` is not a
+  magic key.
 
 #### Loader
 
-- `g_magicDB` is a `PNGTexOffDB` (`main.cpp:29`, `main.cpp:75`), loaded from
-  `texture/magic.zsdb` in `initview.cpp:59`. Replace it with a magic DB that
-  loads one APNG per entry with `SDLDevice::loadPNGAnimation`, the same way
-  as `EmojiDB`.
-- Database key: the first 8 hex digits of the name, the identity
-  `file << 24 | image << 4 | dir`. Accept any value in all 8 digits, not only
-  the converted files `00`–`07` and `0F`.
-- Parse from the name, each a 12-bit two's complement with
-  `hexstr::to_2comp(name + pos, 3)`: tail y at chars 8–10, tail x 11–13,
-  head y 14–16, head x 17–19, Y offset 20–22, X offset 23–25.
-- Element: one texture per frame, the frame count, the offset, head and tail.
-  All frames of an APNG share one offset: the converter aligned and trimmed
-  them to one canvas. Per-frame delays are in the file (`--delay`, 100 ms by
-  default) but magic timing comes from `magicrecord.inc` `speed`, so the
-  client ignores them.
-- `retrieve(identity, frame)` returns the frame's texture and the shared
-  offset, `nullptr` texture if `frame >= frameCount`.
-- Frames that were missing on disk (`MAGIC_PADDED_KEYS`) or were 4×2 /
-  huge-offset placeholders are fully transparent frames in the APNG. The old
-  client got `nullptr` or drew the placeholder off screen; the new client
-  draws a transparent frame, so nothing visible changes and no special case
-  is needed.
-- An APNG read by a plain PNG decoder shows only frame 0.
+`g_magicDB` is a `MagicDB` (`magicdb.hpp`, `magicdb.cpp`), an `innDB` like
+`EmojiDB`, loaded from `texture/magic.zsdb` in `initview.cpp`:
+
+- The key is the identity, `MagicDB::seqID(gfxID, dir)` =
+  `gfxID << 4 | dir`, matched against the first 8 hex digits of the name.
+- One element is one APNG, loaded with `SDLDevice::loadPNGAnimation`: one
+  texture per frame, the shared offset, head and tail, each parsed with
+  `hexstr::to_2comp(name + pos, 3)`. The APNG frame delays are ignored; magic
+  timing comes from `speed`. The cache weight is the frame count, at most
+  1024 frames.
+- `retrieve(seqID, frame)` returns `{texture, dx, dy}`, or a `nullptr`
+  texture if there is no APNG or the frame is out of range.
+- `frameCount(seqID)` returns 0 and `head(seqID)` returns (0, 0) if there is
+  no APNG.
+- `frameCount(gfxEntry, dir)` is the number of frames an entry plays, as
+  described for `frameCount` above. It asserts `frameCount <= APNG frame
+  count`, which replaces the old `frameCount <= gfxIDCount` asserts.
+- Padded frames and 4×2 / huge-offset placeholders are fully transparent
+  frames in the APNG, so they need no special case.
 
 #### Use sites
 
-Every site computes `gfxID + frame + dirIndex * gfxIDCount`. Each becomes
-`retrieve(gfxID << 4 | dirIndex, frame)`, with `dirIndex = 0` when
-`gfxDirType` is 1. The drawing code, `drawTexture(tex, x + offX, y + offY)`,
-doesn't change: the new offset keeps the old sign convention.
+The drawing code, `drawTexture(tex, x + offX, y + offY)`, didn't change: the
+new offset keeps the old sign convention.
 
-| Site | Today | New |
+| Site | Old | New |
 |---|---|---|
-| `attachmagic.cpp:16–27` `AttachMagic::drawShift` | `gfxID + frame()` or `+ m_gfxDirIndex * gfxIDCount` | `(gfxID << 4 \| m_gfxDirIndex, frame())` |
-| `attachmagic.cpp:40–51` `Thunderbolt::drawShift` | same | same |
-| `followuidmagic.cpp:60–75` `FollowUIDMagic::frameTexID` | same, returns one `uint32_t` | return `(identity, frame)` |
-| `followuidmagic.cpp:111–112` `drawViewOff` | `retrieve(texID)` | `retrieve(identity, frame)` |
-| `followuidmagic.hpp:59–60` `targetOff` | `targetOffList[m_gfxDirIndex]` | the head from the DB |
-| `fixedlocmagic.cpp:19–20` | `gfxID + gfxDirOff + frame()` | `(gfxID << 4 \| max(m_gfxDirIndex, 0), frame())` |
-| `fixedlocmagic.cpp:30` `FireAshEffect_RUN` | `0X0F0000DC` | `(0x0F000DC0, 0)` |
-| `fixedlocmagic.cpp:86` `IceThorn_RUN` | `0X0F000104` | `(0x0F001040, 0)` |
-| `fixedlocmagic.cpp:95` `IceThorn_RUN` | `0X0F000105` | `(0x0F001050, 0)` |
-| `motioneffect.cpp:40–46` `MotionEffect::frameTexID` | `gfxID + gfxIndex (+ (direction - DIR_BEGIN) * gfxIDCount)` | `(gfxID << 4 \| dir, gfxIndex)` |
-| `motioneffect.cpp:56–57` | `retrieve(texID)` | `retrieve(identity, frame)` |
-| `motioneffect.cpp:26–27`, `basemagic.hpp:62–63` | assert `frameCount <= gfxIDCount` | assert `frameCount <= APNG frame count`, or drop |
-| `tools/followuidmagiceditor/src/magicdrawarea.cpp:114` | `gfxID + m_frame + gfxDirIndex * gfxIDCount` | `(gfxID << 4 \| gfxDirIndex, m_frame)` |
-| `tools/followuidmagiceditor/src/magicframedb.hpp` | one PNG per old key | one APNG per identity |
-
-`basemagic.hpp:75` (`gfxDirIndex() < gfxDirType`) and the frame timing in
-`basemagic.hpp:165–196` (`frame()`, `absFrame()`, `done()`) don't change.
+| `basemagic.hpp`, `basemagic.cpp` | `m_gfxEntry->frameCount` | `gfxFrameCount()`, from `g_magicDB->frameCount(m_gfxEntry, gfxDirIndex)`; `gfxSeqID()` is the identity, or `SYS_U32NIL` without gfx |
+| `attachmagic.cpp` `AttachMagic`, `Thunderbolt` | `gfxID + frame() + m_gfxDirIndex * gfxIDCount` | `retrieve(gfxSeqID(), frame())` |
+| `fixedlocmagic.cpp` `FixedLocMagic` | same | same |
+| `fixedlocmagic.cpp` `FireAshEffect_RUN` | `0X0F0000DC` | `(MagicDB::seqID(0X0F000DC, 0), 0)` |
+| `fixedlocmagic.cpp` `IceThorn_RUN` | `0X0F000104`, `0X0F000105` | `(MagicDB::seqID(0X0F00104, 0), 0)`, `(MagicDB::seqID(0X0F00105, 0), 0)` |
+| `fixedlocmagic.hpp` `IceThorn_RUN`, `SingleFrameEffect_RUN` | `m_gfxEntry->frameCount` | `m_gfxFrameCount` |
+| `followuidmagic.cpp` `drawViewOff` | `retrieve(frameTexID())` | `retrieve(gfxSeqID(), frame())`; `frameTexID()` is gone |
+| `followuidmagic.cpp` `targetOff` | `targetOffList[m_gfxDirIndex]` | `g_magicDB->head(gfxSeqID())` |
+| `motioneffect.cpp` `MotionEffect`, `HeroSpellMagicEffect` | `frameTexID()`, one `uint32_t` | `gfxSeqFrame()`, `(seqID, frame)` or empty; the direction is the motion's when `gfxDirType > 1` |
+| `motioneffect.hpp`, `motioneffect.cpp` `MotionAlignedEffect` | `m_gfxEntry->frameCount` | `m_gfxFrameCount` |
 
 #### Weapon 44 glow
 
@@ -889,13 +872,12 @@ weapon change.
 #### Rotation
 
 New, not in the client today. Each APNG has a head and a tail in its name
-(see [magic](#magic)). With `head == tail` (every APNG today, tails are all
-(0, 0) and heads only come from `targetOffList`), draw as now. Otherwise,
+(see [magic](#magic)). The client already uses the head as the hit point
+(`FollowUIDMagic::targetOff`), but all tails are still (0, 0), so it never
+rotates. Once the editor sets the tails, for an APNG with `head != tail`,
 `FollowUIDMagic` picks the nearest of the `gfxDirType` directions and rotates
 the frame around the head by the angle between `tail -> head` and the vector
-to the target, with `SDL_RenderTextureRotated`, and uses the head as the hit
-point instead of `targetOffList`. This needs the editor to set the tails
-first.
+to the target, with `SDL_RenderTextureRotated`.
 
 ### equip
 
@@ -1459,7 +1441,9 @@ a group must be numbered contiguously from 0. Any gap fails the run.
 Magic frames in a WIL file are not grouped by key bits, so sequences come from
 three sources, in this order:
 
-1. **`magicrecord.inc` entries.** For every `MagicGfxEntry` with a `gfxID` and
+1. **`magicrecord.inc` entries**, read from `--magic-record`,
+   `magicrecord_oldkey.inc` by default, where `gfxID` is still the old key of
+   the first frame. For every `MagicGfxEntry` with a `gfxID` and
    every direction `d` in `[0, gfxDirType)`:
    - frames start at `gfxID + d * gfxIDCount`,
    - the APNG keeps every contiguous frame present on disk, up to
@@ -1483,17 +1467,17 @@ three sources, in this order:
    - `gfxIDCount` defaults to `frameCount`, `gfxDirType` defaults to 1.
    - `targetOffList`, if present, must have exactly `gfxDirType` entries.
 
-   `MAGIC_RECORD_OVERRIDES` `{gfxID: frameCount}` fixes entries whose
-   frames are really several animations, until `magicrecord.inc` is fixed in
-   the client change: every entry with that gfxID keeps exactly `frameCount`
+   `MAGIC_RECORD_OVERRIDES` `{gfxID: frameCount}` fixes entries of
+   `magicrecord_oldkey.inc` whose frames are really several animations
+   (`common/src/magicrecord.inc` has the fix): every entry with that gfxID keeps exactly `frameCount`
    frames per direction. It is an error if no entry has that gfxID.
    - `0x0200012C: 3`: 阴阳法环 挨打 plays MagicEx2 images 300–305 as one
      6-frame animation, but 300–302 are the sustain loop and 303–305 are
      the hit. The hit is the hardcoded sequence `0x0200012F` below. See
      [magicrecord.inc](#magicrecordinc) for the record fix.
 
-   `MAGIC_RECORD_SKIPPED` lists gfxIDs of entries to ignore, also until
-   `magicrecord.inc` is fixed. It is an error if no entry has that gfxID.
+   `MAGIC_RECORD_SKIPPED` lists gfxIDs of entries of
+   `magicrecord_oldkey.inc` to ignore. It is an error if no entry has that gfxID.
    - `0x0200012A`: 阴阳法环 运行 loops image 298, the last spawn frame,
      instead of the sustain loop 300–302. Without skipping it, image 298
      would also be a 1-frame APNG `020012A0...`; now it is only frame 8 of
@@ -1724,7 +1708,8 @@ The tests use small synthetic frames and cover:
    `CONVERT_TYPES` and `TYPE_DIRS` for a type in another directory, as emoji
    does.
 2. Add its filename encoder/decoder to `NAME_CODECS`. Keep the offset in bits
-   0–23 and document the layout in this README and in the script's docstring.
+   0–23, as every type except magic does, and document the layout in this
+   README and in the script's docstring.
 3. Return its sequences from `collect_sequences()` as
    `{ident: [(path, dx, dy), ...]}` in frame order, where `ident` is what the
    encoder takes. If the key layout matches the `key >> 5` grouping, add a

@@ -41,6 +41,7 @@
 // fine as long as no code path exercised by this test dereferences them
 class PNGTexDB;
 class PNGTexOffDB;
+class MagicDB;
 class MapBinDB;
 class BGMusicDB;
 class SoundEffectDB;
@@ -59,7 +60,7 @@ PNGTexOffDB       *g_monsterDB       = nullptr;
 PNGTexOffDB       *g_weaponDB        = nullptr;
 PNGTexOffDB       *g_helmetDB        = nullptr;
 PNGTexOffDB       *g_equipDB         = nullptr;
-PNGTexOffDB       *g_magicDB         = nullptr;
+MagicDB           *g_magicDB         = nullptr;
 PNGTexOffDB       *g_standNPCDB      = nullptr;
 PNGTexOffDB       *g_selectCharDB    = nullptr;
 EmojiDB           *g_emojiDB         = nullptr;

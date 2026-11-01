@@ -15,6 +15,7 @@
 #include "mapbindb.hpp"
 #include "threadpool.hpp"
 #include "emojidb.hpp"
+#include "magicdb.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
@@ -25,6 +26,7 @@ extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
 extern EmojiDB       *g_emojiDB;
+extern MagicDB       *g_magicDB;
 extern BGMusicDB     *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
 
@@ -36,7 +38,6 @@ extern PNGTexDB *g_itemDB;
 
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_hairDB;
-extern PNGTexOffDB *g_magicDB;
 extern PNGTexOffDB *g_equipDB;
 extern PNGTexOffDB *g_weaponDB;
 extern PNGTexOffDB *g_helmetDB;

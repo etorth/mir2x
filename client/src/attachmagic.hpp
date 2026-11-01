@@ -41,7 +41,7 @@ class TaoYellowBlueRing: public AttachMagic
 {
     public:
         TaoYellowBlueRing()
-            : AttachMagic(u8"阴阳法环", u8"运行")
+            : AttachMagic(u8"阴阳法环", u8"持续")
         {}
 
     public:

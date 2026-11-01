@@ -17,7 +17,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X00000992,
+            .gfxID = 0X0000992,
             .frameCount = 10,
             .gfxDirType = 5,
             .onGround = 1,
@@ -32,7 +32,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0100005A,
+            .gfxID = 0X010005A,
             .frameCount = 20,
             .gfxDirType = 2,
             .onGround = 1,
@@ -48,38 +48,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000820,
+            .gfxID = 0X0000820,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X000003D4,
+            .gfxID = 0X00003D4,
             .frameCount = 3,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 31, -56},
-                { 48, -52},
-                { 62, -45},
-                { 70, -34},
-                { 70, -22},
-                { 65, -10},
-                { 53,  -1},
-                { 35,   4},
-                { 17,   4},
-                {  1,  -1},
-                {-14,  -8},
-                {-19, -17},
-                {-22, -31},
-                {-15, -42},
-                { -4, -51},
-                { 12, -57},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -93,7 +72,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X000002E4,
+            .gfxID = 0X00002E4,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
             .speed = 80,
@@ -102,7 +81,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X000002EE,
+            .gfxID = 0X00002EE,
             .frameCount = 10,
             .speed = 200,
         },
@@ -116,7 +95,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X000005AA,
+            .gfxID = 0X00005AA,
             .frameCount = 5,
         },
     },
@@ -129,29 +108,9 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X000001A4,
+            .gfxID = 0X00001A4,
             .frameCount = 5,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 35, -52},
-                { 53, -47},
-                { 68, -39},
-                { 77, -26},
-                { 76, -11},
-                { 68,   1},
-                { 54,  11},
-                { 33,  16},
-                { 13,  14},
-                { -6,  10},
-                {-20,   1},
-                {-29, -13},
-                {-28, -24},
-                {-22, -36},
-                { -6, -48},
-                { 15, -52},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -159,7 +118,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000244,
+            .gfxID = 0X0000244,
             .frameCount = 10,
         },
     },
@@ -172,38 +131,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000618,
+            .gfxID = 0X0000618,
             .frameCount = 9,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000668,
+            .gfxID = 0X0000668,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 25, -51},
-                { 44, -49},
-                { 61, -41},
-                { 72, -30},
-                { 76, -17},
-                { 72,  -2},
-                { 61,   8},
-                { 43,  16},
-                { 24,  18},
-                {  4,  16},
-                {-13,   8},
-                {-25,  -3},
-                {-28, -17},
-                {-23, -29},
-                {-12, -41},
-                {  4, -47},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -211,7 +149,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000708,
+            .gfxID = 0X0000708,
             .frameCount = 10,
         },
     },
@@ -224,14 +162,14 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",  // don't use 附着
-            .gfxID = 0X0000006E,
+            .gfxID = 0X000006E,
             .frameCount = 10,
         },
 
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000938,
+            .gfxID = 0X0000938,
             .frameCount = 10,
         },
     },
@@ -243,7 +181,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000118,
+            .gfxID = 0X0200118,
             .frameCount = 8,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -257,9 +195,8 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X030002D0,
+            .gfxID = 0X03002D0,
             .frameCount = 8,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -288,7 +225,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000596,
+            .gfxID = 0X0000596,
             .frameCount = 12,
             .motion = MOTION_SPELL1,
         },
@@ -321,7 +258,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000033E,
+            .gfxID = 0X000033E,
             .frameCount = 9,
             .motion = MOTION_SPELL1,
         },
@@ -329,14 +266,14 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X00000347,
+            .gfxID = 0X0000347,
             .frameCount = 10,
         },
 
         {
-            .stage = u8"运行",
+            .stage = u8"持续",
             .type  = u8"附着",
-            .gfxID = 0X00000352,
+            .gfxID = 0X0000352,
             .frameCount = 3,
             .loop = 1,
         },
@@ -344,7 +281,7 @@
         {
             .stage = u8"挨打",
             .type  = u8"附着",
-            .gfxID = 0X00000355,
+            .gfxID = 0X0000355,
             .frameCount = 3,
         },
     },
@@ -400,9 +337,8 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000071C,
+            .gfxID = 0X000071C,
             .frameCount = 8,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
@@ -485,7 +421,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000258,
+            .gfxID = 0X0000258,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -493,7 +429,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X00000262,
+            .gfxID = 0X0000262,
             .frameCount = 10,
         },
     },
@@ -534,7 +470,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000003C,
+            .gfxID = 0X000003C,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -542,7 +478,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X00000046,
+            .gfxID = 0X0000046,
             .frameCount = 10,
         },
     },
@@ -561,9 +497,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X00000546,
+            .gfxID = 0X0000546,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -588,7 +523,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000005A,
+            .gfxID = 0X000005A,
             .frameCount = 8,
             .motion = MOTION_SPELL1,
         },
@@ -615,18 +550,16 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X000007B2,
+            .gfxID = 0X00007B2,
             .frameCount = 10,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0100049C,
+            .gfxID = 0X010049C,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -645,9 +578,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X00000140,
+            .gfxID = 0X0000140,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -690,7 +622,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000474,
+            .gfxID = 0X0000474,
             .frameCount = 10,
         },
     },
@@ -730,7 +662,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X000000C8,
+            .gfxID = 0X00000C8,
             .frameCount = 10,
         },
     },
@@ -770,7 +702,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X000000AA,
+            .gfxID = 0X00000AA,
             .frameCount = 10,
         },
     },
@@ -794,7 +726,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000276,
+            .gfxID = 0X0000276,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -802,7 +734,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X00000280,
+            .gfxID = 0X0000280,
             .frameCount = 10,
         },
     },
@@ -826,7 +758,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000032A,
+            .gfxID = 0X000032A,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -866,7 +798,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000334,
+            .gfxID = 0X0000334,
             .frameCount = 10,
         },
     },
@@ -889,7 +821,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000000,
+            .gfxID = 0X0000000,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -897,7 +829,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0000000A,
+            .gfxID = 0X000000A,
             .frameCount = 20,
         },
     },
@@ -954,7 +886,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000038E,
+            .gfxID = 0X000038E,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -962,7 +894,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X00000398,
+            .gfxID = 0X0000398,
             .frameCount = 5,
             .onGround = 1,
             .loop = 1,
@@ -991,16 +923,15 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0000071C,
+            .gfxID = 0X000071C,
             .frameCount = 8,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0000076C,
+            .gfxID = 0X000076C,
             .frameCount = 30,
             .gfxDirType = 2,
             .onGround = 1,
@@ -1029,7 +960,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X000003AC,
+            .gfxID = 0X00003AC,
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1038,7 +969,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X000003B6,
+            .gfxID = 0X00003B6,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1073,7 +1004,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X010003D4,
+            .gfxID = 0X01003D4,
             .frameCount = 8,
             .gfxDirType = 1,
         },
@@ -1094,9 +1025,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X000000E6,
+            .gfxID = 0X00000E6,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -1117,9 +1047,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X000005BE,
+            .gfxID = 0X00005BE,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -1156,7 +1085,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000294,
+            .gfxID = 0X0000294,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -1164,7 +1093,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0000029E,
+            .gfxID = 0X000029E,
             .frameCount = 10,
         },
     },
@@ -1188,7 +1117,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000A1E,
+            .gfxID = 0X0000A1E,
             .frameCount = 19,
             .motion = MOTION_SPELL1,
             .speed = 180,
@@ -1214,7 +1143,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000082,
+            .gfxID = 0X0000082,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -1222,7 +1151,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0000008C,
+            .gfxID = 0X000008C,
             .frameCount = 20,
         },
     },
@@ -1248,7 +1177,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000302,
+            .gfxID = 0X0000302,
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1257,7 +1186,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0000030C,
+            .gfxID = 0X000030C,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1279,9 +1208,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X010006F4,
+            .gfxID = 0X01006F4,
             .frameCount = 10,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -1315,9 +1243,8 @@
 
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X000008DE,
+            .gfxID = 0X00008DE,
             .frameCount = 10,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -1356,23 +1283,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000CB2,
+            .gfxID = 0X0000CB2,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000D02,
+            .gfxID = 0X0000D02,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 1,
-            .targetOffList
-            {
-                { 24, -14},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1380,7 +1301,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000D0C,
+            .gfxID = 0X0000D0C,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1406,23 +1327,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000D20,
+            .gfxID = 0X0000D20,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000D70,
+            .gfxID = 0X0000D70,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 1,
-            .targetOffList
-            {
-                { 23, -18},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1430,7 +1345,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000D7A,
+            .gfxID = 0X0000D7A,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1457,38 +1372,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000A3C,
+            .gfxID = 0X0000A3C,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000A8C,
+            .gfxID = 0X0000A8C,
             .frameCount = 3,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 24, -31},
-                { 34, -30},
-                { 42, -27},
-                { 48, -22},
-                { 49, -16},
-                { 48,  -9},
-                { 43,  -4},
-                { 33,   0},
-                { 23,   2},
-                { 15,  -1},
-                {  6,  -2},
-                {  0,  -8},
-                { -3, -14},
-                {  0, -22},
-                {  5, -28},
-                { 14, -32},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1496,7 +1390,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000B2C,
+            .gfxID = 0X0000B2C,
             .frameCount = 10,
         },
     },
@@ -1523,22 +1417,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000B40,
+            .gfxID = 0X0000B40,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000B90,
+            .gfxID = 0X0000B90,
             .frameCount = 6,
             .gfxDirType = 1,
-            .targetOffList
-            {
-                { 23, -22},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1546,7 +1435,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000B9A,
+            .gfxID = 0X0000B9A,
             .frameCount = 10,
         },
     },
@@ -1571,38 +1460,17 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X00000BAE,
+            .gfxID = 0X0000BAE,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X00000BFE,
+            .gfxID = 0X0000BFE,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 23, -34},
-                { 30, -33},
-                { 38, -31},
-                { 42, -26},
-                { 44, -21},
-                { 42, -17},
-                { 38, -13},
-                { 31, -11},
-                { 25, -10},
-                { 17, -10},
-                { 11, -13},
-                {  6, -16},
-                {  6, -21},
-                {  6, -26},
-                { 11, -29},
-                { 18, -32},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1610,7 +1478,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X00000C9E,
+            .gfxID = 0X0000C9E,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1638,9 +1506,8 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X01000000,
+            .gfxID = 0X0100000,
             .frameCount = 10,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
@@ -1672,40 +1539,19 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0100015E,
+            .gfxID = 0X010015E,
             .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 7,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X010001AE,
+            .gfxID = 0X01001AE,
             .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 5,
-            .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
-            .targetOffList
-            {
-                { 29, -46},
-                { 41, -45},
-                { 53, -40},
-                { 57, -33},
-                { 57, -25},
-                { 54, -15},
-                { 31,  -7},
-                { 31,  -8},
-                { 17,  -6},
-                {  3,  -8},
-                {  0, -17},
-                { -5, -21},
-                {-12, -30},
-                { -3, -39},
-                {  4, -46},
-                { 17, -48},
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -1713,7 +1559,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X0100024E,
+            .gfxID = 0X010024E,
             .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 10,
             .gfxDirType = 1,
@@ -1741,7 +1587,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X01000406,
+            .gfxID = 0X0100406,
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1750,7 +1596,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X01000410,
+            .gfxID = 0X0100410,
             .frameCount = 16,
             .gfxDirType = 1,
         },
@@ -1774,12 +1620,12 @@
     .seffBase = 73,
     .gfxList
     {
-        // 击风 and 风震天 are actually using same gfx
-        // but 风震天 splits the gfx into three parts to present moving magic
+        // 击风 and 风震天 share 启动 and 裂解
+        // 风震天 运行 is the last 5 frames of 击风 运行, moving straight from the caster
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X010007B2, // same with 击风
+            .gfxID = 0X01007B2, // same with 击风
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1788,15 +1634,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X010007BC,
-            .frameCount = 10,
-            .gfxDirType = 1,
-        },
-
-        {
-            .stage = u8"运行",
-            .type  = u8"固定",
-            .gfxID = 0X010007C6,
+            .gfxID = 0X01007C6,
             .frameCount = 5,
             .gfxDirType = 1,
         },
@@ -1804,7 +1642,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"固定",
-            .gfxID = 0X010007D0,
+            .gfxID = 0X01007D0,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1831,7 +1669,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X010007B2,
+            .gfxID = 0X01007B2,
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1840,7 +1678,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X010007BC,
+            .gfxID = 0X01007BC,
             .frameCount = 15,
             .gfxDirType = 1,
         },
@@ -1848,7 +1686,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"固定",
-            .gfxID = 0X010007D0,
+            .gfxID = 0X01007D0,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -1873,7 +1711,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X01000136,
+            .gfxID = 0X0100136,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -1881,7 +1719,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X01000140,
+            .gfxID = 0X0100140,
             .frameCount = 10,
         },
     },
@@ -1921,7 +1759,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X0100074E,
+            .gfxID = 0X010074E,
             .frameCount = 10,
         },
     },
@@ -1961,7 +1799,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X0100008C,
+            .gfxID = 0X010008C,
             .frameCount = 10,
         },
     },
@@ -1986,7 +1824,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000028,
+            .gfxID = 0X0200028,
             .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 10,
             .gfxDirType = 1,
@@ -2009,9 +1847,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X02000208,
+            .gfxID = 0X0200208,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 1,
         },
     },
@@ -2102,7 +1939,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X0200003C,
+            .gfxID = 0X020003C,
             .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 10,
             .gfxDirType = 1,
@@ -2128,7 +1965,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000000,
+            .gfxID = 0X0200000,
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -2137,7 +1974,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0200000A,
+            .gfxID = 0X020000A,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -2161,7 +1998,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000244,
+            .gfxID = 0X0200244,
             .frameCount = 10,
             .gfxDirType = 8,
         },
@@ -2188,9 +2025,8 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X01000000,
+            .gfxID = 0X0100000,
             .frameCount = 10,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2224,7 +2060,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X020001D6,
+            .gfxID = 0X02001D6,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -2251,7 +2087,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000050,
+            .gfxID = 0X0200050,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -2319,7 +2155,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X020000DC,
+            .gfxID = 0X02000DC,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -2327,7 +2163,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X020000E6,
+            .gfxID = 0X02000E6,
             .frameCount = 10,
         },
     },
@@ -2351,7 +2187,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X020001AE,
+            .gfxID = 0X02001AE,
             .frameCount = 7,
             .motion = MOTION_ATTACKMODE,
         },
@@ -2385,26 +2221,26 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X02000122,
+            .gfxID = 0X0200122,
             .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 9,
         },
 
         {
-            .stage = u8"运行",
+            .stage = u8"持续",
             .type  = u8"附着",
-            .gfxID = 0X0200012A, // use special gfx, this one uses last frame of 阴阳法环:运行
+            .gfxID = 0X020012C,
             .modColor = colorf::RGBA(255, 255, 255, 100),
-            .frameCount = 1,
+            .frameCount = 3,
             .loop = 1,
         },
 
         {
             .stage = u8"挨打",
             .type  = u8"附着",
-            .gfxID = 0X0200012C,
+            .gfxID = 0X020012F,
             .modColor = colorf::RGBA(255, 255, 255, 100),
-            .frameCount = 6,
+            .frameCount = 3,
         },
     },
 },
@@ -2429,7 +2265,7 @@
         {
             .stage = u8"启动",
             .type  = u8"附着",
-            .gfxID = 0X02000168,
+            .gfxID = 0X0200168,
             .frameCount = 10,
             .motion = MOTION_SPELL1,
         },
@@ -2437,7 +2273,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X02000172,
+            .gfxID = 0X0200172,
             .frameCount = 10,
         },
     },
@@ -2456,9 +2292,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X030003D4,
+            .gfxID = 0X03003D4,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2470,7 +2305,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0F0000C8,
+            .gfxID = 0X0F000C8,
             .frameCount = 1,
             .gfxDirType = 8,
             .onGround = 1,
@@ -2485,7 +2320,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000132,
+            .gfxID = 0X0300132,
             .frameCount = 8,
             .gfxDirType = 1,
         },
@@ -2506,9 +2341,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X03000258,
+            .gfxID = 0X0300258,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2520,7 +2354,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0F0000F0,
+            .gfxID = 0X0F000F0,
             .frameCount = 1,
             .gfxDirType = 8,
             .onGround = 1,
@@ -2541,9 +2375,8 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X030003C0,
+            .gfxID = 0X03003C0,
             .frameCount = 1,
-            .gfxIDCount = 1,
             .gfxDirType = 1,
             .loop = 1,
         },
@@ -2551,7 +2384,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X010003A2,
+            .gfxID = 0X01003A2,
             .frameCount = 6,
         },
     },
@@ -2569,9 +2402,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X03000370,
+            .gfxID = 0X0300370,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2589,9 +2421,8 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X03000320,
+            .gfxID = 0X0300320,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
             .loop = 1,
         },
@@ -2599,7 +2430,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X010003A2,
+            .gfxID = 0X01003A2,
             .frameCount = 6,
         },
     },
@@ -2661,7 +2492,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X030002A8,
+            .gfxID = 0X03002A8,
             .frameCount = 10,
         },
     },
@@ -2673,7 +2504,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X0300003C,
+            .gfxID = 0X030003C,
             .frameCount = 18,
         },
     },
@@ -2691,7 +2522,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000064,
+            .gfxID = 0X0300064,
             .frameCount = 10,
         },
     },
@@ -2709,7 +2540,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000118,
+            .gfxID = 0X0300118,
             .frameCount = 10,
         },
     },
@@ -2721,7 +2552,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0300003C,
+            .gfxID = 0X030003C,
             .frameCount = 18,
         },
     },
@@ -2733,7 +2564,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000780,
+            .gfxID = 0X0300780,
             .frameCount = 10,
         },
     },
@@ -2751,9 +2582,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X03000794,
+            .gfxID = 0X0300794,
             .frameCount = 5,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2771,9 +2601,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X03000208,
+            .gfxID = 0X0300208,
             .frameCount = 7,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2793,9 +2622,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X030001B8,
+            .gfxID = 0X03001B8,
             .frameCount = 6,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2834,9 +2662,8 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X030004D8,
+            .gfxID = 0X03004D8,
             .frameCount = 1,
-            .gfxIDCount = 10,
             .gfxDirType = 16,
             .loop = 1,
         },
@@ -2844,7 +2671,7 @@
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X010003A2,
+            .gfxID = 0X01003A2,
             .frameCount = 6,
         },
     },
@@ -2862,9 +2689,8 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X030007EE,
+            .gfxID = 0X03007EE,
             .frameCount = 5,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -2882,36 +2708,16 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X03000578,
+            .gfxID = 0X0300578,
             .frameCount = 1,
-            .gfxIDCount = 10,
             .gfxDirType = 16,
-            .targetOffList
-            {
-                { 29, -70},
-                { 48, -65},
-                { 65, -59},
-                { 73, -50},
-                { 76, -38},
-                { 71, -27},
-                { 63, -16},
-                { 48, -11},
-                { 31,  -8},
-                { 13, -11},
-                {  1, -17},
-                { -8, -26},
-                {-13, -37},
-                { -8, -47},
-                {  2, -58},
-                { 16, -63},
-            },
             .loop = 1,
         },
 
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X010003A2,
+            .gfxID = 0X01003A2,
             .frameCount = 6,
         },
     },
@@ -2923,7 +2729,7 @@
         {
             .stage = u8"运行",
             .type  = u8"固定",
-            .gfxID = 0X0F0000D2,
+            .gfxID = 0X0F000D2,
             .frameCount = 1,
             .gfxDirType = 1,
             .onGround = 1,
@@ -2986,13 +2792,9 @@
         {
             .stage = u8"运行",
             .type  = u8"跟随",
-            .gfxID = 0X03000050,
+            .gfxID = 0X0300050,
             .frameCount = 6,
             .gfxDirType = 1,
-            .targetOffList
-            {
-                { 22, -12},
-            },
             .loop = 1,
         },
     },
@@ -3010,7 +2812,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000622,
+            .gfxID = 0X0300622,
             .frameCount = 10,
             .gfxDirType = 1,
         },
@@ -3023,7 +2825,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X03000104,
+            .gfxID = 0X0300104,
             .frameCount = 6,
         },
     },
@@ -3035,7 +2837,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X030008CA,
+            .gfxID = 0X03008CA,
             .frameCount = 20,
         },
     },
@@ -3047,7 +2849,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X030008A2,
+            .gfxID = 0X03008A2,
             .frameCount = 7,
         },
     },
@@ -3059,9 +2861,8 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X03000708,
+            .gfxID = 0X0300708,
             .frameCount = 7, // skip last 3 frames
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
     },
@@ -3081,7 +2882,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
-            .gfxID = 0X03000762,
+            .gfxID = 0X0300762,
             .frameCount = 18,
             .gfxDirType = 1,
         },
@@ -3094,7 +2895,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0400005A,
+            .gfxID = 0X040005A,
             .frameCount = 5,
             .gfxDirType = 1,
         },
@@ -3113,16 +2914,15 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X04000003,
+            .gfxID = 0X0400003,
             .frameCount = 3,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X0100033E,
+            .gfxID = 0X010033E,
             .frameCount = 6,
             .gfxDirType = 1,
         },
@@ -3157,7 +2957,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X040000C8,
+            .gfxID = 0X04000C8,
             .frameCount = 5,
             .gfxDirType = 1,
         },
@@ -3176,16 +2976,15 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X04000071,
+            .gfxID = 0X0400071,
             .frameCount = 3,
-            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
         {
             .stage = u8"裂解",
             .type  = u8"附着",
-            .gfxID = 0X01000316,
+            .gfxID = 0X0100316,
             .frameCount = 6,
             .gfxDirType = 1,
         },
