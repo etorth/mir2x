@@ -123,11 +123,11 @@ class MainWindow(QMainWindow):
         file_menu.addAction("&Quit", QKeySequence.StandardKey.Quit, self.close)
 
         edit_menu = self.menuBar().addMenu("&Edit")
-        self.non_rotate_action = edit_menu.addAction("&Non-Rotate")
-        self.non_rotate_action.setShortcut(Qt.Key.Key_N)
-        self.non_rotate_action.setCheckable(True)
-        self.non_rotate_action.triggered.connect(self.on_non_rotate_triggered)
-        self.non_rotate_action.setStatusTip("head == tail in all directions of the current magic, never rotated")
+        self.tail_on_head_action = edit_menu.addAction("&Tail on Head")
+        self.tail_on_head_action.setShortcut(Qt.Key.Key_T)
+        self.tail_on_head_action.setCheckable(True)
+        self.tail_on_head_action.triggered.connect(self.on_tail_on_head_triggered)
+        self.tail_on_head_action.setStatusTip("tail == head in all directions of the current magic, so it's never rotated")
 
         magic_menu = self.menuBar().addMenu("&Magic")
         self.magic_actions = {}
@@ -156,8 +156,8 @@ class MainWindow(QMainWindow):
         count = self.dirty_count()
         self.save_action.setEnabled(count > 0)
         self.revert_action.setEnabled(count > 0)
-        self.non_rotate_action.setEnabled(self.magic_dir is not None and self.current is not None)
-        self.non_rotate_action.setChecked(self.non_rotate())
+        self.tail_on_head_action.setEnabled(self.magic_dir is not None and self.current is not None)
+        self.tail_on_head_action.setChecked(self.tail_on_head())
 
         title = "followuidmagiceditor"
         if self.magic_dir:
@@ -179,7 +179,10 @@ class MainWindow(QMainWindow):
                                       buttons.Save | buttons.Discard | buttons.Cancel, buttons.Save)
         if answer == buttons.Save:
             return self.save()
-        return answer == buttons.Discard
+        if answer == buttons.Discard:
+            self.revert()
+            return True
+        return False
 
     def save(self):
         if not self.magic_dir:
@@ -209,11 +212,8 @@ class MainWindow(QMainWindow):
             event.ignore()
 
     def choose_magic_dir(self):
-        if not self.confirm_discard():
-            return
-
         path = QFileDialog.getExistingDirectory(self, "Magic APNG Dir", self.magic_dir.path if self.magic_dir else "")
-        if path:
+        if path and self.confirm_discard():
             self.open_magic_dir(path)
 
     def open_magic_dir(self, path):
@@ -273,7 +273,7 @@ class MainWindow(QMainWindow):
             seqs = self.current_seqs()
 
             pane.magic_section.update_magic(name, self.records[name], entry, shared)
-            pane.entry_section.update_entry(entry, self.frame_count, self.non_rotate(),
+            pane.entry_section.update_entry(entry, self.frame_count, self.tail_on_head(),
                                             [d for d, s in enumerate(seqs) if s is None])
             pane.direction_table.update_seqs(seqs)
 
@@ -302,18 +302,18 @@ class MainWindow(QMainWindow):
         else:
             self.timer.stop()
 
-    def non_rotate(self):
+    def tail_on_head(self):
         if self.magic_dir is None or self.current is None:
             return False
         entry = self.current[1]
-        return self.magic_dir.is_non_rotate(entry["gfxID"], entry["gfxDirType"])
+        return self.magic_dir.is_tail_on_head(entry["gfxID"], entry["gfxDirType"])
 
-    def on_non_rotate_triggered(self, on):
+    def on_tail_on_head_triggered(self, on):
         if self.magic_dir is None or self.current is None:
             return
 
         entry = self.current[1]
-        self.magic_dir.set_non_rotate(entry["gfxID"], entry["gfxDirType"], on)
+        self.magic_dir.set_tail_on_head(entry["gfxID"], entry["gfxDirType"], on)
         self.refresh()
 
     def on_point_picked(self, direction, which, point):
@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
         if seq is None:
             return
 
-        if self.non_rotate():
+        if self.tail_on_head():
             self.magic_dir.set_points(seq, head=point, tail=point)
         else:
             self.magic_dir.set_points(seq, **{which: point})

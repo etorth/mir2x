@@ -61,12 +61,12 @@ Python version it was built for.
   the button and drag to move the point; the drag stays on the direction it
   starts on, and the point is clamped to that frame. An edited direction has
   a yellow `*` label, and the title shows the number of unsaved APNGs.
-- **Edit > Non-Rotate** (N) makes the current magic isotropic: it sets
-  every direction's tail to its head, then left and right click/drag both
-  move head and tail together. Turning it off restores the tails from
-  before it was turned on, and right click sets the tail again. It's per `gfxID`, so magics sharing the APNGs
-  share it, and it's on at load when every direction already has
-  head == tail.
+- **Edit > Tail on Head** (T) puts every direction's tail on its head,
+  so the magic is never rotated; then left and right click/drag both move
+  head and tail together. Turning it off restores the tails from before it
+  was turned on, and right click sets the tail again. It's per `gfxID`, so
+  magics sharing the APNGs share it, and it's on at load when every
+  direction already has head == tail.
 - **File > Save** (Ctrl+S) renames the edited APNGs, **File > Revert**
   discards the edits. Edits of all magics are kept until then; Open, Reload
   and Quit ask to save or discard them.

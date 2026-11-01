@@ -66,12 +66,12 @@ class MagicSection(FormSection):
 
 class GfxEntrySection(FormSection):
     FIELDS = ("gfxID", "Stage", "Type", "Directions", "Frames", "Speed", "Loop", "Motion", "On ground", "Mod color",
-              "Non-rotate", "Missing")
+              "Tail on head", "Missing")
 
     def __init__(self, parent=None):
         super().__init__("Gfx Entry", parent)
 
-    def update_entry(self, entry, frame_count, non_rotate, missing):
+    def update_entry(self, entry, frame_count, tail_on_head, missing):
         if entry is None:
             self.set_values()
             return
@@ -80,7 +80,7 @@ class GfxEntrySection(FormSection):
         self.set_values(gfxid=f"{entry['gfxID']:07X}", stage=entry["stage"], type=entry["type"],
                         directions=entry["gfxDirType"], frames=frames, speed=entry["speed"], loop=entry["loop"],
                         motion=entry["motion"], on_ground=entry["onGround"], mod_color=f"0x{entry['modColor']:08X}",
-                        non_rotate="yes" if non_rotate else "no",
+                        tail_on_head="yes" if tail_on_head else "no",
                         missing=", ".join(map(str, missing)) if missing else NONE_TEXT)
 
 

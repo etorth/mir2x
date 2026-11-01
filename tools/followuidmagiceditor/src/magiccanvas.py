@@ -23,7 +23,7 @@ from PySide6.QtWidgets import QWidget
 DEFAULT_RADIUS = 160.0
 DEFAULT_ZOOM = 1.0
 MIN_ZOOM = 0.25
-MAX_ZOOM = 8.0
+MAX_ZOOM = 15.0
 
 
 class MagicCanvas(QWidget):
@@ -236,6 +236,10 @@ class MagicCanvas(QWidget):
         super().mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
+        if event.angleDelta().y() == 0:
+            event.ignore()
+            return
+
         factor = 1.25 if event.angleDelta().y() > 0 else 0.8
         pos = event.position()
         scene_pos = self.to_scene(pos)

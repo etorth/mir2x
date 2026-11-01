@@ -5,7 +5,7 @@ are the sequence ID: gfxID << 4 | direction. Head and tail live in the file name
 Setting them only changes memory, save() renames the changed APNGs, which only
 changes their head/tail digits.
 
-head == tail means the gfx is non-rotate. Non-rotate is a per-gfxID editing mode,
+head == tail means the gfx is never rotated. "Tail on head" is a per-gfxID editing mode,
 derived from the names until it's set: on means all directions have head == tail.
 """
 
@@ -96,8 +96,8 @@ class MagicDir:
         if not seqs:
             raise ValueError(f"no magic APNG in {self.path}")
         self.seqs = seqs
-        self.non_rotate = {}
-        self.rotate_tails = {}  # gfxID -> {seq: tail}, tails before non-rotate was turned on
+        self.tail_on_head = {}
+        self.free_tails = {}  # gfxID -> {seq: tail}, tails before tail on head was turned on
 
     def get(self, gfx_id, direction):
         return self.seqs.get(seq_id(gfx_id, direction))
@@ -112,27 +112,27 @@ class MagicDir:
     def gfx_seqs(self, gfx_id, dir_count):
         return [seq for seq in (self.get(gfx_id, d) for d in range(dir_count)) if seq]
 
-    def is_non_rotate(self, gfx_id, dir_count):
-        if gfx_id in self.non_rotate:
-            return self.non_rotate[gfx_id]
+    def is_tail_on_head(self, gfx_id, dir_count):
+        if gfx_id in self.tail_on_head:
+            return self.tail_on_head[gfx_id]
 
         seqs = self.gfx_seqs(gfx_id, dir_count)
         return bool(seqs) and all(seq.head == seq.tail for seq in seqs)
 
-    def set_non_rotate(self, gfx_id, dir_count, on):
+    def set_tail_on_head(self, gfx_id, dir_count, on):
         """Turning on sets every tail to its head, turning off restores the tails from before."""
-        if on == self.is_non_rotate(gfx_id, dir_count):
+        if on == self.is_tail_on_head(gfx_id, dir_count):
             return
 
-        self.non_rotate[gfx_id] = on
+        self.tail_on_head[gfx_id] = on
         seqs = self.gfx_seqs(gfx_id, dir_count)
 
         if on:
-            self.rotate_tails[gfx_id] = {seq: seq.tail for seq in seqs}
+            self.free_tails[gfx_id] = {seq: seq.tail for seq in seqs}
             for seq in seqs:
                 seq.tail = seq.head
         else:
-            for seq, tail in self.rotate_tails.pop(gfx_id, {}).items():
+            for seq, tail in self.free_tails.pop(gfx_id, {}).items():
                 seq.tail = tail
 
     def dirty_seqs(self):
@@ -142,8 +142,8 @@ class MagicDir:
         for seq in self.dirty_seqs():
             seq.head = seq.saved_head
             seq.tail = seq.saved_tail
-        self.non_rotate = {}
-        self.rotate_tails = {}
+        self.tail_on_head = {}
+        self.free_tails = {}
 
     def save(self):
         """Rename every edited APNG, returns [(old name, new name)].

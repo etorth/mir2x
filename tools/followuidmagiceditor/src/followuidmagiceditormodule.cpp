@@ -6,7 +6,7 @@
 //     followuidmagiceditor.magic_gfx_entry("火球术", "运行")  # entry resolved through DBCOM_MAGICGFXENTRY, or None
 //
 // a gfx entry is a dict, gfxID is None if the entry has no gfx
-// magic_gfx_entry() follows .ref, its "ref" is {"name", "stage"} of the referencing entry, or None
+// magic_gfx_entry() follows .ref, its "ref" is {"name", "stage", "modColor"} of the referencing entry, or None
 
 #include <string>
 #include <string_view>
