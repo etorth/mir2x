@@ -1,8 +1,8 @@
 // followuidmagiceditor: python module of read-only DBCOM magic queries, header-only, used by main.py
 //
 //     import followuidmagiceditor
-//     followuidmagiceditor.magic_names()                    # ["物理攻击", ...] in magic ID order
-//     followuidmagiceditor.magic_record("火球术")            # {"id", "name", "elem", "gfxList"}, raises KeyError
+//     followuidmagiceditor.magic_names()                      # ["物理攻击", ...] in magic ID order
+//     followuidmagiceditor.magic_record("火球术")             # {"id", "name", "elem", "gfxList"}, raises KeyError
 //     followuidmagiceditor.magic_gfx_entry("火球术", "运行")  # entry resolved through DBCOM_MAGICGFXENTRY, or None
 //
 // a gfx entry is a dict, gfxID is None if the entry has no gfx
@@ -15,7 +15,6 @@
 #include "dbcomid.hpp"
 
 namespace nb = nanobind;
-
 namespace
 {
     nb::object u8Str(const char8_t *s)
@@ -97,7 +96,8 @@ NB_MODULE(followuidmagiceditor, m)
         d["elem"   ] = u8Str(mr.elem);
         d["gfxList"] = gfxList;
         return d;
-    }, nb::arg("name"));
+    },
+    nb::arg("name"));
 
     m.def("magic_gfx_entry", [](const std::string &name, const std::string &stage) -> nb::object
     {
@@ -107,5 +107,7 @@ NB_MODULE(followuidmagiceditor, m)
             return d;
         }
         return nb::none();
-    }, nb::arg("name"), nb::arg("stage"));
+    },
+    nb::arg("name"),
+    nb::arg("stage"));
 }

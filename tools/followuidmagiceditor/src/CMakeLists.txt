@@ -24,7 +24,7 @@ endif()
 set(nanobind_DIR "${MIR2X_NANOBIND_CMAKE_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(followuidmagiceditor NB_STATIC dbcommodule.cpp)
+nanobind_add_module(followuidmagiceditor NB_STATIC followuidmagiceditormodule.cpp)
 
 target_include_directories(followuidmagiceditor PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
 target_include_directories(followuidmagiceditor PRIVATE ${CMAKE_BINARY_DIR}/config_file)
