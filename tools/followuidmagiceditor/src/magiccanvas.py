@@ -77,7 +77,7 @@ class MagicCanvas(QWidget):
         self.update()
 
     def anchor(self, direction):
-        if self.dir_count <= 1:
+        if self.dir_count == 0:
             return QPointF(0, 0)
         angle = 2 * math.pi * direction / self.dir_count
         return QPointF(self.radius * math.sin(angle), -self.radius * math.cos(angle))
@@ -119,7 +119,7 @@ class MagicCanvas(QWidget):
         painter.translate(self.origin())
         painter.scale(self.zoom, self.zoom)
 
-        if self.dir_count > 1:
+        if self.dir_count > 0:
             pen = QPen(QColor(60, 60, 60))
             pen.setCosmetic(True)
             painter.setPen(pen)
