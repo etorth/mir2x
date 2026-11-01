@@ -53,7 +53,8 @@ Python version it was built for.
   magic. Magics sharing a `gfxID` share the same APNGs, so editing one
   edits all of them; the info pane lists them.
 - The canvas shows direction `i` of `N` at `i * 360 / N` degrees clockwise
-  from up. Each frame is drawn at its anchor (white cross) plus its offset.
+  from up. Each frame is drawn at its anchor (white cross) plus its offset;
+  a blue line links the anchor to the frame's top-left corner.
   The head is red, the tail is cyan, and the yellow line is `tail -> head`.
   A red X is a missing APNG.
 - **Left click** sets the head and **right click** sets the tail of the

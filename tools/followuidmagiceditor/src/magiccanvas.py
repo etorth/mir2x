@@ -1,7 +1,8 @@
 """Canvas of followuidmagiceditor: all directions of one magic gfx on a circle.
 
 Direction i of N is placed at i * 360 / N degrees clockwise from up, its frame is drawn at anchor + (dx, dy).
-The anchors are on the gray circle, a yellow "*" label is an unsaved direction.
+The anchors are on the gray circle, a blue line links each anchor to its frame's top-left corner.
+A yellow "*" label is an unsaved direction.
 The direction under the mouse, which a click edits, has a green border, the selected one is orange.
 Head (red) and tail (cyan) are anchor relative, the tail -> head line is yellow.
 
@@ -164,6 +165,10 @@ class MagicCanvas(QWidget):
         painter.setPen(pen)
         painter.drawText(rect.topLeft() + QPointF(2, -2), f"{direction}*" if seq.dirty else str(direction))
         self._draw_cross(painter, anchor, 3)
+
+        pen.setColor(QColor(90, 140, 255))
+        painter.setPen(pen)
+        painter.drawLine(anchor, rect.topLeft())
 
         head = anchor + QPointF(*seq.head)
         tail = anchor + QPointF(*seq.tail)
