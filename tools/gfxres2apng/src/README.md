@@ -305,7 +305,8 @@ The offset, head and tail all use the same anchor:
 - **Tail** is a point in the tail area of the gfx (for example, the tail of a
   fireball). The `tail -> head` vector is the gfx's flying direction, so the
   client can rotate the gfx around the head to point at the target. Tails are
-  (0, 0) for now and will be set in the editor (`followuidmagiceditor`).
+  (0, 0) for now and are set in the editor
+  ([`followuidmagiceditor`](../../followuidmagiceditor/README.md)).
 - **head == tail** means the gfx is isotropic and is never rotated.
 
 The direction index is not a real flying direction: it selects one of the
@@ -773,10 +774,11 @@ are to `client/src` unless another directory is given.
 4. **Convert the real resource repository** and rebuild with it. Old
    resources don't work with the new client, and new resources don't work
    with the old client.
-5. **Later, a new `followuidmagiceditor`:** set the tails and fix the heads,
-   and write them back into the APNG names. The old Qt editor still uses
-   `gfxIDCount` and one PNG per old key, so it is no longer built
-   (`tools/CMakeLists.txt`); its source is kept until it is replaced.
+5. **New `followuidmagiceditor`. Done.** It sets the tails and fixes the
+   heads by renaming the APNGs, see
+   [its README](../../followuidmagiceditor/README.md). After editing, the
+   APNG names are the source of the heads and tails: re-running the converter
+   resets them to the seeded heads and (0, 0) tails.
 
 `common/src/magicrecord.inc` no longer has the old `gfxID` and `gfxIDCount`,
 so the converter reads `magicrecord_oldkey.inc` next to the script by default:

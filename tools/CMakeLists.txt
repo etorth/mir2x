@@ -17,6 +17,7 @@ add_subdirectory(monsterwil2png)
 add_subdirectory(npcgen)
 add_subdirectory(zsdbmaker)
 add_subdirectory(rawbufmaker)
+add_subdirectory(followuidmagiceditor)
 
 add_subdirectory(wtldecoder)
 add_subdirectory(bgmlistdecoder)

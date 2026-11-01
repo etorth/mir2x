@@ -164,8 +164,9 @@ def parse_args():
     parser.add_argument(
         "--python",
         type=Path,
-        help="Python 3 interpreter mir2x should use for install_res.py "
-             "(sets -DMIR2X_PYTHON_EXECUTABLE). Defaults to CMake's own python3 auto-detection.",
+        help="Python 3 interpreter mir2x should use for install_res.py and the followuidmagiceditor module "
+             "(sets -DMIR2X_PYTHON_EXECUTABLE), a venv interpreter path is kept unresolved. "
+             "Defaults to CMake's own python3 auto-detection.",
     )
     parser.add_argument(
         "--target",
@@ -270,7 +271,7 @@ def main():
     else:
         log("Using default CMake-managed resource clone")
     if args.python:
-        log(f"Using python3: {args.python.expanduser().resolve()}")
+        log(f"Using python3: {args.python.expanduser().absolute()}")
     if vcpkg_host_triplet:
         log(f"Configuring mir2x for {vcpkg_triplet} with host triplet {vcpkg_host_triplet}")
     else:
@@ -324,7 +325,7 @@ def main():
     if args.res_path:
         cmake_configure_args.append(f"-DMIR2X_RES_REPO_PATH={args.res_path.expanduser().resolve()}")
     if args.python:
-        cmake_configure_args.append(f"-DMIR2X_PYTHON_EXECUTABLE={args.python.expanduser().resolve()}")
+        cmake_configure_args.append(f"-DMIR2X_PYTHON_EXECUTABLE={args.python.expanduser().absolute()}")
     run(cmake_configure_args, env=configure_env)
 
     build_base_args = ["cmake", "--build", str(cmake_build_dir), "--config", args.build_type, "--parallel"]
