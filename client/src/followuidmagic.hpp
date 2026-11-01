@@ -26,6 +26,14 @@ class FollowUIDMagic: public BaseMagic
         int m_lastLDistance2 = INT_MAX;
         std::optional<std::tuple<int, int>> m_lastFlyOff;
 
+    private:
+        // max turn speed of the frame, degrees per ms
+        constexpr static double m_turnDegreePerMS = 0.36;
+
+    private:
+        // clockwise, rotates the frame around its head, turns toward making tail -> head point to the target
+        double m_rotateDegree = 0.0;
+
     public:
         FollowUIDMagic(
                 const char8_t *, // magicName
@@ -49,7 +57,11 @@ class FollowUIDMagic: public BaseMagic
 
     public:
         // head of the magic APNG, not from raw mir2 database
+        // the frame rotates around it, so it's never moved by the rotation
         std::tuple<int, int> targetOff() const;
+
+    private:
+        void updateRotateDegree(int, int, double);
 
     public:
         std::tuple<int, int> targetPLoc() const

@@ -85,6 +85,7 @@ class MagicDB final: public innDB<uint32_t, _MagicStoreElement>
     public:
         // returns {0, 0} if no APNG
         std::tuple<int, int> head(uint32_t);
+        std::tuple<int, int> tail(uint32_t);
 
     private:
         std::optional<std::tuple<_MagicStoreElement, size_t>> loadResource(uint32_t) override;

@@ -50,6 +50,14 @@ std::tuple<int, int> MagicDB::head(uint32_t key)
     return {0, 0};
 }
 
+std::tuple<int, int> MagicDB::tail(uint32_t key)
+{
+    if(const auto p = innLoad(key)){
+        return {p->tailX, p->tailY};
+    }
+    return {0, 0};
+}
+
 std::optional<std::tuple<_MagicStoreElement, size_t>> MagicDB::loadResource(uint32_t key)
 {
     char keyString[16];
