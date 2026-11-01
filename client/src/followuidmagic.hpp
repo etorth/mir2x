@@ -27,8 +27,7 @@ class FollowUIDMagic: public BaseMagic
         std::optional<std::tuple<int, int>> m_lastFlyOff;
 
     private:
-        // max turn speed of the frame, degrees per ms
-        constexpr static double m_turnDegreePerMS = 0.36;
+        constexpr static double m_rotateDegreeSpeed = 360; // 360 degrees per second
 
     private:
         // clockwise, rotates the frame around its head, turns toward making tail -> head point to the target

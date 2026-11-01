@@ -84,10 +84,12 @@ void FollowUIDMagic::updateRotateDegree(int aimX, int aimY, double ms)
             return;
         }
 
-        // turn the shorter way, by at most m_turnDegreePerMS * ms per update
+        // turn the shorter way
+        // by at most m_rotateDegreeSpeed * ms per update
+
         const double targetDegree = (std::atan2(aimY, aimX) - std::atan2(headY - tailY, headX - tailX)) * 180.0 / mathf::pi;
         const double diffDegree = std::remainder(targetDegree - m_rotateDegree, 360.0);
-        const double stepDegree = m_turnDegreePerMS * ms;
+        const double stepDegree = m_rotateDegreeSpeed * ms / 1000.0;
 
         m_rotateDegree = std::fmod(m_rotateDegree + std::clamp(diffDegree, -stepDegree, stepDegree) + 360.0, 360.0);
     }
