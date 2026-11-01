@@ -72,6 +72,14 @@ class MainWindow(QMainWindow):
         self.info_pane = InfoPane()
         self.info_pane.direction_table.directionSelected.connect(self.canvas.set_selected)
 
+        self.prev_button = QPushButton("Prev")
+        self.prev_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.prev_button.clicked.connect(lambda: self.step_frame(-1))
+
+        self.next_button = QPushButton("Next")
+        self.next_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.next_button.clicked.connect(lambda: self.step_frame(1))
+
         self.play_button = QPushButton("Play")
         self.play_button.setCheckable(True)
         self.play_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -83,7 +91,9 @@ class MainWindow(QMainWindow):
         self.frame_label = QLabel()
 
         controls = QHBoxLayout()
+        controls.addWidget(self.prev_button)
         controls.addWidget(self.play_button)
+        controls.addWidget(self.next_button)
         controls.addWidget(self.slider, 1)
         controls.addWidget(self.frame_label)
 
@@ -108,7 +118,7 @@ class MainWindow(QMainWindow):
 
         self.timer = QTimer(self)
         self.timer.setInterval(FRAME_INTERVAL_MS)
-        self.timer.timeout.connect(lambda: self.slider.setValue((self.slider.value() + 1) % max(1, self.frame_count)))
+        self.timer.timeout.connect(lambda: self.advance_frame(1))
 
         self._build_menus()
         self.update_dirty()
@@ -147,6 +157,8 @@ class MainWindow(QMainWindow):
         view_menu = self.menuBar().addMenu("&View")
         play_action = view_menu.addAction("&Play/Pause", Qt.Key.Key_Space, self.play_button.toggle)
         play_action.setShortcutContext(Qt.ShortcutContext.ApplicationShortcut)
+        view_menu.addAction("P&rev Frame", Qt.Key.Key_Comma, lambda: self.step_frame(-1))
+        view_menu.addAction("&Next Frame", Qt.Key.Key_Period, lambda: self.step_frame(1))
         view_menu.addAction("Reset &View", self.canvas.reset_view)
 
     def dirty_count(self):
@@ -294,6 +306,14 @@ class MainWindow(QMainWindow):
     def on_frame_changed(self, frame):
         self.canvas.set_frame(frame)
         self.frame_label.setText(f"{frame + 1 if self.frame_count else 0}/{self.frame_count}")
+
+    def advance_frame(self, delta):
+        self.slider.setValue((self.slider.value() + delta) % max(1, self.frame_count))
+
+    def step_frame(self, delta):
+        """Pause, then show the previous or next frame, wrapping around."""
+        self.play_button.setChecked(False)
+        self.advance_frame(delta)
 
     def on_play_toggled(self, playing):
         self.play_button.setText("Pause" if playing else "Play")

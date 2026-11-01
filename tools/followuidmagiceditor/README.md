@@ -73,7 +73,8 @@ Python version it was built for.
   and Quit ask to save or discard them.
 - **Drag** outside every frame moves the view, **Ctrl + drag** changes the
   circle radius, the **wheel** zooms around the mouse, **Space** plays and
-  pauses, **View > Reset View** restores the view.
+  pauses, **Prev**/**Next** (`,`/`.`) pause and step one frame,
+  **View > Reset View** restores the view.
 - **File > Reload** rereads the directory after it is changed outside.
 - The right **info pane** shows the magic dir (APNG and unsaved counts),
   the magic record, its gfx entry, the hovered direction (mouse, current
