@@ -18,8 +18,9 @@ import sys
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox,
-                               QPushButton, QSlider, QVBoxLayout, QWidget)
+                               QPushButton, QScrollArea, QSlider, QSplitter, QVBoxLayout, QWidget)
 
+from infopane import InfoPane
 from magiccanvas import MagicCanvas
 from magicdir import MagicDir
 
@@ -52,19 +53,24 @@ def follow_magics(dbcom):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, magics):
+    def __init__(self, magics, records):
         super().__init__()
         self.setWindowTitle("followuidmagiceditor")
-        self.resize(900, 800)
+        self.resize(1300, 850)
 
         self.magics = magics
+        self.records = records
         self.magic_dir = None
         self.current = None
         self.frame_count = 0
+        self.hover = None
 
         self.canvas = MagicCanvas()
         self.canvas.pointPicked.connect(self.on_point_picked)
-        self.canvas.hoverChanged.connect(lambda text: self.statusBar().showMessage(text))
+        self.canvas.hoverChanged.connect(self.on_hover_changed)
+
+        self.info_pane = InfoPane()
+        self.info_pane.direction_table.directionSelected.connect(self.canvas.set_selected)
 
         self.play_button = QPushButton("Play")
         self.play_button.setCheckable(True)
@@ -75,7 +81,6 @@ class MainWindow(QMainWindow):
         self.slider.valueChanged.connect(self.on_frame_changed)
 
         self.frame_label = QLabel()
-        self.info_label = QLabel()
 
         controls = QHBoxLayout()
         controls.addWidget(self.play_button)
@@ -83,13 +88,23 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.frame_label)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.info_label)
         layout.addWidget(self.canvas, 1)
         layout.addLayout(controls)
 
-        central = QWidget()
-        central.setLayout(layout)
-        self.setCentralWidget(central)
+        view = QWidget()
+        view.setLayout(layout)
+
+        info_scroll = QScrollArea()
+        info_scroll.setWidgetResizable(True)
+        info_scroll.setWidget(self.info_pane)
+        info_scroll.setMinimumWidth(360)
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(view)
+        splitter.addWidget(info_scroll)
+        splitter.setStretchFactor(0, 1)
+        splitter.setSizes([900, 400])
+        self.setCentralWidget(splitter)
 
         self.timer = QTimer(self)
         self.timer.setInterval(FRAME_INTERVAL_MS)
@@ -151,6 +166,7 @@ class MainWindow(QMainWindow):
             title += f" [{count} unsaved]"
         self.setWindowTitle(title)
         self.canvas.update()
+        self.update_info()
 
     def confirm_discard(self):
         """True if there is no unsaved edit, or the user saved or discarded them."""
@@ -220,40 +236,60 @@ class MainWindow(QMainWindow):
         self.magic_actions[name].setChecked(True)
         self.refresh()
 
+    def current_seqs(self):
+        if self.magic_dir is None or self.current is None:
+            return []
+        entry = self.current[1]
+        return [self.magic_dir.get(entry["gfxID"], d) for d in range(entry["gfxDirType"])]
+
     def refresh(self):
+        """Rebuild the view after the magic, the magic dir or the gfx mode changes."""
         if self.magic_dir is None or self.current is None:
             self.canvas.set_magic(None, None, 0)
             self.frame_count = 0
-            self.slider.setRange(0, 0)
-            self.on_frame_changed(0)
-            self.info_label.setText("no magic dir, use File > Open Magic Dir" if self.magic_dir is None else "")
-            self.update_dirty()
-            return
+        else:
+            entry = self.current[1]
+            self.canvas.set_magic(self.magic_dir, entry["gfxID"], entry["gfxDirType"])
+            self.frame_count = entry["frameCount"] or max((len(s.frames()) for s in self.current_seqs() if s),
+                                                          default=0)
 
-        name, entry = self.current
-        gfx_id, dir_count = entry["gfxID"], entry["gfxDirType"]
-        self.canvas.set_magic(self.magic_dir, gfx_id, dir_count)
-
-        seqs = [self.magic_dir.get(gfx_id, d) for d in range(dir_count)]
-        self.frame_count = entry["frameCount"] or max((len(s.frames()) for s in seqs if s), default=0)
-
+        self.info_pane.direction_table.clear_selection()
         self.slider.setRange(0, max(0, self.frame_count - 1))
         self.on_frame_changed(self.slider.value())
-
-        shared = [n for n, e in self.magics if n != name and e["gfxID"] == gfx_id]
-        missing = sum(1 for s in seqs if s is None)
-
-        info = f"{name}: gfxID {gfx_id:07X}, {dir_count} directions, {self.frame_count} frames"
-        if self.non_rotate():
-            info += ", non-rotate"
-        if entry["ref"]:
-            info += f", ref {entry['ref']['name']}"
-        if shared:
-            info += f"\nshared with: {', '.join(shared)}"
-        if missing:
-            info += f"\n{missing} direction(s) have no APNG"
-        self.info_label.setText(info)
         self.update_dirty()
+
+    def update_info(self):
+        """Update the info pane after any edit, refresh() or hover change."""
+        pane = self.info_pane
+        pane.dir_section.update_dir(self.magic_dir)
+
+        if self.magic_dir is None or self.current is None:
+            pane.magic_section.update_magic(None, None, None, None)
+            pane.entry_section.update_entry(None, 0, False, [])
+            pane.direction_table.update_seqs([])
+        else:
+            name, entry = self.current
+            shared = [n for n, e in self.magics if n != name and e["gfxID"] == entry["gfxID"]]
+            seqs = self.current_seqs()
+
+            pane.magic_section.update_magic(name, self.records[name], entry, shared)
+            pane.entry_section.update_entry(entry, self.frame_count, self.non_rotate(),
+                                            [d for d, s in enumerate(seqs) if s is None])
+            pane.direction_table.update_seqs(seqs)
+
+        direction, mouse = self.hover if self.hover else (None, None)
+        pane.hover_section.update_hover(self.canvas.seq(direction) if self.hover else None, direction, mouse)
+
+    def on_hover_changed(self, hover):
+        self.hover = hover
+        self.info_pane.hover_section.update_hover(self.canvas.seq(hover[0]) if hover else None,
+                                                  *(hover if hover else (None, None)))
+        if hover is None:
+            self.statusBar().clearMessage()
+        else:
+            seq = self.canvas.seq(hover[0])
+            self.statusBar().showMessage(f"dir {hover[0]}: {hover[1]}, head {seq.head}, tail {seq.tail}, "
+                                         f"{seq.name}{' (unsaved)' if seq.dirty else ''}")
 
     def on_frame_changed(self, frame):
         self.canvas.set_frame(frame)
@@ -302,7 +338,8 @@ def main():
         QMessageBox.critical(None, "followuidmagiceditor", str(e))
         return 1
 
-    window = MainWindow(follow_magics(dbcom))
+    magics = follow_magics(dbcom)
+    window = MainWindow(magics, {name: dbcom.magic_record(name) for name, _ in magics})
     if window.magics:
         window.select_magic(window.magics[0][0])
     else:

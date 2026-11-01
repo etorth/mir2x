@@ -2,7 +2,7 @@
 
 Direction i of N is placed at i * 360 / N degrees clockwise from up, its frame is drawn at anchor + (dx, dy).
 The anchors are on the gray circle, a yellow "*" label is an unsaved direction.
-The direction under the mouse, which a click edits, has a green border.
+The direction under the mouse, which a click edits, has a green border, the selected one is orange.
 Head (red) and tail (cyan) are anchor relative, the tail -> head line is yellow.
 
     left click/drag  : set head of the direction under mouse
@@ -29,7 +29,8 @@ MAX_ZOOM = 8.0
 class MagicCanvas(QWidget):
     # direction, "head" or "tail", (x, y) relative to the anchor
     pointPicked = Signal(int, str, tuple)
-    hoverChanged = Signal(str)
+    # None, or (direction, (x, y) of the mouse relative to its anchor)
+    hoverChanged = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -48,13 +49,19 @@ class MagicCanvas(QWidget):
         self.pan = QPointF(0, 0)
         self._mouse_pos = None
         self.hover_direction = None
+        self.selected_direction = None
 
     def set_magic(self, magic_dir, gfx_id, dir_count):
         self.magic_dir = magic_dir
         self.gfx_id = gfx_id
         self.dir_count = dir_count
         self._drag = None
+        self.selected_direction = None
         self._update_hover()
+        self.update()
+
+    def set_selected(self, direction):
+        self.selected_direction = direction
         self.update()
 
     def set_frame(self, frame):
@@ -117,13 +124,14 @@ class MagicCanvas(QWidget):
             painter.setPen(pen)
             painter.drawEllipse(QPointF(0, 0), self.radius, self.radius)
 
+        on_top = [d for d in (self.selected_direction, self.hover_direction) if d is not None]
         for direction in range(self.dir_count):
-            if direction != self.hover_direction:
+            if direction not in on_top:
                 self._draw_direction(painter, direction)
 
-        # on top, so its border isn't covered by overlapping neighbours
-        if self.hover_direction is not None:
-            self._draw_direction(painter, self.hover_direction)
+        # on top, so their borders aren't covered by overlapping neighbours
+        for direction in dict.fromkeys(on_top):
+            self._draw_direction(painter, direction)
 
     def _draw_direction(self, painter, direction):
         anchor = self.anchor(direction)
@@ -143,7 +151,12 @@ class MagicCanvas(QWidget):
         rect = self.frame_rect(direction)
         painter.drawImage(rect.topLeft(), seq.frame(self.frame))
 
-        pen.setColor(QColor("lime") if direction == self.hover_direction else QColor(80, 80, 80))
+        if direction == self.hover_direction:
+            pen.setColor(QColor("lime"))
+        elif direction == self.selected_direction:
+            pen.setColor(QColor("orange"))
+        else:
+            pen.setColor(QColor(80, 80, 80))
         painter.setPen(pen)
         painter.drawRect(rect)
 
@@ -263,13 +276,8 @@ class MagicCanvas(QWidget):
         if direction != self.hover_direction:
             self.hover_direction = direction
             self.update()
-        self.hoverChanged.emit(self._hover_text(direction, scene_pos))
-
-    def _hover_text(self, direction, scene_pos):
         if direction is None or scene_pos is None:
-            return ""
-
-        seq = self.seq(direction)
-        offset = scene_pos - self.anchor(direction)
-        return (f"dir {direction}: ({round(offset.x())}, {round(offset.y())}), "
-                f"head {seq.head}, tail {seq.tail}, {seq.name}{' (unsaved)' if seq.dirty else ''}")
+            self.hoverChanged.emit(None)
+        else:
+            offset = scene_pos - self.anchor(direction)
+            self.hoverChanged.emit((direction, (round(offset.x()), round(offset.y()))))

@@ -51,7 +51,7 @@ Python version it was built for.
 - **Magic** menu: every magic whose 运行 stage is a 跟随 gfx, with its
   `gfxID` and direction count. `→ name` means the entry is a `.ref` to that
   magic. Magics sharing a `gfxID` share the same APNGs, so editing one
-  edits all of them; the info line lists them.
+  edits all of them; the info pane lists them.
 - The canvas shows direction `i` of `N` at `i * 360 / N` degrees clockwise
   from up. Each frame is drawn at its anchor (white cross) plus its offset.
   The head is red, the tail is cyan, and the yellow line is `tail -> head`.
@@ -74,6 +74,11 @@ Python version it was built for.
   circle radius, the **wheel** zooms around the mouse, **Space** plays and
   pauses, **View > Reset View** restores the view.
 - **File > Reload** rereads the directory after it is changed outside.
+- The right **info pane** shows the magic dir (APNG and unsaved counts),
+  the magic record, its gfx entry, the hovered direction (mouse, current
+  and saved head/tail, file and edited name), and a table of all
+  directions. Clicking a table row selects that direction on the canvas
+  (orange border). The status bar repeats the hover info in one line.
 
 After saving, repack `magic.zsdb` from the magic directory. Don't
 regenerate the directory with `gfxres2apng.py`: it resets every head and tail.

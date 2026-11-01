@@ -35,4 +35,4 @@ target_link_libraries(followuidmagiceditor PRIVATE mir2x::project_options mir2x:
 
 install(TARGETS followuidmagiceditor LIBRARY DESTINATION tools/followuidmagiceditor)
 install(PROGRAMS main.py DESTINATION tools/followuidmagiceditor)
-install(FILES magiccanvas.py magicdir.py ${CMAKE_CURRENT_SOURCE_DIR}/../../gfxres2apng/src/gfxres2apng.py DESTINATION tools/followuidmagiceditor)
+install(FILES infopane.py magiccanvas.py magicdir.py ${CMAKE_CURRENT_SOURCE_DIR}/../../gfxres2apng/src/gfxres2apng.py DESTINATION tools/followuidmagiceditor)
