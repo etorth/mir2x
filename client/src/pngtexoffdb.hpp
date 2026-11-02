@@ -16,7 +16,7 @@ struct PNGTexOffElement
 {
     int dx = 0;
     int dy = 0;
-    SDL_Texture *texture = nullptr;
+    std::vector<SDL_Texture *> frameList {};
 };
 
 class PNGTexOffDB final: public innDB<uint32_t, PNGTexOffElement>
@@ -42,32 +42,37 @@ class PNGTexOffDB final: public innDB<uint32_t, PNGTexOffElement>
         }
 
     public:
-        std::tuple<SDL_Texture *, int, int> retrieve(uint32_t key)
+        // returns nullptr if frame is out of range
+        // static images, like equip, are APNG with 1 frame
+        std::tuple<SDL_Texture *, int, int> retrieve(uint32_t, int = 0);
+
+    public:
+        // human sequence key: hero, hair, helmet, weapon, selectchar
+        //
+        //   gfxID: id << 9 | motion << 3 | direction
+        //   key  : direction 0-2, motion 3-8, layer 9, shadow 10, gender 11, id 12-19
+        //
+        static uint32_t humanKey(uint32_t gfxID, bool gender, bool shadow = false, int layer = 0)
         {
-            int dx = 0;
-            int dy = 0;
-            auto texPtr = retrieve(key, &dx, &dy);
-            return {texPtr, dx, dy};
+            return 0
+                | (((gfxID >> 0) & 0X01FF) <<  0)
+                | ((to_u32(layer) & 0X0001) <<  9)
+                | ((to_u32(shadow)        ) << 10)
+                | ((to_u32(gender)        ) << 11)
+                | (((gfxID >> 9) & 0X00FF) << 12);
         }
 
-        SDL_Texture *retrieve(uint32_t key, int *pdx, int *pdy)
+        // creature sequence key: monster, npc
+        //
+        //   key: direction 0-2, motion 3-6, layer 7 (always 0), shadow 8, look 9-19
+        //
+        static uint32_t creatureKey(int look, int motion, int direction, bool shadow = false)
         {
-            if(auto p = innLoad(key)){
-                if(pdx){
-                    *pdx = p->dx;
-                }
-
-                if(pdy){
-                    *pdy = p->dy;
-                }
-                return p->texture;
-            }
-            return nullptr;
-        }
-
-        SDL_Texture *retrieve(uint8_t fileIndex, uint16_t imageIndex, int *pdx, int *pdy)
-        {
-            return retrieve(to_u32((to_u32(fileIndex) << 16) + imageIndex), pdx, pdy);
+            return 0
+                | ((to_u32(direction) & 0X0007) << 0)
+                | ((to_u32(motion   ) & 0X000F) << 3)
+                | ( to_u32(shadow   )           << 8)
+                | ((to_u32(look     ) & 0X07FF) << 9);
         }
 
     public:

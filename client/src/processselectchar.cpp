@@ -263,24 +263,18 @@ uint32_t ProcessSelectChar::charFrameCount() const
 std::optional<uint32_t> ProcessSelectChar::charGfxBaseID() const
 {
     if(m_smChar.has_value() && !m_smChar.value().name.empty()){
-        const bool gender = m_smChar.value().gender;
         const auto jobIndexList = jobf::jobGfxIndex(m_smChar.value().job);
 
         fflassert(!jobIndexList.empty());
         fflassert(m_charAni >= 0);
         fflassert(m_charAni <  4);
 
-        // 14     : max =  2   shadow
-        // 13     : max =  2   magic
-        // 10 - 12: max =  8   job
-        // 09     : max =  2   gender: male as true
-        // 05 - 08: max = 16   motion
-        // 00 - 04: max = 32   frame
+        // human gfxID with direction 0, job as id
+        // shadow and magic overlay are in the shadow and layer bits of PNGTexOffDB::humanKey()
 
         return 0
-            + (to_u32(jobIndexList.front()) << 10)
-            + (to_u32(gender             ) <<  9)
-            + (to_u32(m_charAni          ) <<  5);
+            + (to_u32(jobIndexList.front()) << 9)
+            + (to_u32(m_charAni          ) << 3);
     }
     return {};
 }
@@ -298,16 +292,15 @@ void ProcessSelectChar::drawChar() const
             return;
         }
 
-        const uint32_t shadowMask = to_u32(1) << 14;
-        const uint32_t  magicMask = to_u32(1) << 13;
-        const uint32_t frameIndex = gfxIDOpt.value() + absFrame() % frameCount;
+        const bool gender = m_smChar.value().gender;
+        const int gfxFrame = absFrame() % frameCount;
 
-        const auto fnDrawTexture = [](uint32_t texIndex, bool alpha = false) -> bool
+        const auto fnDrawTexture = [gfxFrame](uint32_t key, bool alpha = false) -> bool
         {
             constexpr int drawX = 430;
             constexpr int drawY = 300;
 
-            if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(texIndex); texPtr){
+            if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(key, gfxFrame); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + colorf::A_SHF(alpha ? 150 : 255));
                 g_sdlDevice->drawTexture(texPtr, drawX + dx, drawY + dy);
                 return true;
@@ -315,10 +308,10 @@ void ProcessSelectChar::drawChar() const
             return false;
         };
 
-        if(fnDrawTexture(frameIndex)){
-            fnDrawTexture(frameIndex | shadowMask, true);
-            fnDrawTexture(frameIndex);
-            fnDrawTexture(frameIndex | magicMask);
+        if(fnDrawTexture(PNGTexOffDB::humanKey(gfxIDOpt.value(), gender))){
+            fnDrawTexture(PNGTexOffDB::humanKey(gfxIDOpt.value(), gender, true), true);
+            fnDrawTexture(PNGTexOffDB::humanKey(gfxIDOpt.value(), gender));
+            fnDrawTexture(PNGTexOffDB::humanKey(gfxIDOpt.value(), gender, false, 1));
         }
     }
 }

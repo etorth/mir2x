@@ -54,37 +54,20 @@ extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
-std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, std::optional<int> frameOpt) const
+std::optional<std::tuple<uint32_t, int>> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, std::optional<int> frameOpt, bool shadow) const
 {
     fflassert(monPtr);
     if(*this){
-        // monster graphics retrieving key structure
-        //
-        //   3322 2222 2222 1111 1111 1100 0000 0000
-        //   1098 7654 3210 9876 5432 1098 7654 3210
-        //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-        //   |||| |||| |||| |||| |||| |||| |||| ||||
-        //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
-        //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
-        //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-        //             |+++-++++-++++--------------------------      look : max = 2048 -+------> gfxBaseID
-        //             +---------------------------------------    shadow : max =    2
-        //
-
         const auto frame = frameOpt.value_or(monPtr->currMotion()->frame);
         fflassert(frame >= 0);
         fflassert(frame < count);
 
-        const auto          gfxFrame = to_u32(begin + frame * (reverse ? -1 : 1));
+        const auto          gfxFrame = begin + frame * (reverse ? -1 : 1);
         const auto      lookGfxIndex = to_u32(gfxLookID.value_or(monPtr->getMR().lookID) - LID_BEGIN);
         const auto    motionGfxIndex = to_u32(gfxMotionID.value_or(monPtr->currMotion()->type) - MOTION_MON_BEGIN);
         const auto directionGfxIndex = to_u32(gfxDirectionID.value_or(monPtr->currMotion()->direction) - DIR_BEGIN);
 
-        return 0
-            + ((     lookGfxIndex & 0X07FF) << 12)
-            + ((   motionGfxIndex & 0X000F) <<  8)
-            + ((directionGfxIndex & 0X0007) <<  5)
-            + ((         gfxFrame & 0X001F) <<  0);
+        return std::make_tuple(PNGTexOffDB::creatureKey(lookGfxIndex, motionGfxIndex, directionGfxIndex, shadow), gfxFrame);
     }
     return {};
 }
@@ -259,16 +242,19 @@ bool ClientMonster::update(double fUpdateTime)
 
 void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bool frameOnly)
 {
-    const auto gfxBodyIDOpt = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction).gfxID(this, frame);
-    if(!gfxBodyIDOpt.has_value()){
+    const auto gfxSeq = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction);
+    const auto   bodyIDOpt = gfxSeq.gfxID(this, frame, false);
+    const auto shadowIDOpt = gfxSeq.gfxID(this, frame, true );
+
+    if(!bodyIDOpt.has_value()){
         return;
     }
 
-    const uint32_t   bodyKey = (to_u32(0) << 23) + gfxBodyIDOpt.value(); // body
-    const uint32_t shadowKey = (to_u32(1) << 23) + gfxBodyIDOpt.value(); // shadow
+    const auto [  bodyKey,   bodyGfxFrame] =   bodyIDOpt.value();
+    const auto [shadowKey, shadowGfxFrame] = shadowIDOpt.value();
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->retrieve(  bodyKey);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->retrieve(shadowKey);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->retrieve(  bodyKey,   bodyGfxFrame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->retrieve(shadowKey, shadowGfxFrame);
     const auto [shiftX, shiftY] = getShift(frame);
 
     // fadeOut :     0: normal
@@ -704,9 +690,8 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
         return {};
     }
 
-    int dx = 0;
-    int dy = 0;
-    auto bodyFrameTexPtr = g_monsterDB->retrieve(texBodyID.value(), &dx, &dy);
+    const auto [bodyKey, bodyGfxFrame] = texBodyID.value();
+    const auto [bodyFrameTexPtr, dx, dy] = g_monsterDB->retrieve(bodyKey, bodyGfxFrame);
 
     if(!bodyFrameTexPtr){
         return {};

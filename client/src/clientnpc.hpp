@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <tuple>
 #include <optional>
 #include "totype.hpp"
 #include "processrun.hpp"
@@ -16,7 +17,8 @@ struct NPCFrameGfxSeq final
         return count > 0;
     }
 
-    std::optional<uint32_t> gfxID(const ClientNPC *, std::optional<int> = {}) const;
+    // returns {sequence key, frame in the sequence}
+    std::optional<std::tuple<uint32_t, int>> gfxID(const ClientNPC *, std::optional<int> = {}, bool = false) const;
 };
 
 class ClientNPC: public ClientCreature

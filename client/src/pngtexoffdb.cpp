@@ -2,31 +2,42 @@
 #include "pngtexoffdb.hpp"
 
 extern SDLDevice *g_sdlDevice;
+std::tuple<SDL_Texture *, int, int> PNGTexOffDB::retrieve(uint32_t key, int frame)
+{
+    if(const auto p = innLoad(key); p && frame >= 0 && frame < to_d(p->frameList.size())){
+        return {p->frameList[frame], p->dx, p->dy};
+    }
+    return {nullptr, 0, 0};
+}
+
 std::optional<std::tuple<PNGTexOffElement, size_t>> PNGTexOffDB::loadResource(uint32_t key)
 {
     char keyString[16];
     std::vector<uint8_t> dataBuf;
 
-    if(const auto fontFileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf); fontFileName && (std::strlen(fontFileName) >= 18)){
+    if(const auto fileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 14)){
         //
-        // [0 ~ 7] [8] [9] [10 ~ 13] [14 ~ 17]
-        //  <KEY>  <S> <S>   <+DX>     <+DY>
-        //    4    1/2 1/2     2         2
+        // [0 ~ 7] [8 ~ 10] [11 ~ 13]
+        //  <KEY>    <DX>     <DY>
         //
-        //   KEY: 3 bytes
-        //   S  : sign of DX, take 1 char, 1/2 byte, + for 1, - for 0
-        //   S  : sign of DY, take 1 char, 1/2 byte
-        //   +DX: abs(DX) take 4 chars, 2 bytes
-        //   +DY: abs(DY) take 4 chars, 2 bytes
+        //   KEY: 4 bytes
+        //   DX : 12-bit two's complement
+        //   DY : 12-bit two's complement
 
-        if(auto texPtr = g_sdlDevice->loadPNGTexture(dataBuf.data(), dataBuf.size())){
-            return std::make_tuple(PNGTexOffElement
+        if(auto anim = g_sdlDevice->loadPNGAnimation(dataBuf.data(), dataBuf.size()); !anim.empty()){
+            PNGTexOffElement element
             {
-                .dx = to_d((fontFileName[8] != '0') ? 1 : (-1)) * to_d(hexstr::to_hex<uint32_t, 2>(fontFileName + 10)),
-                .dy = to_d((fontFileName[9] != '0') ? 1 : (-1)) * to_d(hexstr::to_hex<uint32_t, 2>(fontFileName + 14)),
+                .dx = hexstr::to_2comp(fileName +  8, 3),
+                .dy = hexstr::to_2comp(fileName + 11, 3),
+            };
 
-                .texture = texPtr,
-            }, 1);
+            element.frameList.reserve(anim.size());
+            for(const auto &[texPtr, _]: anim){
+                element.frameList.push_back(texPtr);
+            }
+
+            const auto weight = element.frameList.size();
+            return std::make_tuple(std::move(element), weight);
         }
     }
     return {};
@@ -34,8 +45,8 @@ std::optional<std::tuple<PNGTexOffElement, size_t>> PNGTexOffDB::loadResource(ui
 
 void PNGTexOffDB::freeResource(PNGTexOffElement &element)
 {
-    if(element.texture){
-        SDL_DestroyTexture(element.texture);
-        element.texture = nullptr;
+    for(auto texPtr: element.frameList){
+        SDL_DestroyTexture(texPtr);
     }
+    element.frameList.clear();
 }

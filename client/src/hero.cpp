@@ -64,22 +64,22 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     const auto fnDrawWeapon = [startX, startY, frame, this](bool shadow)
     {
-        // 04 - 00 :     frame : max =  32
-        // 07 - 05 : direction : max =  08 : +
-        // 13 - 08 :    motion : max =  64 : +
-        // 21 - 14 :    weapon : max = 256 : +----> gfxWeaponID
-        //      22 :    gender :
-        //      23 :    shadow :
         const auto nGfxWeaponID = gfxWeaponID(DBCOM_ITEMRECORD(getWLItem(WLG_WEAPON).itemID).shape, m_currMotion->gfxType(frame), m_currMotion->direction);
         if(!nGfxWeaponID.has_value()){
             return;
         }
 
-        const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID.value() & 0X01FFFF) << 5) + m_currMotion->gfxFrame(frame);
-        const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->retrieve(weaponKey);
+        const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->retrieve(PNGTexOffDB::humanKey(nGfxWeaponID.value(), gender(), shadow), m_currMotion->gfxFrame(frame));
 
         const SDLDeviceHelper::EnableTextureModColor modColor(weaponFrame, colorf::WHITE | colorf::A_SHF((weaponFrame && shadow) ? 128 : 255));
         g_sdlDevice->drawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
+
+        // weapon glow, layer 1, drawn right after the weapon to follow the weapon/body order
+        if(!shadow){
+            if(const auto [glowFrame, glowDX, glowDY] = g_weaponDB->retrieve(PNGTexOffDB::humanKey(nGfxWeaponID.value(), gender(), false, 1), m_currMotion->gfxFrame(frame)); glowFrame){
+                g_sdlDevice->drawTexture(glowFrame, startX + glowDX, startY + glowDY);
+            }
+        }
     };
 
     fnDrawWeapon(true);
@@ -101,20 +101,10 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
         return;
     }
 
-    // human gfx dress id indexing
-    // 04 - 00 :     frame : max =  32
-    // 07 - 05 : direction : max =  08 : +
-    // 13 - 08 :    motion : max =  64 : +
-    // 21 - 14 :     dress : max = 256 : +----> gfxDressID
-    //      22 :       sex :
-    //      23 :    shadow :
-    //      24 :     layer :
-    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + m_currMotion->gfxFrame(frame);
-    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + m_currMotion->gfxFrame(frame);
-
-    const auto [ bodyLayer0,  body0DX,  body0DY] = g_heroDB->retrieve(bodyKey);
-    const auto [ bodyLayer1,  body1DX,  body1DY] = g_heroDB->retrieve(bodyKey | (to_u32(1) << 24));
-    const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->retrieve(shadowKey);
+    const auto bodyGfxFrame = m_currMotion->gfxFrame(frame);
+    const auto [ bodyLayer0,  body0DX,  body0DY] = g_heroDB->retrieve(PNGTexOffDB::humanKey(nGfxDressID.value(), gender(), false, 0), bodyGfxFrame);
+    const auto [ bodyLayer1,  body1DX,  body1DY] = g_heroDB->retrieve(PNGTexOffDB::humanKey(nGfxDressID.value(), gender(), false, 1), bodyGfxFrame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->retrieve(PNGTexOffDB::humanKey(nGfxDressID.value(), gender(), true    ), bodyGfxFrame);
 
     const SDLDeviceHelper::EnableTextureModColor modColor(shadowFrame, colorf::WHITE | colorf::A_SHF(128));
     g_sdlDevice->drawTexture(shadowFrame, startX + shadowDX, startY + shadowDY);
@@ -148,16 +138,14 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, m_currMotion->gfxType(frame), m_currMotion->direction); nHelmetGfxID.has_value()){
-            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID.value() & 0X01FFFF)) << 5) + m_currMotion->gfxFrame(frame);
-            if(auto [texPtr, dx, dy] = g_helmetDB->retrieve(nHelmetKey); texPtr){
+            if(auto [texPtr, dx, dy] = g_helmetDB->retrieve(PNGTexOffDB::humanKey(nHelmetGfxID.value(), gender()), m_currMotion->gfxFrame(frame)); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
     }
     else{
         if(const auto nHairGfxID = gfxHairID(m_sdWLDesp.hair, m_currMotion->gfxType(frame), m_currMotion->direction); nHairGfxID.has_value()){
-            const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID.value() & 0X01FFFF)) << 5) + m_currMotion->gfxFrame(frame);
-            if(auto [texPtr, dx, dy] = g_hairDB->retrieve(nHairKey); texPtr){
+            if(auto [texPtr, dx, dy] = g_hairDB->retrieve(PNGTexOffDB::humanKey(nHairGfxID.value(), gender()), m_currMotion->gfxFrame(frame)); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
@@ -1502,9 +1490,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
         return {};
     }
 
-    const uint32_t texID = ((to_u32(gender() ? 1 : 0)) << 22) + ((to_u32(texBaseID.value() & 0X01FFFF)) << 5) + currMotion()->frame;
-
-    auto [bodyFrameTexPtr, dx, dy] = g_heroDB->retrieve(texID);
+    auto [bodyFrameTexPtr, dx, dy] = g_heroDB->retrieve(PNGTexOffDB::humanKey(texBaseID.value(), gender()), currMotion()->frame);
     if(!bodyFrameTexPtr){
         return {};
     }

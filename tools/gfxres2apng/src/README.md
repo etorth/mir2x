@@ -199,8 +199,8 @@ offset:
 
 | Bits | Field |
 |---|---|
-| 0–11 | x offset, 12-bit two's complement, -2048 to 2047 |
-| 12–23 | y offset, 12-bit two's complement, -2048 to 2047 |
+| 0–11 | y offset, 12-bit two's complement, -2048 to 2047 |
+| 12–23 | x offset, 12-bit two's complement, -2048 to 2047 |
 
 The offset has the same meaning as the old dx/dy. Every APNG frame is drawn at
 `anchor + (x, y)`. All bits not listed below are zero.
@@ -219,7 +219,7 @@ The offset has the same meaning as the old dx/dy. Every APNG frame is drawn at
 | 33–43 | look ID |
 | 44–55 | zero |
 
-Example: `00000005FEEFF4.PNG` is look 0, motion 0, direction 5, no shadow,
+Example: `00000005FF4FEE.PNG` is look 0, motion 0, direction 5, no shadow,
 offset (-12, -18).
 
 ### hero, hair, helmet, weapon
@@ -239,9 +239,9 @@ offset (-12, -18).
 
 Examples:
 
-- `00000005FD300E.PNG` is hero dress 0, gender 0, motion 0, direction 5,
+- `0000000500EFD3.PNG` is hero dress 0, gender 0, motion 0, direction 5,
   offset (14, -45).
-- `0002C205FCBFD0.PNG` is weapon 44, layer 1 (effect), gender 0, motion 0,
+- `0002C205FD0FCB.PNG` is weapon 44, layer 1 (effect), gender 0, motion 0,
   direction 5, offset (-48, -53).
 
 #### Weapon 44 effect
@@ -331,7 +331,7 @@ filename format for every `PNGTexOffDB` type.
 | 24–55 | the old 32-bit key, unchanged |
 
 Example: `000000000000160079.PNG` (key 0, dx -22, dy -121) becomes
-`00000000F87FEA.PNG`.
+`00000000FEAF87.PNG`.
 
 Keys must be unique, and the offset must fit in 12 bits. Equip images are not
 trimmed or re-encoded, and `--apngopt` and `--delay` don't apply to them.
@@ -363,7 +363,7 @@ The new name uses the [hero layout](#hero-hair-helmet-weapon), 14 hex digits:
 | 36–43 | job gfx index |
 | 44–55 | zero |
 
-Example: `00000A08FA1FA5.PNG` is the magic overlay of job 0, male, motion 1,
+Example: `00000A08FA5FA1.PNG` is the magic overlay of job 0, male, motion 1,
 offset (-91, -95).
 
 The client draws the body, then the shadow and the magic overlay at the same
@@ -533,7 +533,7 @@ below). The conversion splits it:
 4. **Hex digits.** Names are uppercase, zero-padded to a fixed width, with a
    `.PNG` extension. Every offset, head and tail coordinate is 3 hex digits,
    12-bit two's complement (`0xFFF` = -1, `0x800` = -2048). For every type
-   except magic, the offset is bits 0–23, the last 6 digits `YYYXXX`, and the
+   except magic, the offset is bits 0–23, the last 6 digits `XXXYYY`, and the
    identity starts at bit 24. Magic is `FF IIIII D XXX YYY HHH HHH TTT TTT`,
    with the identity at bit 72. Every identity starts at a hex-digit boundary,
    so it can be read directly from the leading digits.
@@ -572,12 +572,12 @@ Example, monster look 21, motion 3, direction 1, shadow:
 - identity = 1 | 3 << 3 | 1 << 8 | 21 << 9 = `0x2B19`
 - X = min(3 + 0, 2 + 0) = 2, Y = min(4 + 0, -7 + 0) = -7
 - W = max(3 + 89, 2 + 85) - 2 = 90, H = max(4 + 23, -7 + 33) + 7 = 34
-- new file `00002B19FF9002.PNG`: identity `00002B19`, Y `FF9`, X `002`,
+- new file `00002B19002FF9.PNG`: identity `00002B19`, X `002`, Y `FF9`,
   90×34, 2 frames.
 
 npc uses the same mapping. Example: `0003300000001A0057.PNG` (look 51,
 motion 0, direction 0, dx -26, dy -87, visible box starts at x 1) becomes
-`00006600FA9FE7.PNG`, offset (-25, -87).
+`00006600FE7FA9.PNG`, offset (-25, -87).
 
 ### hero, hair, helmet, weapon
 
@@ -616,23 +616,23 @@ Since the frame index and direction occupy the low bits in both layouts,
 
 Example, hero dress 1, motion 4, direction 1, layer 1, one frame: old
 `01004420100007002B.PNG` (dx 7, dy -43, visible box (1, 9, 38, 70)) becomes
-`00001221FDE008.PNG`:
+`00001221008FDE.PNG`:
 
 - identity = 1 | 4 << 3 | 1 << 9 | 1 << 12 = `0x1221`
 - X = 7 + 1 = 8, Y = -43 + 9 = -34, size 37×61, the 1-pixel left and 9-pixel
   top margins of the old 40×74 image are trimmed.
 
 Example, hair 4, male, motion 19 (DIE), direction 5, frames
-`004113A0...` to `004113A9...` become `0000489DFCA00D.PNG`, 45×53, 10 frames,
+`004113A0...` to `004113A9...` become `0000489D00DFCA.PNG`, 45×53, 10 frames,
 offset (13, -54). Old frame 5, `004113A51125E7262F.PNG` (+9703, +9775, fully
 transparent), is a placeholder: APNG frame 5 is blank and doesn't affect the
 offset or size.
 
 Example, weapon 44, male, motion 0, direction 2, shadow: `00CB0040...` to
-`00CB0043...` become `0002CC02001009.PNG`.
+`00CB0043...` become `0002CC02009001.PNG`.
 
 helmet example: helmet 5, male, motion 19, direction 4, `00415380...` to
-`00415389...` become `0000589CFCC00D.PNG`.
+`00415389...` become `0000589C00DFCC.PNG`.
 
 #### Weapon 44 effect
 
@@ -653,7 +653,7 @@ oldKey    = 0x07000000 | (1900 if gender else 3900) + motion * 80 + direction * 
 ```
 
 Example: `07000780000020001B.PNG` to `07000783...` (images 1920–1923, male,
-motion 0, direction 2) become `0002CA02FE1FDF.PNG`: identity `0x2CA02`,
+motion 0, direction 2) become `0002CA02FDFFE1.PNG`: identity `0x2CA02`,
 offset (-33, -31). It is drawn over the weapon APNG `0002C802...`, which has
 the same ID, gender, motion and direction with layer 0 and shadow 0.
 
@@ -890,7 +890,7 @@ name     = "%014X.PNG" % (oldKey << 24 | (dy & 0xFFF) << 12 | (dx & 0xFFF))
 
 The file content is unchanged, so the offset is the old dx/dy, not trimmed.
 Example: `01000B720000180010.PNG` (dx -24, dy -16) becomes
-`01000B72FF0FE8.PNG`, the first 8 digits are the old key.
+`01000B72FE8FF0.PNG`, the first 8 digits are the old key.
 
 ### selectchar
 
@@ -933,10 +933,10 @@ those frames exist but are blank.
 Examples, job 0, male, motion 1 (20-frame body):
 
 - Overlay: `000022240100340011.PNG` to `00002233...` (frames 4–19) become
-  `00000A08FA1FA5.PNG`, identity `0xA08`, 20 frames, frames 0–3 blank,
+  `00000A08FA5FA1.PNG`, identity `0xA08`, 20 frames, frames 0–3 blank,
   offset (-91, -95).
 - Shadow: `0000422011000A0071.PNG` to `00004233...` become
-  `00000C0805FFD6.PNG`, identity `0xC08`, 20 frames, offset (-42, 95).
+  `00000C08FD605F.PNG`, identity `0xC08`, 20 frames, offset (-42, 95).
 
 ### proguse
 

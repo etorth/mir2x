@@ -199,22 +199,17 @@ uint32_t ProcessCreateChar::charFrameCount(int job, bool gender)
     return 0;
 }
 
-uint32_t ProcessCreateChar::charGfxBaseID(int job, bool gender)
+uint32_t ProcessCreateChar::charGfxBaseID(int job)
 {
     fflassert(jobf::jobValid(job), job);
     const auto jobIndexList = jobf::jobGfxIndex(jobf::firstJob(job));
 
-    // 14     : max =  2   shadow
-    // 13     : max =  2   magic
-    // 10 - 12: max =  8   job
-    // 09     : max =  2   gender: male as true
-    // 05 - 08: max = 16   motion
-    // 00 - 04: max = 32   frame
+    // human gfxID with direction 0, job as id
+    // shadow and magic overlay are in the shadow and layer bits of PNGTexOffDB::humanKey()
 
     return 0
-        + (to_u32(jobIndexList.front()) << 10)
-        + (to_u32(gender              ) <<  9)
-        + (to_u32(4                   ) <<  5);
+        + (to_u32(jobIndexList.front()) << 9)
+        + (to_u32(4                   ) << 3);
 }
 
 void ProcessCreateChar::onSubmit()
@@ -257,11 +252,9 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
         return;
     }
 
-    const uint32_t shadowMask = to_u32(1) << 14;
-    const uint32_t  magicMask = to_u32(1) << 13;
-
     const bool active = (gender == m_activeGender);
-    const uint32_t frameIndex = charGfxBaseID(m_job, gender) + (active ? (absFrame() % frameCount) : 0);
+    const uint32_t gfxID = charGfxBaseID(m_job);
+    const int gfxFrame = active ? to_d(absFrame() % frameCount) : 0;
 
     // TODO hack code
     // seems for female warrior offset-y is mis-aligned
@@ -269,9 +262,9 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
         drawY += 40;
     }
 
-    const auto fnDrawTexture = [drawX, drawY, active](uint32_t texIndex, bool alpha = false) -> bool
+    const auto fnDrawTexture = [drawX, drawY, active, gfxFrame](uint32_t key, bool alpha = false) -> bool
     {
-        if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(texIndex); texPtr){
+        if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(key, gfxFrame); texPtr){
             const auto modColor = [active, alpha]() -> uint32_t
             {
                 if(active){
@@ -289,10 +282,10 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
         return false;
     };
 
-    if(fnDrawTexture(frameIndex)){
-        fnDrawTexture(frameIndex | shadowMask, true);
-        fnDrawTexture(frameIndex);
-        fnDrawTexture(frameIndex | magicMask);
+    if(fnDrawTexture(PNGTexOffDB::humanKey(gfxID, gender))){
+        fnDrawTexture(PNGTexOffDB::humanKey(gfxID, gender, true), true);
+        fnDrawTexture(PNGTexOffDB::humanKey(gfxID, gender));
+        fnDrawTexture(PNGTexOffDB::humanKey(gfxID, gender, false, 1));
     }
 }
 

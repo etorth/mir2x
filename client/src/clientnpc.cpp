@@ -11,23 +11,10 @@ extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_standNPCDB;
 extern ClientArgParser *g_clientArgParser;
 
-std::optional<uint32_t> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::optional<int> frameOpt) const
+std::optional<std::tuple<uint32_t, int>> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::optional<int> frameOpt, bool shadow) const
 {
     fflassert(npcPtr);
     if(*this){
-        // stand npc graphics retrieving key structure
-        //
-        //   3322 2222 2222 1111 1111 1100 0000 0000
-        //   1098 7654 3210 9876 5432 1098 7654 3210
-        //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-        //   |||| |||| |||| |||| |||| |||| |||| ||||
-        //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
-        //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
-        //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-        //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
-        //             +---------------------------------------    shadow : max =    2
-        //
-
         // NPC lookID allows zero
         // check mir2x/tools/npcwil2png/src/main.cpp
 
@@ -35,11 +22,7 @@ std::optional<uint32_t> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::opti
         fflassert(frame >= 0);
         fflassert(frame < count);
 
-        return 0
-            + (to_u32((npcPtr->lookID()                           ) & 0X07FF) << 12)
-            + (to_u32((npcPtr->currMotion()->type                 ) & 0X000F) <<  8)
-            + (to_u32((npcPtr->currMotion()->direction - DIR_BEGIN) & 0X0007) <<  5)
-            + (to_u32((frame                                      ) & 0X001F) <<  0);
+        return std::make_tuple(PNGTexOffDB::creatureKey(npcPtr->lookID(), npcPtr->currMotion()->type, npcPtr->currMotion()->direction - DIR_BEGIN, shadow), frame);
     }
     return {};
 }
@@ -118,13 +101,19 @@ NPCFrameGfxSeq ClientNPC::getFrameGfxSeq(int motion, int direction) const
 
 void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 {
-    const auto bodyKey = getFrameGfxSeq(currMotion()->type, currMotion()->direction).gfxID(this, frame);
-    if(!bodyKey.has_value()){
+    const auto gfxSeq = getFrameGfxSeq(currMotion()->type, currMotion()->direction);
+    const auto   bodyIDOpt = gfxSeq.gfxID(this, frame, false);
+    const auto shadowIDOpt = gfxSeq.gfxID(this, frame, true );
+
+    if(!bodyIDOpt.has_value()){
         return;
     }
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve((bodyKey.value()                    ));
-    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve((bodyKey.value() | (to_u32(1) << 23)));
+    const auto [  bodyKey,   bodyGfxFrame] =   bodyIDOpt.value();
+    const auto [shadowKey, shadowGfxFrame] = shadowIDOpt.value();
+
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve(  bodyKey,   bodyGfxFrame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve(shadowKey, shadowGfxFrame);
 
     auto fnBlendFrame = [](SDL_Texture *texture, int focusChan, int x, int y, uint8_t alpha)
     {
@@ -268,7 +257,8 @@ ClientCreature::TargetBox ClientNPC::getTargetBox() const
         return {};
     }
 
-    auto [bodyFrameTexPtr, dx, dy] = g_standNPCDB->retrieve(texBodyID.value());
+    const auto [bodyKey, bodyGfxFrame] = texBodyID.value();
+    const auto [bodyFrameTexPtr, dx, dy] = g_standNPCDB->retrieve(bodyKey, bodyGfxFrame);
     if(!bodyFrameTexPtr){
         return {};
     }

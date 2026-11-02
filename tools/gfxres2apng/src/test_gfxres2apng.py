@@ -312,7 +312,7 @@ class ConvertTest(TmpDirTest):
         (ident, frames), = g.collect_sequences(self.source, "equip").items()
         self.assertEqual(g.convert_one(("equip", self.output, ident, frames, 100, None, True)), 1)
         path, = self.output.iterdir()
-        self.assertEqual(path.name, "01000B72006F80.PNG")
+        self.assertEqual(path.name, "01000B72F80006.PNG")
         self.assertEqual(g.decode_static_name(path.name), {"dx": -128, "dy": 6, "key": 0x01000B72})
         self.assertEqual(path.read_bytes(), Path(frames[0][0]).read_bytes())
 

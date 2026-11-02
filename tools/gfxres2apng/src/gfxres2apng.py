@@ -19,10 +19,10 @@ Input filename (old per-frame format), 18 chars + ".PNG":
       S S     : sign of dx / dy, '0' means negative
       DDDD    : abs(dx) / abs(dy) in hex
 
-Output filename, hex digits + ".PNG", offsets are always the lowest 24 bits:
+Output filename, hex digits + ".PNG", offsets are always the lowest 24 bits, x first:
 
-      x: bits  0-11, x offset, 12-bit two's complement
-      y: bits 12-23, y offset, 12-bit two's complement
+      y: bits  0-11, y offset, 12-bit two's complement
+      x: bits 12-23, x offset, 12-bit two's complement
 
 monster, npc
     old key: frame(0-4), direction(5-7), motion(8-11), look(12-22), shadow(23)
@@ -316,8 +316,8 @@ def from_twos(value, bits):
 def encode_creature_name(seqKey, dx, dy):
     # seqKey is the old key >> 5: direction(0-2), motion(3-6), look(7-17), shadow(18)
     value = (
-        (to_twos(dx, OFFSET_BITS) << 0)
-        | (to_twos(dy, OFFSET_BITS) << 12)
+        (to_twos(dy, OFFSET_BITS) << 0)
+        | (to_twos(dx, OFFSET_BITS) << 12)
         | (((seqKey >> 0) & 0x07) << 24)
         | (((seqKey >> 3) & 0x0F) << 27)
         | (((seqKey >> 18) & 0x01) << 32)
@@ -329,8 +329,8 @@ def encode_creature_name(seqKey, dx, dy):
 def decode_creature_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
     return {
-        "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
-        "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dx": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dy": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
         "direction": (value >> 24) & 0x07,
         "motion": (value >> 27) & 0x0F,
         "layer": (value >> 31) & 0x01,
@@ -342,8 +342,8 @@ def decode_creature_name(fileName):
 def encode_human_name(seqKey, dx, dy):
     # seqKey is the old key >> 5: direction(0-2), motion(3-8), id(9-16), gender(17), shadow(18), layer(19)
     value = (
-        (to_twos(dx, OFFSET_BITS) << 0)
-        | (to_twos(dy, OFFSET_BITS) << 12)
+        (to_twos(dy, OFFSET_BITS) << 0)
+        | (to_twos(dx, OFFSET_BITS) << 12)
         | (((seqKey >> 0) & 0x07) << 24)
         | (((seqKey >> 3) & 0x3F) << 27)
         | (((seqKey >> HUMAN_LAYER_BIT) & 0x01) << 33)
@@ -357,8 +357,8 @@ def encode_human_name(seqKey, dx, dy):
 def decode_human_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
     return {
-        "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
-        "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dx": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dy": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
         "direction": (value >> 24) & 0x07,
         "motion": (value >> 27) & 0x3F,
         "layer": (value >> 33) & 0x01,
@@ -403,14 +403,14 @@ def decode_magic_name(fileName):
 def encode_static_name(key, dx, dy):
     if not (0 <= key < (1 << 32)):
         raise ValueError(f"invalid static image key: {key}")
-    return f"{(key << 24) | (to_twos(dy, OFFSET_BITS) << 12) | to_twos(dx, OFFSET_BITS):014X}.PNG"
+    return f"{(key << 24) | (to_twos(dx, OFFSET_BITS) << 12) | to_twos(dy, OFFSET_BITS):014X}.PNG"
 
 
 def decode_static_name(fileName):
     value = int(os.path.splitext(fileName)[0], 16)
     return {
-        "dx": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
-        "dy": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dx": from_twos((value >> 12) & 0xFFF, OFFSET_BITS),
+        "dy": from_twos((value >> 0) & 0xFFF, OFFSET_BITS),
         "key": (value >> 24) & 0xFFFFFFFF,
     }
 

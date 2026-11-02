@@ -52,7 +52,7 @@ class ProcessCreateChar: public Process
         }
 
     private:
-        static uint32_t charGfxBaseID(int, bool);
+        static uint32_t charGfxBaseID(int);
         static uint32_t charFrameCount(int, bool);
 
     public:

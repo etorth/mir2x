@@ -1,4 +1,5 @@
 #pragma once
+#include <tuple>
 #include <optional>
 #include "uidf.hpp"
 #include "pathf.hpp"
@@ -23,7 +24,8 @@ struct MonsterFrameGfxSeq final
         return begin >= 0 && count > 0;
     }
 
-    std::optional<uint32_t> gfxID(const ClientMonster *, std::optional<int> = {}) const;
+    // returns {sequence key, frame in the sequence}
+    std::optional<std::tuple<uint32_t, int>> gfxID(const ClientMonster *, std::optional<int> = {}, bool = false) const;
 };
 
 class ClientMonster: public CreatureMovable
