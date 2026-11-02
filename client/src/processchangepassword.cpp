@@ -7,12 +7,12 @@
 #include "idstrf.hpp"
 #include "client.hpp"
 #include "widget.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processchangepassword.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ProcessChangePassword::ProcessChangePassword()
@@ -166,11 +166,7 @@ ProcessChangePassword::ProcessChangePassword()
           .x = m_x + 189,
           .y = m_y + 254,
 
-          .texIDList
-          {
-              .on   = 0X0800000B,
-              .down = 0X0800000C,
-          },
+          .texAniOpt = 0X0800000B,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -185,11 +181,7 @@ ProcessChangePassword::ProcessChangePassword()
           .x = m_x + 400,
           .y = m_y + 288,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

@@ -2,13 +2,13 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "sysconst.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "npcchatboard.hpp"
 #include "clientargparser.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -130,11 +130,7 @@ NPCChatBoard::NPCChatBoard(
           .x = [this]{ return w() - 40; },
           .y = [this]{ return h() - 43; },
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

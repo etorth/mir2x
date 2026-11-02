@@ -2,6 +2,7 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
 #include "emojidb.hpp"
@@ -18,7 +19,7 @@
 
 ClientArgParser   *g_clientArgParser = nullptr;
 Log               *g_mir2xLog        = nullptr; // log information handler, must be inited first
-PNGTexDB          *g_progUseDB       = nullptr; // database for all PNG texture only
+ProgUseDB         *g_progUseDB       = nullptr; // database for all proguse APNG
 PNGTexDB          *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB          *g_mapDB           = nullptr;
 PNGTexOffDB       *g_heroDB          = nullptr; // database for hero
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
 
     try{
         g_sdlDevice    = new SDLDevice();
-        g_progUseDB    = new PNGTexDB(1024);
+        g_progUseDB    = new ProgUseDB(1024);
         g_itemDB       = new PNGTexDB(1024);
         g_mapDB        = new PNGTexDB(8192);
         g_heroDB       = new PNGTexOffDB(1024);

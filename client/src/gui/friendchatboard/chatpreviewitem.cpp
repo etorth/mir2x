@@ -1,12 +1,12 @@
 #include "hero.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "chatpreviewitem.hpp"
 #include "friendchatboard.hpp"
 #include "friendchatboardconst.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ChatPreviewItem::ChatPreviewItem(

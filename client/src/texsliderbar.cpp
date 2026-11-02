@@ -1,7 +1,7 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "texsliderbar.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 TexSliderBar::TexSliderBar(TexSliderBar::InitArgs args)
     : TexSlider

@@ -6,7 +6,7 @@
 class TexAniBoard: public Widget
 {
     private:
-        uint32_t m_startTexID;
+        uint32_t m_aniID;
         size_t   m_frameCount;
         size_t   m_fps;
 

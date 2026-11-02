@@ -5,12 +5,12 @@
 #include "layoutboard.hpp"
 #include "gfxcropboard.hpp"
 #include "gfxresizeboard.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "layoutboard.hpp"
 #include "modalstringboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 // cut off middle

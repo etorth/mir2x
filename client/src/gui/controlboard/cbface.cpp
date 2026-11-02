@@ -1,11 +1,11 @@
 #include <cinttypes>
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "cbface.hpp"
 #include "processrun.hpp"
 #include "clientmonster.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 CBFace::CBFace(

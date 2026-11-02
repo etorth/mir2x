@@ -1,8 +1,8 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "checkbox.hpp"
 #include "stdf.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 bool CheckBox::evalBoolGetter(const CheckBox::BoolGetter &getter, const Widget *widget)

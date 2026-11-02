@@ -6,12 +6,12 @@
 #include "utf8f.hpp"
 #include "idstrf.hpp"
 #include "client.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processcreateaccount.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ProcessCreateAccount::ProcessCreateAccount()
@@ -125,11 +125,7 @@ ProcessCreateAccount::ProcessCreateAccount()
           .x = m_x + 189,
           .y = m_y + 233,
 
-          .texIDList
-          {
-              .on   = 0X0800000B,
-              .down = 0X0800000C,
-          },
+          .texAniOpt = 0X0800000B,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -144,11 +140,7 @@ ProcessCreateAccount::ProcessCreateAccount()
           .x = m_x + 400,
           .y = m_y + 267,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

@@ -2,6 +2,7 @@
 #include "totype.hpp"
 #include "invpack.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sysconst.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -10,7 +11,7 @@
 #include "quickaccessboard.hpp"
 
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 QuickAccessBoard::QuickAccessBoard(
@@ -61,12 +62,7 @@ QuickAccessBoard::QuickAccessBoard(
           .x = 263,
           .y = 32,
 
-          .texIDList
-          {
-              .off  = 0X00000061,
-              .on   = 0X00000061,
-              .down = 0X00000062,
-          },
+          .texAniOpt = 0X00000061,
 
           .onTrigger = [this](Widget *, int)
           {

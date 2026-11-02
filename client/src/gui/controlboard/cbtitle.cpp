@@ -1,9 +1,9 @@
 #include "widget.hpp"
 #include "cbtitle.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "controlboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 CBTitle::CBTitle(
         Widget::VarDir argDir,

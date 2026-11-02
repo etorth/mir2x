@@ -5,7 +5,7 @@
 #include "colorf.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "inputstringboard.hpp"
@@ -13,7 +13,7 @@
 #include "auctionregisterboard.hpp"
 #include "auctionboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
 
@@ -180,12 +180,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 21,
           .y = 360,
-          .texIDList
-          {
-              .off  = 0X00000311,
-              .on   = 0X00000310,
-              .down = 0X00000312,
-          },
+          .texAniOpt = 0X00000310,
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.movePrev();
@@ -202,12 +197,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 72,
           .y = 360,
-          .texIDList
-          {
-              .off  = 0X00000301,
-              .on   = 0X00000300,
-              .down = 0X00000302,
-          },
+          .texAniOpt = 0X00000301,
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.moveNext();
@@ -224,12 +214,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 122,
           .y = 361,
-          .texIDList
-          {
-              .off  = 0X00000331,
-              .on   = 0X00000330,
-              .down = 0X00000332,
-          },
+          .texAniOpt = 0X00000330,
           .onTrigger = [this](Widget *, int)
           {
               refreshItemList();
@@ -241,11 +226,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 412,
           .y = 360,
-          .texIDList
-          {
-              .on   = 0X00001420,
-              .down = 0X00001421,
-          },
+          .texAniOpt = 0X00001420,
           .onTrigger = [](Widget *, int)
           {
           },
@@ -256,11 +237,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 412,
           .y = 390,
-          .texIDList
-          {
-              .on   = 0X00001420,
-              .down = 0X00001421,
-          },
+          .texAniOpt = 0X00001420,
           .onTrigger = [](Widget *, int)
           {
           },
@@ -271,20 +248,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 513,
           .y = 370,
-          .texIDList
-          {
-              // looks there are two version of register button, in GameInter
-              //
-              // TMP001228.PNG vs TMP001904.PNG
-              // they are identical expect 1 pixel offset
-              //
-              // zsdb uses 1228, but auction board frame image uses 1904
-              // here use zsdb and off texture to redraw the button off state
-
-              .off  = 0X000000B3,
-              .on   = 0X000000B3,
-              .down = 0X000000B4,
-          },
+          .texAniOpt = 0X000000B3,
           .onTrigger = [this](Widget *, int)
           {
               flipShow(false);
@@ -299,11 +263,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 563,
           .y = 370,
-          .texIDList
-          {
-              .on   = 0X000000B7,
-              .down = 0X000000B8,
-          },
+          .texAniOpt = 0X000000B7,
           .onTrigger = [this](Widget *, int)
           {
               confirmBuy();
@@ -331,12 +291,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 643,
           .y = 370,
-          .texIDList
-          {
-              .off  = 0X00000850, // same as buttonRegister
-              .on   = 0X00000850,
-              .down = 0X00000851,
-          },
+          .texAniOpt = 0X00000850,
           .onTrigger = [this](Widget *, int)
           {
               confirmUnregister();
@@ -364,11 +319,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 680,
           .y = 396,
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
           .onTrigger = [this](Widget *, int)
           {
               setShow(false);

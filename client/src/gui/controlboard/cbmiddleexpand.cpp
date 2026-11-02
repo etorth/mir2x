@@ -1,9 +1,9 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "controlboard.hpp"
 #include "cbmiddleexpand.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 CBMiddleExpand::CBMiddleExpand(
@@ -122,11 +122,7 @@ CBMiddleExpand::CBMiddleExpand(
           .x = [this]{ return w() - 94; },
           .y = [this]{ return h() - 44; },
 
-          .texIDList
-          {
-              .on   = 0X00000023,
-              .down = 0X00000024,
-          },
+          .texAniOpt = 0X00000023,
 
           .parent{this},
       }}
@@ -136,11 +132,7 @@ CBMiddleExpand::CBMiddleExpand(
           .x = [this]{ return w() - 54; },
           .y = [this]{ return h() - 44; },
 
-          .texIDList
-          {
-              .on   = 0X00000025,
-              .down = 0X00000026,
-          },
+          .texAniOpt = 0X00000025,
 
           .parent{this},
       }}

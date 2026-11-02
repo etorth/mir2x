@@ -1,5 +1,5 @@
 #include "client.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "chatpage.hpp"
@@ -8,7 +8,7 @@
 #include "friendchatboardconst.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ChatInputContainer::ChatInputContainer(

@@ -1,5 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <utility>
+#include <variant>
+#include <optional>
 #include <functional>
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
@@ -7,12 +10,49 @@
 
 class TritexButton: public ButtonBase
 {
+    public:
+        class AniFrameOpt final
+        {
+            private:
+                std::optional<std::pair<uint32_t, int>> m_frame;
+
+            public:
+                // helper constructors
+                // then you can write code like this:
+                //
+                //     .texIDList
+                //     {
+                //         .texAniOpt {},       // no frame
+                //         .texAniOpt {12},     // animation 12, frame 0
+                //         .texAniOpt {12, 2},  // animation 12, frame 2
+                //     }
+
+                AniFrameOpt() = default;
+                AniFrameOpt(uint32_t aniIndex                ): m_frame(std::make_pair(aniIndex, 0         )) {}
+                AniFrameOpt(uint32_t aniIndex, int frameIndex): m_frame(std::make_pair(aniIndex, frameIndex)) {}
+
+            public:
+                operator bool () const noexcept
+                {
+                    return m_frame.has_value();
+                }
+
+            public:
+                uint32_t animation() const { return m_frame.value().first ; } // throw if opt is empty
+                int      frame    () const { return m_frame.value().second; } // throw if opt is empty
+        };
+
+    private:
+        using TritexIDFunc = std::variant<std::nullptr_t,
+                                          std::function<TritexButton::AniFrameOpt(                   )>,
+                                          std::function<TritexButton::AniFrameOpt(                int)>,
+                                          std::function<TritexButton::AniFrameOpt(const Widget *, int)>>;
     private:
         struct TritexIDList final
         {
-            std::optional<uint32_t> off  = std::nullopt;
-            std::optional<uint32_t> on   = std::nullopt;
-            std::optional<uint32_t> down = std::nullopt;
+            TritexButton::AniFrameOpt off  {};
+            TritexButton::AniFrameOpt on   {};
+            TritexButton::AniFrameOpt down {};
 
             decltype(auto) operator[](this auto && self, size_t index)
             {
@@ -26,20 +66,15 @@ class TritexButton: public ButtonBase
         };
 
     private:
-        using TritexIDFunc = std::variant<std::nullptr_t,
-                                          std::function<std::optional<uint32_t>(                   )>,
-                                          std::function<std::optional<uint32_t>(                int)>,
-                                          std::function<std::optional<uint32_t>(const Widget *, int)>>;
-
-    private:
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
-            TritexButton::TritexIDFunc texIDFunc {};
-            TritexButton::TritexIDList texIDList {};
+            std::optional<uint32_t>    texAniOpt {}; // contains an animatinon
+            TritexButton::TritexIDFunc texIDFunc {}; //  returns a  frame      which can be of different animations
+            TritexButton::TritexIDList texIDList {}; // contains a  frame list which can be of different animations
 
             Button::SeffIDList seff {};
 
@@ -65,6 +100,7 @@ class TritexButton: public ButtonBase
         };
 
     private:
+        std::optional<uint32_t>    m_texAniOpt;
         TritexButton::TritexIDFunc m_texIDFunc;
         TritexButton::TritexIDList m_texIDList;
 
@@ -87,12 +123,14 @@ class TritexButton: public ButtonBase
     public:
         void setTexIDList(const TritexButton::TritexIDList &texIDList)
         {
+            m_texAniOpt.reset();
             m_texIDFunc = nullptr;
             m_texIDList = texIDList;
         }
 
         void setTexIDFunc(TritexButton::TritexIDFunc texIDFunc)
         {
+            m_texAniOpt.reset();
             m_texIDFunc = std::move(texIDFunc);
         }
 

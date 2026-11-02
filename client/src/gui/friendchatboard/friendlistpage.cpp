@@ -1,11 +1,11 @@
 #include "hero.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "frienditem.hpp"
 #include "friendlistpage.hpp"
 #include "friendchatboard.hpp"
 #include "friendchatboardconst.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 FriendListPage::FriendListPage(Widget::VarDir argDir,
 

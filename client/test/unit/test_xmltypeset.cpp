@@ -40,6 +40,7 @@
 // the handful XMLTypeset/FontexDB/EmojiDB actually touch; the rest stay nullptr, which is
 // fine as long as no code path exercised by this test dereferences them
 class PNGTexDB;
+class ProgUseDB;
 class PNGTexOffDB;
 class MagicDB;
 class MapBinDB;
@@ -51,7 +52,7 @@ class Client;
 
 ClientArgParser   *g_clientArgParser = nullptr;
 Log               *g_mir2xLog        = nullptr;
-PNGTexDB          *g_progUseDB       = nullptr;
+ProgUseDB         *g_progUseDB       = nullptr;
 PNGTexDB          *g_itemDB          = nullptr;
 PNGTexDB          *g_mapDB           = nullptr;
 PNGTexOffDB       *g_heroDB          = nullptr;

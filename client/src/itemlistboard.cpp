@@ -1,12 +1,13 @@
 #include "strf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "inputstringboard.hpp"
 
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAutoDelete)
@@ -52,11 +53,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
           .x = 25,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000007,
-              .down = 0X08000008,
-          },
+          .texAniOpt = 0X08000007,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -71,11 +68,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
           .x = 67,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000005,
-              .down = 0X08000006,
-          },
+          .texAniOpt = 0X08000005,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -90,11 +83,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
           .x = 115,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000009,
-              .down = 0X0800000A,
-          },
+          .texAniOpt = 0X08000009,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -109,11 +98,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
           .x = 158,
           .y = 159,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

@@ -1,10 +1,10 @@
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "skillpage.hpp"
 #include "skillboard.hpp"
 #include "magiciconbutton.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 SkillPage::SkillPage(SkillPage::InitArgs args)

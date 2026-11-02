@@ -12,6 +12,7 @@
 #include "initview.hpp"
 #include "fontexdb.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "mapbindb.hpp"
 #include "threadpool.hpp"
 #include "emojidb.hpp"
@@ -33,7 +34,7 @@ extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern FontexDB *g_fontexDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexDB *g_itemDB;
 
 extern PNGTexOffDB *g_heroDB;

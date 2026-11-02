@@ -1,8 +1,8 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "trigfxbutton.hpp"
 #include "radioselector.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 RadioSelector::RadioSelector(Widget::VarDir argDir,
 
@@ -44,9 +44,9 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
     , m_valSetter(std::move(argValSetter))
     , m_valOnChange(std::move(argValOnChange))
 
-    , m_imgOff  {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000370); }, .modColor=colorf::WHITE_A255}}
-    , m_imgOn   {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000370); }, .modColor=colorf::  RED_A255}}
-    , m_imgDown {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000371); }, .modColor=colorf::WHITE_A255}}
+    , m_imgOff  {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000370, 0); }, .modColor=colorf::WHITE_A255}}
+    , m_imgOn   {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000370, 1); }, .modColor=colorf::  RED_A255}}
+    , m_imgDown {{.w=16, .h=16, .texLoadFunc=[](const Widget *){ return g_progUseDB->retrieve(0X00000370, 2); }, .modColor=colorf::WHITE_A255}}
 
 {
     for(auto [widget, autoDelete]: argWidgetList){

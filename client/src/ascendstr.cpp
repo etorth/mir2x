@@ -2,13 +2,13 @@
 #include <cinttypes>
 #include "log.hpp"
 #include "colorf.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "ascendstr.hpp"
 #include "sdldevice.hpp"
 #include "totype.hpp"
 
 extern Log *g_mir2xLog;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 AscendStr::AscendStr(int argType, int argValue, int argX, int argY)

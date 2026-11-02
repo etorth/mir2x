@@ -6,13 +6,13 @@
 
 #include "colorf.hpp"
 #include "totype.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "inputstringboard.hpp"
 #include "cbleft.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 CBLeft::CBLeft(
@@ -223,11 +223,7 @@ CBLeft::CBLeft(
           .x = 148,
           .y = 2,
 
-          .texIDList
-          {
-              .on   = 0X0B000000,
-              .down = 0X0B000001,
-          },
+          .texAniOpt = 0X0B000000,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -244,11 +240,7 @@ CBLeft::CBLeft(
           .x = 8,
           .y = 72,
 
-          .texIDList
-          {
-              .on   = 0X0000001E,
-              .down = 0X0000001F,
-          },
+          .texAniOpt = 0X0000001E,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -265,11 +257,7 @@ CBLeft::CBLeft(
           .x = 109,
           .y = 72,
 
-          .texIDList
-          {
-              .on   = 0X00000020,
-              .down = 0X00000021,
-          },
+          .texAniOpt = 0X00000020,
 
           .onTrigger = [this](Widget *, int)
           {

@@ -1,8 +1,8 @@
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "guildboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent, bool argAutoDelete)
@@ -37,11 +37,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 554,
           .y = 399,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -56,11 +52,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 40,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000510,
-              .down = 0X00000511,
-          },
+          .texAniOpt = 0X00000510,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -74,11 +66,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 90,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000520,
-              .down = 0X00000521,
-          },
+          .texAniOpt = 0X00000520,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -92,11 +80,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 140,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000530,
-              .down = 0X00000531,
-          },
+          .texAniOpt = 0X00000530,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -110,11 +94,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 290,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000540,
-              .down = 0X00000541,
-          },
+          .texAniOpt = 0X00000540,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -128,11 +108,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 340,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000550,
-              .down = 0X00000551,
-          },
+          .texAniOpt = 0X00000550,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -146,11 +122,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 390,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000560,
-              .down = 0X00000561,
-          },
+          .texAniOpt = 0X00000560,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -164,11 +136,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 440,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000570,
-              .down = 0X00000571,
-          },
+          .texAniOpt = 0X00000570,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -182,11 +150,7 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 490,
           .y = 385,
 
-          .texIDList
-          {
-              .on   = 0X00000580,
-              .down = 0X00000581,
-          },
+          .texAniOpt = 0X00000580,
 
           .onTrigger = [this](Widget *, int)
           {

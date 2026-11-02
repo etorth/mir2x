@@ -1,11 +1,11 @@
 #include "colorf.hpp"
 #include "sysconst.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "tritexbutton.hpp"
 #include "stdf.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 TritexButton::TritexButton(TritexButton::InitArgs args)
@@ -40,6 +40,7 @@ TritexButton::TritexButton(TritexButton::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
+    , m_texAniOpt(std::move(args.texAniOpt))
     , m_texIDFunc(std::move(args.texIDFunc))
     , m_texIDList(std::move(args.texIDList))
 
@@ -107,14 +108,23 @@ void TritexButton::drawDefault(Widget::ROIMap m) const
 SDL_Texture *TritexButton::evalGfxTexture(std::optional<int> stateOpt) const
 {
     const auto state = stateOpt.value_or(getState());
-    return std::visit(stdf::VarDispatcher
+    if(m_texAniOpt.has_value()){
+        return g_progUseDB->retrieve(m_texAniOpt.value(), state - BEVENT_BEGIN);
+    }
+
+    const auto aniFrame = std::visit(stdf::VarDispatcher
     {
-        [state, this](const std::function<std::optional<uint32_t>(                   )> &f){ return (f ? f(           ) : m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },
-        [state, this](const std::function<std::optional<uint32_t>(                int)> &f){ return (f ? f(      state) : m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },
-        [state, this](const std::function<std::optional<uint32_t>(const Widget *, int)> &f){ return (f ? f(this, state) : m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },
-        [state, this](const                                                        auto & ){ return (                     m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },
+        [state, this](const std::function<TritexButton::AniFrameOpt(                   )> &f){ return f ? f(           ) : m_texIDList[state - BEVENT_BEGIN]; },
+        [state, this](const std::function<TritexButton::AniFrameOpt(                int)> &f){ return f ? f(      state) : m_texIDList[state - BEVENT_BEGIN]; },
+        [state, this](const std::function<TritexButton::AniFrameOpt(const Widget *, int)> &f){ return f ? f(this, state) : m_texIDList[state - BEVENT_BEGIN]; },
+        [state, this](const                                                         auto & ){ return                       m_texIDList[state - BEVENT_BEGIN]; },
     },
     m_texIDFunc);
+
+    if(aniFrame){
+        return g_progUseDB->retrieve(aniFrame.animation(), aniFrame.frame());
+    }
+    return nullptr;
 }
 
 SDL_Texture *TritexButton::evalGfxTextureValid() const

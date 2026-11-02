@@ -6,7 +6,7 @@
 #include "utf8f.hpp"
 #include "client.hpp"
 #include "message.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "bgmusicdb.hpp"
 #include "sdldevice.hpp"
 #include "buildconfig.hpp"
@@ -16,7 +16,7 @@
 
 extern Log *g_mir2xLog;
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern BGMusicDB *g_bgmDB;
 extern ClientArgParser *g_clientArgParser;
@@ -29,10 +29,10 @@ ProcessLogin::ProcessLogin()
               .h = 600,
           }}
 
-	, m_button1{{.x = 150, .y = 482, .texIDList{.off = 0X00000005, .on = 0X00000006, .down = 0X00000007}, .onTrigger = [this](Widget *, int){ doCreateAccount (); }, .parent{&m_canvas}}}
-	, m_button2{{.x = 352, .y = 482, .texIDList{.off = 0X00000008, .on = 0X00000009, .down = 0X0000000A}, .onTrigger = [this](Widget *, int){ doChangePassword(); }, .parent{&m_canvas}}}
-	, m_button3{{.x = 554, .y = 482, .texIDList{.off = 0X0000000B, .on = 0X0000000C, .down = 0X0000000D}, .onTrigger = [this](Widget *, int){ doExit ();          }, .parent{&m_canvas}}}
-        , m_button4{{.x = 600, .y = 536, .texIDList{.off = 0X0000000E, .on = 0X0000000F, .down = 0X00000010}, .onTrigger = [this](Widget *, int){ doLogin();          }, .parent{&m_canvas}}}
+	, m_button1{{.x = 150, .y = 482, .texAniOpt = 0X00000005, .onTrigger = [this](Widget *, int){ doCreateAccount (); }, .parent{&m_canvas}}}
+	, m_button2{{.x = 352, .y = 482, .texAniOpt = 0X00000008, .onTrigger = [this](Widget *, int){ doChangePassword(); }, .parent{&m_canvas}}}
+	, m_button3{{.x = 554, .y = 482, .texAniOpt = 0X0000000B, .onTrigger = [this](Widget *, int){ doExit ();          }, .parent{&m_canvas}}}
+        , m_button4{{.x = 600, .y = 536, .texAniOpt = 0X0000000E, .onTrigger = [this](Widget *, int){ doLogin();          }, .parent{&m_canvas}}}
 
 	, m_idBox
           {{

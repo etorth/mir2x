@@ -1,11 +1,11 @@
 #include "colorf.hpp"
 #include "totype.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "textboard.hpp"
 #include "sdldevice.hpp"
 #include "gfxdebugboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)

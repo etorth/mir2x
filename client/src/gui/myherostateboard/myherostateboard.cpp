@@ -2,6 +2,7 @@
 #include "strf.hpp"
 #include "uidf.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "combatnode.hpp"
 #include "processrun.hpp"
@@ -11,7 +12,7 @@
 #include "clientargparser.hpp"
 
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexOffDB *g_equipDB;
 extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
@@ -85,11 +86,7 @@ MyHeroStateBoard::MyHeroStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
           .x = 288,
           .y = 13,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

@@ -1,12 +1,12 @@
 #include <type_traits>
 #include "strf.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "gui/controlboard/controlboard.hpp"
 #include "queststateboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 QuestStateBoard::QuestStateBoard(
@@ -98,12 +98,7 @@ QuestStateBoard::QuestStateBoard(
           .x = 315,
           .y = 76,
 
-          .texIDList
-          {
-              .off  = 0X00000300,
-              .on   = 0X00000300,
-              .down = 0X00000302,
-          },
+          .texAniOpt = 0X00000300,
 
           .parent{this},
       }}
@@ -113,11 +108,7 @@ QuestStateBoard::QuestStateBoard(
           .x = 316,
           .y = 108,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

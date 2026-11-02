@@ -1,13 +1,13 @@
 #include <array>
 #include "maprecord.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "textboard.hpp"
 #include "minimapboard.hpp"
 #include "marginwrapper.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
@@ -139,10 +139,9 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
 
     , m_buttonAlpha
       {{
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int) -> TritexButton::AniFrameOpt
           {
-              if(m_alphaOn) return std::array{0X09000011, 0X09000011, 0X09000011}[state];
-              else          return std::array{0X09000010, 0X09000010, 0X09000010}[state];
+              return {0X09000010U, m_alphaOn ? 2 : 0};
           },
 
           .onTrigger = [this](Widget *, int)
@@ -157,10 +156,9 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
 
     , m_buttonExtend
       {{
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int) -> TritexButton::AniFrameOpt
           {
-              if(m_extended) return std::array{0X09000021, 0X09000021, 0X09000021}[state];
-              else           return std::array{0X09000020, 0X09000020, 0X09000020}[state];
+              return {0X09000020U, m_extended ? 2 : 0};
           },
 
           .onTrigger = [this](Widget *, int)
@@ -175,10 +173,9 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
 
     , m_buttonAutoCenter
       {{
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int) -> TritexButton::AniFrameOpt
           {
-              if(m_autoCenter) return std::array{0X09000031, 0X09000031, 0X09000031}[state];
-              else             return std::array{0X09000030, 0X09000030, 0X09000030}[state];
+              return {0X09000030U, m_autoCenter ? 2 : 0};
           },
 
           .onTrigger = [this](Widget *, int)
@@ -193,10 +190,9 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
 
     , m_buttonConfig
       {{
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int) -> TritexButton::AniFrameOpt
           {
-              if(m_autoCenter) return std::array{0X09000041, 0X09000041, 0X09000041}[state];
-              else             return std::array{0X09000040, 0X09000040, 0X09000040}[state];
+              return {0X09000040U, m_autoCenter ? 2 : 0};
           },
       }}
 

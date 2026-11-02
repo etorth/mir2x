@@ -1,12 +1,12 @@
 #include "widget.hpp"
 #include "colorf.hpp"
 #include "utf8f.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "gui/controlboard/controlboard.hpp"
 #include "inputstringboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 InputStringBoard::InputStringBoard(
@@ -120,12 +120,7 @@ InputStringBoard::InputStringBoard(
           },
           .y = 190,
 
-          .texIDList
-          {
-              .off  = 0X07000001,
-              .on   = 0X07000002,
-              .down = 0X07000003,
-          },
+          .texAniOpt = 0X07000001,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -149,12 +144,7 @@ InputStringBoard::InputStringBoard(
           },
           .y = 190,
 
-          .texIDList
-          {
-              .off  = 0X07000004,
-              .on   = 0X07000005,
-              .down = 0X07000006,
-          },
+          .texAniOpt = 0X07000004,
 
           .onTrigger = [this](Widget *, int)
           {

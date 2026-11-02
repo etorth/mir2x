@@ -1,6 +1,7 @@
 #include "totype.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "textboard.hpp"
@@ -9,7 +10,7 @@
 
 extern Client *g_client;
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
@@ -34,11 +35,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 257,
           .y = 183,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -54,11 +51,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 105,
           .y = 185,
 
-          .texIDList
-          {
-              .on   = 0X08000003,
-              .down = 0X08000004,
-          },
+          .texAniOpt = 0X08000003,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -75,11 +68,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 448,
           .y = 159,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -94,11 +83,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 315,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000007,
-              .down = 0X08000008,
-          },
+          .texAniOpt = 0X08000007,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -113,11 +98,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 357,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000005,
-              .down = 0X08000006,
-          },
+          .texAniOpt = 0X08000005,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -135,11 +116,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 405,
           .y = 163,
 
-          .texIDList
-          {
-              .on   = 0X08000009,
-              .down = 0X0800000A,
-          },
+          .texAniOpt = 0X08000009,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -159,11 +136,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 474,
           .y = 56,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -178,11 +151,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
           .x = 366,
           .y = 60,
 
-          .texIDList
-          {
-              .on   = 0X0800000B,
-              .down = 0X0800000C,
-          },
+          .texAniOpt = 0X0800000B,
 
           .onTrigger = [this](Widget *, int)
           {

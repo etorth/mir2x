@@ -8,7 +8,7 @@
 #include "uidf.hpp"
 #include "mathf.hpp"
 #include "fflerror.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "pngtexoffdb.hpp"
@@ -49,7 +49,7 @@
 #include "clienttree.hpp"
 
 extern Log *g_mir2xLog;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;

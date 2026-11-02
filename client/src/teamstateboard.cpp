@@ -2,6 +2,7 @@
 #include "strf.hpp"
 #include "uidf.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "combatnode.hpp"
 #include "processrun.hpp"
@@ -11,7 +12,7 @@
 #include "clientargparser.hpp"
 
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexOffDB *g_equipDB;
 extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
@@ -34,11 +35,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 24,
           .y = 47,
 
-          .texIDList
-          {
-              .on   = 0X00000200,
-              .down = 0X00000201,
-          },
+          .texAniOpt = 0X00000200,
 
           .parent{this},
       }}
@@ -48,11 +45,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 19,
           .y = 0, // reset by adjustButtonPos()
 
-          .texIDList
-          {
-              .on   = 0X00000160,
-              .down = 0X00000161,
-          },
+          .texAniOpt = 0X00000160,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -75,12 +68,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 72,
           .y = 0, // reset by adjustButtonPos()
 
-          .texIDList
-          {
-              .off  = 0X00000170,
-              .on   = 0X00000170,
-              .down = 0X00000171,
-          },
+          .texAniOpt = 0X00000170,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -97,12 +85,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 125,
           .y = 0, // reset by adjustButtonPos()
 
-          .texIDList
-          {
-              .off  = 0X00000180,
-              .on   = 0X00000180,
-              .down = 0X00000181,
-          },
+          .texAniOpt = 0X00000180,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -119,11 +102,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 177,
           .y = 0, // reset by adjustButtonPos()
 
-          .texIDList
-          {
-              .on   = 0X00000190,
-              .down = 0X00000191,
-          },
+          .texAniOpt = 0X00000190,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -138,11 +117,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
           .x = 217,
           .y = 0, // reset by adjustButtonPos()
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

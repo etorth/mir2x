@@ -3,7 +3,7 @@
 #include "client.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
@@ -16,17 +16,17 @@ extern SDLDevice *g_sdlDevice;
 extern IMEBoard *g_imeBoard;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexOffDB *g_selectCharDB;
 extern ClientArgParser *g_clientArgParser;
 
 ProcessCreateChar::ProcessCreateChar()
     : Process()
-    , m_warrior{{.x = 339, .y = 539, .texIDList{.off = 0X0D000030, .on = 0X0D000031, .down = 0X0D000032}, .onTrigger = [this](Widget *, int){ m_job = JOB_WARRIOR; }}}
-    , m_wizard {{.x = 381, .y = 539, .texIDList{.off = 0X0D000040, .on = 0X0D000041, .down = 0X0D000042}, .onTrigger = [this](Widget *, int){ m_job = JOB_WIZARD ; }}}
-    , m_taoist {{.x = 424, .y = 539, .texIDList{.off = 0X0D000050, .on = 0X0D000051, .down = 0X0D000052}, .onTrigger = [this](Widget *, int){ m_job = JOB_TAOIST ; }}}
-    , m_submit {{.x = 512, .y = 549, .texIDList{.off = 0X0D000010, .on = 0X0D000011, .down = 0X0D000012}, .onTrigger = [this](Widget *, int){ onSubmit();          }}}
-    , m_exit   {{.x = 554, .y = 549, .texIDList{.off = 0X0D000020, .on = 0X0D000021, .down = 0X0D000022}, .onTrigger = [this](Widget *, int){ onExit  ();          }}}
+    , m_warrior{{.x = 339, .y = 539, .texAniOpt = 0X0D000030, .onTrigger = [this](Widget *, int){ m_job = JOB_WARRIOR; }}}
+    , m_wizard {{.x = 381, .y = 539, .texAniOpt = 0X0D000040, .onTrigger = [this](Widget *, int){ m_job = JOB_WIZARD ; }}}
+    , m_taoist {{.x = 424, .y = 539, .texAniOpt = 0X0D000050, .onTrigger = [this](Widget *, int){ m_job = JOB_TAOIST ; }}}
+    , m_submit {{.x = 512, .y = 549, .texAniOpt = 0X0D000010, .onTrigger = [this](Widget *, int){ onSubmit();          }}}
+    , m_exit   {{.x = 554, .y = 549, .texAniOpt = 0X0D000020, .onTrigger = [this](Widget *, int){ onExit  ();          }}}
 
     , m_nameBox
       {{

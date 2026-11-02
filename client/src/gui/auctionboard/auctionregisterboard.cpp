@@ -6,14 +6,14 @@
 #include "xmlf.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 #include "inputstringboard.hpp"
 #include "auctionregisterboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
 
@@ -86,11 +86,7 @@ AuctionRegisterBoard::AuctionRegisterBoard(ProcessRun *argProc, Widget *argParen
       {{
           .x = 248,
           .y = 229,
-          .texIDList
-          {
-              .on   = 0X000000B3,
-              .down = 0X000000B4,
-          },
+          .texAniOpt = 0X000000B3,
           .onTrigger = [this](Widget *, int)
           {
               confirmRegister();
@@ -102,11 +98,7 @@ AuctionRegisterBoard::AuctionRegisterBoard(ProcessRun *argProc, Widget *argParen
       {{
           .x = 318,
           .y = 229,
-          .texIDList
-          {
-              .on   = 0X00000850,
-              .down = 0X00000851,
-          },
+          .texAniOpt = 0X00000850,
           .onTrigger = [this](Widget *, int)
           {
               confirmCancel();
@@ -118,11 +110,7 @@ AuctionRegisterBoard::AuctionRegisterBoard(ProcessRun *argProc, Widget *argParen
       {{
           .x = 368,
           .y = 241,
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
           .onTrigger = [this](Widget *, int)
           {
               confirmCancel();

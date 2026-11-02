@@ -1,8 +1,8 @@
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "horseboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 HorseBoard::HorseBoard(
@@ -63,11 +63,7 @@ HorseBoard::HorseBoard(
           .x = 217,
           .y = 278,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -82,11 +78,7 @@ HorseBoard::HorseBoard(
           .x = 20,
           .y = 231,
 
-          .texIDList
-          {
-              .on   = 0X00000710,
-              .down = 0X00000711,
-          },
+          .texAniOpt = 0X00000710,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -100,11 +92,7 @@ HorseBoard::HorseBoard(
           .x = 77,
           .y = 231,
 
-          .texIDList
-          {
-              .on   = 0X00000720,
-              .down = 0X00000721,
-          },
+          .texAniOpt = 0X00000720,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -118,11 +106,7 @@ HorseBoard::HorseBoard(
           .x = 134,
           .y = 231,
 
-          .texIDList
-          {
-              .on   = 0X00000730,
-              .down = 0X00000731,
-          },
+          .texAniOpt = 0X00000730,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -136,11 +120,7 @@ HorseBoard::HorseBoard(
           .x = 191,
           .y = 231,
 
-          .texIDList
-          {
-              .on   = 0X00000740,
-              .down = 0X00000741,
-          },
+          .texAniOpt = 0X00000740,
 
           .onTrigger = [this](Widget *, int)
           {

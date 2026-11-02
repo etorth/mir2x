@@ -1,5 +1,5 @@
 #include "dbcomid.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "skillpage.hpp"
@@ -8,7 +8,7 @@
 #include "magiciconbutton.hpp"
 #include "textshadowboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent, bool argAutoDelete)
@@ -96,11 +96,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
                   .x = tabX + tabW * i,
                   .y = tabY,
 
-                  .texIDList
-                  {
-                      .on   = 0X05000020 + to_u32(i),
-                      .down = 0X05000030 + to_u32(i),
-                  },
+                  .texAniOpt = 0X05000020 + to_u32(i),
 
                   .onOverIn = [i, this]
                   {
@@ -175,11 +171,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
           .x = 317,
           .y = 402,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](int)
           {

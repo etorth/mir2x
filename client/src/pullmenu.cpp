@@ -1,7 +1,7 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "pullmenu.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 PullMenu::PullMenu(PullMenu::InitArgs args)
     : Widget
       {{
@@ -51,9 +51,9 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
           .v = false,
       }}
 
-    , m_imgOff {{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000301); }, .rotate = 1}}
-    , m_imgOn  {{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000300); }, .rotate = 1}}
-    , m_imgDown{{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000302); }, .rotate = 1}}
+    , m_imgOff {{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000301, 0); }, .rotate = 1}}
+    , m_imgOn  {{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000301, 1); }, .rotate = 1}}
+    , m_imgDown{{.w = 22, .h = 22, .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000301, 2); }, .rotate = 1}}
 
     , m_button
       {{

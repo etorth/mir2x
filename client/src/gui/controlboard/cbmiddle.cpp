@@ -6,7 +6,7 @@
 #include "log.hpp"
 #include "colorf.hpp"
 #include "totype.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "imageboard.hpp"
 #include "processrun.hpp"
@@ -15,7 +15,7 @@
 #include "teamstateboard.hpp"
 
 extern Log *g_mir2xLog;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 CBMiddle::CBMiddle(

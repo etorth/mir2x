@@ -1,7 +1,7 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "texinputbackground.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 Widget::ROI TexInputBackground::fromInputROI(bool v, Widget::ROI r)
 {

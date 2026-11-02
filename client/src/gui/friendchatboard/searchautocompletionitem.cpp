@@ -1,10 +1,10 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "searchpage.hpp"
 #include "searchautocompletionitem.hpp"
 #include "friendchatboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarDir argDir,

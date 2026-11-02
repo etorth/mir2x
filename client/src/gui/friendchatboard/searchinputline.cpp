@@ -1,12 +1,12 @@
 #include "clientmsg.hpp"
 #include "client.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "searchpage.hpp"
 #include "searchinputline.hpp"
 #include "friendchatboard.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 SearchInputLine::SearchInputLine(Widget::VarDir argDir,
 

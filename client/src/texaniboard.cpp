@@ -2,11 +2,11 @@
 #include <numeric>
 #include "colorf.hpp"
 #include "fflerror.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "texaniboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 TexAniBoard::TexAniBoard(
@@ -14,7 +14,7 @@ TexAniBoard::TexAniBoard(
         Widget::VarInt argX,
         Widget::VarInt argY,
 
-        uint32_t argStartTexID,
+        uint32_t argAniID,
         size_t   argFrameCount,
 
         size_t argFps,
@@ -35,7 +35,7 @@ TexAniBoard::TexAniBoard(
           .w = [this](const Widget *)
           {
               if(const auto [frame, _] = getDrawFrame(); frame >= 0){
-                  if(auto texPtr = g_progUseDB->retrieve(m_startTexID + frame)){
+                  if(auto texPtr = g_progUseDB->retrieve(m_aniID, frame)){
                       return SDLDeviceHelper::getTextureWidth(texPtr);
                   }
               }
@@ -45,7 +45,7 @@ TexAniBoard::TexAniBoard(
           .h = [this](const Widget *)
           {
               if(const auto [frame, _] = getDrawFrame(); frame >= 0){
-                  if(auto texPtr = g_progUseDB->retrieve(m_startTexID + frame)){
+                  if(auto texPtr = g_progUseDB->retrieve(m_aniID, frame)){
                       return SDLDeviceHelper::getTextureHeight(texPtr);
                   }
               }
@@ -59,7 +59,7 @@ TexAniBoard::TexAniBoard(
           }
       }}
 
-    , m_startTexID(argStartTexID)
+    , m_aniID(argAniID)
     , m_frameCount(argFrameCount)
     , m_fps(argFps)
 
@@ -78,15 +78,15 @@ TexAniBoard::TexAniBoard(
                   return;
               }
 
-              const uint32_t currTexId = m_startTexID + ((frame + 0) % m_frameCount);
-              const uint32_t nextTexId = m_startTexID + ((frame + 1) % m_frameCount);
+              const int currFrame = (frame + 0) % m_frameCount;
+              const int nextFrame = (frame + 1) % m_frameCount;
 
-              if(auto currTexPtr = g_progUseDB->retrieve(currTexId)){
+              if(auto currTexPtr = g_progUseDB->retrieve(m_aniID, currFrame)){
                   const SDLDeviceHelper::EnableTextureModColor enableModColor(currTexPtr, colorf::WHITE + colorf::A_SHF(255 - alpha));
                   g_sdlDevice->drawTexture(currTexPtr, drawDstX, drawDstY);
               }
 
-              if(auto nextTexPtr = g_progUseDB->retrieve(nextTexId)){
+              if(auto nextTexPtr = g_progUseDB->retrieve(m_aniID, nextFrame)){
                   const SDLDeviceHelper::EnableTextureModColor enableModColor(nextTexPtr, colorf::WHITE + colorf::A_SHF(alpha));
                   g_sdlDevice->drawTexture(nextTexPtr, drawDstX, drawDstY);
               }

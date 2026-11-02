@@ -1,9 +1,9 @@
 #include <algorithm>
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "imeboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 IMEBoard::IMEBoard(IMEBoard::InitArgs args)

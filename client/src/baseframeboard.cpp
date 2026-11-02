@@ -1,8 +1,8 @@
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "imageboard.hpp"
 #include "baseframeboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 
 BaseFrameBoard::BaseFrameBoard(BaseFrameBoard::InitArgs args)
     : Widget
@@ -51,11 +51,7 @@ BaseFrameBoard::BaseFrameBoard(BaseFrameBoard::InitArgs args)
           .x = [this]{ return w() - 51; },
           .y = [this]{ return h() - 53; },
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {

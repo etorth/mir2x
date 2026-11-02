@@ -2,7 +2,7 @@
 #include "sdldevice.hpp"
 #include "client.hpp"
 #include "hero.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "processrun.hpp"
 #include "chatpage.hpp"
 #include "pagecontrol.hpp"
@@ -13,7 +13,7 @@
 #include "friendchatboardconst.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, ProcessRun *runPtr, Widget *argParent, bool argAutoDelete)
@@ -106,11 +106,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
           .x = [this]{ return w() - 38; },
           .y = [this]{ return h() - 40; },
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -185,12 +181,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X000008F0,
-                                  .on   = 0X000008F0,
-                                  .down = 0X000008F1,
-                              },
+                              .texAniOpt = 0X000008F0,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -204,12 +195,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000023,
-                                  .on   = 0X00000023,
-                                  .down = 0X00000024,
-                              },
+                              .texAniOpt = 0X00000023,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -222,12 +208,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X000008B0,
-                                  .on   = 0X000008B0,
-                                  .down = 0X000008B1,
-                              },
+                              .texAniOpt = 0X000008B0,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -240,12 +221,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000590,
-                                  .on   = 0X00000590,
-                                  .down = 0X00000591,
-                              },
+                              .texAniOpt = 0X00000590,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -336,12 +312,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000160,
-                                  .on   = 0X00000160,
-                                  .down = 0X00000161,
-                              },
+                              .texAniOpt = 0X00000160,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -416,12 +387,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X000008F0,
-                                  .on   = 0X000008F0,
-                                  .down = 0X000008F1,
-                              },
+                              .texAniOpt = 0X000008F0,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -435,12 +401,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000900,
-                                  .on   = 0X00000900,
-                                  .down = 0X00000901,
-                              },
+                              .texAniOpt = 0X00000900,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -454,12 +415,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000170,
-                                  .on   = 0X00000170,
-                                  .down = 0X00000171,
-                              },
+                              .texAniOpt = 0X00000170,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -533,12 +489,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X000008F0,
-                                  .on   = 0X000008F0,
-                                  .down = 0X000008F1,
-                              },
+                              .texAniOpt = 0X000008F0,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -609,12 +560,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X000008F0,
-                                  .on   = 0X000008F0,
-                                  .down = 0X000008F1,
-                              },
+                              .texAniOpt = 0X000008F0,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -628,12 +574,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000910,
-                                  .on   = 0X00000910,
-                                  .down = 0X00000911,
-                              },
+                              .texAniOpt = 0X00000910,
 
                               .onTrigger = [this](Widget *, int)
                               {
@@ -702,12 +643,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       {
                           new TritexButton
                           {{
-                              .texIDList
-                              {
-                                  .off  = 0X00000860,
-                                  .on   = 0X00000860,
-                                  .down = 0X00000861,
-                              },
+                              .texAniOpt = 0X00000860,
 
                               .onTrigger = [this](Widget *, int)
                               {

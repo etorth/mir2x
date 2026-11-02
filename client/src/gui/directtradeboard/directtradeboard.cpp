@@ -5,12 +5,12 @@
 #include "colorf.hpp"
 #include "invpack.hpp"
 #include "layoutboard.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "directtradeboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
@@ -232,10 +232,9 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
           .x = 227,
           .y = 278,
 
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int state) -> TritexButton::AniFrameOpt
           {
-              if(m_locked) return std::array{0X00000190, 0X00000190, 0X00000191}[state];
-              else         return std::array{0X000000B5, 0X000000B5, 0X000000B6}[state];
+              return {m_locked ? 0X00000190U : 0X000000B5U, state - BEVENT_BEGIN};
           },
 
           .onTrigger = [this](Widget *, int)
@@ -273,12 +272,7 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
           .x = 454,
           .y = 282,
 
-          .texIDList
-          {
-              .off  = 0X0000001C,
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int){ closeTrade(); },
           .parent{this},

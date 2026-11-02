@@ -7,7 +7,7 @@
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "soundeffectdb.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "motionnode.hpp"
@@ -18,7 +18,7 @@
 extern Log *g_mir2xLog;
 extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_hairDB;
 extern PNGTexOffDB *g_weaponDB;

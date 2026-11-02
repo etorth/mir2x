@@ -1,12 +1,13 @@
 #include <array>
 #include "luaf.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexDB *g_itemDB;
 extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
@@ -50,11 +51,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
           .x = 374,
           .y = 12,
 
-          .texIDList
-          {
-              .on   = 0X000000C0,
-              .down = 0X000000C1,
-          },
+          .texAniOpt = 0X000000C0,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -69,11 +66,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
           .x = 394,
           .y = 498,
 
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -89,13 +82,13 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
           .x = m_invOpButtonX + 3,
           .y = m_invOpButtonY + 3,
 
-          .texIDFunc = [this](int state) -> std::optional<uint32_t>
+          .texIDFunc = [this](int state) -> TritexButton::AniFrameOpt
           {
               switch(m_sdInvOp.invOp){
-                  case INVOP_TRADE : return std::array{0X000000B3, 0X000000B3, 0X000000B4}[state];
-                  case INVOP_SECURE: return std::array{0X000000B5, 0X000000B5, 0X000000B6}[state];
-                  case INVOP_REPAIR: return std::array{0X000000B1, 0X000000B1, 0X000000B2}[state];
-                  default          : return std::array{0X000000B3, 0X000000B3, 0X000000B4}[state]; // use trade gfx, needs it to setup widget size
+                  case INVOP_TRADE : return {0X000000B3U, state - BEVENT_BEGIN};
+                  case INVOP_SECURE: return {0X000000B5U, state - BEVENT_BEGIN};
+                  case INVOP_REPAIR: return {0X000000B1U, state - BEVENT_BEGIN};
+                  default          : return {0X000000B3U, state - BEVENT_BEGIN}; // use trade gfx, needs it to setup widget size
               }
           },
 

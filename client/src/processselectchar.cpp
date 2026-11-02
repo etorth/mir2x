@@ -2,7 +2,7 @@
 #include "jobf.hpp"
 #include "pathf.hpp"
 #include "client.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
@@ -14,7 +14,7 @@ extern Log *g_mir2xLog;
 extern Client *g_client;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_selectCharDB;
 
@@ -26,10 +26,10 @@ ProcessSelectChar::ProcessSelectChar()
           .h = 600,
       }}
 
-    , m_start {{ .x = 335, .y =  75, .texIDList{.off = 0X0C000030, .on = 0X0C000030, .down = 0X0C000031}, .onTrigger = [this](Widget *, int){ onStart (); }, .parent{&m_canvas}}}
-    , m_create{{ .x = 565, .y = 130, .texIDList{.off = 0X0C000010, .on = 0X0C000010, .down = 0X0C000011}, .onTrigger = [this](Widget *, int){ onCreate(); }, .parent{&m_canvas}}}
-    , m_delete{{ .x = 110, .y = 305, .texIDList{.off = 0X0C000020, .on = 0X0C000020, .down = 0X0C000021}, .onTrigger = [this](Widget *, int){ onDelete(); }, .parent{&m_canvas}}}
-    , m_exit  {{ .x =  45, .y = 544, .texIDList{.off = 0X0C000040, .on = 0X0C000040, .down = 0X0C000041}, .onTrigger = [this](Widget *, int){ onExit  (); }, .parent{&m_canvas}}}
+    , m_start {{ .x = 335, .y =  75, .texAniOpt = 0X0C000030, .onTrigger = [this](Widget *, int){ onStart (); }, .parent{&m_canvas}}}
+    , m_create{{ .x = 565, .y = 130, .texAniOpt = 0X0C000010, .onTrigger = [this](Widget *, int){ onCreate(); }, .parent{&m_canvas}}}
+    , m_delete{{ .x = 110, .y = 305, .texAniOpt = 0X0C000020, .onTrigger = [this](Widget *, int){ onDelete(); }, .parent{&m_canvas}}}
+    , m_exit  {{ .x =  45, .y = 544, .texAniOpt = 0X0C000040, .onTrigger = [this](Widget *, int){ onExit  (); }, .parent{&m_canvas}}}
 
     , m_notifyBoardBg
       {{

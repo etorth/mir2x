@@ -9,6 +9,7 @@
 #include "labelboard.hpp"
 #include "layoutboard.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "pngtexoffdb.hpp"
 #include "processrun.hpp"
 #include "sdldevice.hpp"
@@ -17,7 +18,7 @@
 #include "herostateboard.hpp"
 
 extern PNGTexDB *g_itemDB;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern PNGTexOffDB *g_equipDB;
 extern SDLDevice *g_sdlDevice;
 
@@ -85,11 +86,7 @@ HeroStateBoard::HeroStateBoard(HeroStateBoard::InitArgs args)
       {{
           .x = 249,
           .y = 312,
-          .texIDList
-          {
-              .on   = 0X0000001C,
-              .down = 0X0000001D,
-          },
+          .texAniOpt = 0X0000001C,
           .onTrigger = [this](Widget *, int){ close(); },
           .parent{this},
       }}

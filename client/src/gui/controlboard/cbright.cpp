@@ -5,13 +5,13 @@
 
 #include "colorf.hpp"
 #include "totype.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "controlboard.hpp"
 #include "cbright.hpp"
 
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 CBRight::CBRight(
@@ -155,12 +155,7 @@ CBRight::CBRight(
           .x = 48,
           .y = 33,
 
-          .texIDList
-          {
-              .off  = 0X00000030,
-              .on   = 0X00000030,
-              .down = 0X00000031,
-          },
+          .texAniOpt = 0X00000030,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -177,12 +172,7 @@ CBRight::CBRight(
           .x = 77,
           .y = 31,
 
-          .texIDList
-          {
-              .off  = 0X00000033,
-              .on   = 0X00000033,
-              .down = 0X00000032,
-          },
+          .texAniOpt = 0X00000032,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -199,12 +189,7 @@ CBRight::CBRight(
           .x = 105,
           .y = 33,
 
-          .texIDList
-          {
-              .off  = 0X00000035,
-              .on   = 0X00000035,
-              .down = 0X00000034,
-          },
+          .texAniOpt = 0X00000034,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -221,12 +206,7 @@ CBRight::CBRight(
           .x = 40,
           .y = 11,
 
-          .texIDList
-          {
-              .off  = 0X00000036,
-              .on   = 0X00000036,
-              .down = 0X00000037,
-          },
+          .texAniOpt = 0X00000036,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -243,12 +223,7 @@ CBRight::CBRight(
           .x = 72,
           .y = 8,
 
-          .texIDList
-          {
-              .off  = 0X00000038,
-              .on   = 0X00000038,
-              .down = 0X00000039,
-          },
+          .texAniOpt = 0X00000038,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -274,12 +249,7 @@ CBRight::CBRight(
           .x = 108,
           .y = 11,
 
-          .texIDList
-          {
-              .off  = 0X0000003A,
-              .on   = 0X0000003A,
-              .down = 0X0000003B,
-          },
+          .texAniOpt = 0X0000003A,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -298,12 +268,7 @@ CBRight::CBRight(
           .x = 40,
           .y = 61,
 
-          .texIDList
-          {
-              .off  = 0X0000003C,
-              .on   = 0X0000003C,
-              .down = 0X0000003D,
-          },
+          .texAniOpt = 0X0000003C,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -320,12 +285,7 @@ CBRight::CBRight(
           .x = 72,
           .y = 72,
 
-          .texIDList
-          {
-              .off  = 0X0000003E,
-              .on   = 0X0000003E,
-              .down = 0X0000003F,
-          },
+          .texAniOpt = 0X0000003E,
 
           .onTrigger = [this](Widget *, int)
           {
@@ -342,12 +302,7 @@ CBRight::CBRight(
           .x = 108,
           .y = 61,
 
-          .texIDList
-          {
-              .off  = 0X00000040,
-              .on   = 0X00000040,
-              .down = 0X00000041,
-          },
+          .texAniOpt = 0X00000040,
 
           .onTrigger = [this](Widget *, int)
           {

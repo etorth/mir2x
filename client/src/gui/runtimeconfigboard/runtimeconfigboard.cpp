@@ -4,7 +4,7 @@
 #include "client.hpp"
 #include "imeboard.hpp"
 #include "dbcomid.hpp"
-#include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "textboard.hpp"
@@ -16,7 +16,7 @@
 #include "gui/runtimeconfigboard/dropitemruleboard.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 

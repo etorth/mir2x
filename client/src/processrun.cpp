@@ -14,6 +14,7 @@
 #include "log.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
+#include "progusedb.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "sdldevice.hpp"
@@ -39,7 +40,7 @@ extern Client *g_client;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
-extern PNGTexDB *g_progUseDB;
+extern ProgUseDB *g_progUseDB;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_itemDB;
@@ -529,7 +530,7 @@ void ProcessRun::draw() const
         case CURSOR_TEAMFLAG:
             {
                 const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
-                if(auto flagTex = g_progUseDB->retrieve(0X00000210 + teamFlagIndex)){
+                if(auto flagTex = g_progUseDB->retrieve(0X00000210, teamFlagIndex)){
                     const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
                     g_sdlDevice->drawTexture(flagTex, DIR_NONE, mouseX, mouseY);
                 }
