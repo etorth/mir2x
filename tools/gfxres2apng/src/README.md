@@ -1310,7 +1310,7 @@ instead of nothing.
   fps default to the APNG's frame count and per-frame delays. Users:
   - `inventoryboard.cpp:26` and `gui/auctionboard/auctionboard.cpp:95`:
     `0X04000010`, 10 frames, the APNG's 125 ms delay (8 fps).
-  - `gui/hpbarboard/hpbarboard.cpp` team leader token: `0X00000220`, 16 frames, the APNG's delay.
+  - `gui/overheadboard/overheadboard.cpp` team leader token: `0X00000220`, 16 frames, the APNG's delay.
   - `gui/controlboard/cbtitle.cpp:39` `m_arcAni`: `0X04000000`, 4 frames, with
     fade and loop, at **1 fps** in the code. The manifest uses 200 ms (5 fps).
     Decide which is right; if the client keeps its own fps, the APNG delay is

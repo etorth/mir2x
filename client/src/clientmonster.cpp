@@ -327,7 +327,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
         if(m_currMotion->type != MOTION_MON_DIE){
             const int monsterHeadX = startX + 23;
             const int monsterHeadY = startY - 50;
-            m_hpBarBoard.draw({.dir = DIR_DOWN, .x = monsterHeadX, .y = monsterHeadY});
+            m_overHeadBoard.draw({.dir = DIR_DOWN, .x = monsterHeadX, .y = monsterHeadY});
         }
 
         if(showName(focusMask)){

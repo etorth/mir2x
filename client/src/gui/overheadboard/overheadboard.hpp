@@ -6,12 +6,13 @@
 #include "gfxresizeboard.hpp"
 #include "textboard.hpp"
 #include "texaniboard.hpp"
+#include "messagestackboard.hpp"
 #include "itemflex.hpp"
 
 class ProcessRun;
 class ClientCreature;
 
-class HPBarBoard: public Widget
+class OverHeadBoard: public Widget
 {
     private:
         struct InitArgs
@@ -35,6 +36,9 @@ class HPBarBoard: public Widget
         ClientCreature *m_creature;
 
     private:
+        MessageStackBoard m_sayBoard;
+
+    private:
         TexAniBoard m_teamToken;
 
     private:
@@ -56,7 +60,7 @@ class HPBarBoard: public Widget
         ItemFlex m_flex;
 
     public:
-        HPBarBoard(HPBarBoard::InitArgs);
+        OverHeadBoard(OverHeadBoard::InitArgs);
 
     private:
         bool showNumber() const;
@@ -73,4 +77,7 @@ class HPBarBoard: public Widget
 
     public:
         void setBuffIDList(const SDBuffIDList &);
+
+    public:
+        void addSay(const std::u8string &);
 };

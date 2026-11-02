@@ -7,7 +7,6 @@
 #include "serdesmsg.hpp"
 #include "jobf.hpp"
 #include "creaturemovable.hpp"
-#include "messagestackboard.hpp"
 
 struct HeroFrameGfxSeq final
 {
@@ -40,9 +39,6 @@ class Hero: public CreatureMovable
         SDWLDesp m_sdWLDesp;
 
     protected:
-        MessageStackBoard m_playerSayBoard;
-
-    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
 
     public:
@@ -52,7 +48,6 @@ class Hero: public CreatureMovable
         ~Hero() = default;
 
     public:
-        void updateAttachGUI(double) override;
         bool update(double) override;
 
     public:

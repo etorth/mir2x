@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cmath>
-#include "hpbarboard.hpp"
+#include "overheadboard.hpp"
 #include "processrun.hpp"
 #include "progusedb.hpp"
 #include "sdldevice.hpp"
@@ -111,7 +111,7 @@ class HPBuffIcon: public Widget
         }
 };
 
-HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
+OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -134,6 +134,17 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
 
     , m_runProc(fflcheck(args.runProc))
     , m_creature(fflcheck(args.creature))
+
+    , m_sayBoard
+      {{
+          .width = 160,
+          .corner = 3,
+          .showTime = 5000,
+          .entryLimit = 10,
+          .align = ItemAlign::UPLEFT,
+          .margin{2, 2, 2, 2},
+          .bgColor = colorf::RGBA(0, 0, 0, 128),
+      }}
 
     , m_teamToken
       {{
@@ -238,6 +249,7 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           .align = ItemAlign::CENTER,
           .childList
           {
+              {std::addressof(m_sayBoard ), false},
               {std::addressof(m_teamToken), false},
               {std::addressof(m_iconArea ), false},
 
@@ -267,6 +279,11 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           },
       }}
 {
+    m_sayBoard.setShow([this]
+    {
+        return !m_sayBoard.empty();
+    });
+
     m_teamToken.setShow([this]
     {
         if(auto hero = dynamic_cast<Hero *>(m_creature); hero && hero->isTeamLeader()){
@@ -274,15 +291,16 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
         }
         return false;
     });
+
     m_iconArea.setW([this]{ return buffIconsPerRow() * HPBuffIcon::buffIconDrawW; });
 }
 
-bool HPBarBoard::showNumber() const
+bool OverHeadBoard::showNumber() const
 {
     return m_runProc->getRuntimeConfig<RTCFG_数字显血>();
 }
 
-bool HPBarBoard::showBar() const
+bool OverHeadBoard::showBar() const
 {
     if(m_runProc->getRuntimeConfig<RTCFG_显示血条>()){
         return true;
@@ -295,27 +313,27 @@ bool HPBarBoard::showBar() const
     return false;
 }
 
-int HPBarBoard::barWidthClip() const
+int OverHeadBoard::barWidthClip() const
 {
     return to_d(barWidth() * m_creature->getSDHealth().and_then(&SDHealth::hpRatio).value_or(1.0f));
 }
 
-int HPBarBoard::baseBarWidth() const
+int OverHeadBoard::baseBarWidth() const
 {
     return SDLDeviceHelper::getTextureWidth(g_progUseDB->retrieve(0X00000014));
 }
 
-int HPBarBoard::barWidth() const
+int OverHeadBoard::barWidth() const
 {
     return buffIconsPerRow() * HPBuffIcon::buffIconDrawW + 2 * BAR_W_MARGIN;
 }
 
-int HPBarBoard::barHeight() const
+int OverHeadBoard::barHeight() const
 {
     return SDLDeviceHelper::getTextureHeight(m_empty.getTexture());
 }
 
-int HPBarBoard::buffIconsPerRow() const
+int OverHeadBoard::buffIconsPerRow() const
 {
     if(showNumber()){
         return (std::max<int>(BAR_W_MIN, m_numbers.w()) + HPBuffIcon::buffIconDrawW - 1) / HPBuffIcon::buffIconDrawW;
@@ -323,7 +341,7 @@ int HPBarBoard::buffIconsPerRow() const
     return HPBuffIcon::buffIconsPerRow;
 }
 
-void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
+void OverHeadBoard::setBuffIDList(const SDBuffIDList &list)
 {
     m_iconArea.clearChild();
     m_iconArea.purge();
@@ -350,4 +368,9 @@ void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
             }};
         }
     }
+}
+
+void OverHeadBoard::addSay(const std::u8string &message)
+{
+    m_sayBoard.addMessage(message);
 }

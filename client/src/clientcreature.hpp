@@ -19,7 +19,7 @@
 #include "focustype.hpp"
 #include "serdesmsg.hpp"
 #include "actionnode.hpp"
-#include "gui/hpbarboard/hpbarboard.hpp"
+#include "gui/overheadboard/overheadboard.hpp"
 #include "labelboard.hpp"
 #include "motionnode.hpp"
 #include "protocoldef.hpp"
@@ -54,7 +54,7 @@ class ClientCreature
 
     protected:
         LabelBoard m_nameBoard;
-        HPBarBoard m_hpBarBoard;
+        OverHeadBoard m_overHeadBoard;
 
     protected:
         ClientCreature(uint64_t uid, ProcessRun *runProc)
@@ -63,7 +63,7 @@ class ClientCreature
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard{{.label=u8"ClientCreature"}}
-            , m_hpBarBoard{{.runProc=runProc, .creature=this}}
+            , m_overHeadBoard{{.runProc=runProc, .creature=this}}
         {
             fflassert(m_UID);
             fflassert(m_processRun);

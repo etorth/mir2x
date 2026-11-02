@@ -152,7 +152,7 @@ button  0D000050  0D000051  0D000052                 # 40x38  processcreatechar.
 
 # ---- not grouped, kept static ----------------------------------------------
 # Same-size consecutive runs judged not to be button states:
-#   00000014-00000015  32x4   hp bar empty/full (hpbarboard.cpp:167)
+#   00000014-00000015  32x4   hp bar empty/full (overheadboard.cpp)
 #   00000018-0000001A  36x88  hp/mp orbs (cbleft.cpp:81)
 #   00000042-00000044  24x20  three different icons
 #   00000046-00000049  29x18  ACButton AC/DC/MA/MC labels (acbutton.cpp:29)

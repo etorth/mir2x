@@ -32,16 +32,6 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_onHorse(false)
     , m_gender(argGender)
     , m_job(argJob)
-    , m_playerSayBoard
-      {{
-          .width = 160,
-          .corner = 3,
-          .showTime = 5000,
-          .entryLimit = 10,
-          .align = ItemAlign::UPLEFT,
-          .margin{2, 2, 2, 2},
-          .bgColor = colorf::RGBA(0, 0, 0, 128),
-      }}
 {
     m_currMotion.reset(new MotionNode
     {
@@ -211,7 +201,7 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     if(m_currMotion->gfxType(frame) != MOTION_DIE){
         const int playerHeadX = startX + 23;
         const int playerHeadY = startY - 50;
-        m_hpBarBoard.draw({.dir = DIR_DOWN, .x = playerHeadX, .y = playerHeadY});
+        m_overHeadBoard.draw({.dir = DIR_DOWN, .x = playerHeadX, .y = playerHeadY});
     }
 
     if(showName(focusMask)){
@@ -219,18 +209,6 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
             drawName(startX + SYS_MAPGRIDXP / 2, startY + SYS_MAPGRIDYP / 2 + 8);
         }
     }
-
-    if(!m_playerSayBoard.empty()){
-        const int boardX = startX + 24 - m_playerSayBoard.w() / 2;
-        const int boardY = startY - 70 - m_playerSayBoard.h();
-        m_playerSayBoard.drawRoot({.x = boardX, .y = boardY});
-    }
-}
-
-void Hero::updateAttachGUI(double fUpdateTime)
-{
-    CreatureMovable::updateAttachGUI(fUpdateTime);
-    m_playerSayBoard.update(fUpdateTime);
 }
 
 bool Hero::update(double fUpdateTime)
@@ -392,7 +370,7 @@ void Hero::addPlayerSay(const std::string &message)
         return;
     }
 
-    m_playerSayBoard.addMessage(to_u8rawstr(message));
+    m_overHeadBoard.addSay(to_u8rawstr(message));
 }
 
 bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const

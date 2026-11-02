@@ -39,8 +39,8 @@ bool ClientCreature::advanceMotionFrame()
 
 void ClientCreature::updateAttachGUI(double fUpdateTime)
 {
-    m_nameBoard .update(fUpdateTime);
-    m_hpBarBoard.update(fUpdateTime);
+    m_nameBoard.update(fUpdateTime);
+    m_overHeadBoard.update(fUpdateTime);
 }
 
 void ClientCreature::updateAttachMagic(double fUpdateTime)
@@ -57,7 +57,7 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
 
 void ClientCreature::setBuffIDList(SDBuffIDList list)
 {
-    m_hpBarBoard.setBuffIDList(list);
+    m_overHeadBoard.setBuffIDList(list);
     m_sdBuffIDList = std::move(list);
 }
 
