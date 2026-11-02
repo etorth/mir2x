@@ -220,11 +220,6 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
         }
     }
 
-    if(isTeamLeader()){
-        LabelBoard amLeader{{.label = u8"我是队长", .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
-        amLeader.draw({.x=startX, .y=startY, .ro{0, 0, amLeader.w(), amLeader.h()}});
-    }
-
     if(!m_playerSayBoard.empty()){
         const int boardX = startX + 24 - m_playerSayBoard.w() / 2;
         const int boardY = startY - 70 - m_playerSayBoard.h();

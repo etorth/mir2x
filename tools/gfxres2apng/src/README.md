@@ -972,8 +972,8 @@ Client update notes:
   `pullmenu.cpp:54`), `00000300.PNG` for off `300` (`queststateboard.cpp:101`).
 - An `anim` group replaces code computing `base + frame`, e.g. the team flag
   cursor `0X00000210 + teamFlagIndex` becomes frame `teamFlagIndex` of
-  `00000210.PNG`, and `WMDAniBoard`'s `0X04000010 + frame` becomes frame
-  `frame` of `04000010.PNG`.
+  `00000210.PNG`, and the inventory/auction boards' `0X04000010 + frame`
+  becomes frame `frame` of `04000010.PNG`.
 
 Examples:
 
@@ -1043,7 +1043,7 @@ indirect ones described under Special cases.
 | APNG | Kind | Frames (old keys) | Delay ms | Size | Used by |
 |---|---|---|---:|---|---|
 | `04000000.PNG` | anim | 04000000–04000003 (4) | 200 | 36×20 | `gui/controlboard/cbtitle.cpp:39` |
-| `04000010.PNG` | anim | 04000010–04000019 (10) | 125 | 60×22 | `wmdaniboard.hpp:22` |
+| `04000010.PNG` | anim | 04000010–04000019 (10) | 125 | 60×22 | `inventoryboard.cpp:26`, `gui/auctionboard/auctionboard.cpp:95` |
 | `00000210.PNG` | anim | 00000210–0000021C (13) | 200 | 30×29 | `processrun.cpp:531` |
 | `00000005.PNG` | button | 00000005, 00000006, 00000007 | — | 96×26 | `processlogin.cpp:32` |
 | `00000008.PNG` | button | 00000008, 00000009, 0000000A | — | 96×26 | `processlogin.cpp:33` |
@@ -1305,12 +1305,12 @@ instead of nothing.
   `retrieve(0X00000210 + m_teamFlag.seqFrame() % 13)` becomes frame
   `seqFrame() % 13` of `00000210.PNG`. The 200 ms delay matches
   `m_teamFlag(5)`.
-- `TexAniBoard` (`texaniboard.cpp`) draws `m_startTexID + frame` and, with fade,
-  blends the current and next frames by alpha. It needs per-frame access to the
-  APNG, not just playback. Users:
-  - `WMDAniBoard` (`wmdaniboard.hpp:22`): `0X04000010`, 10 frames, 8 fps, used by
-    `inventoryboard.hpp:49` and `gui/auctionboard/auctionboard.hpp:25`. Matches the
-    125 ms delay.
+- `TexAniBoard` (`texaniboard.cpp`) draws frame `frame` of its `texAniID` and,
+  with `crossFade`, blends the current and next frames by alpha. Frame count and
+  fps default to the APNG's frame count and per-frame delays. Users:
+  - `inventoryboard.cpp:26` and `gui/auctionboard/auctionboard.cpp:95`:
+    `0X04000010`, 10 frames, the APNG's 125 ms delay (8 fps).
+  - `gui/hpbarboard/hpbarboard.cpp` team leader token: `0X00000220`, 16 frames, the APNG's delay.
   - `gui/controlboard/cbtitle.cpp:39` `m_arcAni`: `0X04000000`, 4 frames, with
     fade and loop, at **1 fps** in the code. The manifest uses 200 ms (5 fps).
     Decide which is right; if the client keeps its own fps, the APNG delay is

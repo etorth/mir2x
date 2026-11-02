@@ -37,21 +37,16 @@ CBTitle::CBTitle(
       }}
 
     , m_arcAni
-      {
-          DIR_UPLEFT,
-          46,
-          8,
+      {{
+          .x = 46,
+          .y = 8,
 
-          0X04000000,
-          4,
-          1,
+          .texAniID = 0X04000000,
+          .fps = 1,
+          .crossFade = true,
 
-          true,
-          true,
-
-          this,
-          false,
-      }
+          .parent{this},
+      }}
 
     , m_level
       {

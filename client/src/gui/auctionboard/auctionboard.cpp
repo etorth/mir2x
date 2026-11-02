@@ -93,12 +93,16 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       }}
 
     , m_wmdAniBoard
-      {
-          DIR_NONE,
-          419,
-          24,
-          this,
-      }
+      {{
+          .dir = DIR_NONE,
+          .x = 419,
+          .y = 24,
+
+          .texAniID = 0X04000010,
+          .crossFade = true,
+
+          .parent{this},
+      }}
 
     , m_columnItem
       {{

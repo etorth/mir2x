@@ -5,6 +5,7 @@
 #include "imageboard.hpp"
 #include "gfxresizeboard.hpp"
 #include "textboard.hpp"
+#include "texaniboard.hpp"
 #include "itemflex.hpp"
 
 class ProcessRun;
@@ -34,7 +35,10 @@ class HPBarBoard: public Widget
         ClientCreature *m_creature;
 
     private:
-        Widget *m_iconArea = nullptr;
+        TexAniBoard m_teamToken;
+
+    private:
+        Widget m_iconArea;
 
     private:
         TextBoard  m_numbers;

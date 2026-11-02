@@ -11,7 +11,7 @@
 #include "texslider.hpp"
 #include "labelboard.hpp"
 #include "textboard.hpp"
-#include "wmdaniboard.hpp"
+#include "texaniboard.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -46,7 +46,7 @@ class InventoryBoard: public Widget
         SDStartInvOp m_sdInvOp;
 
     private:
-        WMDAniBoard m_wmdAniBoard;
+        TexAniBoard m_wmdAniBoard;
 
     private:
         TexSlider m_slider;

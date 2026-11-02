@@ -34,7 +34,7 @@
 #       FIRST-LAST         DELAY(ms)
 
 anim    04000000-04000003  200   # 5 fps
-anim    04000010-04000019  125   # 8 fps, WMDAniBoard (wmdaniboard.hpp:22)
+anim    04000010-04000019  125   # 8 fps, inventory/auction board TexAniBoard
 anim    00000210-0000021C  200   # 5 fps, team flag cursor (processrun.cpp:531, m_teamFlag(5))
 
 # ---- buttons ---------------------------------------------------------------

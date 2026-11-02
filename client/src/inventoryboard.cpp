@@ -24,12 +24,15 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
     , m_processRun(args.runProc)
 
     , m_wmdAniBoard
-      {
-          DIR_UPLEFT,
-          23,
-          14,
-          this,
-      }
+      {{
+          .x = 23,
+          .y = 14,
+
+          .texAniID = 0X04000010,
+          .crossFade = true,
+
+          .parent{this},
+      }}
 
     , m_slider
       {{

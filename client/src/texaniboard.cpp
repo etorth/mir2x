@@ -1,7 +1,6 @@
-#include <cfloat>
-#include <numeric>
+#include <cmath>
 #include "colorf.hpp"
-#include "fflerror.hpp"
+#include "mathf.hpp"
 #include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "texaniboard.hpp"
@@ -9,33 +8,18 @@
 extern ProgUseDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-TexAniBoard::TexAniBoard(
-        Widget::VarDir argDir,
-        Widget::VarInt argX,
-        Widget::VarInt argY,
-
-        uint32_t argAniID,
-        size_t   argFrameCount,
-
-        size_t argFps,
-
-        bool argFadeInout,
-        bool argLoop,
-
-        Widget *argParent,
-        bool    argAutoDelete)
-
+TexAniBoard::TexAniBoard(TexAniBoard::InitArgs args)
     : Widget
       {{
-          .dir = std::move(argDir),
+          .dir = std::move(args.dir),
 
-          .x = std::move(argX),
-          .y = std::move(argY),
+          .x = std::move(args.x),
+          .y = std::move(args.y),
 
           .w = [this](const Widget *)
           {
               if(const auto [frame, _] = getDrawFrame(); frame >= 0){
-                  if(auto texPtr = g_progUseDB->retrieve(m_aniID, frame)){
+                  if(auto texPtr = g_progUseDB->retrieve(m_texAniID, frame)){
                       return SDLDeviceHelper::getTextureWidth(texPtr);
                   }
               }
@@ -45,26 +29,22 @@ TexAniBoard::TexAniBoard(
           .h = [this](const Widget *)
           {
               if(const auto [frame, _] = getDrawFrame(); frame >= 0){
-                  if(auto texPtr = g_progUseDB->retrieve(m_aniID, frame)){
+                  if(auto texPtr = g_progUseDB->retrieve(m_texAniID, frame)){
                       return SDLDeviceHelper::getTextureHeight(texPtr);
                   }
               }
               return 0;
           },
 
-          .parent
-          {
-              .widget = argParent,
-              .autoDelete = argAutoDelete,
-          }
+          .parent = std::move(args.parent),
       }}
 
-    , m_aniID(argAniID)
-    , m_frameCount(argFrameCount)
-    , m_fps(argFps)
+    , m_texAniID(args.texAniID)
+    , m_frameCount(args.frameCount)
+    , m_fps(args.fps)
 
-    , m_fadeInout(argFadeInout)
-    , m_loop(argLoop)
+    , m_crossFade(args.crossFade)
+    , m_loop(args.loop)
 
     , m_cropArea
       {{
@@ -78,17 +58,16 @@ TexAniBoard::TexAniBoard(
                   return;
               }
 
-              const int currFrame = (frame + 0) % m_frameCount;
-              const int nextFrame = (frame + 1) % m_frameCount;
-
-              if(auto currTexPtr = g_progUseDB->retrieve(m_aniID, currFrame)){
+              if(auto currTexPtr = g_progUseDB->retrieve(m_texAniID, frame)){
                   const SDLDeviceHelper::EnableTextureModColor enableModColor(currTexPtr, colorf::WHITE + colorf::A_SHF(255 - alpha));
                   g_sdlDevice->drawTexture(currTexPtr, drawDstX, drawDstY);
               }
 
-              if(auto nextTexPtr = g_progUseDB->retrieve(m_aniID, nextFrame)){
-                  const SDLDeviceHelper::EnableTextureModColor enableModColor(nextTexPtr, colorf::WHITE + colorf::A_SHF(alpha));
-                  g_sdlDevice->drawTexture(nextTexPtr, drawDstX, drawDstY);
+              if(alpha > 0){
+                  if(auto nextTexPtr = g_progUseDB->retrieve(m_texAniID, (frame + 1) % frameCount())){
+                      const SDLDeviceHelper::EnableTextureModColor enableModColor(nextTexPtr, colorf::WHITE + colorf::A_SHF(alpha));
+                      g_sdlDevice->drawTexture(nextTexPtr, drawDstX, drawDstY);
+                  }
               }
           },
 
@@ -96,33 +75,50 @@ TexAniBoard::TexAniBoard(
       }}
 {}
 
+int TexAniBoard::frameCount() const
+{
+    return m_frameCount.has_value() ? to_d(m_frameCount.value()) : g_progUseDB->frameCount(m_texAniID);
+}
+
+double TexAniBoard::frameDuration(int frame) const
+{
+    if(m_fps.has_value()){
+        return 1000.0 / m_fps.value();
+    }
+    return std::max<int>(1, g_progUseDB->frameDelay(m_texAniID, frame));
+}
+
 std::tuple<int, uint8_t> TexAniBoard::getDrawFrame() const
 {
-    if(m_frameCount == 0){ return {-1, 0}; }
-    if(m_fps        == 0){ return { 0, 0}; }
+    const int count = frameCount();
+    if(count <= 0){
+        return {-1, 0};
+    }
 
-    const double decimalFrame = m_accuTime * m_fps / 1000.0;
-    const int    integerFrame = to_dround(std::floor(decimalFrame));
+    if(m_fps.has_value() && m_fps.value() == 0){
+        return {0, 0};
+    }
 
-    return
-    {
-        [integerFrame, this]() -> int // current frame
-        {
-            if(m_loop){
-                return integerFrame % m_frameCount;
+    double period = 0.0;
+    for(int i = 0; i < count; ++i){
+        period += frameDuration(i);
+    }
+
+    if(!m_loop && m_accuTime >= period){
+        return {count - 1, 0};
+    }
+
+    double time = std::fmod(m_accuTime, period);
+    for(int i = 0; i < count; ++i){
+        const double duration = frameDuration(i);
+        if(time < duration){
+            // no blending into frame 0 at the end of a non-looping animation
+            if(!m_crossFade || (!m_loop && i == count - 1)){
+                return {i, 0};
             }
-            else{
-                return std::min<int>(integerFrame, m_frameCount - 1);
-            }
-        }(),
-
-
-        [integerFrame, decimalFrame, this]() -> uint8_t // current alpha
-        {
-            if(m_fadeInout){
-                return to_dround(255 * mathf::bound<double>(decimalFrame - integerFrame, 0.0, 1.0));
-            }
-            return 0;
-        }(),
-    };
+            return {i, to_dround(255 * mathf::bound<double>(time / duration, 0.0, 1.0))};
+        }
+        time -= duration;
+    }
+    return {count - 1, 0};
 }

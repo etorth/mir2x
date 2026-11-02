@@ -135,6 +135,17 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
     , m_runProc(fflcheck(args.runProc))
     , m_creature(fflcheck(args.creature))
 
+    , m_teamToken
+      {{
+          .texAniID = 0X00000220,
+      }}
+
+    , m_iconArea
+      {{
+          .w = 0, // reset later
+          .h = std::nullopt,
+      }}
+
     , m_numbers
       {{
           // it decides the full widget width
@@ -227,11 +238,8 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           .align = ItemAlign::CENTER,
           .childList
           {
-              {new Widget
-              {{
-                  .w = [this]{ return buffIconsPerRow() * HPBuffIcon::buffIconDrawW; },
-                  .h = std::nullopt,
-              }}, true},
+              {std::addressof(m_teamToken), false},
+              {std::addressof(m_iconArea ), false},
 
               {new GfxCenterBoard
               {{
@@ -259,11 +267,14 @@ HPBarBoard::HPBarBoard(HPBarBoard::InitArgs args)
           },
       }}
 {
-    m_flex.foreachItem([this](Widget *widget, bool)
+    m_teamToken.setShow([this]
     {
-        m_iconArea = widget; // setup iconArea to first child
-        return true;
+        if(auto hero = dynamic_cast<Hero *>(m_creature); hero && hero->isTeamLeader()){
+            return true;
+        }
+        return false;
     });
+    m_iconArea.setW([this]{ return buffIconsPerRow() * HPBuffIcon::buffIconDrawW; });
 }
 
 bool HPBarBoard::showNumber() const
@@ -314,8 +325,8 @@ int HPBarBoard::buffIconsPerRow() const
 
 void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
 {
-    m_iconArea->clearChild();
-    m_iconArea->purge();
+    m_iconArea.clearChild();
+    m_iconArea.purge();
 
     for(const auto id: list.idList){
         const auto &br = DBCOM_BUFFRECORD(id);
@@ -333,7 +344,7 @@ void HPBarBoard::setBuffIDList(const SDBuffIDList &list)
 
                 .parent
                 {
-                    .widget = m_iconArea,
+                    .widget = std::addressof(m_iconArea),
                     .autoDelete = true,
                 },
             }};
