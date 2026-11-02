@@ -245,6 +245,7 @@ class ProcessRun: public Process
         _support_sm(SM_CASTMAGIC);
         _support_sm(SM_NOTIFYDEAD);
         _support_sm(SM_PLAYERNAME);
+        _support_sm(SM_PLAYERTEAMLEADER);
         _support_sm(SM_STRIKEGRID);
         _support_sm(SM_PICKUPERROR);
         _support_sm(SM_PLAYERWLDESP);

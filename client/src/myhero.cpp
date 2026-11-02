@@ -884,7 +884,3 @@ bool MyHero::hasTeam() const
     }) != memberList.end();
 }
 
-bool MyHero::isTeamLeader() const
-{
-    return hasTeam() && dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))->getTeamMemberList().teamLeader == UID();
-}

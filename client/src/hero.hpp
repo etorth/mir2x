@@ -39,6 +39,9 @@ class Hero: public CreatureMovable
         SDWLDesp m_sdWLDesp;
 
     protected:
+        bool m_teamLeader = false;
+
+    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
 
     public:
@@ -225,9 +228,14 @@ class Hero: public CreatureMovable
             return false;
         }
 
-        virtual bool isTeamLeader() const
+        bool isTeamLeader() const
         {
-            return false;
+            return m_teamLeader;
+        }
+
+        void setTeamLeader(bool teamLeader)
+        {
+            m_teamLeader = teamLeader;
         }
 
     public:

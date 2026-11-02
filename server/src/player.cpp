@@ -825,6 +825,7 @@ void Player::reportCO(uint64_t toUID)
     amCOR.action = makeActionStand();
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
+    amCOR.Player.teamLeader = (m_teamLeader == UID());
     amCOR.Player.Level = level();
     m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
@@ -2470,6 +2471,21 @@ void Player::addPKPoint(int added)
         // name color is derived from the pk point, tell everyone who can see me
         reportName();
         postNetMessage(SM_TEXT, str_printf(u8"%s", redName() ? u8"你已经变成红名，城里的商人不会再和你交易" : u8"你的红名已经洗清"));
+    }
+}
+
+void Player::setTeamLeader(uint64_t teamLeader)
+{
+    const bool wasLeader = (m_teamLeader == UID());
+    m_teamLeader = teamLeader;
+
+    if(const bool isLeader = (m_teamLeader == UID()); isLeader != wasLeader){
+        SMPlayerTeamLeader smPTL;
+        std::memset(&smPTL, 0, sizeof(smPTL));
+
+        smPTL.uid = UID();
+        smPTL.teamLeader = isLeader;
+        dispatchNetPackage(true, SM_PLAYERTEAMLEADER, smPTL);
     }
 }
 

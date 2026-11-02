@@ -187,5 +187,4 @@ class MyHero: public Hero
 
     public:
         bool hasTeam() const override;
-        bool isTeamLeader() const override;
 };

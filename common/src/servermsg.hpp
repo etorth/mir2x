@@ -82,6 +82,7 @@ enum SMType: uint8_t
     SM_GRABBELTERROR,
     SM_WEARITEMDURATION,
     SM_SHOWSECUREDITEMLIST,
+    SM_PLAYERTEAMLEADER,
     SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
     SM_TEAMERROR,
@@ -203,8 +204,9 @@ struct SMCORecord
 
     struct _SMCORecord_Player
     {
-        uint8_t gender : 1;
-        uint8_t job    : 3;
+        uint8_t gender     : 1;
+        uint8_t job        : 3;
+        uint8_t teamLeader : 1;
         uint32_t Level;
     };
 
@@ -391,6 +393,12 @@ struct SMWearItemDuration
     uint32_t duration[2];
 };
 
+struct SMPlayerTeamLeader
+{
+    uint64_t uid;
+    uint8_t  teamLeader;
+};
+
 struct SMTeamMemberLeft
 {
     uint64_t uid;
@@ -536,6 +544,7 @@ namespace
         _RSVD_register_servermsg(SM_PARTEXT,                3                                  );
         _RSVD_register_servermsg(SM_PLAYERNAME,             3                                  );
         _RSVD_register_servermsg(SM_NPCNAME,                3                                  );
+        _RSVD_register_servermsg(SM_PLAYERTEAMLEADER,       1, sizeof(SMPlayerTeamLeader)      );
         _RSVD_register_servermsg(SM_BUILDVERSION,           1, sizeof(SMBuildVersion)          );
         _RSVD_register_servermsg(SM_INVENTORY,              3                                  );
         _RSVD_register_servermsg(SM_BELT,                   3                                  );

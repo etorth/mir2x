@@ -584,6 +584,7 @@ corof::awaitable<> Player::on_AM_CORECORD(const ActorMsgPack &mpk)
             {
                 smCOR.Player.gender = amCOR.Player.gender;
                 smCOR.Player.job = amCOR.Player.job;
+                smCOR.Player.teamLeader = amCOR.Player.teamLeader;
                 smCOR.Player.Level = amCOR.Player.Level;
                 break;
             }
@@ -824,12 +825,12 @@ corof::awaitable<> Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
                 }
 
                 if(sdTML.hasMember(UID())){
-                    m_teamLeader = rmpk.from();
+                    setTeamLeader(rmpk.from());
                     m_teamMemberList.clear();
                     postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
                 }
                 else{
-                    m_teamLeader = 0;
+                    setTeamLeader(0);
                     m_teamMemberList.clear();
                     postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
                 }
@@ -838,7 +839,7 @@ corof::awaitable<> Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
             }
         default:
             {
-                m_teamLeader = 0;
+                setTeamLeader(0);
                 m_teamMemberList.clear();
                 postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
                 break;

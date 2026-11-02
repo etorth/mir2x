@@ -305,6 +305,9 @@ class Player final: public BattleObject
         void reportHealth();
         void reportNextStrike();
         corof::awaitable<> reportTeamMemberList();
+
+    protected:
+        void setTeamLeader(uint64_t);
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint64_t);

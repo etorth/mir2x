@@ -315,7 +315,10 @@ void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
             }
         case UID_PLY:
             {
-                m_coList[smCOR.UID].reset(new Hero(smCOR.UID, smCOR.Player.gender, smCOR.Player.job, this, smCOR.action));
+                auto heroPtr = new Hero(smCOR.UID, smCOR.Player.gender, smCOR.Player.job, this, smCOR.action);
+                heroPtr->setTeamLeader(smCOR.Player.teamLeader);
+
+                m_coList[smCOR.UID].reset(heroPtr);
                 queryUIDBuff(smCOR.UID);
                 queryPlayerWLDesp(smCOR.UID);
                 break;
@@ -737,6 +740,14 @@ void ProcessRun::on_SM_PLAYERNAME(const uint8_t *buf, size_t bufSize)
         if(auto playerPtr = dynamic_cast<Hero *>(findUID(sdPN.uid)); playerPtr){
             playerPtr->setName(sdPN.name.c_str(), sdPN.nameColor);
         }
+    }
+}
+
+void ProcessRun::on_SM_PLAYERTEAMLEADER(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPTL = ServerMsg::conv<SMPlayerTeamLeader>(buf, bufSize);
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPTL.uid))){
+        heroPtr->setTeamLeader(smPTL.teamLeader);
     }
 }
 

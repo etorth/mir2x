@@ -1200,7 +1200,7 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
             postNetMessage(SM_TEAMERROR, smTE);
         }
         else{
-            m_teamLeader = UID();
+            setTeamLeader(UID());
             m_teamMemberList = std::vector<uint64_t>{UID()};
             co_await reportTeamMemberList();
         }
@@ -1242,7 +1242,7 @@ corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, 
         }
 
         if(cmRLT.uid == UID()){
-            m_teamLeader = 0;
+            setTeamLeader(0);
             m_teamMemberList.clear();
         }
         else{
