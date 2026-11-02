@@ -179,7 +179,7 @@ function(fltk_parse_fl_file ARG_HPP ARG_CPP)
     set(${ARG_CPP} "${RES_CPP}" PARENT_SCOPE)
 endfunction()
 
-include("${CMAKE_SOURCE_DIR}/cmake/Mir2xResPath.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/Mir2xAssetsPath.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
 
 # Python 3 is used at build/install time:

@@ -13,7 +13,7 @@ Build the project using the supported out-of-tree configuration:
     --parallel=10 \
     --c-compiler=gcc-16 \
     --cxx-compiler=g++-16 \
-    --res-path=/home/anhong/b_mir2x/3rdparty/mir2x_res \
+    --assets-path=/home/anhong/mir2x_assets \
     --build-type=Debug \
     --no-ccache
 ```

@@ -26,7 +26,7 @@ install(CODE "execute_process(
             --install-server
             --ignore-zsdbmaker-error
             --zsdbmaker=$<TARGET_FILE:zsdbmaker>
-            --input-dir=${MIR2X_RES_REPO_PATH}
+            --input-dir=${MIR2X_ASSETS_REPO_PATH}
             --output-dir=${CMAKE_INSTALL_PREFIX}/server
     COMMAND_ERROR_IS_FATAL ANY
 )")

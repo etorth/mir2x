@@ -11,7 +11,7 @@ from pathlib import Path
 SOURCE_DIR = Path(__file__).resolve().parent
 DEFAULT_LOCAL_BUILD_DIR = Path.cwd().resolve()
 MIR2X_VCPKG_CHAINLOAD_TOOLCHAIN = SOURCE_DIR / "cmake/Mir2xVcpkgChainload.cmake"
-MIR2X_RES_REPO_URL = "https://github.com/etorth/mir2x_res.git"
+MIR2X_ASSETS_REPO_URL = "https://github.com/etorth/mir2x_assets.git"
 MSYSTEM_TRIPLETS = {
     "CLANGARM64": "arm64-mingw-static",
     "MINGWARM64": "arm64-mingw-static",
@@ -157,9 +157,9 @@ def parse_args():
         help="CMAKE_INSTALL_PREFIX. Defaults to <build-dir>/install.",
     )
     parser.add_argument(
-        "--res-path",
+        "--assets-path",
         type=Path,
-        help=f"Use an existing mir2x resource path. If omitted, CMake clones {MIR2X_RES_REPO_URL} during the build.",
+        help=f"Use an existing mir2x_assets checkout. If omitted, CMake clones {MIR2X_ASSETS_REPO_URL} during the build.",
     )
     parser.add_argument(
         "--python",
@@ -266,10 +266,10 @@ def main():
         vcpkg, vcpkg_root = bootstrap_local_vcpkg(local_vcpkg_dir)
 
     log(f"Using vcpkg: {vcpkg}")
-    if args.res_path:
-        log(f"Using resource path: {args.res_path.expanduser().resolve()}")
+    if args.assets_path:
+        log(f"Using assets path: {args.assets_path.expanduser().resolve()}")
     else:
-        log("Using default CMake-managed resource clone")
+        log("Using default CMake-managed assets clone")
     if args.python:
         log(f"Using python3: {args.python.expanduser().absolute()}")
     if vcpkg_host_triplet:
@@ -322,8 +322,8 @@ def main():
     if args.verbose:
         cmake_configure_args.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
         cmake_configure_args.append("-DVCPKG_VERBOSE=ON")
-    if args.res_path:
-        cmake_configure_args.append(f"-DMIR2X_RES_REPO_PATH={args.res_path.expanduser().resolve()}")
+    if args.assets_path:
+        cmake_configure_args.append(f"-DMIR2X_ASSETS_REPO_PATH={args.assets_path.expanduser().resolve()}")
     if args.python:
         cmake_configure_args.append(f"-DMIR2X_PYTHON_EXECUTABLE={args.python.expanduser().absolute()}")
     run(cmake_configure_args, env=configure_env)
