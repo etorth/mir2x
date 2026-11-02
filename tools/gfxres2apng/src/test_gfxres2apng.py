@@ -1,3 +1,5 @@
+import io
+import random
 import shutil
 import sys
 import tempfile
@@ -106,6 +108,21 @@ class NameTest(unittest.TestCase):
                 g.parse_old_name(name)
         with self.assertRaises(ValueError):
             g.encode_human_name(0, 2048, 0)
+
+
+class EncodeTest(unittest.TestCase):
+    def test_one_data_chunk_per_frame(self):
+        # noise doesn't compress, so Pillow splits each frame into multiple IDAT chunks
+        images = [Image.frombytes("RGBA", (256, 256), random.Random(i).randbytes(256 * 256 * 4)) for i in range(2)]
+        data = g.encode_apng(images, 100)
+
+        types = [t for t, _ in g.png_chunks(data)]
+        self.assertEqual(types, [b"IHDR", b"acTL", b"fcTL", b"IDAT", b"fcTL", b"fdAT", b"IEND"])
+
+        with Image.open(io.BytesIO(data)) as apng:
+            for index, image in enumerate(images):
+                apng.seek(index)
+                self.assertEqual(apng.convert("RGBA").tobytes(), image.tobytes())
 
 
 class CollectTest(TmpDirTest):

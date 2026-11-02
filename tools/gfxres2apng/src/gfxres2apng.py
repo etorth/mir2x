@@ -927,14 +927,14 @@ def encode_apng(images, delay):
         out.append(png_chunk(b"fcTL", struct.pack(">IIIIIHHBB", seq, width, height, 0, 0, *delays[index], 0, 0)))
         seq += 1
 
-        for chunkType, data in chunks:
-            if chunkType != b"IDAT":
-                continue
-            if index == 0:
-                out.append(png_chunk(b"IDAT", data))
-            else:
-                out.append(png_chunk(b"fdAT", struct.pack(">I", seq) + data))
-                seq += 1
+        # Pillow splits large image data into multiple IDAT chunks
+        # SDL_image's APNG decoder fails on a frame with more than one IDAT/fdAT, so write one chunk per frame
+        frameData = b"".join(data for chunkType, data in chunks if chunkType == b"IDAT")
+        if index == 0:
+            out.append(png_chunk(b"IDAT", frameData))
+        else:
+            out.append(png_chunk(b"fdAT", struct.pack(">I", seq) + frameData))
+            seq += 1
 
     out.append(png_chunk(b"IEND", b""))
     return b"".join(out)
