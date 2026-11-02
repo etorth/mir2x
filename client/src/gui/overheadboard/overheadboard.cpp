@@ -122,13 +122,6 @@ OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
           .w = std::nullopt,
           .h = std::nullopt,
 
-          .attrs
-          {
-              .inst
-              {
-                  .show = [this]{ return showBar(); },
-              },
-          },
           .parent = std::move(args.parent),
       }}
 
@@ -268,6 +261,14 @@ OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
                           },
                       }}, true},
                       {&m_numbers},
+                  },
+
+                  .attrs
+                  {
+                      .inst
+                      {
+                          .show = [this]{ return showBar(); },
+                      }
                   },
               }}, true},
           },
