@@ -10,6 +10,7 @@ for a .git directory. Every type in CONVERT_TYPES, or the subset given by
 is texture/<type>, or emoji for emoji. Every other file is copied byte-for-byte
 to the same relative path, including types not in --types and non-PNG assets
 (font, map, sound, texture/map, texture/item, ...). <res-path>/.git is not copied.
+With --zopfli every copied still PNG is re-encoded losslessly, see copy_png().
 With --skip-unconverted nothing is copied, OUTPUT_DIR holds only the converted types.
 
 Input filename (old per-frame format), 18 chars + ".PNG":
@@ -101,7 +102,7 @@ magic
 
 equip
     static UI images, not animations, a PNG is already a 1-frame APNG, so each
-    file is copied byte-for-byte, only renamed
+    file is copied byte-for-byte (re-encoded losslessly with --zopfli), only renamed
     new name, 14 hex digits:
       K: bits 24-55, the old 32-bit key, unchanged
 
@@ -131,8 +132,8 @@ proguse
       K: bits 0-31, the group's smallest key, or KEY given by name=KEY
     A key may be in more than one group, every APNG name must be unique.
     Frames are not trimmed, all images of a group must have the same size.
-    Every key not in any group is a static image, copied byte-for-byte to
-    KKKKKKKK.PNG, a lowercase ".png" extension becomes ".PNG".
+    Every key not in any group is a static image, copied byte-for-byte (re-encoded losslessly
+    with --zopfli) to KKKKKKKK.PNG, a lowercase ".png" extension becomes ".PNG".
 
 emoji
     reads <res-path>/emoji, one sprite sheet per emoji, see client/src/emojidb.hpp
@@ -158,12 +159,10 @@ computing the canvas.
 """
 
 import argparse
-import io
 import os
 import re
 import shutil
 import struct
-import subprocess
 import sys
 import zlib
 from collections import defaultdict
@@ -179,7 +178,7 @@ PNG_SIG = b"\x89PNG\r\n\x1a\n"
 TEXTURE_TYPES = ("monster", "npc", "hero", "hair", "helmet", "weapon", "magic", "equip", "selectchar", "proguse")
 CONVERT_TYPES = TEXTURE_TYPES + ("emoji",)
 TYPE_DIRS = {**{t: os.path.join("texture", t) for t in TEXTURE_TYPES}, "emoji": "emoji"}  # relative to --res-path
-COPY_TYPES = ("equip",)  # static images, copied unchanged and renamed
+COPY_TYPES = ("equip",)  # static images, copied and renamed
 MIRROR_SKIP = (".git",)  # top-level entries of --res-path not copied to --output-dir
 
 # old keys must be below these limits, see the old key layouts above
@@ -900,36 +899,116 @@ def png_chunks(pngBytes):
         chunkType = pngBytes[pos + 4:pos + 8]
         yield chunkType, pngBytes[pos + 8:pos + 8 + length]
         pos += 12 + length
+        if chunkType == b"IEND":
+            return  # some old files have junk bytes after IEND
 
 
-def encode_apng(images, delay):
-    """delay: frame delay in ms for every frame, or [(delay_num, delay_den)] per frame, in seconds."""
+def check_zopfli():
+    """Raises RuntimeError if the zopfli package is missing, --zopfli never falls back to zlib."""
+    try:
+        import zopfli.zlib  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError("--zopfli needs the zopfli package: pip install zopfli") from e
+
+
+def deflate(data, useZopfli):
+    if useZopfli:
+        check_zopfli()
+        import zopfli.zlib
+        return zopfli.zlib.compress(data)
+    return zlib.compress(data, 9)
+
+
+def png_layout(frames):
+    """frames: uint8 array (n, h, w, 4). Picks the smallest lossless pixel format shared by every frame:
+    palette if all frames together use at most 256 RGBA colors, else RGB if every pixel is opaque, else RGBA.
+    Returns (IHDR data, PLTE and tRNS chunks, [per-frame (h, rowBytes) uint8 scanlines], bytes per pixel, isPalette)."""
+    import numpy as np
+
+    count, height, width, _ = frames.shape
+    colors, inverse = np.unique(frames.reshape(-1, 4).view(np.uint32).ravel(), return_inverse=True)
+
+    if len(colors) <= 256:
+        # translucent entries first, so tRNS lists only them
+        rgba = colors.view(np.uint8).reshape(-1, 4)
+        order = np.argsort(rgba[:, 3] == 255, kind="stable")
+        rank = np.empty_like(order)
+        rank[order] = np.arange(len(order))
+        rgba = rgba[order]
+
+        depth = next(d for d in (1, 2, 4, 8) if len(colors) <= 1 << d)
+        index = rank[inverse].astype(np.uint8).reshape(count, height, width)
+
+        # pack 8 // depth pixels per byte, first pixel in the high bits, rows padded to whole bytes
+        perByte = 8 // depth
+        index = np.pad(index, ((0, 0), (0, 0), (0, -width % perByte))).reshape(count, height, -1, perByte)
+        packed = np.zeros(index.shape[:3], np.uint8)
+        for k in range(perByte):
+            packed |= index[..., k] << (8 - depth * (k + 1))
+
+        extra = png_chunk(b"PLTE", rgba[:, :3].tobytes())
+        if translucent := int((rgba[:, 3] < 255).sum()):
+            extra += png_chunk(b"tRNS", rgba[:translucent, 3].tobytes())
+        return struct.pack(">IIBBBBB", width, height, depth, 3, 0, 0, 0), extra, list(packed), 1, True
+
+    if (frames[..., 3] == 255).all():
+        return struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0), b"", list(frames[..., :3].reshape(count, height, -1)), 3, False
+    return struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0), b"", list(frames.reshape(count, height, -1)), 4, False
+
+
+def filter_scanlines(rows, bpp, isPalette):
+    """rows: (h, rowBytes) uint8. Tries PNG filters and returns the filtered image data that compresses smallest with zlib -9:
+    each of None/Sub/Up/Average/Paeth for every row, and a per-row choice by minimum sum of absolute differences.
+    Palette images only try None and the per-row choice."""
+    import numpy as np
+
+    x = rows.astype(np.int16)
+    up = np.vstack([np.zeros((1, x.shape[1]), np.int16), x[:-1]])
+    left = np.hstack([np.zeros((x.shape[0], bpp), np.int16), x[:, :-bpp]])
+    upLeft = np.hstack([np.zeros((x.shape[0], bpp), np.int16), up[:, :-bpp]])
+
+    p = left + up - upLeft
+    pa, pb, pc = abs(p - left), abs(p - up), abs(p - upLeft)
+    paeth = np.where((pa <= pb) & (pa <= pc), left, np.where(pb <= pc, up, upLeft))
+    filtered = [((x - pred) & 0xFF).astype(np.uint8) for pred in (0, left, up, (left + up) // 2, paeth)]
+
+    def build(types):
+        return b"".join(bytes([t]) + filtered[t][i].tobytes() for i, t in enumerate(types))
+
+    signed = np.stack([np.where(f > 127, 256 - f.astype(np.int32), f).sum(axis=1) for f in filtered], axis=1)
+    candidates = [build([t] * len(rows)) for t in ((0,) if isPalette else range(5))]
+    candidates.append(build(signed.argmin(axis=1)))
+    return min(candidates, key=lambda data: len(zlib.compress(data, 9)))
+
+
+def encode_apng(images, delay, useZopfli=False):
+    """delay: frame delay in ms for every frame, or [(delay_num, delay_den)] per frame, in seconds.
+    Lossless: every RGBA pixel decodes back exactly, the pixel format is picked by png_layout().
+    useZopfli: compress with zopfli instead of zlib -9, smaller and much slower, needs the zopfli package."""
+    import numpy as np
+
     # Pillow's APNG writer merges identical consecutive frames, which changes the frame count
     # assemble chunks manually, every frame is a full frame with dispose NONE and blend SOURCE
     delays = [(delay, 1000)] * len(images) if isinstance(delay, int) else list(delay)
     if len(delays) != len(images) or any(not (0 <= v < 65536) for d in delays for v in d):
         raise ValueError(f"invalid APNG delays: {delays}")
 
+    if len({img.size for img in images}) != 1:
+        raise ValueError(f"APNG frames have different sizes: {[img.size for img in images]}")
+
     width, height = images[0].size
-    out = [PNG_SIG]
+    frames = np.stack([np.asarray(img.convert("RGBA")) for img in images])
+    ihdr, extra, rowsList, bpp, isPalette = png_layout(frames)
+
+    out = [PNG_SIG, png_chunk(b"IHDR", ihdr), png_chunk(b"acTL", struct.pack(">II", len(images), 0)), extra]
     seq = 0
 
-    for index, img in enumerate(images):
-        buf = io.BytesIO()
-        img.save(buf, format="PNG", optimize=True)
-        chunks = list(png_chunks(buf.getvalue()))
-
-        if index == 0:
-            ihdr = next(data for t, data in chunks if t == b"IHDR")
-            out.append(png_chunk(b"IHDR", ihdr))
-            out.append(png_chunk(b"acTL", struct.pack(">II", len(images), 0)))
-
+    for index, rows in enumerate(rowsList):
         out.append(png_chunk(b"fcTL", struct.pack(">IIIIIHHBB", seq, width, height, 0, 0, *delays[index], 0, 0)))
         seq += 1
 
-        # Pillow splits large image data into multiple IDAT chunks
-        # SDL_image's APNG decoder fails on a frame with more than one IDAT/fdAT, so write one chunk per frame
-        frameData = b"".join(data for chunkType, data in chunks if chunkType == b"IDAT")
+        # SDL_image's APNG decoder fails on a frame with more than one fdAT, so write one data chunk per frame
+        frameData = deflate(filter_scanlines(rows, bpp, isPalette), useZopfli)
         if index == 0:
             out.append(png_chunk(b"IDAT", frameData))
         else:
@@ -938,6 +1017,57 @@ def encode_apng(images, delay):
 
     out.append(png_chunk(b"IEND", b""))
     return b"".join(out)
+
+
+def encode_png(image, useZopfli=False):
+    """Single-frame PNG, lossless including RGB under alpha 0, the pixel format is picked by png_layout()."""
+    import numpy as np
+
+    ihdr, extra, rowsList, bpp, isPalette = png_layout(np.asarray(image.convert("RGBA"))[None])
+    frameData = deflate(filter_scanlines(rowsList[0], bpp, isPalette), useZopfli)
+    return b"".join([PNG_SIG, png_chunk(b"IHDR", ihdr), extra, png_chunk(b"IDAT", frameData), png_chunk(b"IEND", b"")])
+
+
+def can_recompress(pngBytes):
+    """True for a still PNG of at most 8 bits per sample whose only chunks are IHDR/PLTE/tRNS/IDAT/IEND.
+    RGB and grayscale with tRNS are excluded, SDL_image ignores that tRNS and re-encoding would make those pixels transparent."""
+    try:
+        chunks = list(png_chunks(pngBytes))
+    except (ValueError, struct.error):
+        return False
+    types = {chunkType for chunkType, _ in chunks}
+    if not chunks or chunks[0][0] != b"IHDR" or not types <= {b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND"}:
+        return False
+    depth, colorType = chunks[0][1][8:10]
+    return depth <= 8 and not (colorType in (0, 2) and b"tRNS" in types)
+
+
+def copy_png(src, dst, useZopfli, verify):
+    """Copies src to dst unchanged, or with useZopfli re-encodes a PNG by encode_png() and keeps whichever is smaller.
+    PNGs that can_recompress() rejects are copied unchanged."""
+    with open(src, "rb") as fp:
+        srcBytes = fp.read()
+
+    outBytes = srcBytes
+    if useZopfli and os.fspath(src).lower().endswith(".png") and can_recompress(srcBytes):
+        with Image.open(src) as img:
+            pixels = img.convert("RGBA")
+        encoded = encode_png(pixels, useZopfli)
+        if len(encoded) < len(srcBytes):
+            outBytes = encoded
+
+    with open(dst, "wb") as fp:
+        fp.write(outBytes)
+
+    if verify:
+        if outBytes is srcBytes:
+            with open(dst, "rb") as fp:
+                if fp.read() != srcBytes:
+                    raise RuntimeError(f"{dst}: differs from {src}")
+        else:
+            with Image.open(dst) as img:
+                if img.size != pixels.size or img.convert("RGBA").tobytes() != pixels.tobytes():
+                    raise RuntimeError(f"{dst}: pixels differ from {src}")
 
 
 def verify_apng(typeName, outputPath, frames, offX, offY, ident):
@@ -975,35 +1105,22 @@ def verify_apng(typeName, outputPath, frames, offX, offY, ident):
                 raise RuntimeError(f"{outputPath}: frame {index} differs from {path}")
 
 
-def copy_one(typeName, outputDir, ident, frame, verify):
+def copy_one(typeName, outputDir, ident, frame, useZopfli, verify):
     path, dx, dy = frame
     outputPath = os.path.join(outputDir, NAME_CODECS[typeName][0](ident, dx, dy))
-    shutil.copyfile(path, outputPath)
+    copy_png(path, outputPath, useZopfli, verify)
 
     if verify:
         meta = NAME_CODECS[typeName][1](os.path.basename(outputPath))
         if (meta["key"], meta["dx"], meta["dy"]) != (ident, dx, dy):
             raise RuntimeError(f"{outputPath}: filename round-trip failed")
-        with open(path, "rb") as src, open(outputPath, "rb") as dst:
-            if src.read() != dst.read():
-                raise RuntimeError(f"{outputPath}: differs from {path}")
     return 1
 
 
-def optimize_apng(apngopt, outputPath):
-    tmpPath = outputPath + ".opt"
-    subprocess.run([apngopt, "-z2", "-i15", outputPath, tmpPath], check=True, stdout=subprocess.DEVNULL)
-    os.replace(tmpPath, outputPath)
-
-
-def convert_proguse_one(outputDir, key, paths, delayMs, isAPNG, apngopt, verify):
+def convert_proguse_one(outputDir, key, paths, delayMs, isAPNG, useZopfli, verify):
     outputPath = os.path.join(outputDir, encode_proguse_name(key))
     if not isAPNG:
-        shutil.copyfile(paths[0], outputPath)
-        if verify:
-            with open(paths[0], "rb") as src, open(outputPath, "rb") as dst:
-                if src.read() != dst.read():
-                    raise RuntimeError(f"{outputPath}: differs from {paths[0]}")
+        copy_png(paths[0], outputPath, useZopfli, verify)
         return 1
 
     images = [clear_transparent_rgb(load_rgba(path)) for path in paths]
@@ -1011,10 +1128,7 @@ def convert_proguse_one(outputDir, key, paths, delayMs, isAPNG, apngopt, verify)
         raise RuntimeError(f"proguse group {key:08X}: images have different sizes: {paths}")
 
     with open(outputPath, "wb") as fp:
-        fp.write(encode_apng(images, delayMs))
-
-    if apngopt:
-        optimize_apng(apngopt, outputPath)
+        fp.write(encode_apng(images, delayMs, useZopfli))
 
     if verify:
         if decode_proguse_name(os.path.basename(outputPath)) != key:
@@ -1036,7 +1150,7 @@ def read_apng_delays(path):
         return [struct.unpack(">HH", data[20:24]) for chunkType, data in png_chunks(fp.read()) if chunkType == b"fcTL"]
 
 
-def convert_emoji_one(outputDir, key, path, meta, apngopt, verify):
+def convert_emoji_one(outputDir, key, path, meta, useZopfli, verify):
     # the old sheet holds frames row-major in a grid of frameW x frameH cells
     # cells after frameCount are never drawn by the client and are dropped
     sheet = clear_transparent_rgb(load_rgba(path))
@@ -1050,10 +1164,7 @@ def convert_emoji_one(outputDir, key, path, meta, apngopt, verify):
 
     outputPath = os.path.join(outputDir, encode_emoji_name(key, meta["frameH1"]))
     with open(outputPath, "wb") as fp:
-        fp.write(encode_apng(images, delays))
-
-    if apngopt:
-        optimize_apng(apngopt, outputPath)
+        fp.write(encode_apng(images, delays, useZopfli))
 
     if verify:
         decoded = decode_emoji_name(os.path.basename(outputPath))
@@ -1073,16 +1184,16 @@ def convert_emoji_one(outputDir, key, path, meta, apngopt, verify):
 
 
 def convert_one(task):
-    typeName, outputDir, ident, frames, delayMs, apngopt, verify = task
+    typeName, outputDir, ident, frames, delayMs, useZopfli, verify = task
     if typeName == "emoji":
-        return convert_emoji_one(outputDir, ident, *frames, apngopt, verify)
+        return convert_emoji_one(outputDir, ident, *frames, useZopfli, verify)
 
     if typeName == "proguse":
         paths, groupDelayMs, isAPNG = frames
-        return convert_proguse_one(outputDir, ident, paths, groupDelayMs or delayMs, isAPNG, apngopt, verify)
+        return convert_proguse_one(outputDir, ident, paths, groupDelayMs or delayMs, isAPNG, useZopfli, verify)
 
     if typeName in COPY_TYPES:
-        return copy_one(typeName, outputDir, ident, frames[0], verify)
+        return copy_one(typeName, outputDir, ident, frames[0], useZopfli, verify)
 
     images, offX, offY = compose_frames(frames)
     if not (OFFSET_MIN <= offX <= OFFSET_MAX and OFFSET_MIN <= offY <= OFFSET_MAX):
@@ -1090,10 +1201,7 @@ def convert_one(task):
 
     outputPath = os.path.join(outputDir, NAME_CODECS[typeName][0](ident, offX, offY))
     with open(outputPath, "wb") as fp:
-        fp.write(encode_apng(images, delayMs))
-
-    if apngopt:
-        optimize_apng(apngopt, outputPath)
+        fp.write(encode_apng(images, delayMs, useZopfli))
 
     if verify:
         verify_apng(typeName, outputPath, frames, offX, offY, ident)
@@ -1135,7 +1243,11 @@ def mirror_tasks(resPath, outputDir, convertedDirs):
 
 
 def mirror_one(task):
-    src, dst, verify = task
+    src, dst, useZopfli, verify = task
+    if useZopfli and not os.path.islink(src):
+        copy_png(src, dst, useZopfli, verify)
+        return 1
+
     shutil.copy2(src, dst, follow_symlinks=False)
     if verify and not os.path.islink(src):
         with open(src, "rb") as fsrc, open(dst, "rb") as fdst:
@@ -1153,7 +1265,7 @@ def main():
     parser.add_argument("--proguse-groups", default=DEFAULT_PROGUSE_GROUPS, help="proguse group list, default proguse_groups_v3.txt next to this script")
     parser.add_argument("--delay", type=int, default=100, help="frame delay in ms, default 100, proguse anim groups use their own DELAY")
     parser.add_argument("--jobs", type=int, default=os.cpu_count(), help="parallel workers, default CPU count")
-    parser.add_argument("--apngopt", default=None, help="path to apngopt, run 'apngopt -z2 -i15' on every output")
+    parser.add_argument("--zopfli", action="store_true", help="compress with zopfli instead of zlib -9, smaller but much slower, needs 'pip install zopfli'; also re-encodes every copied still PNG losslessly")
     parser.add_argument("--no-verify", dest="verify", action="store_false", help="skip decoding and comparing outputs")
     parser.add_argument("--skip-unconverted", action="store_true", help="don't copy files outside the converted types, output holds only the converted types")
     args = parser.parse_args()
@@ -1171,13 +1283,19 @@ def main():
     if error := check_output_dir(args.res_path, args.output_dir):
         parser.error(error)
 
+    if args.zopfli:
+        try:
+            check_zopfli()
+        except RuntimeError as e:
+            parser.error(str(e))
+
     with Pool(max(1, args.jobs)) as pool:
         for typeName in types:
             outputDir = os.path.join(args.output_dir, TYPE_DIRS[typeName])
             os.makedirs(outputDir, exist_ok=True)
 
             sequences = collect_sequences(args.res_path, typeName, args.magic_record, args.proguse_groups)
-            tasks = [(typeName, outputDir, ident, frames, args.delay, args.apngopt, args.verify) for ident, frames in sorted(sequences.items())]
+            tasks = [(typeName, outputDir, ident, frames, args.delay, args.zopfli, args.verify) for ident, frames in sorted(sequences.items())]
 
             doneSeq = 0
             doneFrame = 0
@@ -1190,7 +1308,7 @@ def main():
         if args.skip_unconverted:
             return 0
 
-        tasks = [(src, dst, args.verify) for src, dst in mirror_tasks(args.res_path, args.output_dir, {TYPE_DIRS[t] for t in types})]
+        tasks = [(src, dst, args.zopfli, args.verify) for src, dst in mirror_tasks(args.res_path, args.output_dir, {TYPE_DIRS[t] for t in types})]
         doneCopy = 0
         for _ in pool.imap_unordered(mirror_one, tasks, chunksize=64):
             doneCopy += 1

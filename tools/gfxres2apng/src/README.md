@@ -39,7 +39,11 @@ The script never modifies the source resources.
 - Python 3.8 or newer.
 - [Pillow](https://pypi.org/project/pillow/), tested with 12.3:
   `pip install pillow`.
-- Optional: `apngopt` (from apng-optimizer) for smaller files, see `--apngopt`.
+- [numpy](https://pypi.org/project/numpy/), used by the APNG encoder:
+  `pip install numpy`.
+- Optional: [zopfli](https://pypi.org/project/zopfli/) for `--zopfli`:
+  `pip install zopfli`. Only the converter needs it, the output is a normal
+  zlib stream that any PNG decoder reads.
 
 ## Usage
 
@@ -65,8 +69,8 @@ directory tree under `--res-path` is fixed, so it is the only input option.
 | `--proguse-groups PATH` | `proguse_groups_v3.txt` | proguse animation and button groups, see [proguse](#proguse). The default path is next to the script. |
 | `--delay MS` | `100` | Frame delay written into every frame, 1 to 65535 ms. proguse `anim` groups use their own delay, emoji use their fps. |
 | `--jobs N` | CPU count | Worker processes. |
-| `--apngopt PATH` | none | Run `apngopt -z2 -i15` on every output file. |
-| `--no-verify` | verify | Skip decoding each output and comparing it with the source frames, and comparing each copied file with its source. |
+| `--zopfli` | zlib -9 | Compress image data with zopfli: about 7% smaller output than zlib -9, many times slower. Also re-encodes every copied still PNG, see [Re-encoded copies](#re-encoded-copies). Stops with an error if the zopfli package is missing, it never falls back to zlib. |
+| `--no-verify` | verify | Skip decoding each output and comparing it with the source frames, and comparing each copied file (or its pixels, if re-encoded) with its source. |
 
 Progress lines look like `gfxres2apng hero: 500/10816 sequences, 2652 frames`,
 and `gfxres2apng copy: 20000/488743 files` for the copied files.
@@ -85,7 +89,8 @@ Notes:
 - Each converted type's directory, `texture/<type>` or `emoji`, holds only the
   converted output. Source files of a converted type are never copied.
 - Every other file is copied byte-for-byte (with its timestamps) to the same
-  relative path. That includes the types not in `--types`, `texture/map`,
+  relative path, or re-encoded losslessly if it is a still PNG and `--zopfli`
+  is given, see [Re-encoded copies](#re-encoded-copies). That includes the types not in `--types`, `texture/map`,
   `texture/item`, `font`, `map`, `sound`, `LICENSE` and `README.md`. Empty
   directories are created too, and symbolic links are copied as links.
 - `<res-path>/.git` is not copied; the new tree has its own history.
@@ -334,7 +339,8 @@ Example: `000000000000160079.PNG` (key 0, dx -22, dy -121) becomes
 `00000000FEAF87.PNG`.
 
 Keys must be unique, and the offset must fit in 12 bits. Equip images are not
-trimmed or re-encoded, and `--apngopt` and `--delay` don't apply to them.
+trimmed and `--delay` doesn't apply to them. They are re-encoded only with
+`--zopfli`, see [Re-encoded copies](#re-encoded-copies).
 
 ### selectchar
 
@@ -426,7 +432,8 @@ The new name is the 8-hex key plus `.PNG`:
   offset, because widgets take their size from the texture.
 - Button frames are selected by state, not played, so their delay (`--delay`)
   is unused. `anim` frames use the group's DELAY.
-- Every key not in any group is a static image, copied byte-for-byte to
+- Every key not in any group is a static image, copied byte-for-byte (or
+  re-encoded with `--zopfli`, see [Re-encoded copies](#re-encoded-copies)) to
   `KKKKKKKK.PNG` (the extension is normalized to `.PNG`). Static names never
   clash with APNG names, because an APNG name is one of its group's keys.
 
@@ -1610,9 +1617,55 @@ frame count. So the converter builds the chunks itself:
   - blend op `SOURCE`.
 - The first frame's image data is in `IDAT`, so it is also the default image
   for non-APNG readers. Later frames use `fdAT`.
-- Each frame is compressed by Pillow with `optimize=True`.
+- Each frame's image data is one `IDAT` or `fdAT` chunk. SDL_image 3.4.8's
+  APNG decoder fails with "Not enough image data" on a frame split into
+  several `fdAT` chunks.
 
-`--apngopt` then optionally re-optimizes each file in place.
+The encoding is lossless, every RGBA pixel decodes back exactly. One pixel
+format is shared by all frames of an APNG, the smallest that fits:
+
+- palette, if all frames together use at most 256 RGBA colors. The bit depth
+  is 1, 2, 4 or 8, the smallest that holds the colors. Translucent entries come
+  first, so `tRNS` lists only them.
+- RGB, if every pixel is opaque.
+- RGBA otherwise.
+
+RGB or grayscale with a single transparent color in `tRNS` is not used:
+SDL_image's APNG decoder ignores that `tRNS`, transparent pixels would show as
+opaque.
+
+Each frame tries the PNG row filters, None/Sub/Up/Average/Paeth for all rows
+and a per-row choice by minimum sum of absolute differences (palette images
+only None and the per-row choice), and keeps whichever compresses smallest with
+zlib -9. The chosen data is then compressed with zlib -9, or with zopfli if
+`--zopfli` is given.
+
+Optimizers such as `apngopt` are not used. They crop frames to the changed
+area with blend/dispose ops, merge identical frames, use RGB with a `tRNS`
+color, and split data into several `fdAT` chunks. SDL_image decodes many of
+their outputs wrongly or not at all, and the client indexes frames, so frame
+counts must not change.
+
+Pillow loses the palette when seeking backwards in a palette APNG. Read frames
+in order, or reopen the file.
+
+## Re-encoded copies
+
+With `--zopfli`, every still PNG that would otherwise be copied unchanged is
+re-encoded instead: `texture/map`, `texture/item`, equip, proguse static
+images, and the PNGs of types not in `--types`. Each is written as a plain PNG
+(`IHDR`, `PLTE`/`tRNS`, one `IDAT`, `IEND`) with the same pixel format choice,
+row filters and zopfli compression as the APNGs. The encoding is lossless,
+including the RGB of fully transparent pixels, which these files keep.
+
+- If the re-encoded file isn't smaller, the original bytes are kept.
+- Copied unchanged: animated PNGs, 16-bit PNGs, PNGs with chunks other than
+  `IHDR`/`PLTE`/`tRNS`/`IDAT`/`IEND`, and RGB or grayscale PNGs with `tRNS`
+  (SDL_image ignores that `tRNS`, re-encoding would make those pixels
+  transparent).
+- Bytes after `IEND`, found in a few old proguse files, are dropped.
+
+For `texture/map` this saves about 38%, for item and equip about 15%.
 
 ## Verification
 
@@ -1635,7 +1688,8 @@ Each emoji APNG must decode back to the same set, subset and `frameH1`, have
 exactly `CC` frames, each equal to its sheet cell after zeroing RGB where
 alpha is 0, and have `delay_num/delay_den = 1/PP` in every `fcTL`.
 
-Every mirror-copied file is compared byte-for-byte with its source.
+Every copied file is compared byte-for-byte with its source. A re-encoded copy
+must decode to the same size and RGBA pixels as its source.
 
 ## Expected results
 
@@ -1702,7 +1756,14 @@ The tests use small synthetic frames and cover:
   else, including unselected types, byte-for-byte, and copying nothing with
   `--skip-unconverted`,
 - frame alignment, trimming, partial alpha and repeated frames,
-- placeholder frames, and magic heads in the output name.
+- placeholder frames, and magic heads in the output name,
+- APNG encoding: one data chunk per frame, the palette/RGB/RGBA choice and bit
+  depth, colors differing only in alpha, kept identical frames, `--zopfli`
+  output, and the error when zopfli is missing. The `--zopfli` test is skipped
+  if zopfli isn't installed,
+- re-encoded copies: exact pixels including RGB under alpha 0, keeping the
+  original when it is smaller, dropping bytes after `IEND`, and copying
+  animated, 16-bit, RGB with `tRNS` and ancillary-chunk PNGs unchanged.
 
 ## Adding a texture type
 

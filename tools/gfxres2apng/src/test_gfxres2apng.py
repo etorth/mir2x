@@ -4,10 +4,11 @@ import shutil
 import sys
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
 from unittest import mock
 
-from PIL import Image
+from PIL import Image, PngImagePlugin
 
 import gfxres2apng as g
 
@@ -119,10 +120,107 @@ class EncodeTest(unittest.TestCase):
         types = [t for t, _ in g.png_chunks(data)]
         self.assertEqual(types, [b"IHDR", b"acTL", b"fcTL", b"IDAT", b"fcTL", b"fdAT", b"IEND"])
 
+        self.assert_frames(data, images)
+
+    def assert_frames(self, data, images):
         with Image.open(io.BytesIO(data)) as apng:
+            self.assertEqual(apng.n_frames, len(images))
             for index, image in enumerate(images):
                 apng.seek(index)
                 self.assertEqual(apng.convert("RGBA").tobytes(), image.tobytes())
+
+    def test_pixel_format(self):
+        def frames(colors, count=3):
+            # colors: list of RGBA, frame i pixel j is colors[(i + j) % len(colors)]
+            return [Image.frombytes("RGBA", (37, 8), b"".join(bytes(colors[(i + j) % len(colors)]) for j in range(37 * 8))) for i in range(count)]
+
+        opaque = [(i, 255 - i, i // 2, 255) for i in range(256)]
+        cases = [
+            ("2 colors, 1-bit palette", frames([(0, 0, 0, 0), (10, 20, 30, 255)]), 3, 1),
+            ("colors differing only in alpha", frames([(9, 9, 9, a) for a in (0, 64, 128, 255)]), 3, 2),
+            ("256 colors over all frames, 8-bit palette", frames(opaque[:255] + [(1, 2, 3, 100)]), 3, 8),
+            ("257 opaque colors, RGB", frames(opaque + [(1, 2, 3, 255)]), 2, 8),
+            ("257 colors with alpha, RGBA", frames(opaque + [(1, 2, 3, 100)]), 6, 8),
+        ]
+        for name, images, colorType, depth in cases:
+            with self.subTest(name):
+                data = g.encode_apng(images, 100)
+                ihdr = next(d for t, d in g.png_chunks(data) if t == b"IHDR")
+                self.assertEqual((ihdr[9], ihdr[8]), (colorType, depth))
+                self.assert_frames(data, images)
+
+    def test_identical_frames_kept(self):
+        images = [Image.new("RGBA", (4, 4), (1, 2, 3, 255))] * 3
+        self.assert_frames(g.encode_apng(images, 100), images)
+
+    def test_zopfli_missing_raises(self):
+        images = [Image.new("RGBA", (4, 4), (1, 2, 3, 255))]
+        with mock.patch.dict(sys.modules, {"zopfli": None, "zopfli.zlib": None}):
+            with self.assertRaisesRegex(RuntimeError, "pip install zopfli"):
+                g.encode_apng(images, 100, useZopfli=True)
+
+    def test_zopfli(self):
+        try:
+            g.check_zopfli()
+        except RuntimeError:
+            self.skipTest("zopfli not installed")
+        images = [Image.frombytes("RGBA", (64, 64), random.Random(i).randbytes(64 * 64 * 4)) for i in range(2)]
+        self.assert_frames(g.encode_apng(images, 100, useZopfli=True), images)
+
+
+class CopyPngTest(TmpDirTest):
+    def setUp(self):
+        super().setUp()
+        # copy_png() only re-encodes with useZopfli, use zlib so the test doesn't need zopfli
+        patcher = mock.patch.object(g, "deflate", lambda data, useZopfli: zlib.compress(data, 9))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def copy(self, name, srcBytes, ext="PNG"):
+        src, dst = self.source / f"{name}.{ext}", self.output / f"{name}.{ext}"
+        src.write_bytes(srcBytes)
+        self.assertEqual(g.mirror_one((str(src), str(dst), True, True)), 1)
+        return dst.read_bytes()
+
+    @staticmethod
+    def png_bytes(img, **kwargs):
+        out = io.BytesIO()
+        img.save(out, "PNG", compress_level=0, **kwargs)
+        return out.getvalue()
+
+    def test_reencoded_exactly(self):
+        # RGB under alpha 0 differs between pixels and must be kept
+        img = Image.frombytes("RGBA", (40, 30), b"".join(bytes([i % 7, 9, 9, 0 if i % 3 else 255]) for i in range(40 * 30)))
+        srcBytes = self.png_bytes(img) + b"junk"
+        dstBytes = self.copy("palette", srcBytes)
+
+        self.assertLess(len(dstBytes), len(srcBytes))
+        self.assertEqual([t for t, _ in g.png_chunks(dstBytes)], [b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND"])
+        self.assertTrue(dstBytes.endswith(g.png_chunk(b"IEND", b"")))
+        with Image.open(io.BytesIO(dstBytes)) as decoded:
+            self.assertEqual(decoded.convert("RGBA").tobytes(), img.tobytes())
+
+        self.assertEqual(self.copy("other", srcBytes, "bin"), srcBytes)
+
+    def test_original_kept_if_smaller(self):
+        img = Image.frombytes("RGBA", (32, 32), random.Random(0).randbytes(32 * 32 * 4))
+        srcBytes = g.encode_png(img)
+        with mock.patch.object(g, "deflate", lambda data, useZopfli: zlib.compress(data, 0)):
+            self.assertEqual(self.copy("noise", srcBytes), srcBytes)
+
+    def test_copied_unchanged(self):
+        rgb = Image.new("RGB", (16, 16), (1, 2, 3))
+        info = PngImagePlugin.PngInfo()
+        info.add_text("k", "v")
+        cases = {
+            "16-bit": self.png_bytes(Image.new("I;16", (16, 16), 300)),
+            "RGB with tRNS": self.png_bytes(rgb, transparency=(1, 2, 3)),
+            "text chunk": self.png_bytes(rgb, pnginfo=info),
+            "APNG": self.png_bytes(rgb, save_all=True, append_images=[Image.new("RGB", (16, 16))]),
+        }
+        for name, srcBytes in cases.items():
+            with self.subTest(name):
+                self.assertEqual(self.copy(name.replace(" ", "_"), srcBytes), srcBytes)
 
 
 class CollectTest(TmpDirTest):
@@ -302,11 +400,13 @@ class ConvertTest(TmpDirTest):
         self.assertEqual((meta["dx"], meta["dy"]), (-3, -5))
         with Image.open(path) as apng:
             self.assertEqual((apng.size, apng.n_frames), ((3, 4), 4))
-            for index in [1, 3]:
+            # seek forward only, Pillow loses the palette when seeking back in a palette APNG
+            for index in [1, 2, 3]:
                 apng.seek(index)
-                self.assertIsNone(apng.convert("RGBA").getchannel("A").getbbox())
-            apng.seek(2)
-            self.assertEqual(apng.convert("RGBA").getpixel((2, 3)), (10, 20, 30, 255))
+                if index == 2:
+                    self.assertEqual(apng.convert("RGBA").getpixel((2, 3)), (10, 20, 30, 255))
+                else:
+                    self.assertIsNone(apng.convert("RGBA").getchannel("A").getbbox())
 
     def test_magic_with_head(self):
         keys = [0x03000100, 0x03000101, 0x03000102]
