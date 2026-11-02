@@ -93,7 +93,7 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
 
     , m_mousePixlLoc{{.font{.id = 0, .size = 15, .color = colorf::RGBA(0XFF, 0X00, 0X00, 0X00)}}}
     , m_mouseGridLoc{{.font{.id = 0, .size = 15, .color = colorf::RGBA(0XFF, 0X00, 0X00, 0X00)}}}
-    , m_teamFlag(5)
+    , m_teamFlag{{.texAniID = 0X00000210}}
     , m_guiManager(this)
 {
     loadMap(smOOK.mapUID, smOOK.action.x, smOOK.action.y);
@@ -137,7 +137,7 @@ void ProcessRun::scrollMap()
 void ProcessRun::update(double fUpdateTime)
 {
     updateMouseFocus();
-    m_teamFlag.update(fUpdateTime * 1000);
+    m_teamFlag.update(fUpdateTime);
     m_aniTimer.update(std::lround(fUpdateTime));
 
     scrollMap();
@@ -529,11 +529,8 @@ void ProcessRun::draw() const
     switch(m_cursorState){
         case CURSOR_TEAMFLAG:
             {
-                const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
-                if(auto flagTex = g_progUseDB->retrieve(0X00000210, teamFlagIndex)){
-                    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
-                    g_sdlDevice->drawTexture(flagTex, DIR_NONE, mouseX, mouseY);
-                }
+                const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
+                m_teamFlag.draw({.dir = DIR_NONE, .x = mouseX, .y = mouseY});
                 break;
             }
         default:
@@ -652,6 +649,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         {
                                             if(uidf::isPlayer(uid)){
                                                 requestJoinTeam(uid);
+                                                setCursor(CURSOR_DEFAULT);
                                             }
                                             break;
                                         }

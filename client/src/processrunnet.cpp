@@ -1007,7 +1007,16 @@ void ProcessRun::on_SM_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)
 
 void ProcessRun::on_SM_TEAMMEMBERLIST(const uint8_t *buf, size_t bufSize)
 {
-    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setTeamMemberList(cerealf::deserialize<SDTeamMemberList>(buf, bufSize));
+    auto sdTML = cerealf::deserialize<SDTeamMemberList>(buf, bufSize);
+    const bool inTeam = std::ranges::any_of(sdTML.memberList, [this](const auto &member)
+    {
+        return member.uid == getMyHeroUID();
+    });
+
+    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setTeamMemberList(std::move(sdTML));
+    if(inTeam && m_cursorState == CURSOR_TEAMFLAG){
+        setCursor(CURSOR_DEFAULT);
+    }
 }
 
 void ProcessRun::on_SM_TEAMERROR(const uint8_t *buf, size_t bufSize)

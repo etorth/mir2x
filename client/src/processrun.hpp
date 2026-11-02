@@ -15,8 +15,8 @@
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "guimanager.hpp"
+#include "texaniboard.hpp"
 #include "wilanitimer.hpp"
-#include "framecounter.hpp"
 #include "delaycommand.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
@@ -139,7 +139,7 @@ class ProcessRun: public Process
         double m_iconRatio = 0.0;
 
     private:
-        FrameCounter m_teamFlag;
+        TexAniBoard m_teamFlag;
 
     private:
         int m_cursorState = CURSOR_DEFAULT;
