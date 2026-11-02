@@ -1010,6 +1010,23 @@ void ProcessRun::on_SM_TEAMMEMBERLIST(const uint8_t *buf, size_t bufSize)
     dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setTeamMemberList(cerealf::deserialize<SDTeamMemberList>(buf, bufSize));
 }
 
+void ProcessRun::on_SM_TEAMERROR(const uint8_t *buf, size_t bufSize)
+{
+    const auto smTE = ServerMsg::conv<SMTeamError>(buf, bufSize);
+    switch(smTE.error){
+        case TEAMERR_INTEAM:
+            {
+                addCBLog(CBLOG_ERR, u8"你已经在队伍中");
+                break;
+            }
+        default:
+            {
+                addCBLog(CBLOG_ERR, u8"组队失败");
+                break;
+            }
+    }
+}
+
 void ProcessRun::on_SM_QUESTDESPUPDATE(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<QuestStateBoard *>(getWidget("QuestStateBoard"))->updateQuestDesp(cerealf::deserialize<SDQuestDespUpdate>(buf, bufSize));

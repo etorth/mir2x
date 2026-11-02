@@ -265,6 +265,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_STRIKEGRID)
         _INSTALL_SM_HANDLER(ProcessRun, SM_TEAMCANDIDATE)
         _INSTALL_SM_HANDLER(ProcessRun, SM_TEAMMEMBERLIST)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_TEAMERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_TEXT)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PARTEXT)
         _INSTALL_SM_HANDLER(ProcessRun, SM_UPDATEITEM)

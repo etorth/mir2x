@@ -274,6 +274,7 @@ class ProcessRun: public Process
         _support_sm(SM_SHOWSECUREDITEMLIST);
         _support_sm(SM_TEAMCANDIDATE);
         _support_sm(SM_TEAMMEMBERLIST);
+        _support_sm(SM_TEAMERROR);
         _support_sm(SM_QUESTDESPUPDATE);
         _support_sm(SM_QUESTDESPLIST);
         _support_sm(SM_CHATMESSAGELIST);
