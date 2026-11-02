@@ -69,9 +69,9 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
     return {0, 0};
 }
 
-void FollowUIDMagic::updateRotateDegree(int aimX, int aimY, double ms)
+void FollowUIDMagic::updateRotateDegree(int aimDX, int aimDY, double fUpdateTime)
 {
-    if(aimX == 0 && aimY == 0){
+    if(aimDX == 0 && aimDY == 0){
         return;
     }
 
@@ -85,20 +85,20 @@ void FollowUIDMagic::updateRotateDegree(int aimX, int aimY, double ms)
         }
 
         // turn the shorter way
-        // by at most m_rotateDegreeSpeed * ms per update
+        // by at most m_rotateDegreeSpeed * fUpdateTime per update
 
-        const double targetDegree = (std::atan2(aimY, aimX) - std::atan2(headY - tailY, headX - tailX)) * 180.0 / mathf::pi;
-        const double diffDegree = std::remainder(targetDegree - m_rotateDegree, 360.0);
-        const double stepDegree = m_rotateDegreeSpeed * ms / 1000.0;
+        const double radianDegree = std::atan2(aimDY, aimDX) - std::atan2(headY - tailY, headX - tailX);
+        const double targetDegree = radianDegree * 180.0 / mathf::pi;
+        const double   diffDegree = std::remainder(targetDegree - m_rotateDegree, 360.0);
+        const double   stepDegree = m_rotateDegreeSpeed * fUpdateTime / 1000.0;
 
         m_rotateDegree = std::fmod(m_rotateDegree + std::clamp(diffDegree, -stepDegree, stepDegree) + 360.0, 360.0);
     }
 }
 
-bool FollowUIDMagic::update(double ms)
+bool FollowUIDMagic::update(double fUpdateTime)
 {
-    // aim is head -> target, or the fly direction if no target
-    const auto [dx, dy, aimX, aimY] = [this]() -> std::tuple<int, int, int, int>
+    const auto [dx, dy, aimDX, aimDY] = [this]() -> std::tuple<int, int, int, int>
     {
         if(const auto coPtr = m_process->findUID(m_uid)){
             if(const auto box = coPtr->getTargetBox()){
@@ -124,13 +124,15 @@ bool FollowUIDMagic::update(double ms)
         return {moveX, moveY, moveX, moveY};
     }();
 
-    updateRotateDegree(aimX, aimY, ms);
+    if(aimDX || aimDY){
+        updateRotateDegree(aimDX, aimDY, fUpdateTime);
+    }
 
     m_x += dx;
     m_y += dy;
 
     m_lastFlyOff = {dx, dy};
-    return BaseMagic::update(ms);
+    return BaseMagic::update(fUpdateTime);
 }
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
