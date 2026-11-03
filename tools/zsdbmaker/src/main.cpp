@@ -2,6 +2,10 @@
 #include <string>
 #include <charconv>
 #include <zstd.h>
+#include <zdict.h>
+#include <vector>
+#include <algorithm>
+#include <filesystem>
 #include <cstdio>
 #include <fstream>
 #include <cinttypes>
@@ -23,6 +27,92 @@ static void cmd_help()
     std::printf("--input-file-name-regex\n");
     std::printf("--comp-level=[0|min|max|<integer>], default 0 (zstd default level)\n");
     std::printf("--comp-ratio-threshold=[0-1], default 0.9, store compressed only if compressed/raw size is below it\n");
+    std::printf("--train-dict=<dict file>, train a zstd dictionary from --input-dir and --input-file-name-regex\n");
+    std::printf("--dict-size=<bytes>, default 112640, dictionary size for --train-dict\n");
+}
+
+static void cmd_train_dict(const argf::parser &cmd)
+{
+    const auto getOptStr = [&cmd](const char *opt, const char *defVal) -> std::string
+    {
+        if(!cmd.has_option(opt)){
+            if(defVal){
+                return defVal;
+            }
+            throw fflpanic("option --{} is required", opt);
+        }
+
+        if(cmd[opt] || cmd(opt).str().empty()){
+            throw fflpanic("option --{} requires an argument", opt);
+        }
+        return cmd(opt).str();
+    };
+
+    const auto dictFileName = getOptStr("train-dict"           , nullptr);
+    const auto inputDirName = getOptStr("input-dir"            , "."    );
+    const auto fileNameRegex = getOptStr("input-file-name-regex", ".*"   );
+
+    const auto dictSize = [&getOptStr]() -> size_t
+    {
+        const auto sizeStr = getOptStr("dict-size", "112640");
+        size_t size = 0;
+
+        if(const auto [ptr, ec] = std::from_chars(sizeStr.data(), sizeStr.data() + sizeStr.size(), size); ec != std::errc{} || ptr != sizeStr.data() + sizeStr.size() || size < 256){
+            throw fflpanic("invalid dict-size: {}", sizeStr);
+        }
+        return size;
+    }();
+
+    std::vector<std::filesystem::path> pathList;
+    const std::regex fileNameMatchRegex(fileNameRegex);
+
+    for(const auto &p: std::filesystem::directory_iterator(inputDirName)){
+        if(p.is_regular_file() && std::regex_match(reinterpret_cast<const char *>(p.path().filename().u8string().c_str()), fileNameMatchRegex)){
+            pathList.push_back(p.path());
+        }
+    }
+
+    // sorted and evenly strided, so the same input always trains the same dict
+    std::sort(pathList.begin(), pathList.end());
+
+    constexpr size_t maxSampleSize = 128 * 1024;
+    constexpr size_t maxTotalSampleSize = 64 * 1024 * 1024;
+
+    size_t totalSize = 0;
+    for(const auto &path: pathList){
+        totalSize += std::min<size_t>(maxSampleSize, std::filesystem::file_size(path));
+    }
+
+    const size_t stride = std::max<size_t>(1, (totalSize + maxTotalSampleSize - 1) / maxTotalSampleSize);
+
+    std::vector<uint8_t> sampleBuf;
+    std::vector<size_t> sampleSizeList;
+
+    for(size_t i = 0; i < pathList.size(); i += stride){
+        std::ifstream f(pathList[i], std::ios::binary);
+        std::vector<char> buf(maxSampleSize);
+
+        f.read(buf.data(), buf.size());
+        if(const auto readSize = to_uz(f.gcount()); readSize > 0){
+            sampleBuf.insert(sampleBuf.end(), buf.begin(), buf.begin() + readSize);
+            sampleSizeList.push_back(readSize);
+        }
+    }
+
+    if(sampleSizeList.empty()){
+        throw fflpanic("no sample found in {}", inputDirName);
+    }
+
+    std::vector<uint8_t> dictBuf(dictSize);
+    const auto rc = ZDICT_trainFromBuffer(dictBuf.data(), dictBuf.size(), sampleBuf.data(), sampleSizeList.data(), to_u32(sampleSizeList.size()));
+
+    if(ZDICT_isError(rc)){
+        throw fflpanic("failed to train dict from {}: {}", inputDirName, ZDICT_getErrorName(rc));
+    }
+
+    dictBuf.resize(rc);
+    std::ofstream(dictFileName, std::ios::binary).write(reinterpret_cast<const char *>(dictBuf.data()), dictBuf.size());
+    std::printf("trained dict %s: %zu bytes from %zu samples, %zu bytes\n", dictFileName.c_str(), dictBuf.size(), sampleSizeList.size(), sampleBuf.size());
 }
 
 static void cmd_create_db(const argf::parser &cmd)
@@ -220,6 +310,9 @@ int main(int argc, char *argv[])
     }
     else if(cmd.has_option("create-db")){
         cmd_create_db(cmd);
+    }
+    else if(cmd.has_option("train-dict")){
+        cmd_train_dict(cmd);
     }
     else if(cmd.has_option("list")){
         cmd_list(cmd);

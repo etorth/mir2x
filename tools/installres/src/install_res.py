@@ -4,6 +4,7 @@ import argparse
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -127,16 +128,30 @@ def main():
             continue
 
         print(f"Packing {pack_input_dir} -> {pack_output_path}", flush=True)
-        result = subprocess.run(
-            [
-                zsdbmaker,
-                f"--input-dir={pack_input_dir}",
-                f"--create-db={pack_output_path}",
-                # release packs are downloaded via git lfs, keep them as small as possible
-                "--comp-level=max",
-                "--comp-ratio-threshold=0.99",
-            ],
-            check=False)
+        with tempfile.TemporaryDirectory() as dict_dir:
+            # a dict trained per pack shares common bytes, e.g. png headers and palettes, across small files
+            # pack without dict if training fails, e.g. too few samples
+            dict_path = Path(dict_dir) / "pack.dict"
+            train_result = subprocess.run(
+                [
+                    zsdbmaker,
+                    f"--train-dict={dict_path}",
+                    f"--input-dir={pack_input_dir}",
+                ],
+                check=False)
+
+            dict_args = [f"--input-dict={dict_path}"] if train_result.returncode == 0 else []
+            result = subprocess.run(
+                [
+                    zsdbmaker,
+                    f"--input-dir={pack_input_dir}",
+                    f"--create-db={pack_output_path}",
+                    *dict_args,
+                    # release packs are downloaded via git lfs, keep them as small as possible
+                    "--comp-level=max",
+                    "--comp-ratio-threshold=0.99",
+                ],
+                check=False)
 
         if result.returncode != 0:
             if not args.ignore_zsdbmaker_error:
