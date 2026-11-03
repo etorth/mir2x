@@ -1013,7 +1013,9 @@ void ProcessRun::on_SM_SHOWSECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
 
 void ProcessRun::on_SM_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)
 {
-    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->addTeamCandidate(cerealf::deserialize<SDTeamCandidate>(buf, bufSize));
+    auto sdTC = cerealf::deserialize<SDTeamCandidate>(buf, bufSize);
+    addCBLog(CBLOG_SYS, u8"%s申请加入队伍", sdTC.player.name.c_str());
+    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->addTeamCandidate(std::move(sdTC));
 }
 
 void ProcessRun::on_SM_TEAMINFO(const uint8_t *buf, size_t bufSize)
@@ -1078,6 +1080,16 @@ void ProcessRun::on_SM_TEAMERROR(const uint8_t *buf, size_t bufSize)
         case TEAMERR_TRANSFERLEADER:
             {
                 addCBLog(CBLOG_ERR, u8"转让队长失败");
+                break;
+            }
+        case TEAMERR_KICKED:
+            {
+                addCBLog(CBLOG_SYS, u8"你已被移出队伍");
+                break;
+            }
+        case TEAMERR_DISBANDED:
+            {
+                addCBLog(CBLOG_SYS, u8"队伍已解散");
                 break;
             }
         default:

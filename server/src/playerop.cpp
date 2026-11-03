@@ -184,7 +184,7 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &mpk)
         reportCODisappear(amA.UID);
     }
 
-    if(m_teamLeader == amA.UID){
+    if(m_teamLeader == amA.UID && m_followTeamLeader){
         co_await followTeamLeader();
     }
 }
@@ -386,6 +386,30 @@ corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
     }
 
     fflassert(amE.exp >= 0, amE.exp);
+
+    // share kill exp equally with teammates in view, exp shared by teammate is not shared again
+    if(m_teamLeader && !uidf::isPlayer(mpk.from())){
+        std::vector<uint64_t> mateList;
+        for(const auto uid: m_teamMemberList){
+            if(uid != UID() && getInViewCOPtr(uid)){
+                mateList.push_back(uid);
+            }
+        }
+
+        if(const int share = amE.exp / to_d(mateList.size() + 1); share > 0 && !mateList.empty()){
+            AMExp amSE;
+            std::memset(&amSE, 0, sizeof(amSE));
+
+            amSE.exp = share;
+            for(const auto uid: mateList){
+                m_actorPod->post(uid, {AM_EXP, amSE});
+            }
+
+            gainExp(to_uz(amE.exp - share * to_d(mateList.size())));
+            return {};
+        }
+    }
+
     gainExp(to_uz(amE.exp));
     return {};
 }
@@ -724,9 +748,12 @@ corof::awaitable<> Player::on_AM_QUERYTEAMINFO(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
 {
+    // previous leader posts without waiting for response if it goes offline
     auto sdTTL = mpk.deserialize<SDTransferTeamLeader>();
     if(m_teamLeader != mpk.from() || !std::ranges::contains(sdTTL.memberList, UID())){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        if(mpk.seqID() > 0){
+            m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        }
         co_return;
     }
 
@@ -734,7 +761,9 @@ corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
     m_teamMemberList = std::move(sdTTL.memberList);
     m_teamRequirement = std::move(sdTTL.requirement);
 
-    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    if(mpk.seqID() > 0){
+        m_actorPod->post(mpk.fromAddr(), AM_OK);
+    }
     postTeamUpdate(); // includes previous leader
     co_await reportTeamMemberList();
 }
@@ -892,14 +921,9 @@ corof::awaitable<> Player::on_AM_CANCELDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
 {
-    if(m_teamLeader == UID()){
-        for(const auto member: m_teamMemberList){
-            if(member != UID()){
-                m_actorPod->post(member, AM_TEAMUPDATE);
-            }
-        }
-
-        m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), mpk.from()), m_teamMemberList.end());
+    if(m_teamLeader == UID() && std::ranges::contains(m_teamMemberList, mpk.from())){
+        std::erase(m_teamMemberList, mpk.from());
+        postTeamUpdate();
         co_await reportTeamMemberList();
     }
 }
@@ -910,6 +934,7 @@ corof::awaitable<> Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
     {
         .uid = UID(),
         .level = level(),
+        .job = job(),
         .name = name(),
     })});
     return {};
@@ -917,32 +942,45 @@ corof::awaitable<> Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
 {
+    const auto fnDropTeam = [this](bool disbanded)
+    {
+        if(!m_teamMemberList.empty()){ // confirmed member, not a pending reservation
+            postTeamError(disbanded ? TEAMERR_DISBANDED : TEAMERR_KICKED);
+        }
+
+        setTeamLeader(0);
+        m_teamMemberList.clear();
+        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
+    };
+
     switch(const auto rmpk = co_await m_actorPod->send(mpk.from(), AM_QUERYTEAMMEMBERLIST); rmpk.type()){
         case AM_TEAMMEMBERLIST:
             {
                 const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
                 if(sdTML.hasMember(UID())){
-                    fflassert(sdTML.teamLeader == rmpk.from());
-                }
+                    // a player only gets listed after reserving itself, m_teamLeader can't be 0 here
+                    // leader can change when transferred
+                    if(m_teamLeader){
+                        fflassert(sdTML.teamLeader == rmpk.from());
+                        setTeamLeader(rmpk.from());
 
-                if(sdTML.hasMember(UID())){
-                    setTeamLeader(rmpk.from());
-                    m_teamMemberList.clear();
-                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
+                        m_teamMemberList.clear();
+                        for(const auto &member: sdTML.memberList){
+                            m_teamMemberList.push_back(member.uid);
+                        }
+                        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
+                    }
                 }
-                else{
-                    setTeamLeader(0);
-                    m_teamMemberList.clear();
-                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
+                else if(m_teamLeader == rmpk.from()){
+                    fnDropTeam(sdTML.teamLeader == 0);
                 }
-
                 break;
             }
         default:
             {
-                setTeamLeader(0);
-                m_teamMemberList.clear();
-                postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
+                if(m_teamLeader == mpk.from()){
+                    fnDropTeam(true);
+                }
                 break;
             }
     }
@@ -951,5 +989,5 @@ corof::awaitable<> Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &mpk)
 {
     const auto sdTML = co_await pullTeamMemberList();
-    m_actorPod->post(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value())});
+    m_actorPod->post(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value_or(SDTeamMemberList{}))});
 }

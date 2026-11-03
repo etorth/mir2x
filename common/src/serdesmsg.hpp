@@ -1364,11 +1364,12 @@ struct SDTeamPlayer
 {
     uint64_t uid = 0;
     uint32_t level = 0;
+    int job = 0;
     std::string name {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, level, name);
+        ar(uid, level, job, name);
     }
 };
 

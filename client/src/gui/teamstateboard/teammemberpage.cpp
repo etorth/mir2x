@@ -1,5 +1,6 @@
 #include <format>
 #include <utility>
+#include "jobf.hpp"
 #include "totype.hpp"
 #include "processrun.hpp"
 #include "teamstateboard.hpp"
@@ -44,6 +45,7 @@ TeamMemberPage::TeamMemberPage(TeamStateBoard *board, Widget::VarBool argShow)
           .columnList
           {
               {.title = u8"名字", .w = 150, .text = [this](size_t i){ return m_board->m_teamMemberList.memberList.at(i).name; }},
+              {.title = u8"职业", .w =  60, .text = [this](size_t i){ return std::string(to_cstr(jobf::jobName(m_board->m_teamMemberList.memberList.at(i).job).at(0))); }},
               {.title = u8"等级", .w =  60, .text = [this](size_t i){ return std::to_string(m_board->m_teamMemberList.memberList.at(i).level); }},
               {.title = u8"职位", .w =  80, .text = [this](size_t i)
               {
@@ -66,6 +68,28 @@ TeamMemberPage::TeamMemberPage(TeamStateBoard *board, Widget::VarBool argShow)
           .onTrigger = [this](Widget *, int)
           {
               m_board->m_processRun->requestLeaveTeam(m_board->m_processRun->getMyHeroUID());
+          },
+
+          .attrs
+          {
+              .show = [this]{ return !m_board->isTeamLeader(); },
+          },
+          .parent{this},
+      }}
+
+    , m_followCheck
+      {{
+          .dir = DIR_LEFT,
+          .x = [this]{ return m_leave.dx() + m_leave.w() + 16; },
+          .y = [this]{ return m_leave.dy() + m_leave.h() / 2; },
+
+          .label{.text = u8"跟随队长"},
+
+          .getter = [this]{ return m_follow; },
+          .setter = [this](bool value)
+          {
+              m_follow = value;
+              m_board->m_processRun->requestSetFollowTeamLeader(value);
           },
 
           .attrs

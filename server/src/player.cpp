@@ -802,6 +802,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_SETTEAMREQUIREMENT        );
         _support_cm(CM_QUERYTEAMINFO             );
         _support_cm(CM_TRANSFERTEAMLEADER        );
+        _support_cm(CM_SETFOLLOWTEAMLEADER       );
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
         _support_cm(CM_REQUESTLATESTCHATMESSAGE  );
         _support_cm(CM_QUERYRANKING              );
@@ -1248,6 +1249,7 @@ bool Player::goOffline(bool disconnect)
         reportOffline(UID(), mapUID()); // report self offline
     }
     requestKillPets();
+    leaveTeam();
 
     m_channID = 0;
     if(disconnect){
@@ -2508,6 +2510,34 @@ void Player::postTeamUpdate()
     }
 }
 
+void Player::leaveTeam()
+{
+    if(m_teamLeader == UID()){
+        std::vector<uint64_t> memberList;
+        for(const auto uid: m_teamMemberList){
+            if(uid != UID()){
+                memberList.push_back(uid);
+            }
+        }
+
+        if(!memberList.empty()){
+            const auto newLeader = memberList.front();
+            m_actorPod->post(newLeader, {AM_TRANSFERTEAMLEADER, cerealf::serialize(SDTransferTeamLeader
+            {
+                .memberList = std::move(memberList),
+                .requirement = m_teamRequirement,
+            })});
+        }
+    }
+    else if(m_teamLeader){
+        m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
+    }
+
+    setTeamLeader(0);
+    m_teamMemberList.clear();
+    m_teamRequirement = {};
+}
+
 int Player::teamStat() const
 {
     const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, job(), level());
@@ -2821,32 +2851,39 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
 
     sdTML.teamLeader = m_teamLeader;
     sdTML.requirement = m_teamRequirement;
-    sdTML.memberList.resize(m_teamMemberList.size());
 
-    for(size_t i = 0; i < m_teamMemberList.size(); ++i){
-        if(m_teamMemberList.at(i) == UID()){
-            sdTML.memberList[i] = SDTeamPlayer
+    std::vector<uint64_t> offlineList;
+    const auto memberList = m_teamMemberList; // can change during co_await
+
+    for(const auto uid: memberList){
+        if(uid == UID()){
+            sdTML.memberList.push_back(SDTeamPlayer
             {
                 .uid = UID(),
                 .level = level(),
+                .job = job(),
                 .name = name(),
-            };
+            });
         }
         else{
-            switch(const auto mpk = co_await m_actorPod->send(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER); mpk.type()){
+            switch(const auto mpk = co_await m_actorPod->send(uid, AM_QUERYTEAMPLAYER); mpk.type()){
                 case AM_TEAMPLAYER:
                     {
-                        sdTML.memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
+                        sdTML.memberList.push_back(mpk.deserialize<SDTeamPlayer>());
                         break;
                     }
                 default:
                     {
-                        throw fflvalue(mpk.str());
+                        offlineList.push_back(uid);
+                        break;
                     }
             }
         }
     }
 
+    if(!offlineList.empty() && m_teamLeader == UID()){
+        std::erase_if(m_teamMemberList, [&offlineList](uint64_t uid){ return std::ranges::contains(offlineList, uid); });
+    }
     co_return sdTML;
 }
 

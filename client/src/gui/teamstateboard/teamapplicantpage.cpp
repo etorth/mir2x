@@ -1,5 +1,6 @@
 #include <format>
 #include <utility>
+#include "jobf.hpp"
 #include "totype.hpp"
 #include "processrun.hpp"
 #include "teamstateboard.hpp"
@@ -43,7 +44,8 @@ TeamApplicantPage::TeamApplicantPage(TeamStateBoard *board, Widget::VarBool argS
 
           .columnList
           {
-              {.title = u8"名字", .w = 150, .text = [this](size_t i){ return m_board->m_teamCandidateList.at(i).first.player.name; }},
+              {.title = u8"名字", .w = 120, .text = [this](size_t i){ return m_board->m_teamCandidateList.at(i).first.player.name; }},
+              {.title = u8"职业", .w =  60, .text = [this](size_t i){ return std::string(to_cstr(jobf::jobName(m_board->m_teamCandidateList.at(i).first.player.job).at(0))); }},
               {.title = u8"等级", .w =  60, .text = [this](size_t i){ return std::to_string(m_board->m_teamCandidateList.at(i).first.player.level); }},
               {.title = u8"时间", .w =  90, .text = [this](size_t i){ return waitTimeString(m_board->m_teamCandidateList.at(i).second.diff_sec()); }},
           },

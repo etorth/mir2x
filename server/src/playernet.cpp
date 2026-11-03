@@ -1221,6 +1221,7 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
             {
                 .uid = UID(),
                 .level = level(),
+                .job = job(),
                 .name = name(),
             },
 
@@ -1280,7 +1281,8 @@ corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, 
         co_await reportTeamMemberList();
     }
     else if(cmRLT.uid == UID()){
-        m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
+        leaveTeam(); // don't wait for leader, it can be offline
+        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
     }
 }
 
@@ -1344,8 +1346,8 @@ corof::awaitable<> Player::net_CM_TRANSFERTEAMLEADER(uint8_t, const uint8_t *buf
         case AM_OK:
             {
                 // new leader also posts AM_TEAMUPDATE to refresh this player's client
+                // keep m_teamMemberList as the member copy, AM_TEAMUPDATE can arrive before this
                 setTeamLeader(cmTTL.uid);
-                m_teamMemberList.clear();
                 m_teamRequirement = {};
                 break;
             }
@@ -1355,6 +1357,12 @@ corof::awaitable<> Player::net_CM_TRANSFERTEAMLEADER(uint8_t, const uint8_t *buf
                 break;
             }
     }
+}
+
+corof::awaitable<> Player::net_CM_SETFOLLOWTEAMLEADER(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    m_followTeamLeader = ClientMsg::conv<CMSetFollowTeamLeader>(buf).follow;
+    return {};
 }
 
 corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)

@@ -1909,6 +1909,15 @@ void ProcessRun::requestTransferTeamLeader(uint64_t uid)
     g_client->send({CM_TRANSFERTEAMLEADER, cmTTL});
 }
 
+void ProcessRun::requestSetFollowTeamLeader(bool follow)
+{
+    CMSetFollowTeamLeader cmSFTL;
+    std::memset(&cmSFTL, 0, sizeof(cmSFTL));
+
+    cmSFTL.follow = follow;
+    g_client->send({CM_SETFOLLOWTEAMLEADER, cmSFTL});
+}
+
 void ProcessRun::requestDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));

@@ -2,6 +2,7 @@
 #include "widget.hpp"
 #include "textboard.hpp"
 #include "textbutton.hpp"
+#include "checklabel.hpp"
 #include "serdesmsg.hpp"
 #include "teamlistview.hpp"
 
@@ -16,7 +17,9 @@ class TeamMemberPage: public Widget
         TeamListView m_listView;
 
     private:
+        bool m_follow = true; // server default
         TextButton m_leave;
+        CheckLabel m_followCheck;
 
     private:
         TextButton m_kick;

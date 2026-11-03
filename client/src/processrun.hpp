@@ -496,6 +496,7 @@ class ProcessRun: public Process
         void requestSetTeamRequirement(const SDTeamRequirement &);
         void requestQueryTeamInfo(uint64_t);
         void requestTransferTeamLeader(uint64_t);
+        void requestSetFollowTeamLeader(bool);
         void requestDirectTrade(uint64_t);
         void respondDirectTrade(uint64_t, bool);
         bool updateDirectTradeOffer(uint64_t, uint32_t, bool, const std::vector<SDItem> &);
