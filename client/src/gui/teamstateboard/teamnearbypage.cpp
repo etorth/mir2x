@@ -59,7 +59,7 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
               {.title = u8"人数", .w =  70, .text = [this](size_t i)
               {
                   const auto &team = viewTeam(i);
-                  return std::format("{}/{}", team.memberCount, team.requirement.memberLimit());
+                  return std::format("{}/{}", team.memberCount, team.req.memberLimit());
               }},
           },
 
@@ -184,11 +184,11 @@ void TeamNearbyPage::updateViewList()
 
     for(size_t i = 0; i < m_teamList.size(); ++i){
         const auto &team = m_teamList[i];
-        if(team.memberCount >= team.requirement.memberLimit()){
+        if(team.memberCount >= team.req.memberLimit()){
             continue;
         }
 
-        if(team.requirement.accept(job, level, stat, hasMagic)){
+        if(team.req.accept(job, level, stat, hasMagic)){
             m_viewList.push_back(i);
         }
     }

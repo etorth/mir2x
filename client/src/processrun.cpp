@@ -1877,12 +1877,12 @@ void ProcessRun::requestLeaveTeam(uint64_t uid)
     g_client->send({CM_REQUESTLEAVETEAM, cmRLT});
 }
 
-void ProcessRun::requestCreateTeam(const SDTeamRequirement &sdTR)
+void ProcessRun::requestCreateTeam(const SDTeamReq &sdTR)
 {
     g_client->send({CM_CREATETEAM, cerealf::serialize(sdTR)});
 }
 
-void ProcessRun::requestSetTeamRequirement(const SDTeamRequirement &sdTR)
+void ProcessRun::requestSetTeamRequirement(const SDTeamReq &sdTR)
 {
     g_client->send({CM_SETTEAMREQUIREMENT, cerealf::serialize(sdTR)});
 }

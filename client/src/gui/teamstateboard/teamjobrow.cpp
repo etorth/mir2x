@@ -1,5 +1,6 @@
 #include <string>
 #include <utility>
+#include "jobf.hpp"
 #include "totype.hpp"
 #include "teamjobrow.hpp"
 
@@ -28,9 +29,17 @@ TeamJobRow::TeamJobRow(TeamJobRow::InitArgs args)
           .dir = DIR_LEFT,
           .y = args.h / 2,
 
-          .label{.text = (std::u8string(u8"允许") + SDTeamRequirement::jobInfoList.at(args.jobIndex).name + u8"加入").c_str()},
-          .getter = [this]{ return m_requirement->allow; },
-          .setter = [this](bool value){ m_requirement->allow = value; },
+          .label{.text = (std::u8string(u8"允许") + jobf::jobName(jobf::jobFromGfxIndex(to_d(args.jobIndex))).front() + u8"加入").c_str()},
+          .getter = [this]{ return m_requirement->has_value(); },
+          .setter = [this](bool value)
+          {
+              if(!value){
+                  m_requirement->reset();
+              }
+              else if(!m_requirement->has_value()){
+                  m_requirement->emplace();
+              }
+          },
 
           .attrs
           {
@@ -55,7 +64,7 @@ TeamJobRow::TeamJobRow(TeamJobRow::InitArgs args)
 
           .attrs
           {
-              .active = [this]{ return m_requirement->allow; },
+              .active = [this]{ return m_requirement->has_value(); },
           },
           .parent{this},
       }}

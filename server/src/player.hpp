@@ -87,7 +87,7 @@ class Player final: public BattleObject
     protected:
         uint64_t m_teamLeader = 0;
         std::vector<uint64_t> m_teamMemberList; // authoritative on team leader, copy on member
-        SDTeamRequirement     m_teamRequirement;  // ignored if not team leader
+        SDTeamReq             m_teamRequirement;  // ignored if not team leader
         std::set<uint64_t>    m_teamCandidateSet; // ignored if not team leader
         bool                  m_followTeamLeader = true;
 
@@ -383,7 +383,7 @@ class Player final: public BattleObject
 
     private:
         int teamStat() const;
-        bool meetTeamRequirement(const SDTeamRequirement &) const;
+        bool meetTeamRequirement(const SDTeamReq &) const;
         corof::awaitable<int> addTeamMember(uint64_t);
 
     private:

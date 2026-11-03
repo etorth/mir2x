@@ -3,6 +3,7 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
+#include "jobf.hpp"
 
 SDChatPeerID::SDChatPeerID(uint64_t argData)
     : m_data(argData)
@@ -261,74 +262,59 @@ bool SDMagicKeyList::setMagicKey(uint32_t magicID, char key)
     return changed;
 }
 
-std::optional<size_t> SDTeamRequirement::jobIndex(int job)
+bool SDTeamReq::valid() const
 {
-    for(size_t i = 0; i < jobInfoList.size(); ++i){
-        if(jobInfoList[i].job & job){
-            return i;
-        }
-    }
-    return std::nullopt;
-}
-
-bool SDTeamRequirement::valid() const
-{
-    if(maxMember < 0 || maxMember == 1 || maxMember > SYS_MAXTEAMMEMBER){
+    if(maxMember < 0 || maxMember > SYS_MAXTEAMMEMBER){
         return false;
     }
 
-    if(!anyJobAllowed()){
+    if(!std::ranges::any_of(jobReqList, [](const auto &req){ return req.has_value(); })){
         return false;
     }
 
-    for(size_t i = 0; i < jobList.size(); ++i){
-        const auto &jobReq = jobList[i];
-        if(jobReq.minLevel < 0 || jobReq.maxLevel < 0 || jobReq.minStat < 0){
+    for(size_t i = 0; i < jobReqList.size(); ++i){
+        if(!jobReqList.at(i).has_value()){
+            continue;
+        }
+
+        if(!jobReqList.at(i)->valid()){
             return false;
         }
 
-        if(jobReq.allow && jobReq.minLevel > 0 && jobReq.maxLevel > 0 && jobReq.minLevel > jobReq.maxLevel){
-            return false;
-        }
-
-        for(const auto magicID: jobReq.magicIDList){
-            const auto &mr = DBCOM_MAGICRECORD(magicID);
-            if(!mr || !mr.req.job || std::u8string_view(mr.req.job) != jobInfoList[i].name){
-                return false;
+        for(const auto magicID: jobReqList.at(i)->magicIDList){
+            if(const auto &mr = DBCOM_MAGICRECORD(magicID)){
+                if(str_haschar(mr.req.job)){
+                    if(to_u8sv(mr.req.job) == jobf::jobName(jobf::jobFromGfxIndex(i)).front()){
+                        continue;
+                    }
+                }
             }
+            return false;
         }
     }
     return true;
 }
 
-bool SDTeamRequirement::anyJobAllowed() const
+bool SDTeamReq::accept(int job, int level, int capacity, const std::function<bool(uint32_t)> &hasMagic) const
 {
-    return std::ranges::any_of(jobList, [](const auto &jobReq){ return jobReq.allow; });
-}
+    for(const auto i: jobf::jobGfxIndex(job)){
+        if(!jobReqList.at(i).has_value()){
+            continue;
+        }
 
-bool SDTeamRequirement::accept(int job, int level, int stat, const std::function<bool(uint32_t)> &hasMagic) const
-{
-    const auto index = jobIndex(job);
-    if(!index.has_value()){
-        return false;
+        if(jobReqList.at(i)->minLevel >= 0 && level < jobReqList.at(i)->minLevel){
+            return false;
+        }
+
+        if(jobReqList.at(i)->maxLevel >= 0 && level > jobReqList.at(i)->maxLevel){
+            return false;
+        }
+
+        if(jobReqList.at(i)->minCapacity > 0 && capacity < jobReqList.at(i)->minCapacity){
+            return false;
+        }
+
+        return std::ranges::all_of(jobReqList.at(i)->magicIDList, [&hasMagic](uint32_t magicID){ return hasMagic && hasMagic(magicID); });
     }
-
-    const auto &jobReq = jobList.at(index.value());
-    if(!jobReq.allow){
-        return false;
-    }
-
-    if(jobReq.minLevel > 0 && level < jobReq.minLevel){
-        return false;
-    }
-
-    if(jobReq.maxLevel > 0 && level > jobReq.maxLevel){
-        return false;
-    }
-
-    if(jobReq.minStat > 0 && stat < jobReq.minStat){
-        return false;
-    }
-
-    return std::ranges::all_of(jobReq.magicIDList, [&hasMagic](uint32_t magicID){ return hasMagic && hasMagic(magicID); });
+    return false;
 }

@@ -1296,59 +1296,86 @@ struct SDQueryQuestUID
     }
 };
 
-struct SDTeamJobRequirement
+struct SDTeamJobReq
 {
-    bool allow = true;
-
-    int minLevel = 0; // 0 means no limit
-    int maxLevel = 0;
-    int minStat  = 0; // warrior: DC, wizard: MC, taoist: SC, upper value
+    int minLevel = -1;   // negative means no limit
+    int maxLevel = -1;   //
+    int minCapacity = 0; // warrior: DC, wizard: MC, taoist: SC
 
     std::set<uint32_t> magicIDList {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(allow, minLevel, maxLevel, minStat, magicIDList);
+        ar(minLevel, maxLevel, minCapacity, magicIDList);
     }
 
-    bool hasLimit() const
+    bool empty() const
     {
-        return minLevel > 0 || maxLevel > 0 || minStat > 0 || !magicIDList.empty();
+        return minLevel < 0 && maxLevel < 0 && minCapacity <= 0 && magicIDList.empty();
     }
 
-    bool operator == (const SDTeamJobRequirement &) const = default;
+    bool valid() const
+    {
+        if(minLevel >= 0 && to_u32(minLevel) > SYS_MAXLEVEL){ return false; }
+        if(maxLevel >= 0 && to_u32(maxLevel) > SYS_MAXLEVEL){ return false; }
+
+        if(minLevel >= 0 && maxLevel >= 0){
+            if(minLevel > maxLevel){
+                return false;
+            }
+        }
+
+        if(minCapacity < 0){
+            return false;
+        }
+        return true;
+    }
+
+    bool operator == (const SDTeamJobReq &req) const // invalid reqs can also be equal
+    {
+        return eqLevel(this->minLevel, req.minLevel)
+            && eqLevel(this->maxLevel, req.maxLevel)
+
+            && (minCapacity == req.minCapacity)
+            && (magicIDList == req.magicIDList);
+    }
+
+    static bool eqLevel(int lv1, int lv2)
+    {
+        if(lv1 < 0 && lv2 < 0){
+            return true;
+        }
+
+        else if(lv1 >= 0 && lv2 >= 0){
+            return lv1 == lv2;
+        }
+
+        else{
+            return false;
+        }
+    }
 };
 
-struct SDTeamRequirement
+struct SDTeamReq
 {
-    struct JobInfo final
-    {
-        int job;
+    // 0 means SYS_MAXTEAMMEMBER
+    // 1 means only team creator itself, wired but allowed
 
-        const char8_t *name;
-        const char8_t *stat;
-    };
-
-    constexpr static std::array<JobInfo, 3> jobInfoList
-    {{
-        {JOB_WARRIOR, u8"战士", u8"攻击"},
-        {JOB_WIZARD , u8"法师", u8"魔法"},
-        {JOB_TAOIST , u8"道士", u8"道术"},
-    }};
-
-    int maxMember = 0; // 0 means SYS_MAXTEAMMEMBER
+    int maxMember = 0;
     bool autoAccept = false;
-
-    std::array<SDTeamJobRequirement, jobInfoList.size()> jobList {};
+    std::array<std::optional<SDTeamJobReq>, 3> jobReqList {}; // 0/1/2 follows jobf::jofGfxIndex()
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(maxMember, autoAccept, jobList);
+        ar(maxMember, autoAccept, jobReqList);
     }
 
-    bool operator == (const SDTeamRequirement &) const = default;
-
-    static std::optional<size_t> jobIndex(int);
+    bool operator == (const SDTeamReq &req) const // invalid reqs can also be equal
+    {
+        return (this->memberLimit() == req.memberLimit())
+            && (this->autoAccept    == req.autoAccept   )
+            && (this->jobReqList    == req.jobReqList   );
+    }
 
     int memberLimit() const
     {
@@ -1356,8 +1383,7 @@ struct SDTeamRequirement
     }
 
     bool valid() const;
-    bool anyJobAllowed() const;
-    bool accept(int, int, int, const std::function<bool(uint32_t)> &) const; // job, level, stat, hasMagic
+    bool accept(int, int, int, const std::function<bool(uint32_t)> &) const; // job, level, capacity, hasMagic
 };
 
 struct SDTeamPlayer
@@ -1400,18 +1426,18 @@ struct SDTeamMemberList
 {
     uint64_t teamLeader = 0;
     std::vector<SDTeamPlayer> memberList {};
-    SDTeamRequirement requirement {};
+    SDTeamReq req {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(teamLeader, memberList, requirement);
+        ar(teamLeader, memberList, req);
     }
 
     void clear()
     {
         teamLeader = 0;
         memberList.clear();
-        requirement = {};
+        req = {};
     }
 
     bool hasMember(uint64_t uid) const
@@ -1444,11 +1470,11 @@ struct SDTeamMemberList
 struct SDTransferTeamLeader
 {
     std::vector<uint64_t> memberList {};
-    SDTeamRequirement requirement {};
+    SDTeamReq req {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(memberList, requirement);
+        ar(memberList, req);
     }
 };
 
@@ -1461,11 +1487,11 @@ struct SDTeamInfo
     int level = 0;
 
     int memberCount = 0;
-    SDTeamRequirement requirement {};
+    SDTeamReq req {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(leader, name, job, level, memberCount, requirement);
+        ar(leader, name, job, level, memberCount, req);
     }
 };
 

@@ -27,10 +27,10 @@ class TeamRequirementPage: public Widget
         Widget::VarBool m_editable;
 
     private:
-        std::function<void(const SDTeamRequirement &)> m_onConfirm;
+        std::function<void(const SDTeamReq &)> m_onConfirm;
 
     private:
-        SDTeamRequirement m_requirement;
+        SDTeamReq m_requirement;
 
     private:
         std::optional<size_t> m_jobIndex; // per-job setup page, main page if empty
@@ -46,13 +46,13 @@ class TeamRequirementPage: public Widget
         TextButton m_confirm;
 
     private:
-        std::array<TeamJobPanel *, SDTeamRequirement::jobInfoList.size()> m_jobPanelList {};
+        std::array<TeamJobPanel *, std::tuple_size_v<decltype(SDTeamReq::jobReqList)>> m_jobPanelList {};
 
     public:
-        TeamRequirementPage(TeamStateBoard *, Widget::VarBool, Widget::VarBool, const char8_t *, std::function<void(const SDTeamRequirement &)>);
+        TeamRequirementPage(TeamStateBoard *, Widget::VarBool, Widget::VarBool, const char8_t *, std::function<void(const SDTeamReq &)>);
 
     public:
-        void loadRequirement(const SDTeamRequirement &);
+        void loadRequirement(const SDTeamReq &);
 
     public:
         bool editable() const

@@ -741,7 +741,7 @@ corof::awaitable<> Player::on_AM_QUERYTEAMINFO(const ActorMsgPack &mpk)
         .level = to_d(level()),
 
         .memberCount = to_d(m_teamMemberList.size()),
-        .requirement = m_teamRequirement,
+        .req = m_teamRequirement,
     })});
     return {};
 }
@@ -759,7 +759,7 @@ corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
 
     setTeamLeader(UID());
     m_teamMemberList = std::move(sdTTL.memberList);
-    m_teamRequirement = std::move(sdTTL.requirement);
+    m_teamRequirement = std::move(sdTTL.req);
 
     if(mpk.seqID() > 0){
         m_actorPod->post(mpk.fromAddr(), AM_OK);
@@ -770,7 +770,7 @@ corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_JOINTEAM(const ActorMsgPack &mpk)
 {
-    const auto sdTR = mpk.deserialize<SDTeamRequirement>();
+    const auto sdTR = mpk.deserialize<SDTeamReq>();
     const auto error = [&sdTR, this]() -> int
     {
         if(m_teamLeader){

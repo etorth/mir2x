@@ -1288,7 +1288,7 @@ corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, 
 
 corof::awaitable<> Player::net_CM_CREATETEAM(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
-    auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);
+    auto sdTR = cerealf::deserialize<SDTeamReq>(buf, bufSize);
     if(m_teamLeader){
         postTeamError(TEAMERR_INTEAM);
         co_return;
@@ -1341,7 +1341,7 @@ corof::awaitable<> Player::net_CM_TRANSFERTEAMLEADER(uint8_t, const uint8_t *buf
     switch(const auto rmpk = co_await m_actorPod->send(cmTTL.uid, {AM_TRANSFERTEAMLEADER, cerealf::serialize(SDTransferTeamLeader
     {
         .memberList = m_teamMemberList,
-        .requirement = m_teamRequirement,
+        .req = m_teamRequirement,
     })}); rmpk.type()){
         case AM_OK:
             {
@@ -1367,7 +1367,7 @@ corof::awaitable<> Player::net_CM_SETFOLLOWTEAMLEADER(uint8_t, const uint8_t *bu
 
 corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
-    auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);
+    auto sdTR = cerealf::deserialize<SDTeamReq>(buf, bufSize);
     if(m_teamLeader != UID()){
         postTeamError(TEAMERR_NOTLEADER);
         co_return;

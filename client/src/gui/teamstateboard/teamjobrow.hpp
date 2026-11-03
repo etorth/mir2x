@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <functional>
 #include "widget.hpp"
 #include "textbutton.hpp"
@@ -17,7 +18,7 @@ class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
             int h = 0;
 
             size_t jobIndex = 0;
-            SDTeamJobRequirement *requirement = nullptr;
+            std::optional<SDTeamJobReq> *requirement = nullptr;
 
             std::function<void()> onSetup = nullptr;
 
@@ -26,7 +27,7 @@ class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
         };
 
     private:
-        SDTeamJobRequirement * const m_requirement;
+        std::optional<SDTeamJobReq> * const m_requirement;
 
     private:
         CheckLabel m_allow;

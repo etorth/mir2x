@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <optional>
 #include <functional>
 #include "widget.hpp"
 #include "textboard.hpp"
@@ -31,7 +32,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
             int h = 0;
 
             size_t jobIndex = 0;
-            SDTeamJobRequirement *requirement = nullptr;
+            std::optional<SDTeamJobReq> *requirement = nullptr;
 
             std::function<void()> onBack = nullptr;
 
@@ -43,7 +44,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
 
     private:
         const size_t m_jobIndex;
-        SDTeamJobRequirement * const m_requirement;
+        std::optional<SDTeamJobReq> * const m_requirement;
 
     private:
         TextBoard m_title;
@@ -72,7 +73,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
 
     public:
         static void setupNumberInput(TextInput &);
-        static int  parseNumberInput(const TextInput &);
+        static int  parseNumberInput(const TextInput &, int = 0); // input, value if empty
 
     private:
         void buildMagicList();

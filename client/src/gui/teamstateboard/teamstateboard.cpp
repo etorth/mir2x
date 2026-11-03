@@ -153,13 +153,13 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
       }}
 
     , m_pageNearby(this, [this]{ return currentPage() == PAGE_NEARBY; })
-    , m_pageCreate(this, [this]{ return currentPage() == PAGE_CREATE; }, true, u8"创建队伍", [this](const SDTeamRequirement &requirement)
+    , m_pageCreate(this, [this]{ return currentPage() == PAGE_CREATE; }, true, u8"创建队伍", [this](const SDTeamReq &requirement)
       {
           m_processRun->requestCreateTeam(requirement);
       })
 
     , m_pageMember(this, [this]{ return currentPage() == PAGE_MEMBER; })
-    , m_pageSetting(this, [this]{ return currentPage() == PAGE_SETTING; }, [this]{ return isTeamLeader(); }, u8"保存设置", [this](const SDTeamRequirement &requirement)
+    , m_pageSetting(this, [this]{ return currentPage() == PAGE_SETTING; }, [this]{ return isTeamLeader(); }, u8"保存设置", [this](const SDTeamReq &requirement)
       {
           m_processRun->requestSetTeamRequirement(requirement);
       })
@@ -237,11 +237,11 @@ void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 
 void TeamStateBoard::setTeamMemberList(SDTeamMemberList sdTML)
 {
-    const bool requirementChanged = (sdTML.requirement != m_teamMemberList.requirement);
+    const bool requirementChanged = (sdTML.req != m_teamMemberList.req);
     m_teamMemberList = std::move(sdTML);
 
     if(requirementChanged){
-        m_pageSetting.loadRequirement(m_teamMemberList.requirement);
+        m_pageSetting.loadRequirement(m_teamMemberList.req);
     }
     std::erase_if(m_teamCandidateList, [this](const auto &candidate)
     {

@@ -492,8 +492,8 @@ class ProcessRun: public Process
         void requestRemoveSecuredItem(uint32_t, uint32_t);
         void requestJoinTeam(uint64_t);
         void requestLeaveTeam(uint64_t);
-        void requestCreateTeam(const SDTeamRequirement &);
-        void requestSetTeamRequirement(const SDTeamRequirement &);
+        void requestCreateTeam(const SDTeamReq &);
+        void requestSetTeamRequirement(const SDTeamReq &);
         void requestQueryTeamInfo(uint64_t);
         void requestTransferTeamLeader(uint64_t);
         void requestSetFollowTeamLeader(bool);

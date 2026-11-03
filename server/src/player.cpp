@@ -2525,7 +2525,7 @@ void Player::leaveTeam()
             m_actorPod->post(newLeader, {AM_TRANSFERTEAMLEADER, cerealf::serialize(SDTransferTeamLeader
             {
                 .memberList = std::move(memberList),
-                .requirement = m_teamRequirement,
+                .req = m_teamRequirement,
             })});
         }
     }
@@ -2547,7 +2547,7 @@ int Player::teamStat() const
     else                         return 0;
 }
 
-bool Player::meetTeamRequirement(const SDTeamRequirement &sdTR) const
+bool Player::meetTeamRequirement(const SDTeamReq &sdTR) const
 {
     return sdTR.accept(job(), to_d(level()), teamStat(), [this](uint32_t magicID)
     {
@@ -2850,7 +2850,7 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
     SDTeamMemberList sdTML;
 
     sdTML.teamLeader = m_teamLeader;
-    sdTML.requirement = m_teamRequirement;
+    sdTML.req = m_teamRequirement;
 
     std::vector<uint64_t> offlineList;
     const auto memberList = m_teamMemberList; // can change during co_await

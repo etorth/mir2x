@@ -1,5 +1,7 @@
 #include <utility>
+#include <algorithm>
 #include "colorf.hpp"
+#include "jobf.hpp"
 #include "totype.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -7,7 +9,7 @@
 #include "teamrequirementpage.hpp"
 
 extern SDLDevice *g_sdlDevice;
-TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, Widget::VarBool argEditable, const char8_t *confirmLabel, std::function<void(const SDTeamRequirement &)> onConfirm)
+TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, Widget::VarBool argEditable, const char8_t *confirmLabel, std::function<void(const SDTeamReq &)> onConfirm)
     : Widget
       {{
           .x = TeamStateBoard::m_pageX,
@@ -94,7 +96,11 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
     TeamJobPanel::setupNumberInput(m_maxMember);
     m_maxMember.setActive([this]{ return editable(); });
 
-    for(size_t i = 0; i < SDTeamRequirement::jobInfoList.size(); ++i){
+    for(auto &jobReq: m_requirement.jobReqList){
+        jobReq.emplace(); // allow all jobs by default
+    }
+
+    for(size_t i = 0; i < m_requirement.jobReqList.size(); ++i){
         new TeamJobRow
         {{
             .y = m_jobRowY + to_d(i) * m_rowH,
@@ -102,7 +108,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
             .h = m_rowH,
 
             .jobIndex = i,
-            .requirement = &m_requirement.jobList[i],
+            .requirement = &m_requirement.jobReqList[i],
 
             .onSetup = [this, i]{ m_jobIndex = i; },
 
@@ -116,7 +122,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
             .h = TeamStateBoard::m_pageH,
 
             .jobIndex = i,
-            .requirement = &m_requirement.jobList[i],
+            .requirement = &m_requirement.jobReqList[i],
 
             .onBack = [this]{ showMainPage(); },
 
@@ -128,7 +134,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
     }
 }
 
-void TeamRequirementPage::loadRequirement(const SDTeamRequirement &requirement)
+void TeamRequirementPage::loadRequirement(const SDTeamReq &requirement)
 {
     m_requirement = requirement;
     m_maxMember.inputLine()->setInput((m_requirement.maxMember > 0) ? std::to_string(m_requirement.maxMember).c_str() : "");
@@ -145,19 +151,19 @@ void TeamRequirementPage::applyInput()
         panel->applyInput();
     }
 
-    if(m_requirement.maxMember == 1 || m_requirement.maxMember > SYS_MAXTEAMMEMBER){
-        m_board->m_processRun->addCBLog(CBLOG_ERR, u8"最大人数需在2-%d之间", SYS_MAXTEAMMEMBER);
+    if(m_requirement.maxMember > SYS_MAXTEAMMEMBER){
+        m_board->m_processRun->addCBLog(CBLOG_ERR, u8"最大人数不能超过%d", SYS_MAXTEAMMEMBER);
         return;
     }
 
-    if(!m_requirement.anyJobAllowed()){
+    if(std::ranges::none_of(m_requirement.jobReqList, [](const auto &jobReq){ return jobReq.has_value(); })){
         m_board->m_processRun->addCBLog(CBLOG_ERR, u8"至少需要允许一个职业");
         return;
     }
 
-    for(size_t i = 0; i < m_requirement.jobList.size(); ++i){
-        if(const auto &jobReq = m_requirement.jobList[i]; jobReq.allow && jobReq.minLevel > 0 && jobReq.maxLevel > 0 && jobReq.minLevel > jobReq.maxLevel){
-            m_board->m_processRun->addCBLog(CBLOG_ERR, u8"%s：最低等级不能高于最高等级", to_cstr(SDTeamRequirement::jobInfoList[i].name));
+    for(size_t i = 0; i < m_requirement.jobReqList.size(); ++i){
+        if(const auto &jobReq = m_requirement.jobReqList[i]; jobReq.has_value() && jobReq->minLevel >= 0 && jobReq->maxLevel >= 0 && jobReq->minLevel > jobReq->maxLevel){
+            m_board->m_processRun->addCBLog(CBLOG_ERR, u8"%s：最低等级不能高于最高等级", to_cstr(jobf::jobName(jobf::jobFromGfxIndex(to_d(i))).front()));
             return;
         }
     }
