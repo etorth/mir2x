@@ -38,6 +38,10 @@ TextButton::TextButton(TextButton::InitArgs args)
 {
     m_text.setFontColor([this]
     {
+        if(!active()){
+            return colorf::GREY_A255;
+        }
+
         switch(getState()){
             case BEVENT_OFF : return colorf:: YELLOW_A255;
             case BEVENT_ON  : return colorf::  GREEN_A255;

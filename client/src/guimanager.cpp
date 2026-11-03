@@ -102,8 +102,8 @@ GUIManager::GUIManager(ProcessRun *argProc)
 
     , m_teamStateBoard
       {
-          g_sdlDevice->getWindowLogicalWidth()  / 2 - 129,
-          g_sdlDevice->getWindowLogicalHeight() / 2 - 122,
+          g_sdlDevice->getWindowLogicalWidth()  / 2 - 300,
+          g_sdlDevice->getWindowLogicalHeight() / 2 - 220,
           argProc,
           this,
       }

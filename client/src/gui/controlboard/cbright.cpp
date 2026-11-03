@@ -227,17 +227,8 @@ CBRight::CBRight(
 
           .onTrigger = [this](Widget *, int)
           {
-              auto boardPtr = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"));
-              auto  heroPtr = m_processRun->getMyHero();
-
-              if(heroPtr->hasTeam()){
-                  boardPtr->flipShow();
-                  if(boardPtr->show()){
-                      boardPtr->refresh();
-                  }
-              }
-              else{
-                  m_processRun->setCursor(ProcessRun::CURSOR_TEAMFLAG);
+              if(auto p = m_processRun->getWidget("TeamStateBoard")){
+                  p->flipShow();
               }
           },
 

@@ -12,7 +12,7 @@
 #include "gui/friendchatboard/friendchatboard.hpp"
 #include "gui/controlboard/controlboard.hpp"
 #include "gui/purchaseboard/purchaseboard.hpp"
-#include "teamstateboard.hpp"
+#include "gui/teamstateboard/teamstateboard.hpp"
 #include "inventoryboard.hpp"
 #include "queststateboard.hpp"
 #include "gui/quickaccessboard/quickaccessboard.hpp"

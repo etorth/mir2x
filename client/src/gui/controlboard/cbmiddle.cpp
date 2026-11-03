@@ -12,7 +12,7 @@
 #include "processrun.hpp"
 #include "controlboard.hpp"
 #include "clientmonster.hpp"
-#include "teamstateboard.hpp"
+#include "gui/teamstateboard/teamstateboard.hpp"
 
 extern Log *g_mir2xLog;
 extern ProgUseDB *g_progUseDB;
