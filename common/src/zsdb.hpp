@@ -87,5 +87,5 @@ class ZSDB final
         std::vector<ZSDB::Entry> getEntryList() const;
 
     public:
-        static void buildDB(const char *, const char *, const char *, const char *, double);
+        static void buildDB(const char *, const char *, const char *, const char *, int, double);
 };

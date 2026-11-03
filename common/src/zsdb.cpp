@@ -11,24 +11,30 @@
 #include "fflerror.hpp"
 #include "totype.hpp"
 
-static constexpr int g_compLevel = 3;
-static std::vector<uint8_t> compressDataBuf(const uint8_t *dataBuf, size_t dataLen, ZSTD_CCtx *cctxPtr, const ZSTD_CDict *cdictPtr)
+static std::vector<uint8_t> compressDataBuf(const uint8_t *dataBuf, size_t dataLen, ZSTD_CCtx *cctxPtr, const ZSTD_CDict *cdictPtr, int compLevel)
 {
     if(!(dataBuf && dataLen)){
         throw fflpanic("invalid arguments: dataBuf = {:p}, dataLen = {}", to_cvptr(dataBuf), dataLen);
+    }
+
+    if(compLevel != 0){ // 0 is always treated as an alias for the default level
+        fflassert(compLevel >= ZSTD_minCLevel(), compLevel);
+        fflassert(compLevel <= ZSTD_maxCLevel(), compLevel);
     }
 
     size_t rc = 0;
     std::vector<uint8_t> result(ZSTD_compressBound(dataLen), 0);
 
     if(cctxPtr && cdictPtr){
+        // not using compLevel because level has been baked into the CDict
+        // see ZSTD_createCDict() in buildDB()
         rc = ZSTD_compress_usingCDict(cctxPtr, result.data(), result.size(), dataBuf, dataLen, cdictPtr);
     }
     else if(cctxPtr){
-        rc = ZSTD_compressCCtx(cctxPtr, result.data(), result.size(), dataBuf, dataLen, g_compLevel);
+        rc = ZSTD_compressCCtx(cctxPtr, result.data(), result.size(), dataBuf, dataLen, compLevel);
     }
     else{
-        rc = ZSTD_compress(result.data(), result.size(), dataBuf, dataLen, g_compLevel);
+        rc = ZSTD_compress(result.data(), result.size(), dataBuf, dataLen, compLevel);
     }
 
     if(ZSTD_isError(rc)){
@@ -255,11 +261,19 @@ std::vector<ZSDB::Entry> ZSDB::getEntryList() const
     return result;
 }
 
-void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *dataPath, const char *dictPath, double compRatio)
+void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *dataPath, const char *dictPath, int compLevel, double compRatioThreshold)
 {
     if(!(str_haschar(savePath) && str_haschar(dataPath))){
         throw fflpanic("invalid arguments: savePath = {}, dataPath = {}", to_cstr(savePath), to_cstr(dataPath));
     }
+
+    if(compLevel != 0){ // 0 is always treated as an alias for the default level
+        fflassert(compLevel >= ZSTD_minCLevel(), compLevel);
+        fflassert(compLevel <= ZSTD_maxCLevel(), compLevel);
+    }
+
+    fflassert(compRatioThreshold >= 0.0, compRatioThreshold);
+    fflassert(compRatioThreshold <= 1.0, compRatioThreshold);
 
     std::unique_ptr<ZSTD_CDict, size_t (*)(ZSTD_CDict *)> cdictPtr{nullptr, ZSTD_freeCDict};
     std::vector<uint8_t> cdictBuf;
@@ -270,7 +284,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
             throw fflpanic("dict file is empty: {}", dictPath);
         }
 
-        cdictPtr.reset(ZSTD_createCDict(cdictBuf.data(), cdictBuf.size(), g_compLevel));
+        cdictPtr.reset(ZSTD_createCDict(cdictBuf.data(), cdictBuf.size(), compLevel));
         if(!cdictPtr){
             throw fflpanic("failed to create dict: {}", dictPath);
         }
@@ -305,12 +319,12 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
             continue;
         }
 
-        const auto dstBuf = compressDataBuf(srcBuf.data(), srcBuf.size(), cctxPtr.get(), cdictPtr.get());
+        const auto dstBuf = compressDataBuf(srcBuf.data(), srcBuf.size(), cctxPtr.get(), cdictPtr.get(), compLevel);
         if(dstBuf.empty()){
             continue;
         }
 
-        const bool compressed = ((1.00 * dstBuf.size() / srcBuf.size()) < compRatio);
+        const bool compressed = ((1.00 * dstBuf.size() / srcBuf.size()) < compRatioThreshold);
         const auto &tookBuf = compressed ? dstBuf : srcBuf;
 
         InnEntry entry;
@@ -343,7 +357,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     // provided — header.dictLength == 0 then signals the reader to skip the block.
     const auto cdictCompBuf = cdictBuf.empty()
         ? std::vector<uint8_t>{}
-        : compressDataBuf(cdictBuf.data(), cdictBuf.size(), cctxPtr.get(), nullptr);
+        : compressDataBuf(cdictBuf.data(), cdictBuf.size(), cctxPtr.get(), nullptr, compLevel);
 
     ZSDBHeader header;
     std::memset(&header, 0, sizeof(header));
@@ -355,11 +369,11 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     header.dictOffset = sizeof(header);
     header.dictLength = cdictCompBuf.size();
 
-    const auto entryCompBuf = compressDataBuf((uint8_t *)(entryList.data()), entryList.size() * sizeof(InnEntry), cctxPtr.get(), nullptr);
+    const auto entryCompBuf = compressDataBuf((uint8_t *)(entryList.data()), entryList.size() * sizeof(InnEntry), cctxPtr.get(), nullptr, compLevel);
     header.entryOffset = header.dictOffset + header.dictLength;
     header.entryLength = entryCompBuf.size();
 
-    const auto fileNameCompBuf = compressDataBuf((uint8_t *)(fileNameBuf.data()), fileNameBuf.size(), cctxPtr.get(), nullptr);
+    const auto fileNameCompBuf = compressDataBuf((uint8_t *)(fileNameBuf.data()), fileNameBuf.size(), cctxPtr.get(), nullptr, compLevel);
     header.fileNameOffset = header.entryOffset + header.entryLength;
     header.fileNameLength = fileNameCompBuf.size();
 

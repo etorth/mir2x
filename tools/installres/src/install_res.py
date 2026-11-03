@@ -132,6 +132,9 @@ def main():
                 zsdbmaker,
                 f"--input-dir={pack_input_dir}",
                 f"--create-db={pack_output_path}",
+                # release packs are downloaded via git lfs, keep them as small as possible
+                "--comp-level=max",
+                "--comp-ratio-threshold=0.99",
             ],
             check=False)
 

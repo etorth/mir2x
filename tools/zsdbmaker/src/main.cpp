@@ -1,4 +1,7 @@
 #include <regex>
+#include <string>
+#include <charconv>
+#include <zstd.h>
 #include <cstdio>
 #include <fstream>
 #include <cinttypes>
@@ -18,6 +21,8 @@ static void cmd_help()
     std::printf("--input-dir\n");
     std::printf("--input-dict\n");
     std::printf("--input-file-name-regex\n");
+    std::printf("--comp-level=[0|min|max|<integer>], default 0 (zstd default level)\n");
+    std::printf("--comp-ratio-threshold=[0-1], default 0.9, store compressed only if compressed/raw size is below it\n");
 }
 
 static void cmd_create_db(const argf::parser &cmd)
@@ -73,22 +78,62 @@ static void cmd_create_db(const argf::parser &cmd)
         return cmd("input-dict").str();
     }();
 
-    const auto compressThreshold = [&cmd]() -> double
+    const auto compLevel = [&cmd]() -> int
     {
-        if(!cmd.has_option("compress-threshold")){
+        if(!cmd.has_option("comp-level")){
+            return 0;
+        }
+
+        if(cmd["comp-level"] || cmd("comp-level").str().empty()){
+            throw fflpanic("comp-level requires an argument");
+        }
+
+        const auto levelStr = cmd("comp-level").str();
+        if(levelStr == "min"){
+            return ZSTD_minCLevel();
+        }
+
+        if(levelStr == "max"){
+            return ZSTD_maxCLevel();
+        }
+
+        int level = 0;
+        if(const auto [ptr, ec] = std::from_chars(levelStr.data(), levelStr.data() + levelStr.size(), level); ec != std::errc{} || ptr != levelStr.data() + levelStr.size()){
+            throw fflpanic("invalid comp-level: {}", levelStr);
+        }
+
+        if(level != 0){
+            if(level < ZSTD_minCLevel() || level > ZSTD_maxCLevel()){
+                throw fflpanic("comp-level {} out of range [{}, {}]", level, ZSTD_minCLevel(), ZSTD_maxCLevel());
+            }
+        }
+        return level;
+    }();
+
+    const auto compRatioThreshold = [&cmd]() -> double
+    {
+        if(!cmd.has_option("comp-ratio-threshold")){
             return 0.90;
         }
 
-        if(cmd["compress-threshold"] || cmd("compress-threshold").str().empty()){
-            throw fflpanic("compress-threshold requires an argument");
+        if(cmd["comp-ratio-threshold"] || cmd("comp-ratio-threshold").str().empty()){
+            throw fflpanic("comp-ratio-threshold requires an argument");
         }
 
-        double threshold;
-        cmd("compress-threshold", 0.90) >> threshold;
+        const auto thresholdStr = cmd("comp-ratio-threshold").str();
+        double threshold = 0.0;
+
+        if(const auto [ptr, ec] = std::from_chars(thresholdStr.data(), thresholdStr.data() + thresholdStr.size(), threshold); ec != std::errc{} || ptr != thresholdStr.data() + thresholdStr.size()){
+            throw fflpanic("invalid comp-ratio-threshold: {}", thresholdStr);
+        }
+
+        if(!(threshold >= 0.0 && threshold <= 1.0)){
+            throw fflpanic("comp-ratio-threshold {} out of range [0, 1]", threshold);
+        }
         return threshold;
     }();
 
-    ZSDB::buildDB(outputFileName.c_str(), inputFileNameRegex.c_str(), inputDirName.c_str(), inputDictName.c_str(), compressThreshold);
+    ZSDB::buildDB(outputFileName.c_str(), inputFileNameRegex.c_str(), inputDirName.c_str(), inputDictName.c_str(), compLevel, compRatioThreshold);
 }
 
 static void cmd_list(const argf::parser &cmd)
