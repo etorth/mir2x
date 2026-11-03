@@ -722,6 +722,23 @@ corof::awaitable<> Player::on_AM_QUERYTEAMINFO(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
+{
+    auto sdTTL = mpk.deserialize<SDTransferTeamLeader>();
+    if(m_teamLeader != mpk.from() || !std::ranges::contains(sdTTL.memberList, UID())){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        co_return;
+    }
+
+    setTeamLeader(UID());
+    m_teamMemberList = std::move(sdTTL.memberList);
+    m_teamRequirement = std::move(sdTTL.requirement);
+
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    postTeamUpdate(); // includes previous leader
+    co_await reportTeamMemberList();
+}
+
 corof::awaitable<> Player::on_AM_JOINTEAM(const ActorMsgPack &mpk)
 {
     const auto sdTR = mpk.deserialize<SDTeamRequirement>();

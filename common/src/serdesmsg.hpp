@@ -1440,6 +1440,17 @@ struct SDTeamMemberList
     }
 };
 
+struct SDTransferTeamLeader
+{
+    std::vector<uint64_t> memberList {};
+    SDTeamRequirement requirement {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(memberList, requirement);
+    }
+};
+
 struct SDTeamInfo
 {
     uint64_t leader = 0;

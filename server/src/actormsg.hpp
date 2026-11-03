@@ -154,6 +154,7 @@ enum ActorMsgPackType: int
     AM_TEAMERROR,
     AM_QUERYTEAMINFO,
     AM_TEAMINFO,
+    AM_TRANSFERTEAMLEADER,
     AM_PLAYERSAY,
     AM_PLAYERBROADCAST,
     AM_PLAYERLOGOUT,
@@ -309,6 +310,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_TEAMERROR)
         _add_mpk_type_case(AM_QUERYTEAMINFO)
         _add_mpk_type_case(AM_TEAMINFO)
+        _add_mpk_type_case(AM_TRANSFERTEAMLEADER)
         _add_mpk_type_case(AM_PLAYERSAY)
         _add_mpk_type_case(AM_PLAYERBROADCAST)
         _add_mpk_type_case(AM_PLAYERLOGOUT)

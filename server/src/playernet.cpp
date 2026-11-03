@@ -1323,6 +1323,40 @@ corof::awaitable<> Player::net_CM_QUERYTEAMINFO(uint8_t, const uint8_t *buf, siz
     }
 }
 
+corof::awaitable<> Player::net_CM_TRANSFERTEAMLEADER(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmTTL = ClientMsg::conv<CMTransferTeamLeader>(buf);
+    if(m_teamLeader != UID()){
+        postTeamError(TEAMERR_NOTLEADER);
+        co_return;
+    }
+
+    if(cmTTL.uid == UID() || !std::ranges::contains(m_teamMemberList, cmTTL.uid)){
+        postTeamError(TEAMERR_TRANSFERLEADER);
+        co_return;
+    }
+
+    switch(const auto rmpk = co_await m_actorPod->send(cmTTL.uid, {AM_TRANSFERTEAMLEADER, cerealf::serialize(SDTransferTeamLeader
+    {
+        .memberList = m_teamMemberList,
+        .requirement = m_teamRequirement,
+    })}); rmpk.type()){
+        case AM_OK:
+            {
+                // new leader also posts AM_TEAMUPDATE to refresh this player's client
+                setTeamLeader(cmTTL.uid);
+                m_teamMemberList.clear();
+                m_teamRequirement = {};
+                break;
+            }
+        default:
+            {
+                postTeamError(TEAMERR_TRANSFERLEADER);
+                break;
+            }
+    }
+}
+
 corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
     auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);

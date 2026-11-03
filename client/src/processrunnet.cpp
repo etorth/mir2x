@@ -1075,6 +1075,11 @@ void ProcessRun::on_SM_TEAMERROR(const uint8_t *buf, size_t bufSize)
                 addCBLog(CBLOG_ERR, u8"对方无法加入队伍");
                 break;
             }
+        case TEAMERR_TRANSFERLEADER:
+            {
+                addCBLog(CBLOG_ERR, u8"转让队长失败");
+                break;
+            }
         default:
             {
                 addCBLog(CBLOG_ERR, u8"组队失败");

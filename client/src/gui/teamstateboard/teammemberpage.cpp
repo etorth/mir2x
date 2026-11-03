@@ -118,7 +118,7 @@ TeamMemberPage::TeamMemberPage(TeamStateBoard *board, Widget::VarBool argShow)
                   m_board->m_processRun->addCBLog(CBLOG_ERR, u8"你已经是队长");
               }
               else{
-                  m_board->m_processRun->addCBLog(CBLOG_SYS, u8"转让队长给%s：暂未实现", member->name.c_str());
+                  m_board->m_processRun->requestTransferTeamLeader(member->uid);
               }
           },
 

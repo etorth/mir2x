@@ -1898,6 +1898,17 @@ void ProcessRun::requestQueryTeamInfo(uint64_t uid)
     g_client->send({CM_QUERYTEAMINFO, cmQTI});
 }
 
+void ProcessRun::requestTransferTeamLeader(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    CMTransferTeamLeader cmTTL;
+    std::memset(&cmTTL, 0, sizeof(cmTTL));
+
+    cmTTL.uid = uid;
+    g_client->send({CM_TRANSFERTEAMLEADER, cmTTL});
+}
+
 void ProcessRun::requestDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));
