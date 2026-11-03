@@ -658,10 +658,73 @@ corof::awaitable<> Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 {
     const auto sdRJT = mpk.deserialize<SDRequestJoinTeam>();
-    postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
+    const auto error = [&sdRJT, this]() -> int
     {
-        .player = sdRJT.player, // can forward player's friend to the team leader
-    }));
+        if(m_teamLeader != UID()){
+            return TEAMERR_NOTEAM;
+        }
+
+        if(std::ranges::contains(m_teamMemberList, sdRJT.player.uid)){
+            return TEAMERR_INTEAM;
+        }
+
+        if(m_teamMemberList.size() >= to_uz(m_teamRequirement.memberLimit())){
+            return TEAMERR_FULL;
+        }
+
+        if(!m_teamRequirement.accept(sdRJT.job, to_d(sdRJT.player.level), sdRJT.stat, [&sdRJT](uint32_t magicID){ return std::ranges::contains(sdRJT.magicIDList, magicID); })){
+            return TEAMERR_REQUIREMENT;
+        }
+
+        return TEAMERR_NONE;
+    }();
+
+    if(error != TEAMERR_NONE){
+        AMTeamError amTE;
+        std::memset(&amTE, 0, sizeof(amTE));
+
+        amTE.error = error;
+        m_actorPod->post(mpk.fromAddr(), {AM_TEAMERROR, amTE});
+        co_return;
+    }
+
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    if(m_teamRequirement.autoAccept){
+        co_await addTeamMember(sdRJT.player.uid);
+    }
+    else{
+        m_teamCandidateSet.insert(sdRJT.player.uid);
+        postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
+        {
+            .player = sdRJT.player,
+        }));
+    }
+}
+
+corof::awaitable<> Player::on_AM_JOINTEAM(const ActorMsgPack &mpk)
+{
+    const auto sdTR = mpk.deserialize<SDTeamRequirement>();
+    const auto error = [&sdTR, this]() -> int
+    {
+        if(m_teamLeader){
+            return TEAMERR_INTEAM;
+        }
+
+        if(!meetTeamRequirement(sdTR)){
+            return TEAMERR_REQUIREMENT;
+        }
+
+        return TEAMERR_NONE;
+    }();
+
+    if(error == TEAMERR_NONE){
+        setTeamLeader(mpk.from()); // reserve, confirmed or dropped by AM_TEAMUPDATE
+        m_actorPod->post(mpk.fromAddr(), AM_OK);
+    }
+    else{
+        postTeamError(error);
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+    }
     return {};
 }
 

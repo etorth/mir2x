@@ -150,6 +150,8 @@ enum ActorMsgPackType: int
     AM_REGISTERQUEST,
     AM_REQUESTJOINTEAM,
     AM_REQUESTLEAVETEAM,
+    AM_JOINTEAM,
+    AM_TEAMERROR,
     AM_PLAYERSAY,
     AM_PLAYERBROADCAST,
     AM_PLAYERLOGOUT,
@@ -301,6 +303,8 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REGISTERQUEST)
         _add_mpk_type_case(AM_REQUESTJOINTEAM)
         _add_mpk_type_case(AM_REQUESTLEAVETEAM)
+        _add_mpk_type_case(AM_JOINTEAM)
+        _add_mpk_type_case(AM_TEAMERROR)
         _add_mpk_type_case(AM_PLAYERSAY)
         _add_mpk_type_case(AM_PLAYERBROADCAST)
         _add_mpk_type_case(AM_PLAYERLOGOUT)
@@ -340,6 +344,11 @@ struct AMDirectTradePeer
 };
 
 struct AMDirectTradeError
+{
+    uint8_t error;
+};
+
+struct AMTeamError
 {
     uint8_t error;
 };

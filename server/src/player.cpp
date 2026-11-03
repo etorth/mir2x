@@ -693,6 +693,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_REQUESTLEAVETEAM(mpk);
             }
+        case AM_JOINTEAM:
+            {
+                return on_AM_JOINTEAM(mpk);
+            }
         case AM_QUERYTEAMPLAYER:
             {
                 return on_AM_QUERYTEAMPLAYER(mpk);
@@ -2485,12 +2489,77 @@ void Player::postTeamError(int error)
     postNetMessage(SM_TEAMERROR, smTE);
 }
 
+void Player::postTeamUpdate()
+{
+    for(const auto member: m_teamMemberList){
+        if(member != UID()){
+            m_actorPod->post(member, AM_TEAMUPDATE);
+        }
+    }
+}
+
+int Player::teamStat() const
+{
+    const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, job(), level());
+    /**/ if(job() & JOB_WARRIOR) return combatNode.dc[1];
+    else if(job() & JOB_WIZARD ) return combatNode.mc[1];
+    else if(job() & JOB_TAOIST ) return combatNode.sc[1];
+    else                         return 0;
+}
+
+bool Player::meetTeamRequirement(const SDTeamRequirement &sdTR) const
+{
+    return sdTR.accept(job(), to_d(level()), teamStat(), [this](uint32_t magicID)
+    {
+        return m_sdLearnedMagicList.has(magicID);
+    });
+}
+
+corof::awaitable<int> Player::addTeamMember(uint64_t uid)
+{
+    fflassert(m_teamLeader == UID());
+    if(std::ranges::contains(m_teamMemberList, uid)){
+        co_return TEAMERR_NONE;
+    }
+
+    if(m_teamMemberList.size() >= to_uz(m_teamRequirement.memberLimit())){
+        co_return TEAMERR_FULL;
+    }
+
+    // applicant checks requirement by its own data and reserves itself to this team if accepts
+    switch(const auto rmpk = co_await m_actorPod->send(uid, {AM_JOINTEAM, cerealf::serialize(m_teamRequirement)}); rmpk.type()){
+        case AM_OK:
+            {
+                break;
+            }
+        default:
+            {
+                co_return TEAMERR_BADCANDIDATE;
+            }
+    }
+
+    // team may have changed during the co_await
+    if(m_teamLeader != UID() || m_teamMemberList.size() >= to_uz(m_teamRequirement.memberLimit())){
+        m_actorPod->post(uid, AM_TEAMUPDATE); // let applicant drop the reservation
+        co_return (m_teamLeader == UID()) ? TEAMERR_FULL : TEAMERR_NOTLEADER;
+    }
+
+    if(!std::ranges::contains(m_teamMemberList, uid)){
+        m_teamMemberList.push_back(uid);
+        postTeamUpdate();
+        co_await reportTeamMemberList();
+    }
+    co_return TEAMERR_NONE;
+}
+
 void Player::setTeamLeader(uint64_t teamLeader)
 {
     const bool wasLeader = (m_teamLeader == UID());
     m_teamLeader = teamLeader;
 
     if(const bool isLeader = (m_teamLeader == UID()); isLeader != wasLeader){
+        m_teamCandidateSet.clear();
+
         SMPlayerTeamLeader smPTL;
         std::memset(&smPTL, 0, sizeof(smPTL));
 

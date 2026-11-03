@@ -1204,12 +1204,18 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
         }
     }
     else if(m_teamLeader == UID()){
-        m_teamMemberList.push_back(cmRJT.uid);
-        m_actorPod->post(cmRJT.uid, AM_TEAMUPDATE);
-        co_await reportTeamMemberList();
+        if(!m_teamCandidateSet.erase(cmRJT.uid)){
+            postTeamError(TEAMERR_BADCANDIDATE);
+        }
+        else if(const auto error = co_await addTeamMember(cmRJT.uid); error != TEAMERR_NONE){
+            postTeamError(error);
+        }
+    }
+    else if(m_teamLeader){
+        postTeamError(TEAMERR_INTEAM);
     }
     else{
-        m_actorPod->post(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
+        SDRequestJoinTeam sdRJT
         {
             .player
             {
@@ -1217,7 +1223,31 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
                 .level = level(),
                 .name = name(),
             },
-        })});
+
+            .job = job(),
+            .stat = teamStat(),
+        };
+
+        for(const auto &magic: m_sdLearnedMagicList.magicList){
+            sdRJT.magicIDList.push_back(magic.magicID);
+        }
+
+        switch(const auto rmpk = co_await m_actorPod->send(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(sdRJT)}); rmpk.type()){
+            case AM_OK:
+                {
+                    break;
+                }
+            case AM_TEAMERROR:
+                {
+                    postTeamError(rmpk.conv<AMTeamError>().error);
+                    break;
+                }
+            default:
+                {
+                    postTeamError(TEAMERR_NOTEAM);
+                    break;
+                }
+        }
     }
 }
 
@@ -1287,11 +1317,7 @@ corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf
     }
 
     m_teamRequirement = std::move(sdTR);
-    for(const auto member: m_teamMemberList){
-        if(member != UID()){
-            m_actorPod->post(member, AM_TEAMUPDATE);
-        }
-    }
+    postTeamUpdate();
     co_await reportTeamMemberList();
 }
 

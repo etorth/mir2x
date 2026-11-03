@@ -88,6 +88,7 @@ class Player final: public BattleObject
         uint64_t m_teamLeader = 0;
         std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
         SDTeamRequirement     m_teamRequirement;  // ignored if not team leader
+        std::set<uint64_t>    m_teamCandidateSet; // ignored if not team leader
 
     private:
         // m_directTradePeerOffer.uid identifies the peer while the request is
@@ -229,6 +230,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_QUERYPLAYERWLDESP  (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOTECALL         (const ActorMsgPack &);
         corof::awaitable<> on_AM_REQUESTJOINTEAM    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_JOINTEAM           (const ActorMsgPack &);
         corof::awaitable<> on_AM_REQUESTLEAVETEAM   (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
@@ -370,6 +372,12 @@ class Player final: public BattleObject
     private:
         void postNetMessage(uint8_t, const void *, size_t, uint64_t = 0);
         void postTeamError(int);
+        void postTeamUpdate();
+
+    private:
+        int teamStat() const;
+        bool meetTeamRequirement(const SDTeamRequirement &) const;
+        corof::awaitable<int> addTeamMember(uint64_t);
 
     private:
         void postNetMessage(uint8_t headCode , uint64_t respID = 0)

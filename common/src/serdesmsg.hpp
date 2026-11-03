@@ -1384,9 +1384,14 @@ struct SDTeamCandidate
 struct SDRequestJoinTeam
 {
     SDTeamPlayer player {};
+
+    int job  = 0;
+    int stat = 0; // DC/MC/SC upper value by job
+    std::vector<uint32_t> magicIDList {};
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(player);
+        ar(player, job, stat, magicIDList);
     }
 };
 
