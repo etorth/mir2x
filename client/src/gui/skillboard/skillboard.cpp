@@ -96,7 +96,11 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
                   .x = tabX + tabW * i,
                   .y = tabY,
 
-                  .texAniOpt = 0X05000020 + to_u32(i),
+                  .texIDList
+                  {
+                      .on  {0X05000020 + to_u32(i), 1},
+                      .down{0X05000020 + to_u32(i), 2},
+                  },
 
                   .onOverIn = [i, this]
                   {
@@ -130,7 +134,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
 
                   .onClickDone = false,
                   .radioMode = true,
-                  .modColor = colorf::RGBA(255, 200, 255, 255),
+                  .modColor = colorf::WHITE_A255,
 
                   .parent{this},
               }});
