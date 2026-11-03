@@ -51,6 +51,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
           .dir = DIR_LEFT,
           .y = m_rowH / 2,
           .labelFirst = u8"最大人数",
+          .align = DIR_NONE,
           .inputSize{40, 20},
           .parent{&m_mainPage},
       }}

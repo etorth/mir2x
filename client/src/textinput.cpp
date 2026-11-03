@@ -73,6 +73,7 @@ TextInput::TextInput(TextInput::InitArgs args)
           .w = [this]{ return             m_bg.getInputROI().w; },
           .h = [this]{ return             m_bg.getInputROI().h; },
 
+          .align = std::move(args.align),
           .enableIME = std::move(args.enableIME),
           .font = std::move(args.font),
 

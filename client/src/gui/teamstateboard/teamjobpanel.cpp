@@ -44,14 +44,15 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
           .parent{this},
       }}
 
-    , m_minLevel{{.dir = DIR_LEFT, .x =   0, .y = m_titleH + m_inputRowH / 2, .labelFirst = u8"最低等级", .inputSize{40, 20}, .parent{this}}}
-    , m_maxLevel{{.dir = DIR_LEFT, .x = 135, .y = m_titleH + m_inputRowH / 2, .labelFirst = u8"最高等级", .inputSize{40, 20}, .parent{this}}}
+    , m_minLevel{{.dir = DIR_LEFT, .x =   0, .y = m_titleH + m_inputRowH / 2, .labelFirst = u8"最低等级", .align = DIR_NONE, .inputSize{40, 20}, .parent{this}}}
+    , m_maxLevel{{.dir = DIR_LEFT, .x = 135, .y = m_titleH + m_inputRowH / 2, .labelFirst = u8"最高等级", .align = DIR_NONE, .inputSize{40, 20}, .parent{this}}}
     , m_minStat
       {{
           .dir = DIR_LEFT,
           .x = 270,
           .y = m_titleH + m_inputRowH / 2,
           .labelFirst = (std::u8string(u8"最低") + SDTeamRequirement::jobInfoList.at(args.jobIndex).stat).c_str(),
+          .align = DIR_NONE,
           .inputSize{40, 20},
           .parent{this},
       }}
