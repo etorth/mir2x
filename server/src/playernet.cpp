@@ -1194,14 +1194,12 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
 
     if(cmRJT.uid == UID()){
         if(m_teamLeader){
-            SMTeamError smTE;
-            std::memset(&smTE, 0, sizeof(smTE));
-            smTE.error = TEAMERR_INTEAM;
-            postNetMessage(SM_TEAMERROR, smTE);
+            postTeamError(TEAMERR_INTEAM);
         }
         else{
             setTeamLeader(UID());
             m_teamMemberList = std::vector<uint64_t>{UID()};
+            m_teamRequirement = {};
             co_await reportTeamMemberList();
         }
     }
@@ -1254,6 +1252,47 @@ corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, 
     else if(cmRLT.uid == UID()){
         m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
     }
+}
+
+corof::awaitable<> Player::net_CM_CREATETEAM(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);
+    if(m_teamLeader){
+        postTeamError(TEAMERR_INTEAM);
+        co_return;
+    }
+
+    if(!sdTR.valid()){
+        postTeamError(TEAMERR_BADREQUIREMENT);
+        co_return;
+    }
+
+    setTeamLeader(UID());
+    m_teamMemberList = std::vector<uint64_t>{UID()};
+    m_teamRequirement = std::move(sdTR);
+    co_await reportTeamMemberList();
+}
+
+corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);
+    if(m_teamLeader != UID()){
+        postTeamError(TEAMERR_NOTLEADER);
+        co_return;
+    }
+
+    if(!sdTR.valid()){
+        postTeamError(TEAMERR_BADREQUIREMENT);
+        co_return;
+    }
+
+    m_teamRequirement = std::move(sdTR);
+    for(const auto member: m_teamMemberList){
+        if(member != UID()){
+            m_actorPod->post(member, AM_TEAMUPDATE);
+        }
+    }
+    co_await reportTeamMemberList();
 }
 
 corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)

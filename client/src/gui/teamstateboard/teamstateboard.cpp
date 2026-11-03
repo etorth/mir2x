@@ -153,17 +153,15 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *a
       }}
 
     , m_pageNearby(this, [this]{ return currentPage() == PAGE_NEARBY; })
-    , m_pageCreate(this, [this]{ return currentPage() == PAGE_CREATE; }, u8"创建队伍", [this](const SDTeamRequirement &requirement)
+    , m_pageCreate(this, [this]{ return currentPage() == PAGE_CREATE; }, true, u8"创建队伍", [this](const SDTeamRequirement &requirement)
       {
-          m_requirement = requirement;
-          m_processRun->addCBLog(CBLOG_SYS, u8"创建队伍：暂未实现");
+          m_processRun->requestCreateTeam(requirement);
       })
 
     , m_pageMember(this, [this]{ return currentPage() == PAGE_MEMBER; })
-    , m_pageSetting(this, [this]{ return currentPage() == PAGE_SETTING; }, u8"保存设置", [this](const SDTeamRequirement &requirement)
+    , m_pageSetting(this, [this]{ return currentPage() == PAGE_SETTING; }, [this]{ return isTeamLeader(); }, u8"保存设置", [this](const SDTeamRequirement &requirement)
       {
-          m_requirement = requirement;
-          m_processRun->addCBLog(CBLOG_SYS, u8"保存队伍设置：暂未实现");
+          m_processRun->requestSetTeamRequirement(requirement);
       })
 
     , m_pageApplicant(this, [this]{ return currentPage() == PAGE_APPLICANT; })
@@ -239,7 +237,12 @@ void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 
 void TeamStateBoard::setTeamMemberList(SDTeamMemberList sdTML)
 {
+    const bool requirementChanged = (sdTML.requirement != m_teamMemberList.requirement);
     m_teamMemberList = std::move(sdTML);
+
+    if(requirementChanged){
+        m_pageSetting.loadRequirement(m_teamMemberList.requirement);
+    }
     std::erase_if(m_teamCandidateList, [this](const auto &candidate)
     {
         return std::ranges::any_of(m_teamMemberList.memberList, [&candidate](const auto &member)

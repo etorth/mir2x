@@ -7,7 +7,7 @@
 #include "teamrequirementpage.hpp"
 
 extern SDLDevice *g_sdlDevice;
-TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, const char8_t *confirmLabel, std::function<void(const SDTeamRequirement &)> onConfirm)
+TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, Widget::VarBool argEditable, const char8_t *confirmLabel, std::function<void(const SDTeamRequirement &)> onConfirm)
     : Widget
       {{
           .x = TeamStateBoard::m_pageX,
@@ -27,6 +27,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
       }}
 
     , m_board(board)
+    , m_editable(std::move(argEditable))
     , m_onConfirm(std::move(onConfirm))
 
     , m_mainPage
@@ -63,6 +64,11 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
           .getter = [this]{ return m_requirement.autoAccept; },
           .setter = [this](bool value){ m_requirement.autoAccept = value; },
 
+          .attrs
+          {
+              .active = [this]{ return editable(); },
+          },
+
           .parent{&m_mainPage},
       }}
 
@@ -76,10 +82,17 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
               applyInput();
           },
 
+          .attrs
+          {
+              .show = [this]{ return editable(); },
+          },
+
           .parent{&m_mainPage},
       }}
 {
     TeamJobPanel::setupNumberInput(m_maxMember);
+    m_maxMember.setActive([this]{ return editable(); });
+
     for(size_t i = 0; i < SDTeamRequirement::jobInfoList.size(); ++i){
         new TeamJobRow
         {{
@@ -91,6 +104,8 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
             .requirement = &m_requirement.jobList[i],
 
             .onSetup = [this, i]{ m_jobIndex = i; },
+
+            .editable = [this]{ return editable(); },
             .parent{&m_mainPage, true},
         }};
 
@@ -105,8 +120,20 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
             .onBack = [this]{ showMainPage(); },
 
             .show = [this, i]{ return m_jobIndex == i; },
+            .editable = [this]{ return editable(); },
+
             .parent{this, true},
         }};
+    }
+}
+
+void TeamRequirementPage::loadRequirement(const SDTeamRequirement &requirement)
+{
+    m_requirement = requirement;
+    m_maxMember.inputLine()->setInput((m_requirement.maxMember > 0) ? std::to_string(m_requirement.maxMember).c_str() : "");
+
+    for(auto panel: m_jobPanelList){
+        panel->loadInput();
     }
 }
 

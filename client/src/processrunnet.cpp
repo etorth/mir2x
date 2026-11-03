@@ -1040,6 +1040,16 @@ void ProcessRun::on_SM_TEAMERROR(const uint8_t *buf, size_t bufSize)
                 addCBLog(CBLOG_ERR, u8"你已经在队伍中");
                 break;
             }
+        case TEAMERR_NOTLEADER:
+            {
+                addCBLog(CBLOG_ERR, u8"你不是队长");
+                break;
+            }
+        case TEAMERR_BADREQUIREMENT:
+            {
+                addCBLog(CBLOG_ERR, u8"队伍要求设置无效");
+                break;
+            }
         default:
             {
                 addCBLog(CBLOG_ERR, u8"组队失败");

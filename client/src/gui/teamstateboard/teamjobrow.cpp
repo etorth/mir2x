@@ -32,6 +32,10 @@ TeamJobRow::TeamJobRow(TeamJobRow::InitArgs args)
           .getter = [this]{ return m_requirement->allow; },
           .setter = [this](bool value){ m_requirement->allow = value; },
 
+          .attrs
+          {
+              .active = std::move(args.editable),
+          },
           .parent{this},
       }}
 

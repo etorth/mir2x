@@ -67,6 +67,8 @@ enum CMType: uint8_t
     CM_REQUESTCONSUMEBELT,
     CM_REQUESTJOINTEAM,
     CM_REQUESTLEAVETEAM,
+    CM_CREATETEAM,
+    CM_SETTEAMREQUIREMENT,
     CM_REQUESTLATESTCHATMESSAGE,
     CM_QUERYRANKING,
     CM_CLAIMDELIVERY,
@@ -477,6 +479,8 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTCONSUMEBELT,         1, sizeof(CMRequestConsumeBelt)        );
         _RSVD_register_clientmsg(CM_REQUESTJOINTEAM,            1, sizeof(CMRequestJoinTeam)           );
         _RSVD_register_clientmsg(CM_REQUESTLEAVETEAM,           1, sizeof(CMRequestLeaveTeam)          );
+        _RSVD_register_clientmsg(CM_CREATETEAM,                 3                                      );
+        _RSVD_register_clientmsg(CM_SETTEAMREQUIREMENT,         3                                      );
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );

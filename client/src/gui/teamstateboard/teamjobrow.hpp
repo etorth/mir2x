@@ -21,6 +21,7 @@ class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
 
             std::function<void()> onSetup = nullptr;
 
+            Widget::VarBool editable = true;
             Widget::WADPair parent {};
         };
 

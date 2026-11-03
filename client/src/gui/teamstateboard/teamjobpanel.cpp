@@ -114,6 +114,11 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
               resetInput();
           },
 
+          .attrs
+          {
+              .show = args.editable,
+          },
+
           .parent{this},
       }}
 
@@ -136,7 +141,10 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
 {
     for(auto input: {&m_minLevel, &m_maxLevel, &m_minStat}){
         setupNumberInput(*input);
+        input->setActive(args.editable);
     }
+
+    m_magicCanvas.setActive(args.editable);
     buildMagicList();
 }
 
@@ -174,6 +182,18 @@ void TeamJobPanel::buildMagicList()
         count++;
     }
     m_magicCanvas.setH(8 + (count + m_magicColumnCount - 1) / m_magicColumnCount * m_magicRowH);
+}
+
+void TeamJobPanel::loadInput()
+{
+    const auto setNumber = [](TextInput &input, int value)
+    {
+        input.inputLine()->setInput((value > 0) ? std::to_string(value).c_str() : "");
+    };
+
+    setNumber(m_minLevel, m_requirement->minLevel);
+    setNumber(m_maxLevel, m_requirement->maxLevel);
+    setNumber(m_minStat , m_requirement->minStat );
 }
 
 void TeamJobPanel::resetInput()

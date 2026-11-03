@@ -87,6 +87,7 @@ class Player final: public BattleObject
     protected:
         uint64_t m_teamLeader = 0;
         std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
+        SDTeamRequirement     m_teamRequirement;  // ignored if not team leader
 
     private:
         // m_directTradePeerOffer.uid identifies the peer while the request is
@@ -287,6 +288,8 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_BUYAUCTIONITEM            (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_UNREGISTERAUCTIONITEM     (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CREATETEAM                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_SETTEAMREQUIREMENT        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTSPACEMOVE          (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -366,6 +369,7 @@ class Player final: public BattleObject
 
     private:
         void postNetMessage(uint8_t, const void *, size_t, uint64_t = 0);
+        void postTeamError(int);
 
     private:
         void postNetMessage(uint8_t headCode , uint64_t respID = 0)

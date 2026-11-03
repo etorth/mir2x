@@ -1877,6 +1877,16 @@ void ProcessRun::requestLeaveTeam(uint64_t uid)
     g_client->send({CM_REQUESTLEAVETEAM, cmRLT});
 }
 
+void ProcessRun::requestCreateTeam(const SDTeamRequirement &sdTR)
+{
+    g_client->send({CM_CREATETEAM, cerealf::serialize(sdTR)});
+}
+
+void ProcessRun::requestSetTeamRequirement(const SDTeamRequirement &sdTR)
+{
+    g_client->send({CM_SETTEAMREQUIREMENT, cerealf::serialize(sdTR)});
+}
+
 void ProcessRun::requestDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));

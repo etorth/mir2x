@@ -36,6 +36,8 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
             std::function<void()> onBack = nullptr;
 
             Widget::VarBool show = true;
+            Widget::VarBool editable = true;
+
             Widget::WADPair parent {};
         };
 
@@ -64,6 +66,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
         explicit TeamJobPanel(TeamJobPanel::InitArgs);
 
     public:
+        void loadInput();
         void resetInput();
         void applyInput();
 

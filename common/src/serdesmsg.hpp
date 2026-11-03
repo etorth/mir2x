@@ -1315,6 +1315,8 @@ struct SDTeamJobRequirement
     {
         return minLevel > 0 || maxLevel > 0 || minStat > 0 || !magicIDList.empty();
     }
+
+    bool operator == (const SDTeamJobRequirement &) const = default;
 };
 
 struct SDTeamRequirement
@@ -1343,6 +1345,8 @@ struct SDTeamRequirement
     {
         ar(maxMember, autoAccept, jobList);
     }
+
+    bool operator == (const SDTeamRequirement &) const = default;
 
     static std::optional<size_t> jobIndex(int);
 
@@ -1390,16 +1394,18 @@ struct SDTeamMemberList
 {
     uint64_t teamLeader = 0;
     std::vector<SDTeamPlayer> memberList {};
+    SDTeamRequirement requirement {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(teamLeader, memberList);
+        ar(teamLeader, memberList, requirement);
     }
 
     void clear()
     {
         teamLeader = 0;
         memberList.clear();
+        requirement = {};
     }
 
     bool hasMember(uint64_t uid) const

@@ -786,6 +786,8 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTLOGOUT             );
         _support_cm(CM_REQUESTKILLPETS           );
         _support_cm(CM_REQUESTLEAVETEAM          );
+        _support_cm(CM_CREATETEAM                );
+        _support_cm(CM_SETTEAMREQUIREMENT        );
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
         _support_cm(CM_REQUESTLATESTCHATMESSAGE  );
         _support_cm(CM_QUERYRANKING              );
@@ -2474,6 +2476,15 @@ void Player::addPKPoint(int added)
     }
 }
 
+void Player::postTeamError(int error)
+{
+    SMTeamError smTE;
+    std::memset(&smTE, 0, sizeof(smTE));
+
+    smTE.error = error;
+    postNetMessage(SM_TEAMERROR, smTE);
+}
+
 void Player::setTeamLeader(uint64_t teamLeader)
 {
     const bool wasLeader = (m_teamLeader == UID());
@@ -2730,6 +2741,7 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
     SDTeamMemberList sdTML;
 
     sdTML.teamLeader = m_teamLeader;
+    sdTML.requirement = m_teamRequirement;
     sdTML.memberList.resize(m_teamMemberList.size());
 
     for(size_t i = 0; i < m_teamMemberList.size(); ++i){
