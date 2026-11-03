@@ -7,7 +7,7 @@
 #include "teamrequirementpage.hpp"
 
 extern SDLDevice *g_sdlDevice;
-TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, const char8_t *confirmLabel, std::function<void(const TeamRequirement &)> onConfirm)
+TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool argShow, const char8_t *confirmLabel, std::function<void(const SDTeamRequirement &)> onConfirm)
     : Widget
       {{
           .x = TeamStateBoard::m_pageX,
@@ -80,7 +80,7 @@ TeamRequirementPage::TeamRequirementPage(TeamStateBoard *board, Widget::VarBool 
       }}
 {
     TeamJobPanel::setupNumberInput(m_maxMember);
-    for(size_t i = 0; i < TeamRequirement::jobInfoList.size(); ++i){
+    for(size_t i = 0; i < SDTeamRequirement::jobInfoList.size(); ++i){
         new TeamJobRow
         {{
             .y = m_jobRowY + to_d(i) * m_rowH,
@@ -117,6 +117,11 @@ void TeamRequirementPage::applyInput()
         panel->applyInput();
     }
 
+    if(m_requirement.maxMember == 1 || m_requirement.maxMember > SYS_MAXTEAMMEMBER){
+        m_board->m_processRun->addCBLog(CBLOG_ERR, u8"最大人数需在2-%d之间", SYS_MAXTEAMMEMBER);
+        return;
+    }
+
     if(!m_requirement.anyJobAllowed()){
         m_board->m_processRun->addCBLog(CBLOG_ERR, u8"至少需要允许一个职业");
         return;
@@ -124,9 +129,14 @@ void TeamRequirementPage::applyInput()
 
     for(size_t i = 0; i < m_requirement.jobList.size(); ++i){
         if(const auto &jobReq = m_requirement.jobList[i]; jobReq.allow && jobReq.minLevel > 0 && jobReq.maxLevel > 0 && jobReq.minLevel > jobReq.maxLevel){
-            m_board->m_processRun->addCBLog(CBLOG_ERR, u8"%s：最低等级不能高于最高等级", to_cstr(TeamRequirement::jobInfoList[i].name));
+            m_board->m_processRun->addCBLog(CBLOG_ERR, u8"%s：最低等级不能高于最高等级", to_cstr(SDTeamRequirement::jobInfoList[i].name));
             return;
         }
+    }
+
+    if(!m_requirement.valid()){
+        m_board->m_processRun->addCBLog(CBLOG_ERR, u8"队伍要求设置无效");
+        return;
     }
 
     if(m_onConfirm){

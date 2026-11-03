@@ -1,9 +1,11 @@
 #pragma once
+#include <set>
 #include <array>
 #include <string>
 #include <numeric>
 #include <variant>
 #include <utility>
+#include <functional>
 #include <optional>
 #include <algorithm>
 #include <unordered_set>
@@ -1292,6 +1294,66 @@ struct SDQueryQuestUID
     {
         ar(name);
     }
+};
+
+struct SDTeamJobRequirement
+{
+    bool allow = true;
+
+    int minLevel = 0; // 0 means no limit
+    int maxLevel = 0;
+    int minStat  = 0; // warrior: DC, wizard: MC, taoist: SC, upper value
+
+    std::set<uint32_t> magicIDList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(allow, minLevel, maxLevel, minStat, magicIDList);
+    }
+
+    bool hasLimit() const
+    {
+        return minLevel > 0 || maxLevel > 0 || minStat > 0 || !magicIDList.empty();
+    }
+};
+
+struct SDTeamRequirement
+{
+    struct JobInfo final
+    {
+        int job;
+
+        const char8_t *name;
+        const char8_t *stat;
+    };
+
+    constexpr static std::array<JobInfo, 3> jobInfoList
+    {{
+        {JOB_WARRIOR, u8"战士", u8"攻击"},
+        {JOB_WIZARD , u8"法师", u8"魔法"},
+        {JOB_TAOIST , u8"道士", u8"道术"},
+    }};
+
+    int maxMember = 0; // 0 means SYS_MAXTEAMMEMBER
+    bool autoAccept = false;
+
+    std::array<SDTeamJobRequirement, jobInfoList.size()> jobList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(maxMember, autoAccept, jobList);
+    }
+
+    static std::optional<size_t> jobIndex(int);
+
+    int memberLimit() const
+    {
+        return (maxMember > 0) ? maxMember : SYS_MAXTEAMMEMBER;
+    }
+
+    bool valid() const;
+    bool anyJobAllowed() const;
+    bool accept(int, int, int, const std::function<bool(uint32_t)> &) const; // job, level, stat, hasMagic
 };
 
 struct SDTeamPlayer

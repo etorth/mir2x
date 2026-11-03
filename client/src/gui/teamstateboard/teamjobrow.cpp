@@ -28,7 +28,7 @@ TeamJobRow::TeamJobRow(TeamJobRow::InitArgs args)
           .dir = DIR_LEFT,
           .y = args.h / 2,
 
-          .label{.text = (std::u8string(u8"允许") + TeamRequirement::jobInfoList.at(args.jobIndex).name + u8"加入").c_str()},
+          .label{.text = (std::u8string(u8"允许") + SDTeamRequirement::jobInfoList.at(args.jobIndex).name + u8"加入").c_str()},
           .getter = [this]{ return m_requirement->allow; },
           .setter = [this](bool value){ m_requirement->allow = value; },
 

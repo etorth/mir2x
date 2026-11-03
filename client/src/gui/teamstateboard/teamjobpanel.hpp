@@ -7,7 +7,7 @@
 #include "textbutton.hpp"
 #include "checklabel.hpp"
 #include "scrollcontainer.hpp"
-#include "teamrequirement.hpp"
+#include "serdesmsg.hpp"
 
 class TeamJobPanel: public Widget // full page to setup requirement of one job
 {
@@ -31,7 +31,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
             int h = 0;
 
             size_t jobIndex = 0;
-            TeamJobRequirement *requirement = nullptr;
+            SDTeamJobRequirement *requirement = nullptr;
 
             std::function<void()> onBack = nullptr;
 
@@ -41,7 +41,7 @@ class TeamJobPanel: public Widget // full page to setup requirement of one job
 
     private:
         const size_t m_jobIndex;
-        TeamJobRequirement * const m_requirement;
+        SDTeamJobRequirement * const m_requirement;
 
     private:
         TextBoard m_title;

@@ -72,6 +72,7 @@ constexpr int SYS_MON_VIEWR = 10; // monster default view range, specified in Mo
 constexpr int SYS_TARGETSEC = 60;
 
 constexpr int SYS_MAXDROPITEM     = 10;
+constexpr int SYS_MAXTEAMMEMBER   = 100;
 constexpr int SYS_MAXDROPITEMGRID = 81;
 
 constexpr int SYS_MINSPEED =  20;

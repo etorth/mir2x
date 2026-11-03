@@ -8,9 +8,9 @@
 #include "teamstateboard.hpp"
 #include "teamnearbypage.hpp"
 
-static TeamRequirement sampleRequirement(int maxMember, TeamJobRequirement warrior, TeamJobRequirement wizard, TeamJobRequirement taoist, bool autoAccept = false)
+static SDTeamRequirement sampleRequirement(int maxMember, SDTeamJobRequirement warrior, SDTeamJobRequirement wizard, SDTeamJobRequirement taoist, bool autoAccept = false)
 {
-    return TeamRequirement
+    return SDTeamRequirement
     {
         .maxMember = maxMember,
         .autoAccept = autoAccept,
@@ -78,7 +78,7 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
               {.title = u8"人数", .w =  70, .text = [this](size_t i)
               {
                   const auto &team = viewTeam(i);
-                  return (team.requirement.maxMember > 0) ? std::format("{}/{}", team.memberCount, team.requirement.maxMember) : std::to_string(team.memberCount);
+                  return std::format("{}/{}", team.memberCount, team.requirement.memberLimit());
               }},
           },
 
@@ -167,7 +167,7 @@ void TeamNearbyPage::updateViewList()
 
     for(size_t i = 0; i < m_teamList.size(); ++i){
         const auto &team = m_teamList[i];
-        if(team.requirement.maxMember > 0 && team.memberCount >= team.requirement.maxMember){
+        if(team.memberCount >= team.requirement.memberLimit()){
             continue;
         }
 

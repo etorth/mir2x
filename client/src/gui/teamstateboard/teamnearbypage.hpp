@@ -5,7 +5,7 @@
 #include "textbutton.hpp"
 #include "checklabel.hpp"
 #include "teamlistview.hpp"
-#include "teamrequirement.hpp"
+#include "serdesmsg.hpp"
 
 class TeamStateBoard;
 class TeamNearbyPage: public Widget
@@ -19,7 +19,7 @@ class TeamNearbyPage: public Widget
             int level = 0;
 
             int memberCount = 0;
-            TeamRequirement requirement {};
+            SDTeamRequirement requirement {};
         };
 
     private:

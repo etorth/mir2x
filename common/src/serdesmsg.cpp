@@ -1,3 +1,4 @@
+#include <string_view>
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
@@ -258,4 +259,76 @@ bool SDMagicKeyList::setMagicKey(uint32_t magicID, char key)
         magicKey = key;
     }
     return changed;
+}
+
+std::optional<size_t> SDTeamRequirement::jobIndex(int job)
+{
+    for(size_t i = 0; i < jobInfoList.size(); ++i){
+        if(jobInfoList[i].job & job){
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+bool SDTeamRequirement::valid() const
+{
+    if(maxMember < 0 || maxMember == 1 || maxMember > SYS_MAXTEAMMEMBER){
+        return false;
+    }
+
+    if(!anyJobAllowed()){
+        return false;
+    }
+
+    for(size_t i = 0; i < jobList.size(); ++i){
+        const auto &jobReq = jobList[i];
+        if(jobReq.minLevel < 0 || jobReq.maxLevel < 0 || jobReq.minStat < 0){
+            return false;
+        }
+
+        if(jobReq.allow && jobReq.minLevel > 0 && jobReq.maxLevel > 0 && jobReq.minLevel > jobReq.maxLevel){
+            return false;
+        }
+
+        for(const auto magicID: jobReq.magicIDList){
+            const auto &mr = DBCOM_MAGICRECORD(magicID);
+            if(!mr || !mr.req.job || std::u8string_view(mr.req.job) != jobInfoList[i].name){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool SDTeamRequirement::anyJobAllowed() const
+{
+    return std::ranges::any_of(jobList, [](const auto &jobReq){ return jobReq.allow; });
+}
+
+bool SDTeamRequirement::accept(int job, int level, int stat, const std::function<bool(uint32_t)> &hasMagic) const
+{
+    const auto index = jobIndex(job);
+    if(!index.has_value()){
+        return false;
+    }
+
+    const auto &jobReq = jobList.at(index.value());
+    if(!jobReq.allow){
+        return false;
+    }
+
+    if(jobReq.minLevel > 0 && level < jobReq.minLevel){
+        return false;
+    }
+
+    if(jobReq.maxLevel > 0 && level > jobReq.maxLevel){
+        return false;
+    }
+
+    if(jobReq.minStat > 0 && stat < jobReq.minStat){
+        return false;
+    }
+
+    return std::ranges::all_of(jobReq.magicIDList, [&hasMagic](uint32_t magicID){ return hasMagic && hasMagic(magicID); });
 }

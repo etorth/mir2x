@@ -59,7 +59,7 @@ class TeamStateBoard: public Widget
         std::deque<std::pair<SDTeamCandidate, hres_timer>> m_teamCandidateList;
 
     private:
-        TeamRequirement m_requirement;
+        SDTeamRequirement m_requirement;
 
     private:
         PageType m_page = PAGE_NEARBY;

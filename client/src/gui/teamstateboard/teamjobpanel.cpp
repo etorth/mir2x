@@ -29,14 +29,14 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
-    , m_jobIndex(fflcheck(args.jobIndex, args.jobIndex < TeamRequirement::jobInfoList.size()))
+    , m_jobIndex(fflcheck(args.jobIndex, args.jobIndex < SDTeamRequirement::jobInfoList.size()))
     , m_requirement(fflcheck(args.requirement))
 
     , m_title
       {{
           .dir = DIR_LEFT,
           .y = m_titleH / 2,
-          .textFunc = std::string(to_cstr(TeamRequirement::jobInfoList.at(args.jobIndex).name)) + to_cstr(u8" 加入要求"),
+          .textFunc = std::string(to_cstr(SDTeamRequirement::jobInfoList.at(args.jobIndex).name)) + to_cstr(u8" 加入要求"),
           .font
           {
               .color = colorf::YELLOW_A255,
@@ -51,7 +51,7 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
           .dir = DIR_LEFT,
           .x = 270,
           .y = m_titleH + m_inputRowH / 2,
-          .labelFirst = (std::u8string(u8"最低") + TeamRequirement::jobInfoList.at(args.jobIndex).stat).c_str(),
+          .labelFirst = (std::u8string(u8"最低") + SDTeamRequirement::jobInfoList.at(args.jobIndex).stat).c_str(),
           .inputSize{40, 20},
           .parent{this},
       }}
@@ -142,7 +142,7 @@ TeamJobPanel::TeamJobPanel(TeamJobPanel::InitArgs args)
 
 void TeamJobPanel::buildMagicList()
 {
-    const auto jobName = TeamRequirement::jobInfoList.at(m_jobIndex).name;
+    const auto jobName = SDTeamRequirement::jobInfoList.at(m_jobIndex).name;
     const int columnW = (m_magicCanvas.w() - 8) / m_magicColumnCount;
 
     int count = 0;
@@ -178,7 +178,7 @@ void TeamJobPanel::buildMagicList()
 
 void TeamJobPanel::resetInput()
 {
-    *m_requirement = TeamJobRequirement
+    *m_requirement = SDTeamJobRequirement
     {
         .allow = m_requirement->allow,
     };

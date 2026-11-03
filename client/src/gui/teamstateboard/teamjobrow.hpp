@@ -3,7 +3,7 @@
 #include "widget.hpp"
 #include "textbutton.hpp"
 #include "checklabel.hpp"
-#include "teamrequirement.hpp"
+#include "serdesmsg.hpp"
 
 class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
 {
@@ -17,7 +17,7 @@ class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
             int h = 0;
 
             size_t jobIndex = 0;
-            TeamJobRequirement *requirement = nullptr;
+            SDTeamJobRequirement *requirement = nullptr;
 
             std::function<void()> onSetup = nullptr;
 
@@ -25,7 +25,7 @@ class TeamJobRow: public Widget // [x] 允许战士加入 [设置]
         };
 
     private:
-        TeamJobRequirement * const m_requirement;
+        SDTeamJobRequirement * const m_requirement;
 
     private:
         CheckLabel m_allow;

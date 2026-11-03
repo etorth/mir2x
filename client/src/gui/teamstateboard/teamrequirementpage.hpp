@@ -9,7 +9,7 @@
 #include "checklabel.hpp"
 #include "teamjobrow.hpp"
 #include "teamjobpanel.hpp"
-#include "teamrequirement.hpp"
+#include "serdesmsg.hpp"
 
 class TeamStateBoard;
 class TeamRequirementPage: public Widget
@@ -24,10 +24,10 @@ class TeamRequirementPage: public Widget
         TeamStateBoard *m_board;
 
     private:
-        std::function<void(const TeamRequirement &)> m_onConfirm;
+        std::function<void(const SDTeamRequirement &)> m_onConfirm;
 
     private:
-        TeamRequirement m_requirement;
+        SDTeamRequirement m_requirement;
 
     private:
         std::optional<size_t> m_jobIndex; // per-job setup page, main page if empty
@@ -43,10 +43,10 @@ class TeamRequirementPage: public Widget
         TextButton m_confirm;
 
     private:
-        std::array<TeamJobPanel *, TeamRequirement::jobInfoList.size()> m_jobPanelList {};
+        std::array<TeamJobPanel *, SDTeamRequirement::jobInfoList.size()> m_jobPanelList {};
 
     public:
-        TeamRequirementPage(TeamStateBoard *, Widget::VarBool, const char8_t *, std::function<void(const TeamRequirement &)>);
+        TeamRequirementPage(TeamStateBoard *, Widget::VarBool, const char8_t *, std::function<void(const SDTeamRequirement &)>);
 
     public:
         void showMainPage()
