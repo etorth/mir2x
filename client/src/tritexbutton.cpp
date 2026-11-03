@@ -117,7 +117,7 @@ SDL_Texture *TritexButton::evalGfxTexture(std::optional<int> stateOpt) const
         [state, this](const std::function<TritexButton::AniFrameOpt(                   )> &f){ return f ? f(           ) : m_texIDList[state - BEVENT_BEGIN]; },
         [state, this](const std::function<TritexButton::AniFrameOpt(                int)> &f){ return f ? f(      state) : m_texIDList[state - BEVENT_BEGIN]; },
         [state, this](const std::function<TritexButton::AniFrameOpt(const Widget *, int)> &f){ return f ? f(this, state) : m_texIDList[state - BEVENT_BEGIN]; },
-        [state, this](const                                                         auto & ){ return                       m_texIDList[state - BEVENT_BEGIN]; },
+        [state, this](const                                                          auto & ){ return                      m_texIDList[state - BEVENT_BEGIN]; },
     },
     m_texIDFunc);
 

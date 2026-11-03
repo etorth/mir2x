@@ -15,8 +15,6 @@
 //  static image : frame 0 only
 //  button group : frame 0/1/2 for off/on/down
 //  animation    : frame 0..N-1, with per-frame delay in ms
-//
-// keys merged into a group as non-first members are not accessible anymore, use (groupKey, frame)
 
 struct ProgUseElement
 {
