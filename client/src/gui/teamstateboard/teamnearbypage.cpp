@@ -1,22 +1,14 @@
+#include <algorithm>
 #include <format>
 #include <utility>
 #include "jobf.hpp"
 #include "totype.hpp"
+#include "hero.hpp"
 #include "myhero.hpp"
 #include "processrun.hpp"
 #include "gui/skillboard/skillboard.hpp"
 #include "teamstateboard.hpp"
 #include "teamnearbypage.hpp"
-
-static SDTeamRequirement sampleRequirement(int maxMember, SDTeamJobRequirement warrior, SDTeamJobRequirement wizard, SDTeamJobRequirement taoist, bool autoAccept = false)
-{
-    return SDTeamRequirement
-    {
-        .maxMember = maxMember,
-        .autoAccept = autoAccept,
-        .jobList{std::move(warrior), std::move(wizard), std::move(taoist)},
-    };
-}
 
 TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
     : Widget
@@ -38,17 +30,6 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
       }}
 
     , m_board(board)
-
-      // sample data, server doesn't report nearby teams yet
-    , m_teamList
-      {
-          {.leader = "冷月无声", .job = JOB_WARRIOR, .level = 42, .memberCount = 5, .requirement = sampleRequirement(10, {.minLevel = 35}, {.minLevel = 35}, {.minLevel = 35})},
-          {.leader = "逍遥子"  , .job = JOB_TAOIST , .level = 38, .memberCount = 3, .requirement = sampleRequirement( 8, {.allow = false}, {}, {})},
-          {.leader = "风之谷"  , .job = JOB_WIZARD , .level = 45, .memberCount = 9, .requirement = sampleRequirement(10, {.minLevel = 40, .maxLevel = 50}, {.minLevel = 40, .maxLevel = 50}, {.allow = false})},
-          {.leader = "无名剑客", .job = JOB_WARRIOR, .level = 22, .memberCount = 2},
-          {.leader = "夜行者"  , .job = JOB_TAOIST , .level = 31, .memberCount = 6, .requirement = sampleRequirement(10, {.minLevel = 25}, {.minLevel = 25}, {.minLevel = 25, .minStat = 10})},
-          {.leader = "天下第一", .job = JOB_WIZARD , .level = 50, .memberCount = 1, .requirement = sampleRequirement( 0, {.minLevel = 45}, {.minLevel = 45}, {.minLevel = 45}, true)},
-      }
 
     , m_onlyMatchCheck
       {{
@@ -72,7 +53,7 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
 
           .columnList
           {
-              {.title = u8"队长", .w = 150, .text = [this](size_t i){ return viewTeam(i).leader; }},
+              {.title = u8"队长", .w = 150, .text = [this](size_t i){ return viewTeam(i).name; }},
               {.title = u8"职业", .w =  60, .text = [this](size_t i){ return std::string(to_cstr(jobf::jobName(viewTeam(i).job).at(0))); }},
               {.title = u8"等级", .w =  60, .text = [this](size_t i){ return std::to_string(viewTeam(i).level); }},
               {.title = u8"人数", .w =  70, .text = [this](size_t i)
@@ -86,7 +67,8 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
           {
               {.label = u8"申请", .onClick = [this](size_t i)
               {
-                  m_board->m_processRun->addCBLog(CBLOG_SYS, u8"申请加入%s的队伍：暂未实现", viewTeam(i).leader.c_str());
+                  m_board->m_processRun->requestJoinTeam(viewTeam(i).leader);
+                  m_board->m_processRun->addCBLog(CBLOG_SYS, u8"已申请加入%s的队伍", viewTeam(i).name.c_str());
               }},
           },
 
@@ -102,7 +84,7 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
           .textFunc = to_cstr(u8"刷新"),
           .onTrigger = [this](Widget *, int)
           {
-              m_board->m_processRun->addCBLog(CBLOG_SYS, u8"刷新附近队伍：暂未实现");
+              queryTeamList();
           },
 
           .parent{this},
@@ -130,9 +112,44 @@ TeamNearbyPage::TeamNearbyPage(TeamStateBoard *board, Widget::VarBool argShow)
 void TeamNearbyPage::updateDefault(double fUpdateTime)
 {
     Widget::updateDefault(fUpdateTime);
-    if(m_onlyMatch && show()){
+
+    const bool visible = m_board->show() && show();
+    if(visible && !m_visible){
+        queryTeamList();
+    }
+
+    m_visible = visible;
+    if(m_onlyMatch && visible){
         updateViewList(); // hero level/stat/magic may change
     }
+}
+
+void TeamNearbyPage::queryTeamList()
+{
+    m_teamList.clear();
+    updateViewList();
+
+    const auto myHeroUID = m_board->m_processRun->getMyHeroUID();
+    for(const auto &[uid, coPtr]: m_board->m_processRun->getCOList()){
+        if(uid == myHeroUID){
+            continue;
+        }
+
+        if(const auto hero = dynamic_cast<const Hero *>(coPtr.get()); hero && hero->isTeamLeader()){
+            m_board->m_processRun->requestQueryTeamInfo(uid);
+        }
+    }
+}
+
+void TeamNearbyPage::setTeamInfo(SDTeamInfo sdTI)
+{
+    if(auto p = std::ranges::find(m_teamList, sdTI.leader, &SDTeamInfo::leader); p != m_teamList.end()){
+        *p = std::move(sdTI);
+    }
+    else{
+        m_teamList.push_back(std::move(sdTI));
+    }
+    updateViewList();
 }
 
 void TeamNearbyPage::updateViewList()

@@ -69,6 +69,7 @@ enum CMType: uint8_t
     CM_REQUESTLEAVETEAM,
     CM_CREATETEAM,
     CM_SETTEAMREQUIREMENT,
+    CM_QUERYTEAMINFO,
     CM_REQUESTLATESTCHATMESSAGE,
     CM_QUERYRANKING,
     CM_CLAIMDELIVERY,
@@ -347,6 +348,11 @@ struct CMRequestLeaveTeam
     uint64_t uid;
 };
 
+struct CMQueryTeamInfo
+{
+    uint64_t uid;
+};
+
 struct CMRequestDirectTrade
 {
     uint64_t uid;
@@ -481,6 +487,7 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTLEAVETEAM,           1, sizeof(CMRequestLeaveTeam)          );
         _RSVD_register_clientmsg(CM_CREATETEAM,                 3                                      );
         _RSVD_register_clientmsg(CM_SETTEAMREQUIREMENT,         3                                      );
+        _RSVD_register_clientmsg(CM_QUERYTEAMINFO,              1, sizeof(CMQueryTeamInfo)             );
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );

@@ -1016,6 +1016,11 @@ void ProcessRun::on_SM_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)
     dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->addTeamCandidate(cerealf::deserialize<SDTeamCandidate>(buf, bufSize));
 }
 
+void ProcessRun::on_SM_TEAMINFO(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setNearbyTeamInfo(cerealf::deserialize<SDTeamInfo>(buf, bufSize));
+}
+
 void ProcessRun::on_SM_TEAMMEMBERLIST(const uint8_t *buf, size_t bufSize)
 {
     auto sdTML = cerealf::deserialize<SDTeamMemberList>(buf, bufSize);

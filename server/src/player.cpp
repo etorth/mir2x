@@ -697,6 +697,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_JOINTEAM(mpk);
             }
+        case AM_QUERYTEAMINFO:
+            {
+                return on_AM_QUERYTEAMINFO(mpk);
+            }
         case AM_QUERYTEAMPLAYER:
             {
                 return on_AM_QUERYTEAMPLAYER(mpk);
@@ -792,6 +796,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTLEAVETEAM          );
         _support_cm(CM_CREATETEAM                );
         _support_cm(CM_SETTEAMREQUIREMENT        );
+        _support_cm(CM_QUERYTEAMINFO             );
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
         _support_cm(CM_REQUESTLATESTCHATMESSAGE  );
         _support_cm(CM_QUERYRANKING              );

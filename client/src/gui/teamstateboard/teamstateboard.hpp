@@ -92,6 +92,12 @@ class TeamStateBoard: public Widget
         void setTeamMemberList(SDTeamMemberList);
 
     public:
+        void setNearbyTeamInfo(SDTeamInfo sdTI)
+        {
+            m_pageNearby.setTeamInfo(std::move(sdTI));
+        }
+
+    public:
         const auto &getTeamMemberList() const
         {
             return m_teamMemberList;

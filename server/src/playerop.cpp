@@ -701,6 +701,27 @@ corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
     }
 }
 
+corof::awaitable<> Player::on_AM_QUERYTEAMINFO(const ActorMsgPack &mpk)
+{
+    if(m_teamLeader != UID()){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        return {};
+    }
+
+    m_actorPod->post(mpk.fromAddr(), {AM_TEAMINFO, cerealf::serialize(SDTeamInfo
+    {
+        .leader = UID(),
+        .name = name(),
+
+        .job = job(),
+        .level = to_d(level()),
+
+        .memberCount = to_d(m_teamMemberList.size()),
+        .requirement = m_teamRequirement,
+    })});
+    return {};
+}
+
 corof::awaitable<> Player::on_AM_JOINTEAM(const ActorMsgPack &mpk)
 {
     const auto sdTR = mpk.deserialize<SDTeamRequirement>();

@@ -1303,6 +1303,26 @@ corof::awaitable<> Player::net_CM_CREATETEAM(uint8_t, const uint8_t *buf, size_t
     co_await reportTeamMemberList();
 }
 
+corof::awaitable<> Player::net_CM_QUERYTEAMINFO(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmQTI = ClientMsg::conv<CMQueryTeamInfo>(buf);
+    if(!uidf::isPlayer(cmQTI.uid) || cmQTI.uid == UID() || !getInViewCOPtr(cmQTI.uid)){
+        co_return;
+    }
+
+    switch(const auto rmpk = co_await m_actorPod->send(cmQTI.uid, AM_QUERYTEAMINFO); rmpk.type()){
+        case AM_TEAMINFO:
+            {
+                postNetMessage(SM_TEAMINFO, static_cast<const void *>(rmpk.data()), rmpk.size());
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
 corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
     auto sdTR = cerealf::deserialize<SDTeamRequirement>(buf, bufSize);

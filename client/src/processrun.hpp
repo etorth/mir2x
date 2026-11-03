@@ -276,6 +276,7 @@ class ProcessRun: public Process
         _support_sm(SM_TEAMCANDIDATE);
         _support_sm(SM_TEAMMEMBERLIST);
         _support_sm(SM_TEAMERROR);
+        _support_sm(SM_TEAMINFO);
         _support_sm(SM_QUESTDESPUPDATE);
         _support_sm(SM_QUESTDESPLIST);
         _support_sm(SM_CHATMESSAGELIST);
@@ -493,6 +494,7 @@ class ProcessRun: public Process
         void requestLeaveTeam(uint64_t);
         void requestCreateTeam(const SDTeamRequirement &);
         void requestSetTeamRequirement(const SDTeamRequirement &);
+        void requestQueryTeamInfo(uint64_t);
         void requestDirectTrade(uint64_t);
         void respondDirectTrade(uint64_t, bool);
         bool updateDirectTradeOffer(uint64_t, uint32_t, bool, const std::vector<SDItem> &);

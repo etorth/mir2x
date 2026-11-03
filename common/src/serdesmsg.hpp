@@ -1440,6 +1440,23 @@ struct SDTeamMemberList
     }
 };
 
+struct SDTeamInfo
+{
+    uint64_t leader = 0;
+    std::string name {};
+
+    int job   = 0;
+    int level = 0;
+
+    int memberCount = 0;
+    SDTeamRequirement requirement {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(leader, name, job, level, memberCount, requirement);
+    }
+};
+
 struct SDSysSlavePeerPort
 {
     int port = 0;

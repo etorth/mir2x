@@ -1887,6 +1887,17 @@ void ProcessRun::requestSetTeamRequirement(const SDTeamRequirement &sdTR)
     g_client->send({CM_SETTEAMREQUIREMENT, cerealf::serialize(sdTR)});
 }
 
+void ProcessRun::requestQueryTeamInfo(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    CMQueryTeamInfo cmQTI;
+    std::memset(&cmQTI, 0, sizeof(cmQTI));
+
+    cmQTI.uid = uid;
+    g_client->send({CM_QUERYTEAMINFO, cmQTI});
+}
+
 void ProcessRun::requestDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));

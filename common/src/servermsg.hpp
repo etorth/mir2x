@@ -86,6 +86,7 @@ enum SMType: uint8_t
     SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
     SM_TEAMERROR,
+    SM_TEAMINFO,
     SM_QUESTDESPUPDATE,
     SM_QUESTDESPLIST,
     SM_CHATMESSAGELIST,
@@ -568,6 +569,7 @@ namespace
         _RSVD_register_servermsg(SM_TEAMMEMBERLIST,         3                                  );
         _RSVD_register_servermsg(SM_TEAMCANDIDATE,          3                                  );
         _RSVD_register_servermsg(SM_TEAMERROR,              1, sizeof(SMTeamError)             );
+        _RSVD_register_servermsg(SM_TEAMINFO,               3                                  );
         _RSVD_register_servermsg(SM_QUESTDESPUPDATE,        3                                  );
         _RSVD_register_servermsg(SM_QUESTDESPLIST,          3                                  );
         _RSVD_register_servermsg(SM_CHATMESSAGELIST,        3                                  );

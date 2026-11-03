@@ -231,6 +231,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_REMOTECALL         (const ActorMsgPack &);
         corof::awaitable<> on_AM_REQUESTJOINTEAM    (const ActorMsgPack &);
         corof::awaitable<> on_AM_JOINTEAM           (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYTEAMINFO      (const ActorMsgPack &);
         corof::awaitable<> on_AM_REQUESTLEAVETEAM   (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
@@ -291,6 +292,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_UNREGISTERAUCTIONITEM     (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_CREATETEAM                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYTEAMINFO             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_SETTEAMREQUIREMENT        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);

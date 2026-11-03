@@ -11,22 +11,13 @@ class TeamStateBoard;
 class TeamNearbyPage: public Widget
 {
     private:
-        struct NearbyTeam final
-        {
-            std::string leader {};
-
-            int job   = 0;
-            int level = 0;
-
-            int memberCount = 0;
-            SDTeamRequirement requirement {};
-        };
-
-    private:
         TeamStateBoard *m_board;
 
     private:
-        std::vector<NearbyTeam> m_teamList;
+        std::vector<SDTeamInfo> m_teamList;
+
+    private:
+        bool m_visible = false; // query nearby teams when page turns visible
 
     private:
         bool m_onlyMatch = false;
@@ -48,8 +39,12 @@ class TeamNearbyPage: public Widget
     public:
         void updateDefault(double) override;
 
+    public:
+        void queryTeamList();
+        void setTeamInfo(SDTeamInfo);
+
     private:
-        const NearbyTeam &viewTeam(size_t index) const
+        const SDTeamInfo &viewTeam(size_t index) const
         {
             return m_teamList.at(m_viewList.at(index));
         }
