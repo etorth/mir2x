@@ -39,14 +39,27 @@ class MyHero: public Hero
 
         bool inViewRange(int x, int y) const
         {
-            return mathf::LDistance2<int>(this->x(), this->y(), x, y) <= (m_viewRange - 1) * (m_viewRange - 1);
+            // server tracks my location by accepted actions
+            // it can be either start or end of current motion, check all of them
+            //
+            // otherwise a CO reported at view edge can be rejected or erased by client
+            // and server never reports it again since it's already in view on server side, until it moves
+
+            const auto fnInView = [x, y, this](int heroX, int heroY)
+            {
+                return mathf::LDistance2<int>(heroX, heroY, x, y) <= (m_viewRange - 1) * (m_viewRange - 1);
+            };
+
+            return fnInView(this->x(), this->y())
+                || fnInView(currMotion()->x, currMotion()->y)
+                || fnInView(currMotion()->endX, currMotion()->endY);
         }
 
         bool inViewRange(const ClientCreature *creature) const
         {
             fflassert(creature);
             const auto [x, y] = creature->location();
-            return inViewRange(x, y);
+            return inViewRange(x, y) || inViewRange(creature->currMotion()->endX, creature->currMotion()->endY);
         }
 
     public:
