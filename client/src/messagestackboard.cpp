@@ -148,7 +148,7 @@ void MessageStackBoard::setFontColor(Widget::VarU32 fontColor)
     m_font.color = std::move(fontColor);
 }
 
-void MessageStackBoard::updateDefault(double ms)
+void MessageStackBoard::updateDefault(double fUpdateTime)
 {
     if(m_showTime > 0){
         while(!m_messageList.empty()){
@@ -161,7 +161,7 @@ void MessageStackBoard::updateDefault(double ms)
         }
     }
 
-    Widget::updateDefault(ms);
+    Widget::updateDefault(fUpdateTime);
 }
 
 void MessageStackBoard::removeFrontMessage()

@@ -137,12 +137,12 @@ class LayoutBoard: public Widget
         size_t addLayoutXML(int, const Widget::IntMargin &, const char *, size_t = 0);
 
     public:
-        void updateDefault(double ms) override
+        void updateDefault(double fUpdateTime) override
         {
             for(const auto &node: m_parNodeList){
-                node.tpset->update(ms);
+                node.tpset->update(fUpdateTime);
             }
-            m_cursorBlink += ms;
+            m_cursorBlink += fUpdateTime;
         }
 
     private:

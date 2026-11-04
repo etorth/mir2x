@@ -207,10 +207,10 @@ bool ClientNPC::parseAction(const ActionNode &action)
     return motionValid(m_currMotion);
 }
 
-bool ClientNPC::update(double ms)
+bool ClientNPC::update(double fUpdateTime)
 {
-    updateAttachMagic(ms);
-    if(!checkUpdate(ms)){
+    updateAttachMagic(fUpdateTime);
+    if(!checkUpdate(fUpdateTime)){
         return true;
     }
 

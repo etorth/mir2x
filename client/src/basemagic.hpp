@@ -123,9 +123,9 @@ class BaseMagic
         // we mark done() as protected, but when use magic composition I have to keep it public
         // user shouldn't call it directly
 
-        virtual bool update(double ms)
+        virtual bool update(double fUpdateTime)
         {
-            m_accuTime += ms;
+            m_accuTime += fUpdateTime;
             runOnUpdate();
 
             if(done()){

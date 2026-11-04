@@ -159,10 +159,10 @@ bool ClientCreature::visible() const
     }
 }
 
-bool ClientCreature::checkUpdate(double ms)
+bool ClientCreature::checkUpdate(double fUpdateTime)
 {
-    fflassert(ms >= 0.0);
-    m_accuUpdateTime += ms;
+    fflassert(fUpdateTime >= 0.0);
+    m_accuUpdateTime += fUpdateTime;
 
     if(m_accuUpdateTime >= m_lastUpdateTime + m_currMotion->frameDelay()){
         m_lastUpdateTime = m_accuUpdateTime;

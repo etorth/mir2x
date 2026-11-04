@@ -110,12 +110,12 @@ std::optional<std::tuple<uint32_t, int>> HeroSpellMagicEffect::gfxSeqFrame() con
     return {};
 }
 
-void HeroSpellMagicEffect::update(double ms)
+void HeroSpellMagicEffect::update(double fUpdateTime)
 {
     fflassert(!done());
-    m_accuTime += ms;
+    m_accuTime += fUpdateTime;
 
-    if(m_hero->checkUpdate(ms)){
+    if(m_hero->checkUpdate(fUpdateTime)){
         const int effectEndFrame = frameCount() - 1;
         const int motionEndFrame = m_hero->getFrameCountEx(m_motion) - 1;
         const int motionSyncFrameCount = [this]() -> int
@@ -157,12 +157,12 @@ int MotionAlignedEffect::absFrame() const
     return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0));
 }
 
-void MotionAlignedEffect::update(double ms)
+void MotionAlignedEffect::update(double fUpdateTime)
 {
     fflassert(!done());
-    m_accuTime += ms;
+    m_accuTime += fUpdateTime;
 
-    if(m_creature->checkUpdate(ms)){
+    if(m_creature->checkUpdate(fUpdateTime)){
         m_creature->updateMotion(false);
     }
 }
@@ -198,12 +198,12 @@ int MotionSyncEffect::frameCount() const
     return std::min<int>(MotionEffect::frameCount() + m_lagFrame, m_creature->getFrameCountEx(m_motion));
 }
 
-void MotionSyncEffect::update(double ms)
+void MotionSyncEffect::update(double fUpdateTime)
 {
     fflassert(!done());
-    m_accuTime += ms;
+    m_accuTime += fUpdateTime;
 
-    if(m_creature->checkUpdate(ms)){
+    if(m_creature->checkUpdate(fUpdateTime)){
         m_creature->updateMotion(false);
     }
 }

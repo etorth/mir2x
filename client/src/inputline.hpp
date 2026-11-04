@@ -98,9 +98,9 @@ class InputLine: public Widget
         void drawDefault(Widget::ROIMap) const override;
 
     public:
-        void updateDefault(double ms) override
+        void updateDefault(double fUpdateTime) override
         {
-            m_cursorBlink += ms;
+            m_cursorBlink += fUpdateTime;
         }
 
     public:

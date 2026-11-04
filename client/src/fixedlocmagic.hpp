@@ -199,11 +199,11 @@ class HellFire_RUN: public FixedLocMagic
         }
 
     protected:
-        bool update(double ms) override
+        bool update(double fUpdateTime) override
         {
-            m_fireRun0.update(ms);
-            m_fireRun1.update(ms);
-            return FixedLocMagic::update(ms);
+            m_fireRun0.update(fUpdateTime);
+            m_fireRun1.update(fUpdateTime);
+            return FixedLocMagic::update(fUpdateTime);
         }
 
     protected:
@@ -305,11 +305,11 @@ class IceThrust_RUN: public FixedLocMagic
         }
 
     protected:
-        bool update(double ms) override
+        bool update(double fUpdateTime) override
         {
-            m_iceRun0.update(ms);
-            m_iceRun1.update(ms);
-            return FixedLocMagic::update(ms);
+            m_iceRun0.update(fUpdateTime);
+            m_iceRun1.update(fUpdateTime);
+            return FixedLocMagic::update(fUpdateTime);
         }
 
     public:
