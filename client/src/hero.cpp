@@ -325,6 +325,7 @@ bool Hero::update(double fUpdateTime)
 
     switch(m_currMotion->type){
         case MOTION_STAND:
+        case MOTION_ONHORSESTAND:
             {
                 if(stayIdle()){
                     return advanceMotionFrame();
@@ -488,7 +489,7 @@ bool Hero::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
 
-    // rush current motion, but not when it's stand or on its last frame
+    // rush current motion, but not when it's stand (including on horse) or on its last frame
     // rush is to catch up displacement, stand has none
     // rushing stand or the last frame ends it early, then frame 0 of next motion gets truncated and pulls the creature into the same phase as myhero
     // remote actions always arrive slightly after myhero's step, same phase means a visible gap every step
@@ -505,8 +506,11 @@ bool Hero::parseAction(const ActionNode &action)
     //
     // the last frame is not rushed for the same reason, rushing it ends it early and truncates frame 0 of next motion
     // without rush the new motion is queued and starts after the last frame finishes normally, the creature stays one frame behind with constant offset
+    //
+    // Hero::update() switches stand to next motion at next frame, so not rushing stand delays at most one frame
     if(true
             && m_currMotion->type != MOTION_STAND
+            && m_currMotion->type != MOTION_ONHORSESTAND
             && m_currMotion->frame + 1 < getFrameCountEx(m_currMotion.get())){
         m_currMotion->speed = SYS_MAXSPEED;
     }
