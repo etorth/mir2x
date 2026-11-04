@@ -5,6 +5,7 @@
 #include <cinttypes>
 
 #include "log.hpp"
+#include "totype.hpp"
 #include "client.hpp"
 #include "initview.hpp"
 #include "sysconst.hpp"
@@ -123,12 +124,12 @@ void Client::eventDelay(double fDelayMS)
         // here we check the delay time
         // since SDL_Delay(0) may run into problem
 
-        const auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.80));
-        if(nDelayMSCount <= 0){
+        if(const auto delayMSCount = to_dround((fDelayMS - fDelayDone) * 0.80); delayMSCount > 0){
+            SDL_Delay(static_cast<Uint32>(delayMSCount));
+        }
+        else{
             break;
         }
-
-        SDL_Delay(nDelayMSCount);
     }
 }
 
