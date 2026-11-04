@@ -198,6 +198,8 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_刷新率, (), int, 10)
     /**/
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_平滑移动, (), bool, false)
+    /**/
     /**/ // end of runtime config types
     /**/ // any config types should be put inside above region
 
