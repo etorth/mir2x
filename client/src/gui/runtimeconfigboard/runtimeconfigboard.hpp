@@ -42,6 +42,7 @@ class RuntimeConfigBoard: public Widget
         LayoutBoard    m_leftMenu;
 
     private:
+        PullMenu       m_pageSystem_frameRate;
         PullMenu       m_pageSystem_resolution;
         PullMenu       m_pageSystem_scale;
         PullMenu       m_pageSystem_ime;

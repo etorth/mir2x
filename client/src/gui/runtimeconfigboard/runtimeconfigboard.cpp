@@ -92,6 +92,50 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           .parent{this},
       }}
 
+    , m_pageSystem_frameRate
+      {{
+          .label
+          {
+              .text = u8"刷新率",
+              .w = 40,
+          },
+
+          .title
+          {
+              .gfxWidget
+              {
+                  .widget = new TextBoard
+                  {{
+                      .textFunc = [this]
+                      {
+                          return std::to_string(SDRuntimeConfig_getConfig<RTCFG_刷新率>(m_sdRuntimeConfig));
+                      },
+                  }},
+
+                  .autoDelete = true,
+              },
+
+              .w = 80,
+              .h = 24,
+          },
+
+          .itemList
+          {
+              {{new LabelBoard{{.label = u8"10       ", .attrs{.data = 10}}}, true}},
+              {{new LabelBoard{{.label = u8"20       ", .attrs{.data = 20}}}, true}},
+              {{new LabelBoard{{.label = u8"30       ", .attrs{.data = 30}}}, true}},
+              {{new LabelBoard{{.label = u8"40       ", .attrs{.data = 40}}}, true}},
+              {{new LabelBoard{{.label = u8"50       ", .attrs{.data = 50}}}, true}},
+              {{new LabelBoard{{.label = u8"60       ", .attrs{.data = 60}}}, true}},
+          },
+
+          .onClick = [this](Widget *widget)
+          {
+              SDRuntimeConfig_setConfig<RTCFG_刷新率>(m_sdRuntimeConfig, std::any_cast<int>(widget->data()));
+              reportRuntimeConfig<RTCFG_刷新率>();
+          },
+      }}
+
     , m_pageSystem_resolution
       {{
           .label
@@ -330,9 +374,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {&m_pageSystem_resolution, DIR_UPLEFT, 0,  0, false},
-                          {&m_pageSystem_scale     , DIR_UPLEFT, 0, 30, false},
-                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 60, false},
+                          {&m_pageSystem_frameRate , DIR_UPLEFT, 0,   0, false},
+                          {&m_pageSystem_resolution, DIR_UPLEFT, 0,  30, false},
+                          {&m_pageSystem_scale     , DIR_UPLEFT, 0,  60, false},
+                          {&m_pageSystem_ime       , DIR_UPLEFT, 0,  90, false},
 
                           {new CheckLabel
                           {{
@@ -351,7 +396,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   g_sdlDevice->flipWindowFullscreen(value);
                               },
                           }},
-                          DIR_UPLEFT, 0, 105, true},
+                          DIR_UPLEFT, 0, 135, true},
 
                           {new CheckLabel
                           {{
@@ -375,7 +420,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   reportRuntimeConfig<RTCFG_SHOWFPS>();
                               },
                           }},
-                          DIR_UPLEFT, 0, 130, true},
+                          DIR_UPLEFT, 0, 160, true},
 
                           {new CheckLabel
                           {{
@@ -405,9 +450,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   .active = []{ return !g_clientArgParser->disableAudio; },
                               },
                           }},
-                          DIR_UPLEFT, 0, 165, true},
+                          DIR_UPLEFT, 0, 195, true},
 
-                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 190, false},
+                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 220, false},
 
                           {new CheckLabel
                           {{
@@ -437,9 +482,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   .active = []{ return !g_clientArgParser->disableAudio; },
                               },
                           }},
-                          DIR_UPLEFT, 0, 225, true},
+                          DIR_UPLEFT, 0, 255, true},
 
-                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 250, false},
+                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 280, false},
                       },
                   }},
                   true,
