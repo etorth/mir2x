@@ -71,6 +71,9 @@ class CreatureMovable: public ClientCreature
     public:
         bool moveNextMotion() override;
 
+    private:
+        bool glideMove() const;
+
     public:
         std::tuple<int, int> getShift(int) const;
 

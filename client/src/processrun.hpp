@@ -118,6 +118,9 @@ class ProcessRun: public Process
         std::list<std::unique_ptr<FollowUIDMagic>> m_followUIDMagicList;
 
     private:
+        double m_accuUpdateTime = 0.0; // declare before m_coList because ClientCreature::ctor uses it
+
+    private:
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
 
     private:
@@ -534,6 +537,12 @@ class ProcessRun: public Process
         template<int CfgIndex, typename... Args> auto getRuntimeConfig(this auto && self, Args && ... args)
         {
             return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(self.getWidget("RuntimeConfigBoard"))->getConfig(), std::forward<Args>(args)...);
+        }
+
+    public:
+        double getAccuUpdateTime() const
+        {
+            return m_accuUpdateTime;
         }
 
     public:

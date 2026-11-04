@@ -1,4 +1,5 @@
 #include <vector>
+#include <algorithm>
 #include "log.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
@@ -248,8 +249,18 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
     const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / to_f(frameCount);
     const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / to_f(frameCount);
 
-    const int shiftX = to_d(std::lround(shiftDX * (frame + 1)));
-    const int shiftY = to_d(std::lround(shiftDY * (frame + 1)));
+    // stepped: frame k shows shift (k + 1), the first frame already has offset, the last frame is on target
+    // glide  : shift by elapsed time of the whole motion, starts at start point when motion begins, reaches target when motion ends
+    const double framePos = [frame, this]() -> double
+    {
+        if(frame == m_currMotion->frame && glideMove()){
+            return frame + std::clamp<double>((m_processRun->getAccuUpdateTime() - m_lastUpdateTime) / m_currMotion->frameDelay(), 0.0, 1.0);
+        }
+        return frame + 1;
+    }();
+
+    const int shiftX = to_d(std::lround(shiftDX * framePos));
+    const int shiftY = to_d(std::lround(shiftDY * framePos));
 
     switch(m_currMotion->direction){
         case DIR_UP       : return {      0, -shiftY};
@@ -262,6 +273,11 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
         case DIR_UPLEFT   : return {-shiftX, -shiftY};
         default           : return {      0,       0};
     }
+}
+
+bool CreatureMovable::glideMove() const
+{
+    return m_processRun->getRuntimeConfig<RTCFG_平滑移动>();
 }
 
 std::array<std::tuple<int, int, int>, 3> CreatureMovable::motionEndGLoc() const

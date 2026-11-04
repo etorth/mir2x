@@ -136,6 +136,8 @@ void ProcessRun::scrollMap()
 
 void ProcessRun::update(double fUpdateTime)
 {
+    m_accuUpdateTime += fUpdateTime;
+
     updateMouseFocus();
     m_teamFlag.update(fUpdateTime);
     m_aniTimer.update(std::lround(fUpdateTime));

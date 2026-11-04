@@ -1,3 +1,4 @@
+#include <cmath>
 #include <algorithm>
 #include <tinyxml2.h>
 #include <SDL3/SDL.h>
@@ -159,13 +160,36 @@ bool ClientCreature::visible() const
     }
 }
 
+ClientCreature::ClientCreature(uint64_t uid, ProcessRun *runProc)
+    : m_UID(uid)
+    , m_processRun(runProc)
+    , m_lastActive(0)
+    , m_lastQuerySelf(0)
+    , m_nameBoard{{.label=u8"ClientCreature"}}
+    , m_overHeadBoard{{.runProc=runProc, .creature=this}}
+{
+    fflassert(m_UID);
+    fflassert(m_processRun);
+    m_lastUpdateTime = m_processRun->getAccuUpdateTime(); // don't skip the first frame
+}
+
 bool ClientCreature::checkUpdate(double fUpdateTime)
 {
     fflassert(fUpdateTime >= 0.0);
-    m_accuUpdateTime += fUpdateTime;
 
-    if(m_accuUpdateTime >= m_lastUpdateTime + m_currMotion->frameDelay()){
-        m_lastUpdateTime = m_accuUpdateTime;
+    // frame lock
+    // all creatures switch frame on the global grid of k * frameDelay, not by their own clocks
+    // then creatures with same speed always switch frame at same time, otherwise they shake relative to each other
+    //
+    // m_lastUpdateTime is aligned to grid of its frameDelay when switched
+    // epsilon helps to get the correct grid index of m_lastUpdateTime if frameDelay doesn't change because of floating point precision
+
+    const auto eps = 1.0e-6; // prevent std::floor(4.99999...) = 4, instead of 5
+    const auto frameDelay = m_currMotion->frameDelay();
+    const auto globalCurrTime = m_processRun->getAccuUpdateTime();
+
+    if(globalCurrTime >= (std::floor(m_lastUpdateTime / frameDelay + eps) + 1.0) * frameDelay){
+        m_lastUpdateTime = std::floor(globalCurrTime / frameDelay) * frameDelay;
         return true;
     }
     return false;

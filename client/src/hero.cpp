@@ -488,7 +488,28 @@ bool Hero::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
 
-    m_currMotion->speed = SYS_MAXSPEED;
+    // rush current motion, but not when it's stand or on its last frame
+    // rush is to catch up displacement, stand has none
+    // rushing stand or the last frame ends it early, then frame 0 of next motion gets truncated and pulls the creature into the same phase as myhero
+    // remote actions always arrive slightly after myhero's step, same phase means a visible gap every step
+    //
+    // example, frames switch on global grid of k * frameDelay, frameDelay = 100ms for SYS_DEFSPEED and 20ms for SYS_MAXSPEED:
+    //
+    //     1. a rushed motion ends early at some 20ms point, say 31520ms
+    //     2. frame 0 of next motion (speed 100) starts there but switches to frame 1 at next 100ms point 31600ms
+    //     3. frame 0 gets truncated, the creature is pulled into exactly the same phase as myhero, instead of staying one frame behind
+    //
+    // but action of a remote creature always arrives after myhero's step starts
+    // if they are in same phase, at beginning of each step the remote creature hasn't received its action yet and can only show a stand frame
+    // while myhero already moves one frame, this looks like jumping out and back
+    //
+    // the last frame is not rushed for the same reason, rushing it ends it early and truncates frame 0 of next motion
+    // without rush the new motion is queued and starts after the last frame finishes normally, the creature stays one frame behind with constant offset
+    if(true
+            && m_currMotion->type != MOTION_STAND
+            && m_currMotion->frame + 1 < getFrameCountEx(m_currMotion.get())){
+        m_currMotion->speed = SYS_MAXSPEED;
+    }
     m_motionQueue.clear();
 
     const int endX   = m_forcedMotionQueue.empty() ? m_currMotion->endX      : m_forcedMotionQueue.back()->endX;

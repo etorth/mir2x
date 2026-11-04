@@ -50,24 +50,13 @@ class ClientCreature
 
     protected:
         double m_lastUpdateTime = 0.0;
-        double m_accuUpdateTime = 0.0;
 
     protected:
         LabelBoard m_nameBoard;
         OverHeadBoard m_overHeadBoard;
 
     protected:
-        ClientCreature(uint64_t uid, ProcessRun *runProc)
-            : m_UID(uid)
-            , m_processRun(runProc)
-            , m_lastActive(0)
-            , m_lastQuerySelf(0)
-            , m_nameBoard{{.label=u8"ClientCreature"}}
-            , m_overHeadBoard{{.runProc=runProc, .creature=this}}
-        {
-            fflassert(m_UID);
-            fflassert(m_processRun);
-        }
+        ClientCreature(uint64_t, ProcessRun *);
 
     public:
         virtual ~ClientCreature() = default;
