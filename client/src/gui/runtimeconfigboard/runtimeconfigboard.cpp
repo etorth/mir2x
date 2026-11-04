@@ -122,8 +122,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              {{new LabelBoard{{.label = u8"10       ", .attrs{.data = 10}}}, true}},
-              {{new LabelBoard{{.label = u8"20       ", .attrs{.data = 20}}}, true}},
               {{new LabelBoard{{.label = u8"30       ", .attrs{.data = 30}}}, true}},
               {{new LabelBoard{{.label = u8"40       ", .attrs{.data = 40}}}, true}},
               {{new LabelBoard{{.label = u8"50       ", .attrs{.data = 50}}}, true}},
