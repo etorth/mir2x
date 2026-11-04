@@ -46,7 +46,8 @@ enum SysTriggerType: int
 // rendering method based on this information
 
 constexpr double SYS_PI = 3.14159265359;
-constexpr int SYS_DEFFPS = 10;
+constexpr int SYS_DEFFPS = 10; //   frame per second, decides many motion/animation speed
+constexpr int SYS_DEFRPS = 30; // refresh per second, decides screen refresh rate, two draws can show identically
 
 constexpr int SYS_TARGETRGN_GAPX = 10;
 constexpr int SYS_TARGETRGN_GAPY = 8;

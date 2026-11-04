@@ -196,7 +196,7 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_DROPITEMRULE, (uint32_t), uint32_t, 0u)
     /**/
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_刷新率, (), int, 10)
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_刷新率, (), int, SYS_DEFRPS)
     /**/
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_平滑移动, (), bool, false)
     /**/
