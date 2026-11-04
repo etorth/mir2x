@@ -65,20 +65,20 @@ void Client::mainLoop()
     switchProcess(PROCESSID_LOGO);
     initASIO();
 
-    const auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
-    const auto fDelayUpdate = (1000.0 / (1.0 * SYS_DEFFPS)) / 7.0;
-    const auto fDelayLoop   = (1000.0 / (1.0 * SYS_DEFFPS)) / 8.0;
-
     auto fLastDraw   = SDL_GetTicks() * 1.0;
     auto fLastUpdate = SDL_GetTicks() * 1.0;
     auto fLastLoop   = SDL_GetTicks() * 1.0;
 
     while(true){
+        const auto fDelayDraw   =     1000.0 / getDrawFPS();
+        const auto fDelayUpdate = fDelayDraw / 4;
+        const auto fDelayLoop   = fDelayDraw / 8;
+
         if(g_clientArgParser->enableClientMonitor){
             PrintMonitor();
         }
 
-        if(!(m_currentProcess && (m_currentProcess->id() != PROCESSID_EXIT))){
+        if(!m_currentProcess || m_currentProcess->id() == PROCESSID_EXIT){
             break;
         }
 
@@ -104,6 +104,16 @@ void Client::mainLoop()
 
         fLastLoop = fCurrLoop;
         eventDelay(fDelayLoop - fPastLoop);
+    }
+}
+
+int Client::getDrawFPS() const
+{
+    if(m_currentProcess && m_currentProcess->id() == PROCESSID_RUN){
+        return static_cast<ProcessRun *>(m_currentProcess.get())->getDrawFPS();
+    }
+    else{
+        return std::max<int>(1, SYS_DEFFPS);
     }
 }
 

@@ -535,4 +535,10 @@ class ProcessRun: public Process
         {
             return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(self.getWidget("RuntimeConfigBoard"))->getConfig(), std::forward<Args>(args)...);
         }
+
+    public:
+        int getDrawFPS() const
+        {
+            return std::max<int>(1, getRuntimeConfig<RTCFG_刷新率>());
+        }
 };

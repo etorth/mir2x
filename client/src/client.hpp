@@ -74,6 +74,9 @@ class Client final
         void mainLoop();
 
     public:
+        int getDrawFPS() const;
+
+    public:
         void Clipboard(const std::string &szInfo)
         {
             m_clipboardBuf = szInfo;
