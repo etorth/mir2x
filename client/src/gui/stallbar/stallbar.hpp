@@ -3,10 +3,12 @@
 #include "widget.hpp"
 #include "textboard.hpp"
 #include "imageboard.hpp"
-#include "tritexbutton.hpp"
+#include "trigfxbutton.hpp"
+#include "gfxcenterboard.hpp"
+#include "gfxresizeboard.hpp"
 
-// stall name shown over a stalling player's head
-// layers: background button 0X235, stall name, frame 0X234
+// stall name shown over a stalling player's head, width fits the stall name
+// layers: background 0X235, stall name, frame 0X234
 class StallBar: public Widget
 {
     public:
@@ -23,10 +25,20 @@ class StallBar: public Widget
         };
 
     private:
-        TritexButton m_button;
-        TextBoard    m_name;
-        ImageBoard   m_frame;
+        ImageBoard m_bg;
+        TextBoard  m_name;
+
+    private:
+        ImageBoard     m_frameImage;
+        GfxResizeBoard m_frame;
+
+    private:
+        GfxCenterBoard m_gfx;
+        TrigfxButton   m_button;
 
     public:
         StallBar(StallBar::InitArgs);
+
+    private:
+        int nameSpaceWidth() const;
 };
