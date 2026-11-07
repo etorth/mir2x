@@ -768,7 +768,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
             reportStand();
         }
         else{
-            postStallError(STALLERR_OPENED, respID);
+            postStallError(STALLERR_SELLING, respID);
         }
         return {};
     }
@@ -837,7 +837,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_CANCELDIRECTTRADE         );
         _support_cm(CM_ADDSTALLITEM              );
         _support_cm(CM_REMOVESTALLITEM           );
-        _support_cm(CM_OPENSTALL                 );
+        _support_cm(CM_STARTSTALL                );
         _support_cm(CM_CLOSESTALL                );
         _support_cm(CM_QUERYSTALL                );
         _support_cm(CM_BUYSTALLITEM              );

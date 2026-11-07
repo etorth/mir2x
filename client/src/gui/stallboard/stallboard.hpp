@@ -57,7 +57,7 @@ class StallBoard final: public Widget
     private:
         ImageBoard   m_opBackground;
         TritexButton m_buttonItemOp;
-        TritexButton m_buttonOpenStall;
+        TritexButton m_buttonStartStall;
         TritexButton m_buttonCloseStall;
 
     private:
@@ -83,12 +83,12 @@ class StallBoard final: public Widget
 
     private:
         bool showItemOp() const;
-        bool showOpenStall() const;
+        bool showStartStall() const;
         bool showCloseStall() const;
 
     private:
         void onItemOp();
-        void onOpenStall();
+        void onStartStall();
         void onCloseStall();
         void onClose();
 

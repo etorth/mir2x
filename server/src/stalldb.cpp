@@ -79,7 +79,7 @@ std::expected<SDStallItem, int> dbAddStallItem(uint32_t dbid, const SDItem &item
     fflassert(stall.has_value());
 
     if(stall->selling){
-        return std::unexpected(STALLERR_OPENED);
+        return std::unexpected(STALLERR_SELLING);
     }
 
     if(stall->itemList.size() >= SYS_STALLMAXITEM){
@@ -152,7 +152,7 @@ std::expected<SDItem, int> dbRemoveStallItem(uint32_t dbid, SDInventory &invento
     return addedItem;
 }
 
-bool dbOpenStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x, int y, const SDOfflineStall &offlineStall)
+bool dbStartStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x, int y, const SDOfflineStall &offlineStall)
 {
     fflassert(validDBID(dbid), dbid);
     fflassert(!name.empty());
@@ -220,7 +220,7 @@ std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t buyerDBID, SDInvent
     {
         auto query = g_dbPod->createQuery("select fld_map, fld_mapx, fld_mapy from tbl_stall where fld_dbid = %llu and fld_selling = 1", to_llu(sellerDBID));
         if(!query.executeStep()){
-            return std::unexpected(STALLERR_NOTOPENED);
+            return std::unexpected(STALLERR_NOTSELLING);
         }
 
         if(check_cast<uint32_t, int64_t>(query.getColumn("fld_map").getInt64()) != mapID){
@@ -244,7 +244,7 @@ std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t buyerDBID, SDInvent
     const auto itemPrice = check_cast<size_t, int64_t>(itemQuery.getColumn("fld_price").getInt64());
 
     // client price is only for staleness check
-    // seller can't change price while stall is open, check anyway
+    // seller can't change price while stall is selling, check anyway
     if(itemPrice != price){
         return std::unexpected(STALLERR_STALE);
     }

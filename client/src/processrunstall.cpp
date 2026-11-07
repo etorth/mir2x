@@ -35,14 +35,14 @@ void ProcessRun::requestRemoveStallItem(uint32_t itemID, uint32_t seqID)
     g_client->send({CM_REMOVESTALLITEM, cmRSI});
 }
 
-void ProcessRun::requestOpenStall(const std::string &name)
+void ProcessRun::requestStartStall(const std::string &name)
 {
-    CMOpenStall cmOS;
-    std::memset(&cmOS, 0, sizeof(cmOS));
+    CMStartStall cmSS;
+    std::memset(&cmSS, 0, sizeof(cmSS));
 
-    fflassert(name.size() < cmOS.name.capacity(), name.size(), cmOS.name.capacity());
-    cmOS.name.assign(name);
-    g_client->send({CM_OPENSTALL, cmOS});
+    fflassert(name.size() < cmSS.name.capacity(), name.size(), cmSS.name.capacity());
+    cmSS.name.assign(name);
+    g_client->send({CM_STARTSTALL, cmSS});
 }
 
 void ProcessRun::requestCloseStall()
@@ -220,8 +220,8 @@ void ProcessRun::on_SM_STALLERROR(const uint8_t *buf, size_t bufSize)
             case STALLERR_NOTALLOWED: return u8"当前无法摆摊";
             case STALLERR_BUSY      : return u8"交易中，无法摆摊";
             case STALLERR_DEAD      : return u8"死亡状态无法摆摊";
-            case STALLERR_OPENED    : return u8"摊位已开张";
-            case STALLERR_NOTOPENED : return u8"摊位未开张";
+            case STALLERR_SELLING   : return u8"摊位已开张";
+            case STALLERR_NOTSELLING: return u8"摊位未开张";
             case STALLERR_FULL      : return u8"摊位已满";
             case STALLERR_EMPTY     : return u8"摊位没有物品";
             case STALLERR_BADITEM   : return u8"无效的物品";

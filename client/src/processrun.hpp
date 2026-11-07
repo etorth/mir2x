@@ -523,7 +523,7 @@ class ProcessRun: public Process
     public:
         void requestAddStallItem(uint32_t, uint32_t, size_t);
         void requestRemoveStallItem(uint32_t, uint32_t);
-        void requestOpenStall(const std::string &);
+        void requestStartStall(const std::string &);
         void requestCloseStall();
         void requestQueryStall(uint32_t) const;
         void requestBuyStallItem(uint32_t, uint32_t, uint32_t, size_t, size_t);

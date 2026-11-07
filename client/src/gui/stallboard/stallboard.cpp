@@ -162,17 +162,17 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
           .parent{this},
       }}
 
-    , m_buttonOpenStall
+    , m_buttonStartStall
       {{
           .x = 199,
           .y = 327,
 
           .texAniOpt = 0X00000910,
-          .onTrigger = [this](Widget *, int){ onOpenStall(); },
+          .onTrigger = [this](Widget *, int){ onStartStall(); },
 
           .attrs
           {
-              .show = [this]{ return showOpenStall(); },
+              .show = [this]{ return showStartStall(); },
           },
 
           .parent{this},
@@ -207,7 +207,7 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
 {
     m_opBackground.setShow([this]
     {
-        return showItemOp() || showOpenStall() || showCloseStall();
+        return showItemOp() || showStartStall() || showCloseStall();
     });
 
     setShow(false);
@@ -298,7 +298,7 @@ bool StallBoard::showItemOp() const
     return m_grid.selectedItem() && (isSeller() || m_stall.selling);
 }
 
-bool StallBoard::showOpenStall() const
+bool StallBoard::showStartStall() const
 {
     return isSeller() && !m_stall.selling && !m_stall.itemList.empty() && !m_grid.selectedItem();
 }
@@ -323,7 +323,7 @@ void StallBoard::onItemOp()
     }
 }
 
-void StallBoard::onOpenStall()
+void StallBoard::onStartStall()
 {
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
@@ -338,7 +338,7 @@ void StallBoard::onOpenStall()
                 m_runProc->addCBLog(CBLOG_ERR, u8"无效的摊位名称");
                 return;
             }
-            m_runProc->requestOpenStall(name);
+            m_runProc->requestStartStall(name);
         },
 
         .validate = [](const std::string &currentInput, const std::string &newInput)

@@ -317,7 +317,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_CANCELDIRECTTRADE         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_ADDSTALLITEM              (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REMOVESTALLITEM           (uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::awaitable<> net_CM_OPENSTALL                 (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_STARTSTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_CLOSESTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYSTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_BUYSTALLITEM              (uint8_t, const uint8_t *, size_t, uint64_t);

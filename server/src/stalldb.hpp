@@ -27,7 +27,7 @@ std::vector<SDOfflineStall> dbLoadOfflineStallList(uint32_t);
 std::expected<SDStallItem, int> dbAddStallItem   (uint32_t, const SDItem &, size_t);
 std::expected<SDItem     , int> dbRemoveStallItem(uint32_t, SDInventory &, uint32_t, uint32_t);
 
-bool dbOpenStall(uint32_t, const std::string &, uint32_t, int, int, const SDOfflineStall &);
+bool dbStartStall(uint32_t, const std::string &, uint32_t, int, int, const SDOfflineStall &);
 std::vector<SDItem> dbCloseStall(uint32_t, SDInventory &);
 
 std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t, SDInventory &, uint32_t, uint32_t, int, int, uint32_t, uint32_t, size_t, size_t);

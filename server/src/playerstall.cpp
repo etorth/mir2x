@@ -32,7 +32,7 @@ bool Player::stallBlockedCM(uint8_t cmType)
         case CM_UPDATEDIRECTTRADE:
         case CM_COMMITDIRECTTRADE:
         case CM_ADDSTALLITEM:
-        case CM_OPENSTALL:
+        case CM_STARTSTALL:
             {
                 return true;
             }
@@ -166,7 +166,7 @@ corof::awaitable<> Player::net_CM_ADDSTALLITEM(uint8_t, const uint8_t *buf, size
     const auto error = [&cmASI, this]() -> int
     {
         if(stallSelling()){
-            return STALLERR_OPENED;
+            return STALLERR_SELLING;
         }
 
         if(m_sdHealth.dead()){
@@ -229,13 +229,13 @@ corof::awaitable<> Player::net_CM_REMOVESTALLITEM(uint8_t, const uint8_t *buf, s
     return {};
 }
 
-corof::awaitable<> Player::net_CM_OPENSTALL(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_STARTSTALL(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
-    const auto cmOS = ClientMsg::conv<CMOpenStall>(buf);
-    const auto error = [&cmOS, this]() -> int
+    const auto cmSS = ClientMsg::conv<CMStartStall>(buf);
+    const auto error = [&cmSS, this]() -> int
     {
         if(stallSelling()){
-            return STALLERR_OPENED;
+            return STALLERR_SELLING;
         }
 
         if(m_sdHealth.dead()){
@@ -256,17 +256,17 @@ corof::awaitable<> Player::net_CM_OPENSTALL(uint8_t, const uint8_t *buf, size_t,
             return STALLERR_EMPTY;
         }
 
-        if(cmOS.name.size == 0 || cmOS.name.size >= cmOS.name.capacity()){
+        if(cmSS.name.size == 0 || cmSS.name.size >= cmSS.name.capacity()){
             return STALLERR_BADNAME;
         }
 
-        const auto name = cmOS.name.to_str();
+        const auto name = cmSS.name.to_str();
         if(!utf8f::valid(name)){
             return STALLERR_BADNAME;
         }
 
         m_sdStall.name = name;
-        if(!dbOpenStall(dbid(), name, mapID(), X(), Y(), makeOfflineStall())){
+        if(!dbStartStall(dbid(), name, mapID(), X(), Y(), makeOfflineStall())){
             return STALLERR_DBFAILED;
         }
 

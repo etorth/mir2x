@@ -86,7 +86,7 @@ enum CMType: uint8_t
     CM_CANCELDIRECTTRADE,
     CM_ADDSTALLITEM,
     CM_REMOVESTALLITEM,
-    CM_OPENSTALL,
+    CM_STARTSTALL,
     CM_CLOSESTALL,
     CM_QUERYSTALL,
     CM_BUYSTALLITEM,
@@ -447,7 +447,7 @@ struct CMRemoveStallItem
     uint32_t seqID;
 };
 
-struct CMOpenStall
+struct CMStartStall
 {
     StaticBuffer<SYS_STALLNAMESIZE> name;
 };
@@ -554,7 +554,7 @@ namespace
         _RSVD_register_clientmsg(CM_CANCELDIRECTTRADE,          1, sizeof(CMCancelDirectTrade)         );
         _RSVD_register_clientmsg(CM_ADDSTALLITEM,               1, sizeof(CMAddStallItem)              );
         _RSVD_register_clientmsg(CM_REMOVESTALLITEM,            1, sizeof(CMRemoveStallItem)           );
-        _RSVD_register_clientmsg(CM_OPENSTALL,                  1, sizeof(CMOpenStall)                 );
+        _RSVD_register_clientmsg(CM_STARTSTALL,                 1, sizeof(CMStartStall)                );
         _RSVD_register_clientmsg(CM_CLOSESTALL,                 0                                      );
         _RSVD_register_clientmsg(CM_QUERYSTALL,                 1, sizeof(CMQueryStall)                );
         _RSVD_register_clientmsg(CM_BUYSTALLITEM,               1, sizeof(CMBuyStallItem)              );
