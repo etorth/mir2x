@@ -362,9 +362,9 @@ class Player final: public BattleObject
         void commitDirectTrade();
 
     public:
-        bool stallOpened() const
+        bool stallSelling() const
         {
-            return m_sdStall.open;
+            return m_sdStall.selling;
         }
 
     private:

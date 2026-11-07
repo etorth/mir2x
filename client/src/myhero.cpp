@@ -783,7 +783,7 @@ bool MyHero::emplaceAction(const ActionNode &action)
     // always clear motionQueue if new action provided
     // for urgent motion must play, push them into forcedMotionQueue
 
-    if(m_processRun->myStallOpened()){
+    if(m_processRun->myStallSelling()){
         return false;
     }
 

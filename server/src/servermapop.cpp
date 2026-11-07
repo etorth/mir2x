@@ -965,7 +965,7 @@ corof::awaitable<> ServerMap::on_AM_ADDOFFLINESTALL(const ActorMsgPack &mpk)
         // seller may post this with a stale stall state, a buyer can sell it out in between
         // DB is the source of truth since buyer updates it synchronously
         auto sdOS = mpk.deserialize<SDOfflineStall>();
-        if(const auto stall = dbLoadStall(sdOS.dbid); stall.has_value() && stall->open && !stall->empty()){
+        if(const auto stall = dbLoadStall(sdOS.dbid); stall.has_value() && stall->selling && !stall->empty()){
             addOfflineStall(std::move(sdOS));
         }
     }

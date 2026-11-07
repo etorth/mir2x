@@ -451,7 +451,7 @@ struct SMStallError
 struct SMPlayerStall
 {
     uint64_t uid;
-    uint8_t  open;
+    uint8_t  selling;
 };
 
 struct SMNPCError

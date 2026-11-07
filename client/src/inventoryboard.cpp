@@ -720,7 +720,7 @@ void InventoryBoard::commitInvOp()
 
 void InventoryBoard::commitStallItem(const SDItem &item)
 {
-    if(m_processRun->myStallOpened()){
+    if(m_processRun->myStallSelling()){
         m_processRun->addCBLog(CBLOG_ERR, u8"摊位已开张，不能再添加物品");
         return;
     }

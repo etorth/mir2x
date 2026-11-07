@@ -88,7 +88,7 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
 
           .textFunc = [this] -> std::string
           {
-              if(!isSeller() && !m_stall.open){
+              if(!isSeller() && !m_stall.selling){
                   return to_cstr(u8"摊位已关闭");
               }
 
@@ -295,17 +295,17 @@ bool StallBoard::isSeller() const
 
 bool StallBoard::showItemOp() const
 {
-    return m_grid.selectedItem() && (isSeller() || m_stall.open);
+    return m_grid.selectedItem() && (isSeller() || m_stall.selling);
 }
 
 bool StallBoard::showOpenStall() const
 {
-    return isSeller() && !m_stall.open && !m_stall.itemList.empty() && !m_grid.selectedItem();
+    return isSeller() && !m_stall.selling && !m_stall.itemList.empty() && !m_grid.selectedItem();
 }
 
 bool StallBoard::showCloseStall() const
 {
-    return isSeller() && m_stall.open && !m_grid.selectedItem();
+    return isSeller() && m_stall.selling && !m_grid.selectedItem();
 }
 
 void StallBoard::onItemOp()
@@ -363,7 +363,7 @@ void StallBoard::onCloseStall()
 void StallBoard::onClose()
 {
     if(isSeller()){
-        if(!m_stall.open && !m_stall.itemList.empty()){
+        if(!m_stall.selling && !m_stall.itemList.empty()){
             // cancel stall setup, all items go back to inventory
             m_runProc->requestCloseStall();
         }
@@ -380,7 +380,7 @@ void StallBoard::onClose()
 
 void StallBoard::removeItem(const SDItem &item)
 {
-    if(!m_stall.open){
+    if(!m_stall.selling){
         m_runProc->requestRemoveStallItem(item.itemID, item.seqID);
         return;
     }
@@ -397,7 +397,7 @@ void StallBoard::removeItem(const SDItem &item)
 
 void StallBoard::buyItem(const SDItem &item, size_t price, size_t maxCount)
 {
-    if(!m_stall.open){
+    if(!m_stall.selling){
         return;
     }
 

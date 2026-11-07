@@ -763,7 +763,7 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, uint64_t respID)
 {
-    if(stallOpened() && stallBlockedCM(nType)){
+    if(stallSelling() && stallBlockedCM(nType)){
         if(nType == CM_ACTION){
             reportStand();
         }
@@ -864,7 +864,7 @@ void Player::reportCO(uint64_t toUID)
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
     amCOR.Player.teamLeader = (m_teamLeader == UID());
-    amCOR.Player.stall = stallOpened();
+    amCOR.Player.stall = stallSelling();
     amCOR.Player.Level = level();
     m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
@@ -925,7 +925,7 @@ void Player::reportNextStrike()
 
 void Player::onDie()
 {
-    if(stallOpened() || !m_sdStall.empty()){
+    if(stallSelling() || !m_sdStall.empty()){
         closeStall();
     }
 
@@ -2740,7 +2740,7 @@ void Player::afterChangeGLoc()
 {
     // player can't move while stall is open
     // if a script moves it anyway, the stall can't stay at its saved location
-    if(stallOpened()){
+    if(stallSelling()){
         closeStall();
     }
 
@@ -2924,7 +2924,7 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
 
 corof::awaitable<bool> Player::followTeamLeader()
 {
-    if(!m_teamLeader || stallOpened()){
+    if(!m_teamLeader || stallSelling()){
         co_return false;
     }
 

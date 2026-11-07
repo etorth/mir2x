@@ -48,7 +48,7 @@ void Player::loadStall()
     // a stall left in setup state gets cancelled, items go back to inventory
     // an open stall restores, player spawns at the stall location since it can't move while the stall is open
 
-    if(auto stall = dbLoadStall(dbid()); stall.has_value() && stall->open && !stall->empty()){
+    if(auto stall = dbLoadStall(dbid()); stall.has_value() && stall->selling && !stall->empty()){
         m_sdStall = std::move(stall.value());
     }
     else{
@@ -62,19 +62,19 @@ void Player::loadStall()
 
 void Player::reloadStall()
 {
-    const bool wasOpen = stallOpened();
+    const bool wasSelling = stallSelling();
 
     m_sdStall = dbLoadStall(dbid()).value_or(SDStall{});
     m_sdStall.dbid = dbid();
 
-    if(stallOpened() && m_sdStall.empty()){
+    if(stallSelling() && m_sdStall.empty()){
         dbCloseStall(dbid(), m_sdItemStorage.inventory);
         m_sdStall.clear();
         m_sdStall.dbid = dbid();
     }
 
     postStall();
-    if(wasOpen != stallOpened()){
+    if(wasSelling != stallSelling()){
         dispatchStallState();
     }
 }
@@ -110,13 +110,13 @@ void Player::dispatchStallState()
     std::memset(&smPS, 0, sizeof(smPS));
 
     smPS.uid = UID();
-    smPS.open = stallOpened();
+    smPS.selling = stallSelling();
     dispatchNetPackage(true, SM_PLAYERSTALL, smPS);
 }
 
 void Player::dispatchOfflineStall()
 {
-    if(stallOpened()){
+    if(stallSelling()){
         if(hasActorPod()){
             m_actorPod->post(mapUID(), {AM_ADDOFFLINESTALL, cerealf::serialize(makeOfflineStall())});
         }
@@ -165,7 +165,7 @@ corof::awaitable<> Player::net_CM_ADDSTALLITEM(uint8_t, const uint8_t *buf, size
     const auto cmASI = ClientMsg::conv<CMAddStallItem>(buf);
     const auto error = [&cmASI, this]() -> int
     {
-        if(stallOpened()){
+        if(stallSelling()){
             return STALLERR_OPENED;
         }
 
@@ -234,7 +234,7 @@ corof::awaitable<> Player::net_CM_OPENSTALL(uint8_t, const uint8_t *buf, size_t,
     const auto cmOS = ClientMsg::conv<CMOpenStall>(buf);
     const auto error = [&cmOS, this]() -> int
     {
-        if(stallOpened()){
+        if(stallSelling()){
             return STALLERR_OPENED;
         }
 
@@ -280,7 +280,7 @@ corof::awaitable<> Player::net_CM_OPENSTALL(uint8_t, const uint8_t *buf, size_t,
 
     reloadStall();
 
-    if(stallOpened()){
+    if(stallSelling()){
         const auto stand = makeActionStand();
         dispatchAction(stand);
         reportAction(UID(), mapUID(), stand);
@@ -302,11 +302,11 @@ corof::awaitable<> Player::net_CM_QUERYSTALL(uint8_t, const uint8_t *buf, size_t
     }
 
     // buyer can only see an open stall
-    // a closed stall is reported as open = false, without its items
+    // a stall not selling is reported as selling = false, without its items
     auto stall = dbLoadStall(cmQS.dbid).value_or(SDStall{});
     stall.dbid = cmQS.dbid;
 
-    if(!stall.open){
+    if(!stall.selling){
         stall.clear();
         stall.dbid = cmQS.dbid;
     }

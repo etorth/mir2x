@@ -108,7 +108,7 @@ void ProcessRun::openStallBoard(uint32_t dbid)
         sdS.dbid = dbid;
         stallBoard->loadStall(std::move(sdS));
 
-        if(!m_myStall.open){
+        if(!m_myStall.selling){
             auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
             fflassert(invBoard);
 
@@ -133,8 +133,8 @@ void ProcessRun::openStallBoard(uint32_t dbid)
         stallBoard->loadStall(SDStall
         {
             .dbid = dbid,
+            .selling = true,
             .name = stallName,
-            .open = true,
         });
         requestQueryStall(dbid);
     }
@@ -196,15 +196,15 @@ void ProcessRun::on_SM_STALL(const uint8_t *buf, size_t bufSize)
     m_myStall.dbid = to_u32(getMyHeroDBID());
 
     if(auto myHeroPtr = getMyHero()){
-        myHeroPtr->setStall(m_myStall.open);
-        myHeroPtr->setStallName(m_myStall.open ? m_myStall.name : std::string{});
+        myHeroPtr->setStall(m_myStall.selling);
+        myHeroPtr->setStallName(m_myStall.selling ? m_myStall.name : std::string{});
     }
 
     if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == m_myStall.dbid){
         stallBoard->loadStall(m_myStall);
     }
 
-    if(m_myStall.open){
+    if(m_myStall.selling){
         if(auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard")); invBoard->getInvOp() == INVOP_STALL){
             invBoard->clearInvOp();
         }
@@ -249,7 +249,7 @@ void ProcessRun::on_SM_PLAYERSTALL(const uint8_t *buf, size_t bufSize)
 {
     const auto smPS = ServerMsg::conv<SMPlayerStall>(buf, bufSize);
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPS.uid, false))){
-        heroPtr->setStall(smPS.open);
+        heroPtr->setStall(smPS.selling);
     }
 
     const auto dbid = uidf::getPlayerDBID(smPS.uid);
@@ -257,7 +257,7 @@ void ProcessRun::on_SM_PLAYERSTALL(const uint8_t *buf, size_t bufSize)
         return; // handled by SM_STALL
     }
 
-    if(!smPS.open){
+    if(!smPS.selling){
         if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == dbid){
             stallBoard->loadStall(SDStall{.dbid = dbid});
         }
@@ -272,12 +272,12 @@ void ProcessRun::on_SM_QUERYSTALLOK(const uint8_t *buf, size_t bufSize)
     }
 
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(sdS.dbid), false))){
-        heroPtr->setStall(sdS.open);
-        heroPtr->setStallName(sdS.open ? sdS.name : std::string{});
+        heroPtr->setStall(sdS.selling);
+        heroPtr->setStallName(sdS.selling ? sdS.name : std::string{});
     }
 
     if(auto p = m_offlineStallList.find(sdS.dbid); p != m_offlineStallList.end()){
-        if(sdS.open){
+        if(sdS.selling){
             p->second->setStallName(sdS.name);
         }
         else{

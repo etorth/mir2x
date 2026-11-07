@@ -773,13 +773,14 @@ struct SDStall
     // seqID is allocated by stall itself, not inherited from inventory
 
     uint32_t dbid = 0;
+    bool selling = false; // selling vs setting up
+
     std::string name {};
-    bool open = false;
     std::vector<SDStallItem> itemList {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, name, open, itemList);
+        ar(dbid, selling, name, itemList);
     }
 
     bool empty() const
@@ -809,8 +810,9 @@ struct SDStall
     void clear()
     {
         dbid = 0;
+        selling = false;
+
         name.clear();
-        open = false;
         itemList.clear();
     }
 };

@@ -35,7 +35,7 @@ static std::vector<SDStallItem> dbLoadStallItemList(uint32_t dbid)
 std::optional<SDStall> dbLoadStall(uint32_t dbid)
 {
     fflassert(validDBID(dbid), dbid);
-    auto query = g_dbPod->createQuery("select fld_name, fld_open from tbl_stall where fld_dbid = %llu", to_llu(dbid));
+    auto query = g_dbPod->createQuery("select fld_name, fld_selling from tbl_stall where fld_dbid = %llu", to_llu(dbid));
 
     if(!query.executeStep()){
         return std::nullopt;
@@ -44,8 +44,8 @@ std::optional<SDStall> dbLoadStall(uint32_t dbid)
     return SDStall
     {
         .dbid = dbid,
+        .selling = query.getColumn("fld_selling").getInt() != 0,
         .name = query.getColumn("fld_name").getString(),
-        .open = query.getColumn("fld_open").getInt() != 0,
         .itemList = dbLoadStallItemList(dbid),
     };
 }
@@ -53,7 +53,7 @@ std::optional<SDStall> dbLoadStall(uint32_t dbid)
 std::vector<SDOfflineStall> dbLoadOfflineStallList(uint32_t mapID)
 {
     std::vector<SDOfflineStall> stallList;
-    auto query = g_dbPod->createQuery("select fld_offline from tbl_stall where fld_map = %llu and fld_open = 1 and fld_offline is not null", to_llu(mapID));
+    auto query = g_dbPod->createQuery("select fld_offline from tbl_stall where fld_map = %llu and fld_selling = 1 and fld_offline is not null", to_llu(mapID));
 
     while(query.executeStep()){
         stallList.push_back(cerealf::deserialize<SDOfflineStall>(query.getColumn("fld_offline").getString()));
@@ -78,7 +78,7 @@ std::expected<SDStallItem, int> dbAddStallItem(uint32_t dbid, const SDItem &item
     const auto stall = dbLoadStall(dbid);
     fflassert(stall.has_value());
 
-    if(stall->open){
+    if(stall->selling){
         return std::unexpected(STALLERR_OPENED);
     }
 
@@ -161,9 +161,9 @@ bool dbOpenStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x, 
     auto query = g_dbPod->createQuery(
             u8R"###( update tbl_stall                                                                             )###"
             u8R"###( set                                                                                          )###"
-            u8R"###(     fld_name = ?, fld_open = 1, fld_map = %llu, fld_mapx = %d, fld_mapy = %d, fld_offline = ? )###"
+            u8R"###(     fld_name = ?, fld_selling = 1, fld_map = %llu, fld_mapx = %d, fld_mapy = %d, fld_offline = ? )###"
             u8R"###( where                                                                                        )###"
-            u8R"###(     fld_dbid = %llu and fld_open = 0 and exists                                              )###"
+            u8R"###(     fld_dbid = %llu and fld_selling = 0 and exists                                              )###"
             u8R"###(     (                                                                                        )###"
             u8R"###(         select 1 from tbl_stallitem where tbl_stallitem.fld_dbid = %llu                      )###"
             u8R"###(     )                                                                                        )###",
@@ -218,7 +218,7 @@ std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t buyerDBID, SDInvent
 
     auto transaction = g_dbPod->createTransaction();
     {
-        auto query = g_dbPod->createQuery("select fld_map, fld_mapx, fld_mapy from tbl_stall where fld_dbid = %llu and fld_open = 1", to_llu(sellerDBID));
+        auto query = g_dbPod->createQuery("select fld_map, fld_mapx, fld_mapy from tbl_stall where fld_dbid = %llu and fld_selling = 1", to_llu(sellerDBID));
         if(!query.executeStep()){
             return std::unexpected(STALLERR_NOTOPENED);
         }

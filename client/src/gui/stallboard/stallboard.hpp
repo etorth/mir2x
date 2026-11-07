@@ -10,9 +10,9 @@
 
 // stall board works in 3 modes:
 //
-//   1. seller setup: items moved from inventory, can be removed, 0X910 opens the stall
-//   2. seller open : items can be removed with confirmation, 0X860 closes the stall
-//   3. buyer       : selected item can be bought by 0XB7
+//   1. seller setup  : items moved from inventory, can be removed, 0X910 starts selling
+//   2. seller selling: items can be removed with confirmation, 0X860 closes the stall
+//   3. buyer         : selected item can be bought by 0XB7
 //
 // only one op button shows in the op slot at any time
 

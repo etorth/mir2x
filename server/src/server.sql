@@ -202,7 +202,7 @@ create index tbl_auctionitem_expiretime_index on tbl_auctionitem(fld_expiretime)
 create table tbl_stall(
     fld_dbid           integer not null primary key,
     fld_name           text    not null default '',
-    fld_open           integer not null default 0 check(fld_open in (0, 1)),
+    fld_selling        integer not null default 0 check(fld_selling in (0, 1)),
     fld_map            integer not null default 0,
     fld_mapx           integer not null default 0,
     fld_mapy           integer not null default 0,

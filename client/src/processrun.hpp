@@ -534,9 +534,9 @@ class ProcessRun: public Process
             return m_myStall;
         }
 
-        bool myStallOpened() const
+        bool myStallSelling() const
         {
-            return m_myStall.open;
+            return m_myStall.selling;
         }
 
         bool hasOfflineStall(int, int) const;
