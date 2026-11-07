@@ -97,6 +97,21 @@ Examples:
   large manual drawing procedure.
 - Derive fixed-frame widget dimensions from the frame texture when possible.
 
+## Member initialization order
+
+- A `Widget::Var*` lambda in a member's initializer must only refer to `this`
+  members declared before that member. Lazy evaluation of these lambdas is an
+  implementation detail and may become eager.
+- Declare members in dependency order. For example, declare a text label
+  before the background whose width depends on the label's width.
+- When a lambda must refer to a member declared later, such as a button's
+  state, set it in the constructor body with a setter (for example
+  `m_bg.setColor(...)`) instead of in the initializer.
+- Drawing order follows the order children are added. Children attached
+  with `.parent{this}` are added in construction order, which is member order.
+  If initialization order and layering conflict, attach the children
+  explicitly in the desired order, through a `childList` or `addChild`.
+
 ## Lists and large result sets
 
 Do not create one widget for every result when a result set can be large.
