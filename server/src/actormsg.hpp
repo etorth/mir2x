@@ -165,6 +165,9 @@ enum ActorMsgPackType: int
     AM_COMPLETEDIRECTTRADE,
     AM_DIRECTTRADEERROR,
     AM_CANCELDIRECTTRADE,
+    AM_ADDOFFLINESTALL,
+    AM_REMOVEOFFLINESTALL,
+    AM_STALLSOLD,
     AM_END,
 };
 
@@ -321,6 +324,9 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_COMPLETEDIRECTTRADE)
         _add_mpk_type_case(AM_DIRECTTRADEERROR)
         _add_mpk_type_case(AM_CANCELDIRECTTRADE)
+        _add_mpk_type_case(AM_ADDOFFLINESTALL)
+        _add_mpk_type_case(AM_REMOVEOFFLINESTALL)
+        _add_mpk_type_case(AM_STALLSOLD)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case
@@ -769,6 +775,16 @@ struct AMOffline
     int Y;
 };
 
+struct AMRemoveOfflineStall
+{
+    uint32_t dbid;
+};
+
+struct AMStallSold
+{
+    uint32_t sellerDBID;
+};
+
 struct AMCODisappear
 {
     uint64_t UID;
@@ -810,6 +826,7 @@ struct AMCORecord
         uint8_t gender     : 1;
         uint8_t job        : 3;
         uint8_t teamLeader : 1;
+        uint8_t stall      : 1;
         uint32_t Level;
     };
 

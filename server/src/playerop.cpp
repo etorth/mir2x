@@ -609,6 +609,7 @@ corof::awaitable<> Player::on_AM_CORECORD(const ActorMsgPack &mpk)
                 smCOR.Player.gender = amCOR.Player.gender;
                 smCOR.Player.job = amCOR.Player.job;
                 smCOR.Player.teamLeader = amCOR.Player.teamLeader;
+                smCOR.Player.stall      = amCOR.Player.stall;
                 smCOR.Player.Level = amCOR.Player.Level;
                 break;
             }

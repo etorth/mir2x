@@ -42,6 +42,11 @@ class Hero: public CreatureMovable
         bool m_teamLeader = false;
 
     protected:
+        bool m_stall = false;
+        mutable bool m_stallNameQueried = false;
+        std::string  m_stallName;
+
+    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
 
     public:
@@ -237,6 +242,38 @@ class Hero: public CreatureMovable
         {
             m_teamLeader = teamLeader;
         }
+
+    public:
+        bool isStall() const
+        {
+            return m_stall;
+        }
+
+        void setStall(bool stall)
+        {
+            if(m_stall != stall){
+                m_stall = stall;
+                m_stallName.clear();
+                m_stallNameQueried = false;
+            }
+        }
+
+        void setStallName(std::string stallName)
+        {
+            m_stallName = std::move(stallName);
+        }
+
+        const std::string &getStallName() const
+        {
+            if(m_stall && m_stallName.empty() && !m_stallNameQueried){
+                queryStall();
+                m_stallNameQueried = true;
+            }
+            return m_stallName;
+        }
+
+    private:
+        void queryStall() const;
 
     public:
         bool isMyHero() const;

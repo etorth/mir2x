@@ -17,6 +17,7 @@
 #include "fflerror.hpp"
 #include "mapbindb.hpp"
 #include "servermap.hpp"
+#include "stalldb.hpp"
 #include "charobject.hpp"
 #include "server.hpp"
 #include "rotatecoord.hpp"
@@ -592,11 +593,26 @@ ServerMap::ServerMap(uint64_t argMapUID)
             break;
         }
     }
+
+    // player stall location is saved for base map only
+    if(uidf::isBaseMap(UID())){
+        for(auto &stall: dbLoadOfflineStallList(ID())){
+            addOfflineStall(std::move(stall));
+        }
+    }
 }
 
 corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
+        case AM_ADDOFFLINESTALL:
+            {
+                return on_AM_ADDOFFLINESTALL(rstMPK);
+            }
+        case AM_REMOVEOFFLINESTALL:
+            {
+                return on_AM_REMOVEOFFLINESTALL(rstMPK);
+            }
         case AM_PICKUP:
             {
                 return on_AM_PICKUP(rstMPK);
@@ -692,6 +708,12 @@ bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
                 if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                     return false;
                 }
+            }
+        }
+
+        if(bCheckCO){
+            if(getGrid(nX, nY).stallDBID){
+                return false;
             }
         }
 
@@ -1387,6 +1409,82 @@ void ServerMap::postGroundItemIDList(std::pair<uint64_t, int> uidRange, int x, i
     fflassert(uidRange.second <= SYS_MAX_VIEWR, uidRange.second);
 
     forwardNetPackage(uidRange.first, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, uidRange.second)));
+}
+
+void ServerMap::addOfflineStall(SDOfflineStall stall)
+{
+    if(!mapBin()->groundValid(stall.x, stall.y)){
+        return;
+    }
+
+    removeOfflineStall(stall.dbid);
+    if(auto &grid = getGrid(stall.x, stall.y); grid.stallDBID == 0){
+        grid.stallDBID = stall.dbid;
+    }
+
+    const auto x = stall.x;
+    const auto y = stall.y;
+
+    m_offlineStallList.insert_or_assign(stall.dbid, std::move(stall));
+    postGridOfflineStallList(x, y);
+}
+
+void ServerMap::removeOfflineStall(uint32_t dbid)
+{
+    if(auto p = m_offlineStallList.find(dbid); p != m_offlineStallList.end()){
+        const auto x = p->second.x;
+        const auto y = p->second.y;
+
+        if(auto &grid = getGrid(x, y); grid.stallDBID == dbid){
+            grid.stallDBID = 0;
+        }
+
+        m_offlineStallList.erase(p);
+        postGridOfflineStallList(x, y);
+    }
+}
+
+SDOfflineStallList ServerMap::getOfflineStallList(int x, int y, size_t r) const
+{
+    fflassert(r > 0);
+
+    SDOfflineStallList stallList
+    {
+        .mapUID = UID(),
+        .x = x,
+        .y = y,
+        .r = to_d(r),
+    };
+
+    for(const auto &[dbid, stall]: m_offlineStallList){
+        if(mathf::LDistance2<int>(x, y, stall.x, stall.y) <= to_d(r - 1) * to_d(r - 1)){
+            stallList.list.push_back(stall);
+        }
+    }
+    return stallList;
+}
+
+void ServerMap::postGridOfflineStallList(int x, int y)
+{
+    fflassert(mapBin()->groundValid(x, y));
+    const auto sdBuf = cerealf::serialize(getOfflineStallList(x, y, 1));
+
+    for(const auto uid: getGrid(x, y).observerList){
+        if(uidf::isPlayer(uid)){
+            forwardNetPackage(uid, SM_OFFLINESTALLLIST, sdBuf);
+        }
+    }
+}
+
+void ServerMap::postOfflineStallList(std::pair<uint64_t, int> uidRange, int x, int y)
+{
+    fflassert(mapBin()->groundValid(x, y));
+    fflassert(uidf::isPlayer(uidRange.first));
+
+    fflassert(uidRange.second > 0, uidRange.second);
+    fflassert(uidRange.second <= SYS_MAX_VIEWR, uidRange.second);
+
+    forwardNetPackage(uidRange.first, SM_OFFLINESTALLLIST, cerealf::serialize(getOfflineStallList(x, y, uidRange.second)));
 }
 
 SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)

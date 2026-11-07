@@ -114,9 +114,12 @@ class ServerMap final: public ServerObject
             // in servermap.lua
             std::vector<int> triggerList;
 
+            // dbid of the offline stall standing on this grid, blocks the grid like a creature
+            uint32_t stallDBID = 0;
+
             bool empty() const
             {
-                return !locked && uidList.empty() && observerList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && triggerList.empty();
+                return !locked && uidList.empty() && observerList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && triggerList.empty() && (stallDBID == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -150,6 +153,11 @@ class ServerMap final: public ServerObject
 
         // next free gridTriggerId handed out by allocateGridTriggerId()
         int m_gridTriggerID = 0;
+
+    private:
+        // offline stalls of this map, keyed by seller dbid
+        // an offline stall is a plain map object, it has no actor and no UID
+        std::unordered_map<uint32_t, SDOfflineStall> m_offlineStallList;
 
     private:
         const uint64_t m_mainScriptThreadKey = 1;
@@ -321,6 +329,17 @@ class ServerMap final: public ServerObject
         void postGroundItemIDList(std::pair<uint64_t, int>, int, int);
 
     private:
+        void addOfflineStall(SDOfflineStall);
+        void removeOfflineStall(uint32_t);
+
+    private:
+        SDOfflineStallList getOfflineStallList(int, int, size_t) const;
+
+    private:
+        void postGridOfflineStallList(int, int);
+        void postOfflineStallList(std::pair<uint64_t, int>, int, int);
+
+    private:
         void runFireWall(int, int, uint64_t);
         void attackFireWall(int, int, const FireWallMagicNode &);
 
@@ -471,4 +490,6 @@ class ServerMap final: public ServerObject
         corof::awaitable<> on_AM_CASTFIREWALL        (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOTECALL          (const ActorMsgPack &);
         corof::awaitable<> on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ADDOFFLINESTALL     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOVEOFFLINESTALL  (const ActorMsgPack &);
 };

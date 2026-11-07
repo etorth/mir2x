@@ -99,8 +99,15 @@ class InventoryBoard: public Widget
         void startInvOp(SDStartInvOp);
         void setInvOpCost(int, uint32_t, uint32_t, size_t);
 
+    public:
+        int getInvOp() const
+        {
+            return m_sdInvOp.invOp;
+        }
+
     private:
         void commitInvOp();
+        void commitStallItem(const SDItem &);
 
     public:
         void removeItem(uint32_t, uint32_t, size_t);

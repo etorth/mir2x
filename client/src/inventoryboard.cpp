@@ -1,11 +1,15 @@
 #include <array>
+#include <limits>
+#include <charconv>
 #include "luaf.hpp"
+#include "xmlf.hpp"
 #include "pngtexdb.hpp"
 #include "progusedb.hpp"
 #include "sdldevice.hpp"
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
+#include "inputstringboard.hpp"
 
 extern ProgUseDB *g_progUseDB;
 extern PNGTexDB *g_itemDB;
@@ -91,6 +95,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
                   case INVOP_TRADE : return {0X000000B3U, state - BEVENT_BEGIN};
                   case INVOP_SECURE: return {0X000000B5U, state - BEVENT_BEGIN};
                   case INVOP_REPAIR: return {0X000000B1U, state - BEVENT_BEGIN};
+                  case INVOP_STALL : return {0X000000B3U, state - BEVENT_BEGIN};
                   default          : return {0X000000B3U, state - BEVENT_BEGIN}; // use trade gfx, needs it to setup widget size
               }
           },
@@ -116,6 +121,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
                   case INVOP_TRADE : return "【请选择出售物品】";
                   case INVOP_SECURE: return "【请选择存储物品】";
                   case INVOP_REPAIR: return "【请选择修理物品】";
+                  case INVOP_STALL : return "【请选择摆摊物品】";
                   default: return {};
               }
           },
@@ -405,7 +411,10 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                                         m_selectedIndex = selectedPackIndex;
                                         const auto &selectedItem = invPackRef.getPackBinList().at(selectedPackIndex);
 
-                                        if(m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
+                                        if(m_sdInvOp.invOp == INVOP_STALL){
+                                            // no npc involved, any item can be put on stall
+                                        }
+                                        else if(m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
                                             m_processRun->sendNPCEvent(m_sdInvOp.uid, SYS_EPDEF, m_sdInvOp.queryTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
                                         }
                                         else{
@@ -696,12 +705,56 @@ void InventoryBoard::commitInvOp()
         return;
     }
 
+    if(m_sdInvOp.invOp == INVOP_STALL){
+        commitStallItem(selectedItem.item);
+        return;
+    }
+
     if(!m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
         return;
     }
 
     m_processRun->sendNPCEvent(m_sdInvOp.uid, SYS_EPDEF, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item.seqID)).c_str());
     m_invOpCost = -1;
+}
+
+void InventoryBoard::commitStallItem(const SDItem &item)
+{
+    if(m_processRun->myStallOpened()){
+        m_processRun->addCBLog(CBLOG_ERR, u8"摊位已开张，不能再添加物品");
+        return;
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+    fflassert(ir);
+
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
+
+    inputBoard->waitInput(
+    {
+        .layoutString = to_u8rawstr("<layout>" + xmlf::toParString(item.count > 1 ? "请输入%s的单价" : "请输入%s的价格", to_cstr(ir.name)) + "</layout>"),
+        .onAccept = [itemID = item.itemID, seqID = item.seqID, this](std::u8string input)
+        {
+            const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
+            uint64_t price = 0;
+            const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), price, 10);
+            if(value.empty()
+                    || ec != std::errc()
+                    || ptr != value.data() + value.size()
+                    || price == 0
+                    || price > to_u64(std::numeric_limits<int>::max())){
+                m_processRun->addCBLog(CBLOG_ERR, u8"无效的摆摊价格：%s", value.c_str());
+                return;
+            }
+            m_processRun->requestAddStallItem(itemID, seqID, price);
+        },
+        .validate = [](const std::string &currentInput, const std::string &newInput)
+        {
+            return currentInput.size() + newInput.size() <= 10
+                && newInput.find_first_not_of("0123456789") == std::string::npos;
+        },
+    });
 }
 
 void InventoryBoard::removeItem(uint32_t itemID, uint32_t seqID, size_t count)

@@ -175,6 +175,16 @@ void ProcessRun::update(double fUpdateTime)
         }
     }
 
+    for(auto p = m_offlineStallList.begin(); p != m_offlineStallList.end();){
+        if(getMyHero()->inViewRange(p->second.get())){
+            p->second->update(fUpdateTime);
+            ++p;
+        }
+        else{
+            p = m_offlineStallList.erase(p);
+        }
+    }
+
     for(auto p = m_fixedLocMagicList.begin(); p != m_fixedLocMagicList.end();){
         if((*p)->update(fUpdateTime)){
             p = m_fixedLocMagicList.erase(p);
@@ -344,6 +354,10 @@ void ProcessRun::draw() const
     {
         LocHashTable<std::vector<ClientCreature *>> table;
         for(auto &p: m_coList){
+            table[p.second->location()].push_back(p.second.get());
+        }
+
+        for(auto &p: m_offlineStallList){
             table[p.second->location()].push_back(p.second.get());
         }
         return table;
@@ -603,6 +617,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 
     if(getMyHero()->dead().value_or(true)){
+        return;
+    }
+
+    if(processStallBarEvent(event)){
         return;
     }
 
@@ -866,6 +884,7 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
         }
 
         m_groundItemIDList.clear();
+        m_offlineStallList.clear();
         fnUpdateLoadRatio(40);
 
         const int winW = 1200;
@@ -973,6 +992,10 @@ int ProcessRun::checkPathGrid(int argX, int argY) const
                 && p.second->y() == argY){
             locked = true;
         }
+    }
+
+    if(hasOfflineStall(argX, argY)){
+        return PF_OCCUPIED;
     }
     return locked ? PF_LOCKED : PF_FREE;
 }

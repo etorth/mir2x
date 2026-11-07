@@ -546,6 +546,7 @@ Player::Player(const SDInitPlayer &initParam)
     dbLoadWear();
     dbLoadBelt();
     m_sdItemStorage.inventory = dbLoadInventory(dbid());
+    loadStall();
     dbLoadFriendList();
     dbLoadLearnedMagic();
     dbLoadPlayerConfig();
@@ -749,6 +750,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_CANCELDIRECTTRADE(mpk);
             }
+        case AM_STALLSOLD:
+            {
+                return on_AM_STALLSOLD(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str(UID()));
@@ -758,6 +763,16 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, uint64_t respID)
 {
+    if(stallOpened() && stallBlockedCM(nType)){
+        if(nType == CM_ACTION){
+            reportStand();
+        }
+        else{
+            postStallError(STALLERR_OPENED, respID);
+        }
+        return {};
+    }
+
     switch(nType){
 #define _support_cm(cm) case cm: return net_##cm(nType, pData, nDataLen, respID)
         _support_cm(CM_ACTION                    );
@@ -820,6 +835,12 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_UPDATEDIRECTTRADE         );
         _support_cm(CM_COMMITDIRECTTRADE         );
         _support_cm(CM_CANCELDIRECTTRADE         );
+        _support_cm(CM_ADDSTALLITEM              );
+        _support_cm(CM_REMOVESTALLITEM           );
+        _support_cm(CM_OPENSTALL                 );
+        _support_cm(CM_CLOSESTALL                );
+        _support_cm(CM_QUERYSTALL                );
+        _support_cm(CM_BUYSTALLITEM              );
         default:
             {
                 throw fflvalue(ClientMsg(nType).name());
@@ -843,6 +864,7 @@ void Player::reportCO(uint64_t toUID)
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
     amCOR.Player.teamLeader = (m_teamLeader == UID());
+    amCOR.Player.stall = stallOpened();
     amCOR.Player.Level = level();
     m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
@@ -903,6 +925,10 @@ void Player::reportNextStrike()
 
 void Player::onDie()
 {
+    if(stallOpened() || !m_sdStall.empty()){
+        closeStall();
+    }
+
     m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_trigger(SYS_ON_DIE)");
     const ActionDie die
     {
@@ -1245,6 +1271,8 @@ bool Player::goOffline(bool disconnect)
     const auto channID = m_channID.value();
 
     dispatchOffline();
+    dispatchOfflineStall();
+
     if(disconnect){
         reportOffline(UID(), mapUID()); // report self offline
     }
@@ -2108,6 +2136,7 @@ void Player::postOnlineOK()
     postExp();
     postNetMessage(SM_HEALTH,           cerealf::serialize(m_sdHealth));
     postNetMessage(SM_INVENTORY,        cerealf::serialize(m_sdItemStorage.inventory));
+    postNetMessage(SM_STALL,            cerealf::serialize(m_sdStall));
     postNetMessage(SM_BELT,             cerealf::serialize(m_sdItemStorage.belt));
     postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
     postNetMessage(SM_PLAYERCONFIG,     cerealf::serialize(m_sdPlayerConfig));
@@ -2709,6 +2738,12 @@ std::vector<std::string> Player::parseRemoteCall(const char *query)
 
 void Player::afterChangeGLoc()
 {
+    // player can't move while stall is open
+    // if a script moves it anyway, the stall can't stay at its saved location
+    if(stallOpened()){
+        closeStall();
+    }
+
     for(const auto uid: m_slaveList){
         dispatchAction(uid, makeActionStand());
     }
@@ -2889,7 +2924,7 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
 
 corof::awaitable<bool> Player::followTeamLeader()
 {
-    if(!m_teamLeader){
+    if(!m_teamLeader || stallOpened()){
         co_return false;
     }
 

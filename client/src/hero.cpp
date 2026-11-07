@@ -201,7 +201,12 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     if(m_currMotion->gfxType(frame) != MOTION_DIE){
         const int playerHeadX = startX + 23;
         const int playerHeadY = startY - 50;
+
         m_overHeadBoard.draw({.dir = DIR_DOWN, .x = playerHeadX, .y = playerHeadY});
+        m_overHeadPLoc = std::make_tuple(playerHeadX + viewX, playerHeadY + viewY);
+    }
+    else{
+        m_overHeadPLoc.reset();
     }
 
     if(showName(focusMask)){
@@ -1669,6 +1674,11 @@ void Hero::queryName() const
 
     cmQPN.uid = UID();
     g_client->send({CM_QUERYPLAYERNAME, cmQPN});
+}
+
+void Hero::queryStall() const
+{
+    m_processRun->requestQueryStall(dbid());
 }
 
 bool Hero::isMyHero() const

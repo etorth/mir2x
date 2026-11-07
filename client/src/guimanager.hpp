@@ -6,6 +6,7 @@
 #include "gui/auctionboard/auctionboard.hpp"
 #include "gui/auctionboard/auctionregisterboard.hpp"
 #include "gui/directtradeboard/directtradeboard.hpp"
+#include "gui/stallboard/stallboard.hpp"
 #include "gui/herostateboard/herostateboard.hpp"
 #include "guildboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
@@ -42,6 +43,7 @@ class GUIManager: public Widget
         AuctionBoard m_auctionBoard;
         AuctionRegisterBoard m_auctionRegisterBoard;
         DirectTradeBoard m_directTradeBoard;
+        StallBoard m_stallBoard;
         HeroStateBoard m_heroStateBoard;
         PurchaseBoard m_purchaseBoard;
         TeamStateBoard m_teamStateBoard;

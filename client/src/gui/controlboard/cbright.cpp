@@ -89,9 +89,7 @@ CBRight::CBRight(
 
           .onTrigger = [this](Widget *, int)
           {
-              if(auto cb = hasParent<ControlBoard>()){
-                  cb->addLog(0, "exchange doesn't implemented yet");
-              }
+              m_processRun->openStallBoard(to_u32(m_processRun->getMyHeroDBID()));
           },
 
           .triggerOnDone = true,

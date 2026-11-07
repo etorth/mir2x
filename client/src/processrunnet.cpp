@@ -317,6 +317,10 @@ void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
             {
                 auto heroPtr = new Hero(smCOR.UID, smCOR.Player.gender, smCOR.Player.job, this, smCOR.action);
                 heroPtr->setTeamLeader(smCOR.Player.teamLeader);
+                heroPtr->setStall(smCOR.Player.stall);
+
+                // seller logs in again, its offline stall is replaced by the online player
+                m_offlineStallList.erase(uidf::getPlayerDBID(smCOR.UID));
 
                 m_coList[smCOR.UID].reset(heroPtr);
                 queryUIDBuff(smCOR.UID);

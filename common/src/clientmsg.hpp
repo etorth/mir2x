@@ -84,6 +84,12 @@ enum CMType: uint8_t
     CM_UPDATEDIRECTTRADE,
     CM_COMMITDIRECTTRADE,
     CM_CANCELDIRECTTRADE,
+    CM_ADDSTALLITEM,
+    CM_REMOVESTALLITEM,
+    CM_OPENSTALL,
+    CM_CLOSESTALL,
+    CM_QUERYSTALL,
+    CM_BUYSTALLITEM,
     CM_END,
 };
 
@@ -428,6 +434,38 @@ struct CMUnregisterAuctionItem
     uint64_t auctionID;
 };
 
+struct CMAddStallItem
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    uint64_t price;
+};
+
+struct CMRemoveStallItem
+{
+    uint32_t itemID;
+    uint32_t seqID;
+};
+
+struct CMOpenStall
+{
+    StaticBuffer<SYS_STALLNAMESIZE> name;
+};
+
+struct CMQueryStall
+{
+    uint32_t dbid;
+};
+
+struct CMBuyStallItem
+{
+    uint32_t sellerDBID;
+    uint32_t itemID;
+    uint32_t seqID;
+    uint32_t count;
+    uint64_t price;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -514,6 +552,12 @@ namespace
         _RSVD_register_clientmsg(CM_UPDATEDIRECTTRADE,          3                                      );
         _RSVD_register_clientmsg(CM_COMMITDIRECTTRADE,          1, sizeof(CMCommitDirectTrade)         );
         _RSVD_register_clientmsg(CM_CANCELDIRECTTRADE,          1, sizeof(CMCancelDirectTrade)         );
+        _RSVD_register_clientmsg(CM_ADDSTALLITEM,               1, sizeof(CMAddStallItem)              );
+        _RSVD_register_clientmsg(CM_REMOVESTALLITEM,            1, sizeof(CMRemoveStallItem)           );
+        _RSVD_register_clientmsg(CM_OPENSTALL,                  1, sizeof(CMOpenStall)                 );
+        _RSVD_register_clientmsg(CM_CLOSESTALL,                 0                                      );
+        _RSVD_register_clientmsg(CM_QUERYSTALL,                 1, sizeof(CMQueryStall)                );
+        _RSVD_register_clientmsg(CM_BUYSTALLITEM,               1, sizeof(CMBuyStallItem)              );
 
 #undef _RSVD_register_clientmsg
         return result;

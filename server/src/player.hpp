@@ -99,6 +99,11 @@ class Player final: public BattleObject
         SDDirectTradeOffer m_directTradePeerOffer;
 
     private:
+        // m_sdStall.dbid is always dbid()
+        // cache of tbl_stall, reloaded after every change since a buyer can change it in database directly
+        SDStall m_sdStall;
+
+    private:
         bool m_pickUpLock = false;
 
     private:
@@ -246,6 +251,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &);
         corof::awaitable<> on_AM_DIRECTTRADEERROR   (const ActorMsgPack &);
         corof::awaitable<> on_AM_CANCELDIRECTTRADE  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_STALLSOLD          (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -309,6 +315,12 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_UPDATEDIRECTTRADE         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_COMMITDIRECTTRADE         (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_CANCELDIRECTTRADE         (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_ADDSTALLITEM              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REMOVESTALLITEM           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_OPENSTALL                 (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CLOSESTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYSTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_BUYSTALLITEM              (uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         void reportGold();
@@ -348,6 +360,25 @@ class Player final: public BattleObject
         void applyDirectTradeResult(SDDirectTradeResult);
         void cancelDirectTrade();
         void commitDirectTrade();
+
+    public:
+        bool stallOpened() const
+        {
+            return m_sdStall.open;
+        }
+
+    private:
+        static bool stallBlockedCM(uint8_t);
+
+    private:
+        void loadStall();
+        void reloadStall();
+        void closeStall();
+        void postStall();
+        void postStallError(int, uint64_t = 0);
+        void dispatchStallState();
+        void dispatchOfflineStall();
+        SDOfflineStall makeOfflineStall() const;
 
     protected:
         bool struckDamage(uint64_t, const DamageNode &) override;

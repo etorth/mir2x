@@ -113,6 +113,11 @@ enum SMType: uint8_t
     SM_REVIVE,
     SM_VIEWRANGE,
     SM_NPCNAME,
+    SM_STALL,
+    SM_STALLERROR,
+    SM_PLAYERSTALL,
+    SM_QUERYSTALLOK,
+    SM_OFFLINESTALLLIST,
     SM_END,
 };
 
@@ -208,6 +213,7 @@ struct SMCORecord
         uint8_t gender     : 1;
         uint8_t job        : 3;
         uint8_t teamLeader : 1;
+        uint8_t stall      : 1;
         uint32_t Level;
     };
 
@@ -437,6 +443,17 @@ struct SMDirectTradeError
     uint8_t error;
 };
 
+struct SMStallError
+{
+    uint8_t error;
+};
+
+struct SMPlayerStall
+{
+    uint64_t uid;
+    uint8_t  open;
+};
+
 struct SMNPCError
 {
     uint8_t error;
@@ -592,6 +609,11 @@ namespace
         _RSVD_register_servermsg(SM_COMPLETEDIRECTTRADE,    1, sizeof(SMCompleteDirectTrade)   );
         _RSVD_register_servermsg(SM_CLOSEDIRECTTRADE,       1, sizeof(SMCloseDirectTrade)      );
         _RSVD_register_servermsg(SM_DIRECTTRADEERROR,       1, sizeof(SMDirectTradeError)      );
+        _RSVD_register_servermsg(SM_STALL,                  3                                  );
+        _RSVD_register_servermsg(SM_STALLERROR,             1, sizeof(SMStallError)            );
+        _RSVD_register_servermsg(SM_PLAYERSTALL,            1, sizeof(SMPlayerStall)           );
+        _RSVD_register_servermsg(SM_QUERYSTALLOK,           3                                  );
+        _RSVD_register_servermsg(SM_OFFLINESTALLLIST,       3                                  );
 
 #undef _RSVD_register_servermsg
         return result;

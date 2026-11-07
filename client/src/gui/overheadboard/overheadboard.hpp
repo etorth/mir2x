@@ -8,6 +8,7 @@
 #include "texaniboard.hpp"
 #include "messagestackboard.hpp"
 #include "itemflex.hpp"
+#include "gui/stallbar/stallbar.hpp"
 
 class ProcessRun;
 class ClientCreature;
@@ -57,6 +58,9 @@ class OverHeadBoard: public Widget
         GfxCropBoard m_resizeFullCrop;
 
     private:
+        StallBar m_stallBar;
+
+    private:
         ItemFlex m_flex;
 
     public:
@@ -65,6 +69,7 @@ class OverHeadBoard: public Widget
     private:
         bool showNumber() const;
         bool showBar   () const;
+        bool showStall () const;
 
     private:
         int     barWidthClip() const;

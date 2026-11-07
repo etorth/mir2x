@@ -236,6 +236,27 @@ enum DirectTradeErrorType: uint8_t
     DTRADEERR_COMMITFAILED,
 };
 
+enum StallErrorType: uint8_t
+{
+    STALLERR_NONE = 0,
+    STALLERR_NOTALLOWED,
+    STALLERR_BUSY,
+    STALLERR_DEAD,
+    STALLERR_OPENED,
+    STALLERR_NOTOPENED,
+    STALLERR_FULL,
+    STALLERR_EMPTY,
+    STALLERR_BADITEM,
+    STALLERR_BADPRICE,
+    STALLERR_BADNAME,
+    STALLERR_BADCOUNT,
+    STALLERR_NOGOLD,
+    STALLERR_NOSPACE,
+    STALLERR_SELFBUY,
+    STALLERR_STALE,
+    STALLERR_DBFAILED,
+};
+
 enum AttributeType: int
 {
     ATR_NONE  = 0,
@@ -403,6 +424,7 @@ enum InvOpType: int
     INVOP_TRADE = INVOP_BEGIN,
     INVOP_SECURE,
     INVOP_REPAIR,
+    INVOP_STALL, // client only, select items to put on stall
     INVOP_END,
 };
 

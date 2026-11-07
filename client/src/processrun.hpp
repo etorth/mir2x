@@ -124,6 +124,14 @@ class ProcessRun: public Process
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
 
     private:
+        // offline stalls are not creatures in server, keyed by seller dbid
+        // client draws them as standing heroes, they are never in m_coList
+        std::unordered_map<uint32_t, std::unique_ptr<Hero>> m_offlineStallList;
+
+    private:
+        SDStall m_myStall;
+
+    private:
         std::set<uint64_t> m_actionBlocker;
 
     private:
@@ -296,6 +304,11 @@ class ProcessRun: public Process
         _support_sm(SM_CLOSEDIRECTTRADE);
         _support_sm(SM_DIRECTTRADEERROR);
         _support_sm(SM_AUCTIONITEMLIST);
+        _support_sm(SM_STALL);
+        _support_sm(SM_STALLERROR);
+        _support_sm(SM_PLAYERSTALL);
+        _support_sm(SM_QUERYSTALLOK);
+        _support_sm(SM_OFFLINESTALLLIST);
 #undef _support_sm
 
     public:
@@ -506,6 +519,35 @@ class ProcessRun: public Process
         void commitDirectTrade(uint64_t);
         void cancelDirectTrade(uint64_t);
         void requestLatestChatMessage(const std::vector<uint64_t> &, size_t, bool, bool);
+
+    public:
+        void requestAddStallItem(uint32_t, uint32_t, size_t);
+        void requestRemoveStallItem(uint32_t, uint32_t);
+        void requestOpenStall(const std::string &);
+        void requestCloseStall();
+        void requestQueryStall(uint32_t) const;
+        void requestBuyStallItem(uint32_t, uint32_t, uint32_t, size_t, size_t);
+
+    public:
+        const SDStall &getMyStall() const
+        {
+            return m_myStall;
+        }
+
+        bool myStallOpened() const
+        {
+            return m_myStall.open;
+        }
+
+        bool hasOfflineStall(int, int) const;
+        std::string getStallSellerName(uint32_t) const;
+
+    public:
+        void openStallBoard(uint32_t);
+
+    private:
+        void eraseOfflineStallList(int, int, int);
+        bool processStallBarEvent(const SDL_Event &);
 
     public:
         std::tuple<uint64_t, int, int> getMap() const

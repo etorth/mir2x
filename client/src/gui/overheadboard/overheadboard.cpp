@@ -237,6 +237,24 @@ OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
           },
       }}
 
+    , m_stallBar
+      {{
+          .nameFunc = [this] -> std::string
+          {
+              if(auto hero = dynamic_cast<Hero *>(m_creature)){
+                  return hero->getStallName();
+              }
+              return {};
+          },
+
+          .onClick = [this]
+          {
+              if(auto hero = dynamic_cast<Hero *>(m_creature)){
+                  m_runProc->openStallBoard(hero->dbid());
+              }
+          },
+      }}
+
     , m_flex
       {{
           .align = ItemAlign::CENTER,
@@ -271,6 +289,8 @@ OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
                       }
                   },
               }}, true},
+
+              {std::addressof(m_stallBar), false},
           },
 
           .parent
@@ -293,6 +313,11 @@ OverHeadBoard::OverHeadBoard(OverHeadBoard::InitArgs args)
         return false;
     });
 
+    m_stallBar.setShow([this]
+    {
+        return showStall();
+    });
+
     m_iconArea.setW([this]{ return buffIconsPerRow() * HPBuffIcon::buffIconDrawW; });
 }
 
@@ -303,6 +328,10 @@ bool OverHeadBoard::showNumber() const
 
 bool OverHeadBoard::showBar() const
 {
+    if(showStall()){
+        return false;
+    }
+
     if(m_runProc->getRuntimeConfig<RTCFG_显示血条>()){
         return true;
     }
@@ -311,6 +340,14 @@ bool OverHeadBoard::showBar() const
         return m_creature->getSDHealth().has_value() && m_creature->getSDHealth()->hp < m_creature->getSDHealth()->getMaxHP();
     }
 
+    return false;
+}
+
+bool OverHeadBoard::showStall() const
+{
+    if(auto hero = dynamic_cast<Hero *>(m_creature)){
+        return hero->isStall();
+    }
     return false;
 }
 

@@ -89,6 +89,15 @@ GUIManager::GUIManager(ProcessRun *argProc)
           .parent{this},
       }}
 
+    , m_stallBoard
+      {{
+          .x = std::max<int>(0, g_sdlDevice->getWindowLogicalWidth() / 2 - 141 - 282),
+          .y = g_sdlDevice->getWindowLogicalHeight() / 2 - 233,
+
+          .runProc = argProc,
+          .parent{this},
+      }}
+
     , m_heroStateBoard
       {{
           .runProc = argProc,
@@ -312,6 +321,10 @@ Widget *GUIManager::getWidget(const std::string_view &name)
         return &m_directTradeBoard;
     }
 
+    else if(name == "StallBoard"){
+        return &m_stallBoard;
+    }
+
     else if(name == "HeroStateBoard"){
         return &m_heroStateBoard;
     }
@@ -369,6 +382,7 @@ void GUIManager::afterResizeDefault()
     fnSetWidgetPLoc(&m_skillBoard);
     fnSetWidgetPLoc(&m_guildBoard);
     fnSetWidgetPLoc(&m_directTradeBoard);
+    fnSetWidgetPLoc(&m_stallBoard);
     fnSetWidgetPLoc(&m_heroStateBoard);
     fnSetWidgetPLoc(&m_inventoryBoard);
     fnSetWidgetPLoc(&m_quickAccessBoard);

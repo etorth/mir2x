@@ -96,6 +96,8 @@ constexpr size_t SYS_DELIVERYRECORDSIZE = 32;
 constexpr size_t SYS_AUCTIONNOTESIZE = 128;
 constexpr size_t SYS_AUCTIONLIFETIME = 7u * 24 * 60 * 60; // 7 days
 constexpr size_t SYS_AUCTIONTAXRATE = 2;
+constexpr size_t SYS_STALLMAXITEM = 36;
+constexpr size_t SYS_STALLNAMESIZE = 48; // bytes of utf-8 stall name, including the null terminator
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)

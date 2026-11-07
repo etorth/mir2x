@@ -2,6 +2,7 @@
 #include <list>
 #include <deque>
 #include <array>
+#include <tuple>
 #include <memory>
 #include <cstddef>
 #include <cstdint>
@@ -54,6 +55,11 @@ class ClientCreature
     protected:
         LabelBoard m_nameBoard;
         OverHeadBoard m_overHeadBoard;
+
+    protected:
+        // map pixel location where m_overHeadBoard was last drawn, DIR_DOWN aligned
+        // used to route mouse events to the overhead board
+        std::optional<std::tuple<int, int>> m_overHeadPLoc;
 
     protected:
         ClientCreature(uint64_t, ProcessRun *);
@@ -169,6 +175,17 @@ class ClientCreature
 
     protected:
         void drawName(int, int) const;
+
+    public:
+        bool processOverHeadEvent(const SDL_Event &event, bool valid, int viewX, int viewY)
+        {
+            if(!m_overHeadPLoc.has_value()){
+                return false;
+            }
+
+            const auto [headPX, headPY] = m_overHeadPLoc.value();
+            return m_overHeadBoard.processEvent(event, valid, {.dir = DIR_DOWN, .x = headPX - viewX, .y = headPY - viewY});
+        }
 
     public:
         virtual void draw(int viewX, int viewY, int focusMask)

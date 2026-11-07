@@ -198,3 +198,31 @@ create table tbl_auctionitem(
 
 create index tbl_auctionitem_seller_index     on tbl_auctionitem(fld_seller);
 create index tbl_auctionitem_expiretime_index on tbl_auctionitem(fld_expiretime);
+
+create table tbl_stall(
+    fld_dbid           integer not null primary key,
+    fld_name           text    not null default '',
+    fld_open           integer not null default 0 check(fld_open in (0, 1)),
+    fld_map            integer not null default 0,
+    fld_mapx           integer not null default 0,
+    fld_mapy           integer not null default 0,
+    fld_offline        blob        null,
+
+    foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade
+) strict;
+
+create index tbl_stall_map_index on tbl_stall(fld_map);
+
+create table tbl_stallitem(
+    fld_dbid           integer not null,
+    fld_itemid         integer not null,
+    fld_seqid          integer not null,
+    fld_count          integer not null check(fld_count > 0),
+    fld_duration       integer not null check(fld_duration >= 0),
+    fld_maxduration    integer not null check(fld_maxduration >= 0),
+    fld_extattrlist    blob    not null,
+    fld_price          integer not null check(fld_price > 0),
+
+    foreign key (fld_dbid) references tbl_stall(fld_dbid) on delete cascade,
+    primary key (fld_dbid, fld_itemid, fld_seqid)
+) strict;
