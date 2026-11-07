@@ -27,31 +27,19 @@ StallBar::StallBar(StallBar::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
-    , m_bg
-      {{
-          .w = [this]{ return nameSpaceWidth() + 10; },
-          .h = std::nullopt,
-
-          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000235); },
-          .modColor = [this] -> uint32_t
-          {
-              switch(m_button.getState()){
-                  case BEVENT_ON  : return colorf::RGBA(255, 255, 255, 255);
-                  case BEVENT_DOWN: return colorf::RGBA(150, 150, 150, 255);
-                  default         : return colorf::RGBA(200, 200, 200, 255);
-              }
-          },
-      }}
-
     , m_name
       {{
           .textFunc = std::move(args.nameFunc),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
+      }}
+
+    , m_bg
+      {{
+          .w = [this]{ return nameSpaceWidth() + 10; },
+          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000235); },
       }}
 
     , m_frameImage
@@ -105,9 +93,13 @@ StallBar::StallBar(StallBar::InitArgs args)
 
           .parent{this},
       }}
-{}
-
-int StallBar::nameSpaceWidth() const
 {
-    return std::max<int>(m_name.w(), 60);
+    m_bg.setColor([this] -> uint32_t
+    {
+        switch(m_button.getState()){
+            case BEVENT_ON  : return colorf::RGBA(255, 255, 255, 255);
+            case BEVENT_DOWN: return colorf::RGBA(150, 150, 150, 255);
+            default         : return colorf::RGBA(200, 200, 200, 255);
+        }
+    });
 }
