@@ -26,7 +26,10 @@
 #include "gui/auctionboard/auctionboard.hpp"
 #include "gui/directtradeboard/directtradeboard.hpp"
 #include "gui/herostateboard/herostateboard.hpp"
+#include "gui/stallboard/stallboard.hpp"
+#include "inventoryboard.hpp"
 #include "inputstringboard.hpp"
+#include "servermsg.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
@@ -1227,4 +1230,94 @@ void ProcessRun::on_SM_NPCERROR(const uint8_t *buf, size_t)
         default             : message = u8"NPC对话出错"; break;
     }
     addCBLog(CBLOG_ERR, u8"%s", to_cstr(message));
+}
+
+void ProcessRun::on_SM_STALL(const uint8_t *buf, size_t bufSize)
+{
+    m_myStall = cerealf::deserialize<SDStall>(buf, bufSize);
+    m_myStall.dbid = to_u32(getMyHeroDBID());
+
+    if(auto myHeroPtr = getMyHero()){
+        myHeroPtr->setStall(m_myStall.selling);
+        myHeroPtr->setStallName(m_myStall.selling ? m_myStall.name : std::string{});
+    }
+
+    if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == m_myStall.dbid){
+        stallBoard->loadStall(m_myStall);
+    }
+
+    if(m_myStall.selling){
+        if(auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard")); invBoard->getInvOp() == INVOP_STALL){
+            invBoard->clearInvOp();
+        }
+    }
+}
+
+void ProcessRun::on_SM_STALLERROR(const uint8_t *buf, size_t bufSize)
+{
+    const auto smSE = ServerMsg::conv<SMStallError>(buf, bufSize);
+    const char8_t *errStr = [&smSE]() -> const char8_t *
+    {
+        switch(smSE.error){
+            case STALLERR_NOTALLOWED: return u8"当前无法摆摊";
+            case STALLERR_BUSY      : return u8"交易中，无法进行摆摊操作";
+            case STALLERR_DEAD      : return u8"死亡状态无法摆摊";
+            case STALLERR_SELLING   : return u8"摊位已开张";
+            case STALLERR_NOTSELLING: return u8"摊位未开张";
+            case STALLERR_FULL      : return u8"摊位已满";
+            case STALLERR_EMPTY     : return u8"摊位没有物品";
+            case STALLERR_BADITEM   : return u8"无效的物品";
+            case STALLERR_BADPRICE  : return u8"无效的价格";
+            case STALLERR_BADNAME   : return u8"无效的摊位名称";
+            case STALLERR_BADCOUNT  : return u8"无效的数量";
+            case STALLERR_NOGOLD    : return u8"金币不足";
+            case STALLERR_SELFBUY   : return u8"不能购买自己的物品";
+            case STALLERR_STALE     : return u8"摊位物品已变化，请重新选择";
+            case STALLERR_DBFAILED  : return u8"摆摊操作失败";
+            default                 : return nullptr;
+        }
+    }();
+
+    if(errStr){
+        addCBLog(CBLOG_ERR, u8"%s", to_cstr(errStr));
+    }
+    else{
+        addCBLog(CBLOG_ERR, u8"摆摊错误：%d", to_d(smSE.error));
+    }
+}
+
+void ProcessRun::on_SM_PLAYERSTALL(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPS = ServerMsg::conv<SMPlayerStall>(buf, bufSize);
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPS.uid, false))){
+        heroPtr->setStall(smPS.selling);
+    }
+
+    const auto dbid = uidf::getPlayerDBID(smPS.uid);
+    if(dbid == getMyHeroDBID()){
+        return; // handled by SM_STALL
+    }
+
+    if(!smPS.selling){
+        if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == dbid){
+            stallBoard->loadStall(SDStall{.dbid = dbid});
+        }
+    }
+}
+
+void ProcessRun::on_SM_QUERYSTALLOK(const uint8_t *buf, size_t bufSize)
+{
+    auto sdS = cerealf::deserialize<SDStall>(buf, bufSize);
+    if(sdS.dbid == getMyHeroDBID()){
+        return;
+    }
+
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(sdS.dbid), false))){
+        heroPtr->setStall(sdS.selling);
+        heroPtr->setStallName(sdS.selling ? sdS.name : std::string{});
+    }
+
+    if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == sdS.dbid){
+        stallBoard->loadStall(std::move(sdS));
+    }
 }

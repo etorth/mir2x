@@ -1,8 +1,14 @@
 #include <cmath>
 #include <ranges>
 #include <memory>
+#include <vector>
 #include <numeric>
 #include <cstring>
+#include <algorithm>
+#include "client.hpp"
+#include "cerealf.hpp"
+#include "serdesmsg.hpp"
+#include "clientmsg.hpp"
 #include "actionnode.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
@@ -30,6 +36,8 @@
 #include "gui/skillboard/skillboard.hpp"
 #include "gui/herostateboard/herostateboard.hpp"
 #include "gui/quickaccessboard/quickaccessboard.hpp"
+#include "gui/stallboard/stallboard.hpp"
+#include "inventoryboard.hpp"
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
@@ -3004,4 +3012,150 @@ void ProcessRun::setCursor(int cursorState)
                 break;
             }
     }
+}
+
+void ProcessRun::requestAddStallItem(uint32_t itemID, uint32_t seqID, size_t price)
+{
+    CMAddStallItem cmASI;
+    std::memset(&cmASI, 0, sizeof(cmASI));
+
+    cmASI.itemID = itemID;
+    cmASI.seqID  = seqID;
+    cmASI.price  = price;
+    g_client->send({CM_ADDSTALLITEM, cmASI});
+}
+
+void ProcessRun::requestRemoveStallItem(uint32_t itemID, uint32_t seqID)
+{
+    CMRemoveStallItem cmRSI;
+    std::memset(&cmRSI, 0, sizeof(cmRSI));
+
+    cmRSI.itemID = itemID;
+    cmRSI.seqID  = seqID;
+    g_client->send({CM_REMOVESTALLITEM, cmRSI});
+}
+
+void ProcessRun::requestStartStall(const std::string &name)
+{
+    CMStartStall cmSS;
+    std::memset(&cmSS, 0, sizeof(cmSS));
+
+    fflassert(name.size() < cmSS.name.capacity(), name.size(), cmSS.name.capacity());
+    cmSS.name.assign(name);
+    g_client->send({CM_STARTSTALL, cmSS});
+}
+
+void ProcessRun::requestCloseStall()
+{
+    g_client->send(CM_CLOSESTALL);
+}
+
+void ProcessRun::requestQueryStall(uint32_t dbid) const
+{
+    CMQueryStall cmQS;
+    std::memset(&cmQS, 0, sizeof(cmQS));
+
+    cmQS.dbid = dbid;
+    g_client->send({CM_QUERYSTALL, cmQS});
+}
+
+void ProcessRun::requestBuyStallItem(uint32_t sellerDBID, uint32_t itemID, uint32_t seqID, size_t count, size_t price)
+{
+    CMBuyStallItem cmBSI;
+    std::memset(&cmBSI, 0, sizeof(cmBSI));
+
+    cmBSI.sellerDBID = sellerDBID;
+    cmBSI.itemID     = itemID;
+    cmBSI.seqID      = seqID;
+    cmBSI.count      = to_u32(count);
+    cmBSI.price      = price;
+    g_client->send({CM_BUYSTALLITEM, cmBSI});
+}
+
+std::string ProcessRun::getStallSellerName(uint32_t dbid) const
+{
+    if(dbid == getMyHeroDBID()){
+        return getMyHero()->getName();
+    }
+
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(dbid), false))){
+        return heroPtr->getName();
+    }
+    return {};
+}
+
+void ProcessRun::openStallBoard(uint32_t dbid)
+{
+    auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard"));
+    fflassert(stallBoard);
+
+    if(dbid == getMyHeroDBID()){
+        auto sdS = m_myStall;
+        sdS.dbid = dbid;
+        stallBoard->loadStall(std::move(sdS));
+
+        if(!m_myStall.selling){
+            auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
+            fflassert(invBoard);
+
+            invBoard->startInvOp({.invOp = INVOP_STALL});
+            invBoard->setShow(true);
+        }
+    }
+    else{
+        // show what we already know, the query response fills the item list
+        const auto stallName = [dbid, this]() -> std::string
+        {
+            if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(dbid), false))){
+                return heroPtr->getStallName();
+            }
+            return {};
+        }();
+
+        stallBoard->loadStall(SDStall
+        {
+            .dbid = dbid,
+            .selling = true,
+            .name = stallName,
+        });
+        requestQueryStall(dbid);
+    }
+
+    stallBoard->setShow(true);
+    stallBoard->setFocus(true);
+}
+
+bool ProcessRun::processStallBarEvent(const SDL_Event &event)
+{
+    switch(event.type){
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+            {
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+
+    std::vector<Hero *> heroList;
+    for(const auto &[uid, coPtr]: m_coList){
+        if(auto heroPtr = dynamic_cast<Hero *>(coPtr.get()); heroPtr && heroPtr->isStall()){
+            heroList.push_back(heroPtr);
+        }
+    }
+
+    // stall drawn later is on top, it takes event first
+    std::sort(heroList.begin(), heroList.end(), [](const Hero *lhs, const Hero *rhs)
+    {
+        return std::make_tuple(lhs->y(), lhs->x()) > std::make_tuple(rhs->y(), rhs->x());
+    });
+
+    bool tookEvent = false;
+    for(auto heroPtr: heroList){
+        tookEvent = heroPtr->processOverHeadEvent(event, !tookEvent, m_viewX, m_viewY) || tookEvent;
+    }
+    return tookEvent;
 }
