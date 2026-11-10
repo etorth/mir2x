@@ -245,7 +245,22 @@ CBLeft::CBLeft(
           .onTrigger = [this](Widget *, int)
           {
               if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))){
-                  inputBoard->waitChoice(u8R"###(<layout><par>确认退出游戏吗？</par></layout>)###", {}, true, +[](size_t){ std::exit(0); }, +[]{});
+                  inputBoard->waitChoice({},
+                  {
+                      u8R"###(<layout><par>退出游戏</par></layout>)###",
+                      u8R"###(<layout><par>离线挂机</par></layout>)###",
+                  },
+
+                  true, [this](size_t choice)
+                  {
+                      if(choice == 0){
+                          std::exit(0);
+                      }
+                      else{
+                          m_processRun->requestHostOffline();
+                      }
+                  },
+                  +[]{});
               }
           },
 
@@ -266,22 +281,7 @@ CBLeft::CBLeft(
                       inputBoard->waitChoice(u8R"###(<layout><par>返回复活点吗？</par></layout>)###", {}, true, [this](size_t){ m_processRun->requestRevive(); }, +[]{});
                   }
                   else{
-                      inputBoard->waitChoice({},
-                      {
-                          u8R"###(<layout><par>返回人物界面</par></layout>)###",
-                          u8R"###(<layout><par>离线挂机</par></layout>)###",
-                      },
-
-                      true, [this](size_t choice)
-                      {
-                          if(choice == 0){
-                              m_processRun->requestLogout();
-                          }
-                          else{
-                              m_processRun->requestHostOffline();
-                          }
-                      },
-                      +[]{});
+                      inputBoard->waitChoice(u8R"###(<layout><par>返回人物界面吗？</par></layout>)###", {}, true, [this](size_t){ m_processRun->requestLogout(); }, +[]{});
                   }
               }
           },
