@@ -199,14 +199,8 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 
     // draw HP bar
     if(m_currMotion->gfxType(frame) != MOTION_DIE){
-        const int playerHeadX = startX + 23;
-        const int playerHeadY = startY - 50;
-
-        m_overHeadBoard.draw({.dir = DIR_DOWN, .x = playerHeadX, .y = playerHeadY});
-        m_overHeadPLoc = std::make_tuple(playerHeadX + viewX, playerHeadY + viewY);
-    }
-    else{
-        m_overHeadPLoc.reset();
+        const auto [headX, headY] = getOverHeadLoc(frame, viewX, viewY);
+        m_overHeadBoard.draw({.dir = DIR_DOWN, .x = headX, .y = headY});
     }
 
     if(showName(focusMask)){
@@ -214,6 +208,25 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
             drawName(startX + SYS_MAPGRIDXP / 2, startY + SYS_MAPGRIDYP / 2 + 8);
         }
     }
+}
+
+std::tuple<int, int> Hero::getOverHeadLoc(int frame, int viewX, int viewY) const
+{
+    const auto [shiftX, shiftY] = getShift(frame);
+    const auto startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX - viewX;
+    const auto startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY - viewY;
+
+    return {startX + 23, startY - 50};
+}
+
+bool Hero::processOverHeadEvent(const SDL_Event &event, bool valid, int viewX, int viewY)
+{
+    if(m_currMotion->gfxType(m_currMotion->frame) == MOTION_DIE){
+        return false;
+    }
+
+    const auto [headX, headY] = getOverHeadLoc(m_currMotion->frame, viewX, viewY);
+    return m_overHeadBoard.processEvent(event, valid, {.dir = DIR_DOWN, .x = headX, .y = headY});
 }
 
 bool Hero::update(double fUpdateTime)

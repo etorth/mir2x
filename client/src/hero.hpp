@@ -62,6 +62,12 @@ class Hero: public CreatureMovable
         void drawFrame(int, int, int, int, bool) override;
 
     public:
+        bool processOverHeadEvent(const SDL_Event &, bool, int, int);
+
+    private:
+        std::tuple<int, int> getOverHeadLoc(int, int, int) const;
+
+    public:
         void addPlayerSay(const std::string &);
 
     public:
