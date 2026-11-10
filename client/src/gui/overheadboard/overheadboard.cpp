@@ -346,7 +346,7 @@ bool OverHeadBoard::showBar() const
 bool OverHeadBoard::showStall() const
 {
     if(auto hero = dynamic_cast<Hero *>(m_creature)){
-        return hero->isStall();
+        return hero->stallSelling();
     }
     return false;
 }

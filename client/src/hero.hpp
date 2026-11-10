@@ -42,7 +42,7 @@ class Hero: public CreatureMovable
         bool m_teamLeader = false;
 
     protected:
-        bool m_stall = false;
+        bool m_stallSelling = false;
         mutable bool m_stallNameQueried = false;
         std::string  m_stallName;
 
@@ -250,15 +250,15 @@ class Hero: public CreatureMovable
         }
 
     public:
-        bool isStall() const
+        bool stallSelling() const
         {
-            return m_stall;
+            return m_stallSelling;
         }
 
-        void setStall(bool stall)
+        void setStallSelling(bool selling)
         {
-            if(m_stall != stall){
-                m_stall = stall;
+            if(m_stallSelling != selling){
+                m_stallSelling = selling;
                 m_stallName.clear();
                 m_stallNameQueried = false;
             }
@@ -271,7 +271,7 @@ class Hero: public CreatureMovable
 
         const std::string &getStallName() const
         {
-            if(m_stall && m_stallName.empty() && !m_stallNameQueried){
+            if(m_stallSelling && m_stallName.empty() && !m_stallNameQueried){
                 queryStall();
                 m_stallNameQueried = true;
             }

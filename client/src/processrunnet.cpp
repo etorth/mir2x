@@ -320,7 +320,7 @@ void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
             {
                 auto heroPtr = new Hero(smCOR.UID, smCOR.Player.gender, smCOR.Player.job, this, smCOR.action);
                 heroPtr->setTeamLeader(smCOR.Player.teamLeader);
-                heroPtr->setStall(smCOR.Player.stall);
+                heroPtr->setStallSelling(smCOR.Player.stall);
 
                 m_coList[smCOR.UID].reset(heroPtr);
                 queryUIDBuff(smCOR.UID);
@@ -1238,7 +1238,7 @@ void ProcessRun::on_SM_STALL(const uint8_t *buf, size_t bufSize)
     m_myStall.dbid = to_u32(getMyHeroDBID());
 
     if(auto myHeroPtr = getMyHero()){
-        myHeroPtr->setStall(m_myStall.selling);
+        myHeroPtr->setStallSelling(m_myStall.selling);
         myHeroPtr->setStallName(m_myStall.selling ? m_myStall.name : std::string{});
     }
 
@@ -1290,7 +1290,7 @@ void ProcessRun::on_SM_PLAYERSTALL(const uint8_t *buf, size_t bufSize)
 {
     const auto smPS = ServerMsg::conv<SMPlayerStall>(buf, bufSize);
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPS.uid, false))){
-        heroPtr->setStall(smPS.selling);
+        heroPtr->setStallSelling(smPS.selling);
     }
 
     const auto dbid = uidf::getPlayerDBID(smPS.uid);
@@ -1313,7 +1313,7 @@ void ProcessRun::on_SM_QUERYSTALLOK(const uint8_t *buf, size_t bufSize)
     }
 
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(sdS.dbid), false))){
-        heroPtr->setStall(sdS.selling);
+        heroPtr->setStallSelling(sdS.selling);
         heroPtr->setStallName(sdS.selling ? sdS.name : std::string{});
     }
 

@@ -3142,7 +3142,7 @@ bool ProcessRun::processStallBarEvent(const SDL_Event &event)
 
     std::vector<Hero *> heroList;
     for(const auto &[uid, coPtr]: m_coList){
-        if(auto heroPtr = dynamic_cast<Hero *>(coPtr.get()); heroPtr && heroPtr->isStall()){
+        if(auto heroPtr = dynamic_cast<Hero *>(coPtr.get()); heroPtr && heroPtr->stallSelling()){
             heroList.push_back(heroPtr);
         }
     }
