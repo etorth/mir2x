@@ -87,6 +87,7 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_QUERYQUESTUIDLIST     (const ActorMsgPack &);
         corof::awaitable<> on_AM_PLAYERBROADCAST       (const ActorMsgPack &);
         corof::awaitable<> on_AM_PLAYERLOGOUT          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PLAYERHOSTED          (const ActorMsgPack &);
         corof::awaitable<> on_AM_GRANTITEMLIST         (const ActorMsgPack &);
 
     private:

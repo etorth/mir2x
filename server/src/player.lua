@@ -141,22 +141,10 @@ local function logQuestError(msg, err)
     end
 end
 
-function _RSVD_NAME_setupQuests()
+function _RSVD_NAME_postQuestDespList()
     local questDespList = {}
     for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList') or {})
     do
-        -- a quest failing its restore, i.e. a saved NPC behavior that doesn't load anymore, doesn't stop the other quests
-        local restored, restoreErr = pcall(uidRemoteCall, questUID, getUID(),
-        [[
-            local playerUID = ...
-            _RSVD_NAME_loadQuestContext(playerUID)
-            _RSVD_NAME_restoreQuestStates(playerUID)
-        ]])
-
-        if not restored then
-            logQuestError(string.format('Quest %s failed to restore player %s', getUIDString(questUID), getUIDString(getUID())), restoreErr)
-        end
-
         local questName, questState, questDesp = uidRemoteCall(questUID, getUID(),
         [[
             local playerUID = ...
@@ -176,6 +164,25 @@ function _RSVD_NAME_setupQuests()
     end
 
     _RSVD_NAME_reportQuestDespList(questDespList)
+end
+
+function _RSVD_NAME_setupQuests()
+    for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList') or {})
+    do
+        -- a quest failing its restore, i.e. a saved NPC behavior that doesn't load anymore, doesn't stop the other quests
+        local restored, restoreErr = pcall(uidRemoteCall, questUID, getUID(),
+        [[
+            local playerUID = ...
+            _RSVD_NAME_loadQuestContext(playerUID)
+            _RSVD_NAME_restoreQuestStates(playerUID)
+        ]])
+
+        if not restored then
+            logQuestError(string.format('Quest %s failed to restore player %s', getUIDString(questUID), getUIDString(getUID())), restoreErr)
+        end
+    end
+
+    _RSVD_NAME_postQuestDespList()
 
     -- after the restores, a handler sees the quests as the login left them, i.e. abandons a trial state restored after a restart
     _RSVD_NAME_trigger(SYS_ON_ONLINE)

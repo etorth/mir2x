@@ -111,7 +111,39 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         co_return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
+    const auto dbid = dbidOpt.value().first;
+    const auto playerUID = uidf::getPlayerUID(dbid);
+
+    if(g_actorPool->checkUIDExist(playerUID)){
+        // player actor is hosted by 离线挂机, rebind it to this channel
+        // mark online before co_await, another CM_ONLINE during the co_await gets ONLINEERR_MULTIONLINE
+        m_dbidList[channID].second = true;
+
+        AMRebindChannel amRC;
+        std::memset(&amRC, 0, sizeof(amRC));
+
+        amRC.channID = channID;
+        if(const auto rmpk = co_await m_actorPod->send(playerUID, {AM_REBINDCHANNEL, amRC}); rmpk.type() == AM_OK){
+            co_return;
+        }
+
+        // player is logging out, wait until it's gone, then load it from database again
+        // channel can be closed during co_await, then AM_BADCHANNEL already erased the entry
+        while(true){
+            auto p = m_dbidList.find(channID);
+            if((p == m_dbidList.end()) || (p->second.first != dbid)){
+                co_return;
+            }
+
+            if(!g_actorPool->checkUIDExist(playerUID)){
+                p->second.second = false; // spawn a new actor as normal online
+                break;
+            }
+            co_await asyncWait(10);
+        }
+    }
+
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbid));
     if(!queryChar.executeStep()){
         fnOnlineError(ONLINEERR_NOCHAR);
         co_return;
@@ -124,7 +156,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
     const uint64_t mapUID = uidsf::getBaseMapUID(mapID); // same mapID always maps to same UID
     SDInitCharObject sdICO = SDInitPlayer
     {
-        .dbid      = dbidOpt.value().first,
+        .dbid      = dbid,
         .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
         .mapUID    = mapUID,

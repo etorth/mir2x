@@ -2,7 +2,6 @@
 #include <cstring>
 #include <algorithm>
 #include "uidf.hpp"
-#include "mathf.hpp"
 #include "client.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
@@ -72,16 +71,6 @@ void ProcessRun::requestBuyStallItem(uint32_t sellerDBID, uint32_t itemID, uint3
     g_client->send({CM_BUYSTALLITEM, cmBSI});
 }
 
-bool ProcessRun::hasOfflineStall(int x, int y) const
-{
-    for(const auto &[dbid, heroPtr]: m_offlineStallList){
-        if(heroPtr->x() == x && heroPtr->y() == y){
-            return true;
-        }
-    }
-    return false;
-}
-
 std::string ProcessRun::getStallSellerName(uint32_t dbid) const
 {
     if(dbid == getMyHeroDBID()){
@@ -90,10 +79,6 @@ std::string ProcessRun::getStallSellerName(uint32_t dbid) const
 
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(dbid), false))){
         return heroPtr->getName();
-    }
-
-    if(auto p = m_offlineStallList.find(dbid); p != m_offlineStallList.end()){
-        return p->second->getName();
     }
     return {};
 }
@@ -123,10 +108,6 @@ void ProcessRun::openStallBoard(uint32_t dbid)
             if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(dbid), false))){
                 return heroPtr->getStallName();
             }
-
-            if(auto p = m_offlineStallList.find(dbid); p != m_offlineStallList.end()){
-                return p->second->getStallName();
-            }
             return {};
         }();
 
@@ -141,14 +122,6 @@ void ProcessRun::openStallBoard(uint32_t dbid)
 
     stallBoard->setShow(true);
     stallBoard->setFocus(true);
-}
-
-void ProcessRun::eraseOfflineStallList(int x, int y, int r)
-{
-    std::erase_if(m_offlineStallList, [x, y, r](const auto &p)
-    {
-        return mathf::LDistance2<int>(x, y, p.second->x(), p.second->y()) <= (r - 1) * (r - 1);
-    });
 }
 
 bool ProcessRun::processStallBarEvent(const SDL_Event &event)
@@ -171,10 +144,6 @@ bool ProcessRun::processStallBarEvent(const SDL_Event &event)
         if(auto heroPtr = dynamic_cast<Hero *>(coPtr.get()); heroPtr && heroPtr->isStall()){
             heroList.push_back(heroPtr);
         }
-    }
-
-    for(const auto &[dbid, heroPtr]: m_offlineStallList){
-        heroList.push_back(heroPtr.get());
     }
 
     // stall drawn later is on top, it takes event first
@@ -276,56 +245,7 @@ void ProcessRun::on_SM_QUERYSTALLOK(const uint8_t *buf, size_t bufSize)
         heroPtr->setStallName(sdS.selling ? sdS.name : std::string{});
     }
 
-    if(auto p = m_offlineStallList.find(sdS.dbid); p != m_offlineStallList.end()){
-        if(sdS.selling){
-            p->second->setStallName(sdS.name);
-        }
-        else{
-            m_offlineStallList.erase(p);
-        }
-    }
-
     if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == sdS.dbid){
         stallBoard->loadStall(std::move(sdS));
-    }
-}
-
-void ProcessRun::on_SM_OFFLINESTALLLIST(const uint8_t *buf, size_t bufSize)
-{
-    auto sdOSL = cerealf::deserialize<SDOfflineStallList>(buf, bufSize);
-    if(sdOSL.mapUID != mapUID()){
-        return;
-    }
-
-    eraseOfflineStallList(sdOSL.x, sdOSL.y, sdOSL.r);
-    for(auto &sdOS: sdOSL.list){
-        // server only lists offline sellers, a player with the same uid is stale
-        // it happens if SM_OFFLINE never reached us, server sends it in a fixed radius
-        const auto uid = uidf::getPlayerUID(sdOS.dbid);
-        if(uid == getMyHeroUID()){
-            continue;
-        }
-        m_coList.erase(uid);
-
-        auto heroPtr = std::make_unique<Hero>(uid, sdOS.gender, sdOS.job, this, ActionStand
-        {
-            .direction = sdOS.direction,
-            .x = sdOS.x,
-            .y = sdOS.y,
-        });
-
-        heroPtr->setWLDesp(std::move(sdOS.desp));
-        heroPtr->setName(sdOS.name.c_str(), sdOS.nameColor);
-        heroPtr->setStall(true);
-        heroPtr->setStallName(std::move(sdOS.stallName));
-
-        m_offlineStallList[sdOS.dbid] = std::move(heroPtr);
-    }
-
-    if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->show()){
-        // offline stall sold out or seller logged in, buyer board needs to refresh
-        if(const auto dbid = stallBoard->stallDBID(); dbid && dbid != getMyHeroDBID() && !m_offlineStallList.contains(dbid) && !findUID(uidf::getPlayerUID(dbid), false)){
-            stallBoard->loadStall(SDStall{.dbid = dbid});
-        }
     }
 }

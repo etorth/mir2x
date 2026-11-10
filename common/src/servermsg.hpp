@@ -117,7 +117,6 @@ enum SMType: uint8_t
     SM_STALLERROR,
     SM_PLAYERSTALL,
     SM_QUERYSTALLOK,
-    SM_OFFLINESTALLLIST,
     SM_END,
 };
 
@@ -613,7 +612,6 @@ namespace
         _RSVD_register_servermsg(SM_STALLERROR,             1, sizeof(SMStallError)            );
         _RSVD_register_servermsg(SM_PLAYERSTALL,            1, sizeof(SMPlayerStall)           );
         _RSVD_register_servermsg(SM_QUERYSTALLOK,           3                                  );
-        _RSVD_register_servermsg(SM_OFFLINESTALLLIST,       3                                  );
 
 #undef _RSVD_register_servermsg
         return result;

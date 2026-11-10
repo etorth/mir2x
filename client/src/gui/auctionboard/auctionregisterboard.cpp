@@ -284,7 +284,7 @@ void AuctionRegisterBoard::confirmRegister()
     fflassert(inputBoard);
 
     std::u8string prompt = to_u8rawstr("<layout>" + xmlf::toParString("你确定上架%s吗?", to_cstr(ir.name)) + xmlf::toParString("委托交易将会扣除手续费500，交易成功后扣除2%%交易额") + "</layout>");
-    inputBoard->waitChoice(std::move(prompt), false, [this]
+    inputBoard->waitChoice(std::move(prompt), {}, false, [this](size_t)
     {
         registerItem();
     });
@@ -370,7 +370,7 @@ void AuctionRegisterBoard::confirmCancel()
 
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
-    inputBoard->waitChoice(u8"<layout><par>你确定取消吗？</par></layout>", false, [this]
+    inputBoard->waitChoice(u8"<layout><par>你确定取消吗？</par></layout>", {}, false, [this](size_t)
     {
         closeRegister(false);
     });

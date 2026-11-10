@@ -634,6 +634,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_BINDCHANNEL(mpk);
             }
+        case AM_REBINDCHANNEL:
+            {
+                return on_AM_REBINDCHANNEL(mpk);
+            }
         case AM_SENDPACKAGE:
             {
                 return on_AM_SENDPACKAGE(mpk);
@@ -811,6 +815,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTDIE                );
         _support_cm(CM_REQUESTREVIVE             );
         _support_cm(CM_REQUESTLOGOUT             );
+        _support_cm(CM_REQUESTHOSTOFFLINE        );
         _support_cm(CM_REQUESTKILLPETS           );
         _support_cm(CM_REQUESTLEAVETEAM          );
         _support_cm(CM_CREATETEAM                );
@@ -860,12 +865,22 @@ void Player::reportCO(uint64_t toUID)
 
     amCOR.UID = UID();
     amCOR.mapUID = mapUID();
-    amCOR.action = makeActionStand();
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
     amCOR.Player.teamLeader = (m_teamLeader == UID());
     amCOR.Player.stall = stallSelling();
     amCOR.Player.Level = level();
+
+    if(m_sdHealth.dead()){
+        amCOR.action = ActionDie
+        {
+            .x = X(),
+            .y = Y(),
+        };
+    }
+    else{
+        amCOR.action = makeActionStand();
+    }
     m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
 
@@ -1252,7 +1267,7 @@ void Player::reportOffline(uint64_t nUID, uint64_t nMapUID)
     // player can initiatively start the offline procedure
     // in this case the m_channID still contains a good channel id, we need to call close
 
-    if(m_channID.value_or(0)){
+    if(m_channID){
         SMOffline smO;
         std::memset(&smO, 0, sizeof(smO));
 
@@ -1262,16 +1277,21 @@ void Player::reportOffline(uint64_t nUID, uint64_t nMapUID)
     }
 }
 
-bool Player::goOffline(bool disconnect)
+void Player::logout(bool disconnect)
 {
-    if(!m_channID.value_or(0)){
-        return false;
+    // logout from CONNSTATE_HOSTED has no channel, it behaves as disconnected
+    if(m_connState == CONNSTATE_LOGOUT){
+        return;
     }
 
-    const auto channID = m_channID.value();
+    const auto channID = m_channID;
+
+    // stall lives with the player actor, items go back to inventory
+    if(stallSelling() || !m_sdStall.empty()){
+        closeStall();
+    }
 
     dispatchOffline();
-    dispatchOfflineStall();
 
     if(disconnect){
         reportOffline(UID(), mapUID()); // report self offline
@@ -1279,12 +1299,16 @@ bool Player::goOffline(bool disconnect)
     requestKillPets();
     leaveTeam();
 
+    m_connState = CONNSTATE_LOGOUT;
     m_channID = 0;
-    if(disconnect){
-        m_actorPod->closeNet(); // blocking call, channel slot has been destroyed
-    }
-    else{
-        m_actorPod->unbindNet(); // blocking call, channel forwards net messages to service core
+
+    if(channID){
+        if(disconnect){
+            m_actorPod->closeNet(); // blocking call, channel slot has been destroyed
+        }
+        else{
+            m_actorPod->unbindNet(); // blocking call, channel forwards net messages to service core
+        }
     }
 
     dbUpdateMapGLoc();
@@ -1294,7 +1318,7 @@ bool Player::goOffline(bool disconnect)
 
     const auto fnDeactivate = [disconnect, channID, this]()
     {
-        if(!disconnect){
+        if(!disconnect && channID){
             AMPlayerLogout amPL;
             std::memset(&amPL, 0, sizeof(amPL));
 
@@ -1314,13 +1338,38 @@ bool Player::goOffline(bool disconnect)
     {
         fnDeactivate();
     });
+}
 
-    return true;
+void Player::hostOffline()
+{
+    if(m_connState != CONNSTATE_ONLINE){
+        return;
+    }
+
+    // hosted player counts as offline socially, but stays on map as a normal player
+    // nothing forces it to logout, a new client logs in to rebind it
+
+    const auto channID = m_channID;
+
+    cancelDirectTrade();
+    requestKillPets();
+    leaveTeam();
+
+    m_connState = CONNSTATE_HOSTED;
+    m_channID = 0;
+    m_actorPod->unbindNet(); // blocking call, channel forwards net messages to service core
+
+    AMPlayerHosted amPH;
+    std::memset(&amPH, 0, sizeof(amPH));
+
+    amPH.uid = UID();
+    amPH.channID = channID;
+    m_actorPod->post(uidf::getServiceCoreUID(), {AM_PLAYERHOSTED, amPH});
 }
 
 void Player::postNetMessage(uint8_t headCode, const void *buf, size_t bufLen, uint64_t respID)
 {
-    if(m_channID.value_or(0)){
+    if(m_channID){
         m_actorPod->postNet(headCode, (const uint8_t *)(buf), bufLen, respID);
     }
 }
@@ -2156,7 +2205,50 @@ void Player::postOnlineOK()
     if(!friendIDList.empty()){
         postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(dbid(), friendIDList, 1, true, true)));
     }
+}
 
+void Player::postRebindOK()
+{
+    // new client starts from an empty scene
+    // need to send states which are posted only when they get changed
+
+    postNetMessage(SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList
+    {
+        .uid = UID(),
+        .idList = m_buffList.getIDList(),
+    }));
+
+    m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_postQuestDespList()");
+
+    if(m_sdHealth.dead()){
+        reportAction(UID(), mapUID(), ActionDie
+        {
+            .x = X(),
+            .y = Y(),
+        });
+    }
+
+    // in-view COs don't report again since they already have this player in view
+    foreachInViewCO([this](const COLocation &coLoc)
+    {
+        AMQueryCORecord amQCOR;
+        std::memset(&amQCOR, 0, sizeof(amQCOR));
+
+        amQCOR.UID = UID();
+        m_actorPod->post(coLoc.uid, {AM_QUERYCORECORD, amQCOR});
+    });
+
+    AMQueryGroundList amQGL;
+    std::memset(&amQGL, 0, sizeof(amQGL));
+
+    amQGL.X = X();
+    amQGL.Y = Y();
+    amQGL.viewRange = viewRange();
+    m_actorPod->post(mapUID(), {AM_QUERYGROUNDLIST, amQGL});
+}
+
+void Player::setupWearBuff()
+{
     for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
         if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){
             if(const auto buffIDOpt = item.getExtAttr<SDItem::EA_BUFFID_t>(); buffIDOpt.has_value() && buffIDOpt.value()){

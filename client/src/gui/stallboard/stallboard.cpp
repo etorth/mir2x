@@ -353,7 +353,7 @@ void StallBoard::onCloseStall()
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
 
-    inputBoard->waitChoice(u8"<layout><par>你确定要收摊吗？</par></layout>", false, [this]
+    inputBoard->waitChoice(u8"<layout><par>你确定要收摊吗？</par></layout>", {}, false, [this](size_t)
     {
         m_runProc->requestCloseStall();
         setShow(false);
@@ -389,7 +389,7 @@ void StallBoard::removeItem(const SDItem &item)
     fflassert(inputBoard);
 
     const auto prompt = to_u8rawstr("<layout>" + xmlf::toParString("你确定要下架%s吗？", to_cstr(DBCOM_ITEMRECORD(item.itemID).name)) + "</layout>");
-    inputBoard->waitChoice(prompt, false, [itemID = item.itemID, seqID = item.seqID, this]
+    inputBoard->waitChoice(prompt, {}, false, [itemID = item.itemID, seqID = item.seqID, this](size_t)
     {
         m_runProc->requestRemoveStallItem(itemID, seqID);
     });
@@ -416,7 +416,7 @@ void StallBoard::buyItem(const SDItem &item, size_t price, size_t maxCount)
     const std::string itemName = to_cstr(DBCOM_ITEMRECORD(item.itemID).name);
     if(maxCount <= 1){
         const auto prompt = to_u8rawstr("<layout>" + xmlf::toParString("你确定要花费%s金币购买%s吗？", str_ksep(price).c_str(), itemName.c_str()) + "</layout>");
-        inputBoard->waitChoice(prompt, false, [fnBuy]
+        inputBoard->waitChoice(prompt, {}, false, [fnBuy](size_t)
         {
             fnBuy(1);
         });

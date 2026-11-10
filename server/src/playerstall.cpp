@@ -5,7 +5,10 @@
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "actorpod.hpp"
+#include "actorpool.hpp"
 #include "stalldb.hpp"
+
+extern ActorPool *g_actorPool;
 
 bool Player::stallBlockedCM(uint8_t cmType)
 {
@@ -45,18 +48,14 @@ bool Player::stallBlockedCM(uint8_t cmType)
 
 void Player::loadStall()
 {
-    // a stall left in setup state gets cancelled, items go back to inventory
-    // an open stall restores, player spawns at the stall location since it can't move while the stall is open
+    // stall only lives with its player actor, logout closes it
+    // a stall found at login is left by a crash, close it and return items to inventory
 
-    if(auto stall = dbLoadStall(dbid()); stall.has_value() && stall->selling && !stall->empty()){
-        m_sdStall = std::move(stall.value());
+    if(dbLoadStall(dbid()).has_value()){
+        dbCloseStall(dbid(), m_sdItemStorage.inventory);
     }
-    else{
-        if(stall.has_value()){
-            dbCloseStall(dbid(), m_sdItemStorage.inventory);
-        }
-        m_sdStall.clear();
-    }
+
+    m_sdStall.clear();
     m_sdStall.dbid = dbid();
 }
 
@@ -112,44 +111,6 @@ void Player::dispatchStallState()
     smPS.uid = UID();
     smPS.selling = stallSelling();
     dispatchNetPackage(true, SM_PLAYERSTALL, smPS);
-}
-
-void Player::dispatchOfflineStall()
-{
-    if(stallSelling()){
-        if(hasActorPod()){
-            m_actorPod->post(mapUID(), {AM_ADDOFFLINESTALL, cerealf::serialize(makeOfflineStall())});
-        }
-    }
-    else if(!m_sdStall.empty()){
-        closeStall();
-    }
-}
-
-SDOfflineStall Player::makeOfflineStall() const
-{
-    return SDOfflineStall
-    {
-        .dbid = dbid(),
-
-        .x = X(),
-        .y = Y(),
-        .direction = Direction(),
-
-        .gender = gender(),
-        .job = job(),
-
-        .name = name(),
-        .nameColor = nameColor(),
-
-        .stallName = m_sdStall.name,
-        .desp
-        {
-            .wear = m_sdItemStorage.wear,
-            .hair = m_hair,
-            .hairColor = m_hairColor,
-        },
-    };
 }
 
 corof::awaitable<> Player::on_AM_STALLSOLD(const ActorMsgPack &mpk)
@@ -247,7 +208,7 @@ corof::awaitable<> Player::net_CM_STARTSTALL(uint8_t, const uint8_t *buf, size_t
         }
 
         // TODO stall should be allowed in safe zone only, but no safe zone is configurable yet
-        // only base map supported, offline stall gets restored by mapID
+        // only base map supported, buyer distance check uses mapID
         if(!uidf::isBaseMap(mapUID())){
             return STALLERR_NOTALLOWED;
         }
@@ -266,7 +227,7 @@ corof::awaitable<> Player::net_CM_STARTSTALL(uint8_t, const uint8_t *buf, size_t
         }
 
         m_sdStall.name = name;
-        if(!dbStartStall(dbid(), name, mapID(), X(), Y(), makeOfflineStall())){
+        if(!dbStartStall(dbid(), name, mapID(), X(), Y())){
             return STALLERR_DBFAILED;
         }
 
@@ -326,6 +287,11 @@ corof::awaitable<> Player::net_CM_BUYSTALLITEM(uint8_t, const uint8_t *buf, size
             return STALLERR_NOTALLOWED;
         }
 
+        // stall lives with its seller actor, a leftover stall row of a crashed server can't be bought
+        if(!g_actorPool->checkUIDExist(uidf::getPlayerUID(cmBSI.sellerDBID))){
+            return STALLERR_NOTSELLING;
+        }
+
         auto inventory = m_sdItemStorage.inventory;
         auto result = dbBuyStallItem(dbid(), inventory, cmBSI.sellerDBID, mapID(), X(), Y(), cmBSI.itemID, cmBSI.seqID, cmBSI.count, cmBSI.price);
 
@@ -343,21 +309,12 @@ corof::awaitable<> Player::net_CM_BUYSTALLITEM(uint8_t, const uint8_t *buf, size
             std::move(result->sellerMessage),
         }));
 
-        // seller reloads its stall if online
-        // map drops the offline stall if sold out, it's no-op if seller is online
+        // seller reloads its stall, closes it if sold out
         AMStallSold amSS;
         std::memset(&amSS, 0, sizeof(amSS));
 
         amSS.sellerDBID = cmBSI.sellerDBID;
         m_actorPod->post(sellerUID, {AM_STALLSOLD, amSS});
-
-        if(result->empty){
-            AMRemoveOfflineStall amROS;
-            std::memset(&amROS, 0, sizeof(amROS));
-
-            amROS.dbid = cmBSI.sellerDBID;
-            m_actorPod->post(mapUID(), {AM_REMOVEOFFLINESTALL, amROS});
-        }
         return STALLERR_NONE;
     }();
 

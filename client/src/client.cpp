@@ -292,7 +292,6 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_STALLERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERSTALL)
         _INSTALL_SM_HANDLER(ProcessRun, SM_QUERYSTALLOK)
-        _INSTALL_SM_HANDLER(ProcessRun, SM_OFFLINESTALLLIST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_REQUESTDIRECTTRADE)
         _INSTALL_SM_HANDLER(ProcessRun, SM_STARTDIRECTTRADE)
         _INSTALL_SM_HANDLER(ProcessRun, SM_UPDATEDIRECTTRADE)

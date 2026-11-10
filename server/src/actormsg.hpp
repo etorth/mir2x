@@ -62,6 +62,7 @@ enum ActorMsgPackType: int
     AM_ADDMAP,
     AM_ADDMAPOK,
     AM_BINDCHANNEL,
+    AM_REBINDCHANNEL,
     AM_ACTION,
     AM_QUERYMAPLIST,
     AM_MAPLIST,
@@ -120,6 +121,7 @@ enum ActorMsgPackType: int
     AM_OBSERVE,
     AM_QUERYOBSERVED,
     AM_VIEWRANGE,
+    AM_QUERYGROUNDLIST,
     AM_CHECKMASTER,
     AM_CHECKMASTEROK,
     AM_QUERYMASTER,
@@ -158,6 +160,7 @@ enum ActorMsgPackType: int
     AM_PLAYERSAY,
     AM_PLAYERBROADCAST,
     AM_PLAYERLOGOUT,
+    AM_PLAYERHOSTED,
     AM_ACCEPTDIRECTTRADE,
     AM_REJECTDIRECTTRADE,
     AM_STARTDIRECTTRADE,
@@ -165,8 +168,6 @@ enum ActorMsgPackType: int
     AM_COMPLETEDIRECTTRADE,
     AM_DIRECTTRADEERROR,
     AM_CANCELDIRECTTRADE,
-    AM_ADDOFFLINESTALL,
-    AM_REMOVEOFFLINESTALL,
     AM_STALLSOLD,
     AM_END,
 };
@@ -225,6 +226,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_ADDMAP)
         _add_mpk_type_case(AM_ADDMAPOK)
         _add_mpk_type_case(AM_BINDCHANNEL)
+        _add_mpk_type_case(AM_REBINDCHANNEL)
         _add_mpk_type_case(AM_ACTION)
         _add_mpk_type_case(AM_QUERYMAPLIST)
         _add_mpk_type_case(AM_MAPLIST)
@@ -279,6 +281,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_OBSERVE)
         _add_mpk_type_case(AM_QUERYOBSERVED)
         _add_mpk_type_case(AM_VIEWRANGE)
+        _add_mpk_type_case(AM_QUERYGROUNDLIST)
         _add_mpk_type_case(AM_CHECKMASTER)
         _add_mpk_type_case(AM_CHECKMASTEROK)
         _add_mpk_type_case(AM_QUERYMASTER)
@@ -317,6 +320,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_PLAYERSAY)
         _add_mpk_type_case(AM_PLAYERBROADCAST)
         _add_mpk_type_case(AM_PLAYERLOGOUT)
+        _add_mpk_type_case(AM_PLAYERHOSTED)
         _add_mpk_type_case(AM_ACCEPTDIRECTTRADE)
         _add_mpk_type_case(AM_REJECTDIRECTTRADE)
         _add_mpk_type_case(AM_STARTDIRECTTRADE)
@@ -324,8 +328,6 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_COMPLETEDIRECTTRADE)
         _add_mpk_type_case(AM_DIRECTTRADEERROR)
         _add_mpk_type_case(AM_CANCELDIRECTTRADE)
-        _add_mpk_type_case(AM_ADDOFFLINESTALL)
-        _add_mpk_type_case(AM_REMOVEOFFLINESTALL)
         _add_mpk_type_case(AM_STALLSOLD)
         default: return "AM_UNKNOWN";
     }
@@ -345,6 +347,12 @@ struct AMPlayerBroadcast
 };
 
 struct AMPlayerLogout
+{
+    uint64_t uid;
+    uint32_t channID;
+};
+
+struct AMPlayerHosted
 {
     uint64_t uid;
     uint32_t channID;
@@ -540,6 +548,11 @@ struct AMRecvPackage
 };
 
 struct AMBindChannel
+{
+    uint32_t channID;
+};
+
+struct AMRebindChannel
 {
     uint32_t channID;
 };
@@ -775,11 +788,6 @@ struct AMOffline
     int Y;
 };
 
-struct AMRemoveOfflineStall
-{
-    uint32_t dbid;
-};
-
 struct AMStallSold
 {
     uint32_t sellerDBID;
@@ -861,6 +869,13 @@ struct AMViewRange
 
     int oldViewRange;
     int newViewRange;
+};
+
+struct AMQueryGroundList
+{
+    int X;
+    int Y;
+    int viewRange;
 };
 
 struct AMCheckMasterOK

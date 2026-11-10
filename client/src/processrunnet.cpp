@@ -319,9 +319,6 @@ void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
                 heroPtr->setTeamLeader(smCOR.Player.teamLeader);
                 heroPtr->setStall(smCOR.Player.stall);
 
-                // seller logs in again, its offline stall is replaced by the online player
-                m_offlineStallList.erase(uidf::getPlayerDBID(smCOR.UID));
-
                 m_coList[smCOR.UID].reset(heroPtr);
                 queryUIDBuff(smCOR.UID);
                 queryPlayerWLDesp(smCOR.UID);
@@ -1132,8 +1129,8 @@ void ProcessRun::on_SM_RANKINGLIST(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_REQUESTDIRECTTRADE(const uint8_t *buf, size_t)
 {
     const auto smDTR = ServerMsg::conv<SMRequestDirectTrade>(buf);
-    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitChoice(to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())), false,
-    [uid = smDTR.uid, this]
+    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitChoice(to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())), {}, false,
+    [uid = smDTR.uid, this](size_t)
     {
         respondDirectTrade(uid, true);
     },

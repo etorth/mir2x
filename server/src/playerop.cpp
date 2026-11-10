@@ -64,12 +64,41 @@ corof::awaitable<> Player::on_AM_BINDCHANNEL(const ActorMsgPack &mpk)
     // BINDCHANNEL message sent by servermap, not servicecore or g_netDirver
 
     fflassert(amBC.channID);
-    fflassert(!m_channID.has_value());
+    fflassert(m_connState == CONNSTATE_BINDING, m_connState);
 
+    if(!m_actorPod->bindNet(amBC.channID)){
+        // channel closed before binding, no client controls this player
+        logout();
+        return {};
+    }
+
+    m_connState = CONNSTATE_ONLINE;
     m_channID = amBC.channID;
-    m_actorPod->bindNet(m_channID.value());
 
     postOnlineOK();
+    setupWearBuff();
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_REBINDCHANNEL(const ActorMsgPack &mpk)
+{
+    // sent by servicecore, a new client takes control of this hosted player
+    // the actor keeps running, no reload from database
+
+    const auto amRC = mpk.conv<AMRebindChannel>();
+    fflassert(amRC.channID);
+
+    if(m_connState != CONNSTATE_HOSTED || !m_actorPod->bindNet(amRC.channID)){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        return {};
+    }
+
+    m_connState = CONNSTATE_ONLINE;
+    m_channID = amRC.channID;
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+
+    postOnlineOK();
+    postRebindOK();
     return {};
 }
 
@@ -109,7 +138,7 @@ corof::awaitable<> Player::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
-    if(m_channID.value_or(0)){
+    if(m_channID){
         co_await operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
     }
     freeActorDataPackage(&(amRP.package));
@@ -422,7 +451,7 @@ corof::awaitable<> Player::on_AM_GRANTITEMLIST(const ActorMsgPack &mpk)
 
     // decline before granting anything if in a pending trade
     // a pending trade may replace the inventory with its committed snapshot
-    if(!m_channID.value_or(0) || directTradeBusy()){
+    if(!m_channID || directTradeBusy()){
         m_actorPod->post(mpk.fromAddr(), AM_FALSE);
         return {};
     }
@@ -478,23 +507,18 @@ corof::awaitable<> Player::on_AM_HEAL(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
-    fflassert(m_channID.has_value());
 
     // check channID still valid
-    // channel can be closed before player unbinds it during soft logout
+    // channel can be closed before player unbinds it during soft logout or hosting, or a new channel has been rebound
 
-    if(!m_channID.value()){
+    if(!m_channID || m_channID != amBC.channID){
         return {};
     }
-    fflassert(m_channID.value() == amBC.channID, m_channID.value(), amBC.channID);
 
     // AM_BADCHANNEL is sent by Channel::dtor
     // when player get this message the channel has already been destructed
 
-    // assign zero to m_channID to indicate player has received AM_BADCHANNEL instead of not bind to a channel yet
-    // code after this line should know it shall not post any network message, because the channel slot has been released
-
-    goOffline();
+    logout();
     return {};
 }
 
@@ -772,6 +796,12 @@ corof::awaitable<> Player::on_AM_TRANSFERTEAMLEADER(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_JOINTEAM(const ActorMsgPack &mpk)
 {
     const auto sdTR = mpk.deserialize<SDTeamReq>();
+    if(m_connState != CONNSTATE_ONLINE){
+        // hosted player counts as offline
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        return {};
+    }
+
     const auto error = [&sdTR, this]() -> int
     {
         if(m_teamLeader){

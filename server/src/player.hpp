@@ -47,10 +47,21 @@ class Player final: public BattleObject
         };
 
     protected:
-        // empty: hasn't bind to a channel yet
-        //  zero: has received AM_BADCHANNEL and need to go offine
-        //  xxxx: channel id of associated working channel
-        std::optional<uint32_t> m_channID;
+        enum ConnStateType: int
+        {
+            CONNSTATE_BINDING, // spawned, hasn't bind to a channel yet
+            CONNSTATE_ONLINE,  // bound to a working channel
+            CONNSTATE_HOSTED,  // 离线挂机, client has left but actor stays on map, a new client can rebind it
+            CONNSTATE_LOGOUT,  // logging out, actor deactivates soon
+        };
+
+    protected:
+        ConnStateType m_connState = CONNSTATE_BINDING;
+
+    protected:
+        // channel id of associated working channel
+        // non-zero only if m_connState is CONNSTATE_ONLINE, no network message can be posted when zero
+        uint32_t m_channID = 0;
 
     protected:
         size_t m_exp;
@@ -225,6 +236,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_DEADFADEOUT        (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD        (const ActorMsgPack &);
         corof::awaitable<> on_AM_BINDCHANNEL        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REBINDCHANNEL      (const ActorMsgPack &);
         corof::awaitable<> on_AM_CHECKMASTER        (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCORECORD      (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYLOCATION      (const ActorMsgPack &);
@@ -290,6 +302,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_REQUESTDIE                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTREVIVE             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLOGOUT             (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTHOSTOFFLINE        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLATESTCHATMESSAGE  (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYRANKING              (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -377,8 +390,6 @@ class Player final: public BattleObject
         void postStall();
         void postStallError(int, uint64_t = 0);
         void dispatchStallState();
-        void dispatchOfflineStall();
-        SDOfflineStall makeOfflineStall() const;
 
     protected:
         bool struckDamage(uint64_t, const DamageNode &) override;
@@ -447,7 +458,8 @@ class Player final: public BattleObject
         corof::awaitable<bool> requestRevive(uint64_t, int, int);
 
     protected:
-        bool goOffline(bool = true); // false: soft logout, keep channel and return to character selection
+        void logout(bool = true); // false: soft logout, keep channel and return to character selection
+        void hostOffline();       // 离线挂机, client returns to character selection and actor stays on map
 
         bool onHorse() const
         {
@@ -542,6 +554,8 @@ class Player final: public BattleObject
 
     private:
         void postOnlineOK();
+        void postRebindOK();
+        void setupWearBuff();
 
     private:
         bool hasInventoryItem(uint32_t, uint32_t, size_t) const;

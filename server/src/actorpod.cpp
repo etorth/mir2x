@@ -247,12 +247,16 @@ void ActorPod::postNet(uint8_t headCode, const void *buf, size_t bufSize, uint64
     g_actorPool->m_netDriver->post(m_channID, headCode, buf, bufSize, respID);
 }
 
-void ActorPod::bindNet(uint32_t channID)
+bool ActorPod::bindNet(uint32_t channID)
 {
     fflassert(!m_channID, m_channID);
 
-    m_channID = channID;
-    g_actorPool->m_netDriver->bindPlayer(channID, UID());
+    // channel can be closed before binding, then nothing to bind
+    if(g_actorPool->m_netDriver->bindPlayer(channID, UID())){
+        m_channID = channID;
+        return true;
+    }
+    return false;
 }
 
 void ActorPod::unbindNet()

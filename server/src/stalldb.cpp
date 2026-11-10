@@ -50,17 +50,6 @@ std::optional<SDStall> dbLoadStall(uint32_t dbid)
     };
 }
 
-std::vector<SDOfflineStall> dbLoadOfflineStallList(uint32_t mapID)
-{
-    std::vector<SDOfflineStall> stallList;
-    auto query = g_dbPod->createQuery("select fld_offline from tbl_stall where fld_map = %llu and fld_selling = 1 and fld_offline is not null", to_llu(mapID));
-
-    while(query.executeStep()){
-        stallList.push_back(cerealf::deserialize<SDOfflineStall>(query.getColumn("fld_offline").getString()));
-    }
-    return stallList;
-}
-
 std::expected<SDStallItem, int> dbAddStallItem(uint32_t dbid, const SDItem &item, size_t price)
 {
     fflassert(validDBID(dbid), dbid);
@@ -152,21 +141,21 @@ std::expected<SDItem, int> dbRemoveStallItem(uint32_t dbid, SDInventory &invento
     return addedItem;
 }
 
-bool dbStartStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x, int y, const SDOfflineStall &offlineStall)
+bool dbStartStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x, int y)
 {
     fflassert(validDBID(dbid), dbid);
     fflassert(!name.empty());
     fflassert(name.size() < SYS_STALLNAMESIZE, name);
 
     auto query = g_dbPod->createQuery(
-            u8R"###( update tbl_stall                                                                             )###"
-            u8R"###( set                                                                                          )###"
-            u8R"###(     fld_name = ?, fld_selling = 1, fld_map = %llu, fld_mapx = %d, fld_mapy = %d, fld_offline = ? )###"
-            u8R"###( where                                                                                        )###"
-            u8R"###(     fld_dbid = %llu and fld_selling = 0 and exists                                              )###"
-            u8R"###(     (                                                                                        )###"
-            u8R"###(         select 1 from tbl_stallitem where tbl_stallitem.fld_dbid = %llu                      )###"
-            u8R"###(     )                                                                                        )###",
+            u8R"###( update tbl_stall                                                                )###"
+            u8R"###( set                                                                             )###"
+            u8R"###(     fld_name = ?, fld_selling = 1, fld_map = %llu, fld_mapx = %d, fld_mapy = %d )###"
+            u8R"###( where                                                                           )###"
+            u8R"###(     fld_dbid = %llu and fld_selling = 0 and exists                              )###"
+            u8R"###(     (                                                                           )###"
+            u8R"###(         select 1 from tbl_stallitem where tbl_stallitem.fld_dbid = %llu         )###"
+            u8R"###(     )                                                                           )###",
 
             to_llu(mapID),
             x,
@@ -175,7 +164,6 @@ bool dbStartStall(uint32_t dbid, const std::string &name, uint32_t mapID, int x,
             to_llu(dbid));
 
     query.bind(1, name);
-    query.bindBlob(2, cerealf::serialize(offlineStall));
     return query.exec() > 0;
 }
 

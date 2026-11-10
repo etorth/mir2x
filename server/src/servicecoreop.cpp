@@ -293,6 +293,21 @@ corof::awaitable<> ServiceCore::on_AM_PLAYERLOGOUT(const ActorMsgPack &mpk)
     }
 }
 
+corof::awaitable<> ServiceCore::on_AM_PLAYERHOSTED(const ActorMsgPack &mpk)
+{
+    const auto amPH = mpk.conv<AMPlayerHosted>();
+    fflassert(uidf::isPlayer(amPH.uid), uidf::getUIDString(amPH.uid));
+
+    // player actor stays on map, client goes back to character selection
+    // no need to wait, the same client or another one can login and rebind the actor
+
+    if(auto p = m_dbidList.find(amPH.channID); (p != m_dbidList.end()) && (p->second.first == uidf::getPlayerDBID(amPH.uid))){
+        p->second.second = false;
+        m_actorPod->postNet(amPH.channID, SM_LOGOUTOK, nullptr, 0, 0);
+    }
+    return {};
+}
+
 corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();

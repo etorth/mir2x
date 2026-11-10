@@ -78,6 +78,10 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_PLAYERLOGOUT(mpk);
             }
+        case AM_PLAYERHOSTED:
+            {
+                return on_AM_PLAYERHOSTED(mpk);
+            }
         case AM_GRANTITEMLIST:
             {
                 return on_AM_GRANTITEMLIST(mpk);

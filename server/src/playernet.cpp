@@ -156,7 +156,13 @@ corof::awaitable<> Player::net_CM_REQUESTREVIVE(uint8_t, const uint8_t *, size_t
 
 corof::awaitable<> Player::net_CM_REQUESTLOGOUT(uint8_t, const uint8_t *, size_t, uint64_t)
 {
-    goOffline(false);
+    logout(false);
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_REQUESTHOSTOFFLINE(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    hostOffline();
     return {};
 }
 

@@ -817,48 +817,6 @@ struct SDStall
     }
 };
 
-struct SDOfflineStall
-{
-    uint32_t dbid = 0;
-
-    int x = -1;
-    int y = -1;
-    int direction = DIR_NONE;
-
-    bool gender = false;
-    int job = 0;
-
-    std::string name {};
-    uint32_t nameColor = 0;
-
-    std::string stallName {};
-    SDWLDesp desp {};
-
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(dbid, x, y, direction, gender, job, name, nameColor, stallName, desp);
-    }
-};
-
-struct SDOfflineStallList
-{
-    // all offline stalls in circle (x, y, r) of mapUID
-    // receiver drops its old offline stalls in the circle and adds this list
-
-    uint64_t mapUID = 0;
-
-    int x = -1;
-    int y = -1;
-    int r =  0;
-
-    std::vector<SDOfflineStall> list {};
-
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(mapUID, x, y, r, list);
-    }
-};
-
 struct SDStartGameScene
 {
     uint64_t uid    = 0;

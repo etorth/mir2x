@@ -49,7 +49,7 @@ InputStringBoard::InputStringBoard(
           .dir = DIR_NONE,
 
           .x = [this](){ return w() / 2; },
-          .y = 120,
+          .y = [this](){ return contentY() + textInfoH() / 2; },
 
           .lineWidth = 250,
 
@@ -193,8 +193,53 @@ void InputStringBoard::acceptInput()
     }
 }
 
+void InputStringBoard::resetChoice()
+{
+    if(m_choice){
+        removeChild(m_choice->id(), true);
+        m_choice = nullptr;
+    }
+}
+
+size_t InputStringBoard::selectedChoice() const
+{
+    size_t index = 0;
+    size_t selected = 0;
+
+    if(m_choice){
+        m_choice->foreachRadioWidget([&index, &selected, this](const Widget *widget)
+        {
+            if(widget == m_choice->getter()){
+                selected = index;
+                return true;
+            }
+
+            index++;
+            return false;
+        });
+    }
+    return selected;
+}
+
+int InputStringBoard::textInfoH() const
+{
+    return m_textInfo.empty() ? 0 : m_textInfo.h();
+}
+
+int InputStringBoard::choiceGap() const
+{
+    return (textInfoH() > 0 && m_choice) ? 10 : 0;
+}
+
+int InputStringBoard::contentY() const
+{
+    // center prompt and choices vertically around y = 120
+    return 120 - (textInfoH() + choiceGap() + (m_choice ? m_choice->h() : 0)) / 2;
+}
+
 void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
 {
+    resetChoice();
     m_textInfo.loadXML(to_cstr(args.layoutString), 0);
     m_onAccept = std::move(args.onAccept);
     m_onReject = std::move(args.onReject);
@@ -214,11 +259,58 @@ void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
     setFocus(true);
 }
 
-void InputStringBoard::waitChoice(std::u8string layoutString, bool modal, std::function<void()> onAccept, std::function<void()> onReject)
+void InputStringBoard::waitChoice(std::u8string prompt, std::vector<std::u8string> choiceList, bool modal, std::function<void(size_t)> onAccept, std::function<void()> onReject)
 {
-    m_textInfo.loadXML(to_cstr(layoutString), 0);
+    fflassert(!prompt.empty() || !choiceList.empty());
+
+    if(prompt.empty()){
+        m_textInfo.clear();
+    }
+    else{
+        m_textInfo.loadXML(to_cstr(prompt), 0);
+    }
+
+    resetChoice();
+    if(!choiceList.empty()){
+        m_choice = new RadioSelector
+        {
+            DIR_UPLEFT,
+            [this]{ return (w() - m_choice->w()) / 2; },
+            [this]{ return contentY() + textInfoH() + choiceGap(); },
+
+            5,
+            5,
+
+            {},
+
+            nullptr,
+            nullptr,
+            nullptr,
+
+            this,
+            true,
+        };
+
+        for(const auto &choice: choiceList){
+            auto choiceBoard = new LayoutBoard
+            {{
+                .initXML = to_cstr(choice),
+                .font
+                {
+                    .id = 1,
+                    .size = 12,
+                },
+            }};
+
+            if(!m_choice->getter()){
+                m_choice->setter(choiceBoard);
+            }
+            m_choice->append(choiceBoard, true);
+        }
+    }
+
     if(onAccept){
-        m_onAccept = [onAccept = std::move(onAccept)](std::u8string){ onAccept(); };
+        m_onAccept = [onAccept = std::move(onAccept), this](std::u8string){ onAccept(selectedChoice()); };
     }
     else{
         m_onAccept = nullptr;

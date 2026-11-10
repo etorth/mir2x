@@ -206,12 +206,9 @@ create table tbl_stall(
     fld_map            integer not null default 0,
     fld_mapx           integer not null default 0,
     fld_mapy           integer not null default 0,
-    fld_offline        blob        null,
 
     foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade
 ) strict;
-
-create index tbl_stall_map_index on tbl_stall(fld_map);
 
 create table tbl_stallitem(
     fld_dbid           integer not null,

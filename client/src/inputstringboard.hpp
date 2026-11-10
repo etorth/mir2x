@@ -7,6 +7,7 @@
 #include "layoutboard.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
+#include "radioselector.hpp"
 
 class InputStringBoard: public Widget
 {
@@ -40,6 +41,9 @@ class InputStringBoard: public Widget
         InputLine m_input;
 
     private:
+        RadioSelector *m_choice = nullptr;
+
+    private:
         TritexButton m_yesButton;
         TritexButton m_nopButton;
 
@@ -57,6 +61,15 @@ class InputStringBoard: public Widget
     private:
         void acceptInput();
 
+    private:
+        void   resetChoice();
+        size_t selectedChoice() const;
+
+    private:
+        int textInfoH() const;
+        int choiceGap() const;
+        int contentY () const;
+
     public:
         void clear()
         {
@@ -71,5 +84,5 @@ class InputStringBoard: public Widget
 
     public:
         void waitInput(InputStringBoard::WaitInputArgs);
-        void waitChoice(std::u8string, bool, std::function<void()>, std::function<void()> = {});
+        void waitChoice(std::u8string, std::vector<std::u8string>, bool, std::function<void(size_t)>, std::function<void()> = {});
 };

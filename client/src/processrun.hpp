@@ -124,11 +124,6 @@ class ProcessRun: public Process
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
 
     private:
-        // offline stalls are not creatures in server, keyed by seller dbid
-        // client draws them as standing heroes, they are never in m_coList
-        std::unordered_map<uint32_t, std::unique_ptr<Hero>> m_offlineStallList;
-
-    private:
         SDStall m_myStall;
 
     private:
@@ -308,7 +303,6 @@ class ProcessRun: public Process
         _support_sm(SM_STALLERROR);
         _support_sm(SM_PLAYERSTALL);
         _support_sm(SM_QUERYSTALLOK);
-        _support_sm(SM_OFFLINESTALLLIST);
 #undef _support_sm
 
     public:
@@ -503,6 +497,7 @@ class ProcessRun: public Process
         void requestConsumeBelt(int);
         void requestRevive();
         void requestLogout();
+        void requestHostOffline();
         void requestDropItem(uint32_t, uint32_t, size_t);
         void requestSetMagicKey(uint32_t, char);
         void requestRemoveSecuredItem(uint32_t, uint32_t);
@@ -539,14 +534,12 @@ class ProcessRun: public Process
             return m_myStall.selling;
         }
 
-        bool hasOfflineStall(int, int) const;
         std::string getStallSellerName(uint32_t) const;
 
     public:
         void openStallBoard(uint32_t);
 
     private:
-        void eraseOfflineStallList(int, int, int);
         bool processStallBarEvent(const SDL_Event &);
 
     public:

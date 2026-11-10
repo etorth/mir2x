@@ -14,7 +14,6 @@
 #include "server.hpp"
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
-#include "stalldb.hpp"
 
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
@@ -35,13 +34,9 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
     // before CO send ACTION_SPAWN servermap won't let other know it's ready
 
     if(amA.action.type == ACTION_SPAWN){
-        if(uidf::isPlayer(amA.UID)){
-            removeOfflineStall(uidf::getPlayerDBID(amA.UID));
-        }
         addGridUID({amA.UID, amA.viewRange}, amA.action.x, amA.action.y, true);
         if(uidf::getUIDType(amA.UID) == UID_PLY){
             postGroundItemIDList  ({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
-            postOfflineStallList  ({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
             postGroundFireWallList({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
         }
     }
@@ -131,7 +126,6 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList  ({fromUID, amSMOK.viewRange}, nDstX, nDstY); // doesn't help if switched map
-                    postOfflineStallList  ({fromUID, amSMOK.viewRange}, nDstX, nDstY);
                     postGroundFireWallList({fromUID, amSMOK.viewRange}, nDstX, nDstY);
                 }
 
@@ -215,7 +209,6 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
 
                 if(uidf::getUIDType(fromUID) == UID_PLY){
                     postGroundItemIDList  ({fromUID, amJOK.viewRange}, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
-                    postOfflineStallList  ({fromUID, amJOK.viewRange}, amTJ.EndX, amTJ.EndY);
                     postGroundFireWallList({fromUID, amJOK.viewRange}, amTJ.EndX, amTJ.EndY);
                 }
 
@@ -389,7 +382,6 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
                 if(uidf::isPlayer(amTM.UID)){
                     postGroundItemIDList  ({amTM.UID, amMOK.viewRange}, nMostX, nMostY);
-                    postOfflineStallList  ({amTM.UID, amMOK.viewRange}, nMostX, nMostY);
                     postGroundFireWallList({amTM.UID, amMOK.viewRange}, nMostX, nMostY); // doesn't help if switched map
                 }
 
@@ -574,7 +566,6 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                 addGridUID({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y, true);
                 if(uidf::isPlayer(fromUID)){
                     postGroundItemIDList  ({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y);
-                    postOfflineStallList  ({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y);
                     postGroundFireWallList({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y); // doesn't help if switched map
                 }
 
@@ -733,9 +724,19 @@ corof::awaitable<> ServerMap::on_AM_VIEWRANGE(const ActorMsgPack &mpk)
         resizeGridObserverCircle(mpk.from(), amVR.X, amVR.Y, amVR.oldViewRange, amVR.newViewRange);
         if(uidf::isPlayer(mpk.from()) && (amVR.newViewRange > amVR.oldViewRange)){
             postGroundItemIDList  ({mpk.from(), amVR.newViewRange}, amVR.X, amVR.Y);
-            postOfflineStallList  ({mpk.from(), amVR.newViewRange}, amVR.X, amVR.Y);
             postGroundFireWallList({mpk.from(), amVR.newViewRange}, amVR.X, amVR.Y);
         }
+    }
+    return {};
+}
+
+corof::awaitable<> ServerMap::on_AM_QUERYGROUNDLIST(const ActorMsgPack &mpk)
+{
+    // player rebinds a new client while staying on this map, client needs ground objects in view again
+    const auto amQGL = mpk.conv<AMQueryGroundList>();
+    if(uidf::isPlayer(mpk.from()) && mapBin()->validC(amQGL.X, amQGL.Y) && hasGridUID(mpk.from(), amQGL.X, amQGL.Y)){
+        postGroundItemIDList  ({mpk.from(), amQGL.viewRange}, amQGL.X, amQGL.Y);
+        postGroundFireWallList({mpk.from(), amQGL.viewRange}, amQGL.X, amQGL.Y);
     }
     return {};
 }
@@ -956,24 +957,5 @@ corof::awaitable<> ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
-    return {};
-}
-
-corof::awaitable<> ServerMap::on_AM_ADDOFFLINESTALL(const ActorMsgPack &mpk)
-{
-    if(uidf::isBaseMap(UID())){
-        // seller may post this with a stale stall state, a buyer can sell it out in between
-        // DB is the source of truth since buyer updates it synchronously
-        auto sdOS = mpk.deserialize<SDOfflineStall>();
-        if(const auto stall = dbLoadStall(sdOS.dbid); stall.has_value() && stall->selling && !stall->empty()){
-            addOfflineStall(std::move(sdOS));
-        }
-    }
-    return {};
-}
-
-corof::awaitable<> ServerMap::on_AM_REMOVEOFFLINESTALL(const ActorMsgPack &mpk)
-{
-    removeOfflineStall(mpk.conv<AMRemoveOfflineStall>().dbid);
     return {};
 }
