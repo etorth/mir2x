@@ -13,8 +13,8 @@ StallBar::StallBar(StallBar::InitArgs args)
           .x = std::move(args.x),
           .y = std::move(args.y),
 
-          .w = [this]{ return m_button.w(); },
-          .h = [this]{ return m_button.h(); },
+          .w = std::nullopt,
+          .h = std::nullopt,
 
           .attrs
           {
