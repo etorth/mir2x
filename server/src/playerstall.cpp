@@ -177,6 +177,12 @@ corof::awaitable<> Player::net_CM_REMOVESTALLITEM(uint8_t, const uint8_t *buf, s
 {
     const auto cmRSI = ClientMsg::conv<CMRemoveStallItem>(buf);
 
+    // trade peer may apply a committed inventory snapshot later, which would drop the returned item
+    if(directTradeBusy()){
+        postStallError(STALLERR_BUSY);
+        return {};
+    }
+
     auto inventory = m_sdItemStorage.inventory;
     if(const auto result = dbRemoveStallItem(dbid(), inventory, cmRSI.itemID, cmRSI.seqID); result.has_value()){
         m_sdItemStorage.inventory = std::move(inventory);
@@ -251,6 +257,11 @@ corof::awaitable<> Player::net_CM_STARTSTALL(uint8_t, const uint8_t *buf, size_t
 
 corof::awaitable<> Player::net_CM_CLOSESTALL(uint8_t, const uint8_t *, size_t, uint64_t)
 {
+    if(directTradeBusy()){
+        postStallError(STALLERR_BUSY);
+        return {};
+    }
+
     closeStall();
     return {};
 }
@@ -281,6 +292,10 @@ corof::awaitable<> Player::net_CM_BUYSTALLITEM(uint8_t, const uint8_t *buf, size
     {
         if(m_sdHealth.dead()){
             return STALLERR_DEAD;
+        }
+
+        if(directTradeBusy()){
+            return STALLERR_BUSY;
         }
 
         if(!uidf::isBaseMap(mapUID())){

@@ -68,6 +68,11 @@ void ProcessSelectChar::on_SM_DELETECHARERROR(const uint8_t *buf, size_t)
                 m_notifyBoard.addMessage(u8"删除角色失败，请稍后重试");
                 return;
             }
+        case DELCHARERR_HOSTED:
+            {
+                m_notifyBoard.addMessage(u8"角色仍在游戏中，请先登录角色并返回人物界面");
+                return;
+            }
         default:
             {
                 throw fflreach();

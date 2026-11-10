@@ -18,7 +18,6 @@ struct DBStallBuyResult
     SDItem buyerItem {}; // inventory item updated by this purchase
 
     SDChatMessage sellerMessage {};
-    bool empty = false; // stall sold out and got deleted
 };
 
 std::optional<SDStall> dbLoadStall(uint32_t);

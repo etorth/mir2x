@@ -286,7 +286,6 @@ std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t buyerDBID, SDInvent
 
     if(leftCount == 0){
         g_dbPod->exec("delete from tbl_stall where fld_dbid = %llu", to_llu(sellerDBID));
-        result.empty = true;
     }
 
     transaction.commit();

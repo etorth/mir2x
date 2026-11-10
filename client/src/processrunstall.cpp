@@ -187,7 +187,7 @@ void ProcessRun::on_SM_STALLERROR(const uint8_t *buf, size_t bufSize)
     {
         switch(smSE.error){
             case STALLERR_NOTALLOWED: return u8"当前无法摆摊";
-            case STALLERR_BUSY      : return u8"交易中，无法摆摊";
+            case STALLERR_BUSY      : return u8"交易中，无法进行摆摊操作";
             case STALLERR_DEAD      : return u8"死亡状态无法摆摊";
             case STALLERR_SELLING   : return u8"摊位已开张";
             case STALLERR_NOTSELLING: return u8"摊位未开张";
@@ -198,7 +198,6 @@ void ProcessRun::on_SM_STALLERROR(const uint8_t *buf, size_t bufSize)
             case STALLERR_BADNAME   : return u8"无效的摊位名称";
             case STALLERR_BADCOUNT  : return u8"无效的数量";
             case STALLERR_NOGOLD    : return u8"金币不足";
-            case STALLERR_NOSPACE   : return u8"背包空间不足";
             case STALLERR_SELFBUY   : return u8"不能购买自己的物品";
             case STALLERR_STALE     : return u8"摊位物品已变化，请重新选择";
             case STALLERR_DBFAILED  : return u8"摆摊操作失败";

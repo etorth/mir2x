@@ -1661,7 +1661,8 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
         co_return;
     }
 
-    if(directTradeBusy()){
+    // selling player can't update or commit a trade
+    if(directTradeBusy() || stallSelling()){
         fnRejectTrade(DTRADEERR_TARGETBUSY);
         co_return;
     }

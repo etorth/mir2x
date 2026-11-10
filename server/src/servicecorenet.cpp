@@ -298,6 +298,13 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
     }
 
     const auto dbid = dbidOpt.value().first;
+
+    // a hosted (离线挂机) or logging-out actor still holds this char, a new char would reuse the dbid and rebind to it
+    if(g_actorPool->checkUIDExist(uidf::getPlayerUID(dbid))){
+        fnDeleteCharError(DELCHARERR_HOSTED);
+        return {};
+    }
+
     try{
         auto dbTrans = g_dbPod->createTransaction();
         auto maxSeqID = [dbid]() -> uint32_t
