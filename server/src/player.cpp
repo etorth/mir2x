@@ -482,6 +482,189 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
+    // bindings below drive a player without its client, i.e. 自动打怪 by a hosted player
+    // they run after the lua thread yields, runtime failures are results, never throws
+
+    // returns {x, y} of uid in view on the same map, or nil
+    bindFunction("getInViewCOLocation", [this](uint64_t uid, sol::this_state s) -> sol::object
+    {
+        if(const auto coLocPtr = getPlayer()->getInViewCOPtr(uid); coLocPtr && coLocPtr->mapUID == getPlayer()->mapUID()){
+            return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::array<int, 2>
+            {
+                coLocPtr->x,
+                coLocPtr->y,
+            }));
+        }
+        return sol::make_object(sol::state_view(s), sol::lua_nil);
+    });
+
+    // monsters in view without master and not guards, alive, nearest first
+    bindCoop("_RSVD_NAME_getWildMonsterList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        // copy, m_inViewCOList changes during the queries
+        std::vector<COLocation> coLocList;
+        for(const auto &[uid, coLoc]: thisptr->getPlayer()->m_inViewCOList){
+            if(uidf::isMonster(uid) && !uidf::isGuardMode(uid) && coLoc.mapUID == thisptr->getPlayer()->mapUID()){
+                coLocList.push_back(coLoc);
+            }
+        }
+
+        std::sort(coLocList.begin(), coLocList.end(), [x = thisptr->getPlayer()->X(), y = thisptr->getPlayer()->Y()](const COLocation &lhs, const COLocation &rhs)
+        {
+            return mathf::LDistance2(x, y, lhs.x, lhs.y) < mathf::LDistance2(x, y, rhs.x, rhs.y);
+        });
+
+        std::vector<uint64_t> uidList;
+        for(const auto &coLoc: coLocList){
+            // a monster without master is its own final master, 0 if it's gone
+            const auto finalMasterUID = co_await thisptr->getPlayer()->queryFinalMaster(coLoc.uid);
+            if(closed){
+                co_return;
+            }
+
+            if(finalMasterUID != coLoc.uid){
+                continue;
+            }
+
+            const auto dead = co_await thisptr->getPlayer()->queryDead(coLoc.uid);
+            if(closed){
+                co_return;
+            }
+
+            if(!dead){
+                uidList.push_back(coLoc.uid);
+            }
+        }
+
+        onDone.popOnClose();
+        onDone(sol::as_table(uidList));
+    });
+
+    // one step toward (x, y), the grid can be occupied, i.e. by the target to approach
+    bindCoop("_RSVD_NAME_moveToward", [thisptr = this](this auto, LuaCoopResumer onDone, int argX, int argY) -> corof::awaitable<>
+    {
+        const auto nextGLocOpt = [thisptr, argX, argY]() -> std::optional<std::pair<int, int>>
+        {
+            const auto player = thisptr->getPlayer();
+            if(!player->canMove(true)){
+                return std::nullopt;
+            }
+
+            if(!player->mapBin()->validC(argX, argY) || (player->X() == argX && player->Y() == argY)){
+                return std::nullopt;
+            }
+
+            BattleObject::BOPathFinder finder(player, 1);
+            if(!finder.search(player->X(), player->Y(), player->Direction(), argX, argY).hasPath()){
+                return std::nullopt;
+            }
+
+            if(const auto pathList = finder.getPathNode(); pathList.size() >= 2){
+                return std::make_pair(pathList.at(1).X, pathList.at(1).Y);
+            }
+            return std::nullopt;
+        }();
+
+        if(!nextGLocOpt.has_value()){
+            onDone(false);
+            co_return;
+        }
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        thisptr->getPlayer()->cancelDirectTrade();
+
+        const auto oldX = thisptr->getPlayer()->X();
+        const auto oldY = thisptr->getPlayer()->Y();
+        const auto [newX, newY] = nextGLocOpt.value();
+
+        const auto moved = co_await thisptr->getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false);
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        if(moved){
+            thisptr->getPlayer()->dbUpdateMapGLoc();
+
+            // requestMove() doesn't report to own client, see randomMove
+            thisptr->getPlayer()->reportAction(thisptr->getPlayer()->UID(), thisptr->getPlayer()->mapUID(), ActionMove
+            {
+                .speed = SYS_DEFSPEED,
+                .x = oldX,
+                .y = oldY,
+                .aimX = thisptr->getPlayer()->X(),
+                .aimY = thisptr->getPlayer()->Y(),
+            });
+        }
+        onDone(moved);
+    });
+
+    // one 物理攻击 on uid standing next to the player, false if it's gone, dead or not adjacent
+    bindCoop("_RSVD_NAME_attackUID", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t targetUID) -> corof::awaitable<>
+    {
+        const auto player = thisptr->getPlayer();
+        const auto coLocPtr = player->getInViewCOPtr(targetUID);
+
+        if(!player->canAttack(true) || !coLocPtr || coLocPtr->mapUID != player->mapUID()){
+            onDone(false);
+            co_return;
+        }
+
+        if(const auto d2 = mathf::LDistance2(player->X(), player->Y(), coLocPtr->x, coLocPtr->y); d2 != 1 && d2 != 2){
+            onDone(false);
+            co_return;
+        }
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        // canDamageTarget() doesn't check death, a corpse stays in view till it fades out
+        const auto dead = co_await thisptr->getPlayer()->queryDead(targetUID);
+        if(closed){
+            co_return;
+        }
+
+        if(dead){
+            onDone.popOnClose();
+            onDone(false);
+            co_return;
+        }
+
+        const ActionAttack attack
+        {
+            .speed = thisptr->getPlayer()->attackSpeed(),
+            .x = thisptr->getPlayer()->X(),
+            .y = thisptr->getPlayer()->Y(),
+            .aimUID = targetUID,
+            .extParam
+            {
+                .magicID = DBCOM_MAGICID(u8"物理攻击"),
+            },
+        };
+
+        CMAction cmA;
+        std::memset(&cmA, 0, sizeof(cmA));
+
+        cmA.UID = thisptr->getPlayer()->UID();
+        cmA.mapUID = thisptr->getPlayer()->mapUID();
+        cmA.action = attack;
+
+        // same path as a client attack, it does the range check, damage and weapon wear
+        co_await thisptr->getPlayer()->onCMActionAttack(cmA);
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        thisptr->getPlayer()->reportAction(thisptr->getPlayer()->UID(), thisptr->getPlayer()->mapUID(), attack);
+        onDone(true);
+    });
+
     bindCoop("_RSVD_NAME_queryQuestTriggerList", [thisptr = this](this auto, LuaCoopResumer onDone, int triggerType) -> corof::awaitable<>
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);

@@ -37,6 +37,11 @@ BattleObject::LuaThreadRunner::LuaThreadRunner(BattleObject *battleObjectPtr)
 
         return sol::as_table(result);
     });
+
+    bindFunction("isDead", [this]() -> bool
+    {
+        return getBO()->m_sdHealth.dead();
+    });
 }
 
 BattleObject::BOPathFinder::BOPathFinder(const BattleObject *boPtr, int checkCO)

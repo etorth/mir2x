@@ -39,6 +39,87 @@ function randomMove()
     return _RSVD_NAME_callFuncCoop('randomMove')
 end
 
+-- raises before a coop suspends, an error raised in its C++ coroutine body would escape to the actor instead
+local function assertAlive()
+    if isDead() then
+        error('player is dead', 3)
+    end
+end
+
+-- uids of monsters in view without master and not guards, alive, nearest first
+function getWildMonsterList()
+    assertAlive()
+    return _RSVD_NAME_callFuncCoop('getWildMonsterList')
+end
+
+-- one step toward (x, y), false if no step was taken
+function moveToward(x, y)
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+    assertAlive()
+    return _RSVD_NAME_callFuncCoop('moveToward', x, y)
+end
+
+-- one 物理攻击 on uid standing next to the player, false if it's gone, dead or not adjacent
+function attackUID(uid)
+    assertType(uid, 'integer')
+    assertAlive()
+    return _RSVD_NAME_callFuncCoop('attackUID', uid)
+end
+
+-- chases and hits uid till it dies or leaves view, false if stuck
+local function huntMonster(uid)
+    while true do
+        local loc = getInViewCOLocation(uid)
+        if not loc then
+            return true
+        end
+
+        local x, y = getMapLoc()
+        if math.max(math.abs(loc[1] - x), math.abs(loc[2] - y)) <= 1 then
+            if not attackUID(uid) then
+                return true -- dead, or moved away in the meantime
+            end
+            pause(1000)
+
+        elseif moveToward(loc[1], loc[2]) then
+            pause(600)
+
+        else
+            return false
+        end
+    end
+end
+
+-- runs till the player dies or stopAutoAttack(), keeps going while the player is hosted
+local function autoAttackLoop()
+    while true do
+        local uid = getWildMonsterList()[1]
+        if uid and huntMonster(uid) then
+            -- coops may return without yielding, pause so a failing hit can't spin
+            pause(200)
+        else
+            assertAlive()
+            randomMove()
+            pause(1000)
+        end
+    end
+end
+
+local autoAttackKey = nil
+
+function startAutoAttack()
+    stopAutoAttack()
+    autoAttackKey = runPlayerThread(autoAttackLoop)
+end
+
+function stopAutoAttack()
+    if autoAttackKey then
+        closeThread(autoAttackKey)
+        autoAttackKey = nil
+    end
+end
+
 -- move the player, by map name, map id, or map uid
 --
 -- a name or an id only ever reaches the base copy of that map. pass the uid that

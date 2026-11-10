@@ -7,6 +7,8 @@ setEventHandler(
             dialog.link('npc_goto_1', '领取金币'),
             dialog.link('npc_goto_2', '领取装备'),
             dialog.link('npc_goto_random_move', '随机行走100步', {close = true}),
+            dialog.link('npc_goto_auto_attack', '自动打怪', {close = true}),
+            dialog.link('npc_goto_stop_auto_attack', '停止自动打怪', {close = true}),
             dialog.link(SYS_EXIT, '关闭'),
         })
     end,
@@ -50,5 +52,14 @@ setEventHandler(
                 break
             end
         end
+    end,
+
+    -- the loop runs in the player, keeps going after the player goes 离线挂机
+    npc_goto_auto_attack = function(uid, value)
+        uidRemoteCall(uid, [[ startAutoAttack() ]])
+    end,
+
+    npc_goto_stop_auto_attack = function(uid, value)
+        uidRemoteCall(uid, [[ stopAutoAttack() ]])
     end,
 })
