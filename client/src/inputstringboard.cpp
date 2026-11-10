@@ -87,6 +87,7 @@ InputStringBoard::InputStringBoard(
           .w = [this]{ return m_inputBg.w(); },
           .h = [this]{ return m_inputBg.h(); },
 
+          .align = DIR_NONE,
           .font
           {
               .id = 1,
