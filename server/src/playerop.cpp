@@ -1022,3 +1022,11 @@ corof::awaitable<> Player::on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &mpk)
     const auto sdTML = co_await pullTeamMemberList();
     m_actorPod->post(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value_or(SDTeamMemberList{}))});
 }
+
+corof::awaitable<> Player::on_AM_STALLSOLD(const ActorMsgPack &mpk)
+{
+    if(mpk.conv<AMStallSold>().sellerDBID == dbid()){
+        reloadStall();
+    }
+    return {};
+}

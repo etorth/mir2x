@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
@@ -14,6 +15,7 @@
 #include "golddb.hpp"
 #include "inventorydb.hpp"
 #include "directtradedb.hpp"
+#include "stalldb.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
@@ -3294,4 +3296,107 @@ std::optional<int> Player::claimDelivery(const std::string &record)
     else{
         return claimedItemList.error();
     }
+}
+
+bool Player::stallBlockedCM(uint8_t cmType)
+{
+    // player can only chat, query, claim deliveries and manage the stall while stall is open
+    switch(cmType){
+        case CM_ACTION:
+        case CM_BUY:
+        case CM_CONSUMEITEM:
+        case CM_DROPITEM:
+        case CM_MAKEITEM:
+        case CM_NPCEVENT:
+        case CM_PICKUP:
+        case CM_REQUESTEQUIPBELT:
+        case CM_REQUESTEQUIPWEAR:
+        case CM_REQUESTGRABBELT:
+        case CM_REQUESTCONSUMEBELT:
+        case CM_REQUESTGRABWEAR:
+        case CM_REQUESTREVIVE:
+        case CM_REQUESTRETRIEVESECUREDITEM:
+        case CM_REQUESTSPACEMOVE:
+        case CM_REQUESTMAGICDAMAGE:
+        case CM_REGISTERAUCTIONITEM:
+        case CM_REQUESTDIRECTTRADE:
+        case CM_UPDATEDIRECTTRADE:
+        case CM_COMMITDIRECTTRADE:
+        case CM_ADDSTALLITEM:
+        case CM_STARTSTALL:
+            {
+                return true;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+void Player::loadStall()
+{
+    // stall only lives with its player actor, logout closes it
+    // a stall found at login is left by a crash, close it and return items to inventory
+
+    if(dbLoadStall(dbid()).has_value()){
+        dbCloseStall(dbid(), m_sdItemStorage.inventory);
+    }
+
+    m_sdStall.clear();
+    m_sdStall.dbid = dbid();
+}
+
+void Player::reloadStall()
+{
+    const bool wasSelling = stallSelling();
+
+    m_sdStall = dbLoadStall(dbid()).value_or(SDStall{});
+    m_sdStall.dbid = dbid();
+
+    if(stallSelling() && m_sdStall.empty()){
+        dbCloseStall(dbid(), m_sdItemStorage.inventory);
+        m_sdStall.clear();
+        m_sdStall.dbid = dbid();
+    }
+
+    postStall();
+    if(wasSelling != stallSelling()){
+        dispatchStallState();
+    }
+}
+
+void Player::closeStall()
+{
+    auto inventory = m_sdItemStorage.inventory;
+    const auto updatedItemList = dbCloseStall(dbid(), inventory);
+
+    m_sdItemStorage.inventory = std::move(inventory);
+    for(const auto &item: updatedItemList){
+        reportUpdateItem(item);
+    }
+    reloadStall();
+}
+
+void Player::postStall()
+{
+    postNetMessage(SM_STALL, cerealf::serialize(m_sdStall));
+}
+
+void Player::postStallError(int error, uint64_t respID)
+{
+    postNetMessage(SM_STALLERROR, SMStallError
+    {
+        .error = to_u8(error),
+    }, respID);
+}
+
+void Player::dispatchStallState()
+{
+    SMPlayerStall smPS;
+    std::memset(&smPS, 0, sizeof(smPS));
+
+    smPS.uid = UID();
+    smPS.selling = stallSelling();
+    dispatchNetPackage(true, SM_PLAYERSTALL, smPS);
 }
