@@ -952,16 +952,6 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, uint64_t respID)
 {
-    if(stallSelling() && stallBlockedCM(nType)){
-        if(nType == CM_ACTION){
-            reportStand();
-        }
-        else{
-            postStallError(STALLERR_SELLING, respID);
-        }
-        return {};
-    }
-
     switch(nType){
 #define _support_cm(cm) case cm: return net_##cm(nType, pData, nDataLen, respID)
         _support_cm(CM_ACTION                    );
@@ -3295,42 +3285,6 @@ std::optional<int> Player::claimDelivery(const std::string &record)
     }
     else{
         return claimedItemList.error();
-    }
-}
-
-bool Player::stallBlockedCM(uint8_t cmType)
-{
-    // player can only chat, query, claim deliveries and manage the stall while stall is open
-    switch(cmType){
-        case CM_ACTION:
-        case CM_BUY:
-        case CM_CONSUMEITEM:
-        case CM_DROPITEM:
-        case CM_MAKEITEM:
-        case CM_NPCEVENT:
-        case CM_PICKUP:
-        case CM_REQUESTEQUIPBELT:
-        case CM_REQUESTEQUIPWEAR:
-        case CM_REQUESTGRABBELT:
-        case CM_REQUESTCONSUMEBELT:
-        case CM_REQUESTGRABWEAR:
-        case CM_REQUESTREVIVE:
-        case CM_REQUESTRETRIEVESECUREDITEM:
-        case CM_REQUESTSPACEMOVE:
-        case CM_REQUESTMAGICDAMAGE:
-        case CM_REGISTERAUCTIONITEM:
-        case CM_REQUESTDIRECTTRADE:
-        case CM_UPDATEDIRECTTRADE:
-        case CM_COMMITDIRECTTRADE:
-        case CM_ADDSTALLITEM:
-        case CM_STARTSTALL:
-            {
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
     }
 }
 

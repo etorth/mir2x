@@ -24,6 +24,11 @@ extern ActorPool *g_actorPool;
 extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        reportStand();
+        return {};
+    }
+
     CMAction cmA;
     std::memcpy(&cmA, pBuf, sizeof(cmA));
 
@@ -73,6 +78,10 @@ corof::awaitable<> Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, si
 
 corof::awaitable<> Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        return {};
+    }
+
     const auto cmRRSI = ClientMsg::conv<CMRequestRetrieveSecuredItem>(buf);
     removeSecuredItem(cmRRSI.itemID, cmRRSI.seqID);
     return {};
@@ -80,6 +89,10 @@ corof::awaitable<> Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint
 
 corof::awaitable<> Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        co_return;
+    }
+
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
     if(cmRSM.mapUID == mapUID()){
         if(co_await requestSpaceMove(cmRSM.X, cmRSM.Y, false)){
@@ -95,6 +108,10 @@ corof::awaitable<> Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, 
 
 corof::awaitable<> Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        co_return;
+    }
+
     const auto cmRMD = ClientMsg::conv<CMRequestMagicDamage>(buf);
     if(co_await canDamageTarget(cmRMD.aimUID)){
         markAggression(co_await queryPlayerController(cmRMD.aimUID));
@@ -125,6 +142,10 @@ corof::awaitable<> Player::net_CM_REQUESTADDHEALTH(uint8_t, const uint8_t *buf, 
 
 corof::awaitable<> Player::net_CM_REQUESTREVIVE(uint8_t, const uint8_t *, size_t, uint64_t)
 {
+    if(stallSelling()){
+        co_return;
+    }
+
     if(!m_sdHealth.dead()){
         co_return;
     }
@@ -192,6 +213,10 @@ corof::awaitable<> Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size
 
 corof::awaitable<> Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        co_return;
+    }
+
     const auto cmPU = ClientMsg::conv<CMPickUp>(buf);
     if(cmPU.mapUID != mapUID()){
         co_return;
@@ -286,6 +311,14 @@ corof::awaitable<> Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t, ui
 
 corof::awaitable<> Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_t)
 {
+    if(stallSelling()){
+        postNetMessage(SM_NPCERROR, SMNPCError
+        {
+            .error = NPCE_STALLSELLING,
+        });
+        return {};
+    }
+
     const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
     m_actorPod->post(cmNPCE.uid, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
     {
@@ -332,6 +365,11 @@ corof::awaitable<> Player::net_CM_REGISTERAUCTIONITEM(uint8_t, const uint8_t *bu
     {
         postNetMessage(SM_AUCTIONREGISTERERROR, SMAuctionRegisterError{.error = to_u8(error)}, respID);
     };
+
+    if(stallSelling()){
+        postError(AUCTIONREGERR_STALLSELLING);
+        return {};
+    }
 
     if(cmRAI.note.size > cmRAI.note.capacity()){
         postError(AUCTIONREGERR_BADNOTE);
@@ -835,6 +873,18 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
         throw fflpanic("invalid uid: {}, type: {}", cmB.npcUID, uidf::getUIDTypeCStr(cmB.npcUID));
     }
 
+    if(stallSelling()){
+        SMBuyError smBE;
+        std::memset(&smBE, 0, sizeof(smBE));
+
+        smBE.npcUID = cmB.npcUID;
+        smBE.itemID = cmB.itemID;
+        smBE. seqID = cmB. seqID;
+        smBE. error = BUYERR_STALLSELLING;
+        postNetMessage(SM_BUYERROR, smBE);
+        co_return;
+    }
+
     AMBuy amB;
     std::memset(&amB, 0, sizeof(amB));
 
@@ -959,6 +1009,11 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, 
         postNetMessage(SM_EQUIPWEARERROR, smEWE);
     };
 
+    if(stallSelling()){
+        fnPostEquipError(EQWERR_STALLSELLING);
+        return {};
+    }
+
     const auto &ir = DBCOM_ITEMRECORD(cmREW.itemID);
     if(!ir){
         fnPostEquipError(EQWERR_BADITEM);
@@ -1036,6 +1091,11 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, 
         postNetMessage(SM_EQUIPBELTERROR, smEBE);
     };
 
+    if(stallSelling()){
+        fnPostEquipError(EQBERR_STALLSELLING);
+        return {};
+    }
+
     const auto &ir = DBCOM_ITEMRECORD(cmREB.itemID);
     if(!ir){
         fnPostEquipError(EQBERR_BADITEM);
@@ -1094,6 +1154,11 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
         postNetMessage(SM_GRABWEARERROR, smGWE);
     };
 
+    if(stallSelling()){
+        fnPostGrabError(GWERR_STALLSELLING);
+        return {};
+    }
+
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     if(!currItem){
         fnPostGrabError(GWERR_NOITEM);
@@ -1137,6 +1202,11 @@ corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, s
         postNetMessage(SM_GRABBELTERROR, smGBE);
     };
 
+    if(stallSelling()){
+        fnPostGrabError(GBERR_STALLSELLING);
+        return {};
+    }
+
     const auto currItem = m_sdItemStorage.belt.list.at(cmRGB.slot);
     if(!currItem){
         fnPostGrabError(GBERR_NOITEM);
@@ -1163,6 +1233,10 @@ corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, s
 
 corof::awaitable<> Player::net_CM_REQUESTCONSUMEBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        return {};
+    }
+
     const auto cmRCB = ClientMsg::conv<CMRequestConsumeBelt>(buf);
     const auto slot = to_uz(cmRCB.slot);
 
@@ -1396,6 +1470,10 @@ corof::awaitable<> Player::net_CM_SETTEAMREQUIREMENT(uint8_t, const uint8_t *buf
 
 corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        return {};
+    }
+
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
     auto dropItem = [&cmDI, this]() -> SDItem
     {
@@ -1430,6 +1508,10 @@ corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, 
 
 corof::awaitable<> Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        return {};
+    }
+
     const auto cmCI = ClientMsg::conv<CMConsumeItem>(buf);
     fflassert((SDItem
     {
@@ -1465,6 +1547,10 @@ corof::awaitable<> Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_
 
 corof::awaitable<> Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        return {};
+    }
+
     const auto cmMI = ClientMsg::conv<CMMakeItem>(buf);
     fflassert(cmMI.count >= 1, cmMI.count);
 
@@ -1589,6 +1675,11 @@ corof::awaitable<> Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, s
 
 corof::awaitable<> Player::net_CM_REQUESTDIRECTTRADE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        postDirectTradeError(DTRADEERR_STALLSELLING);
+        return {};
+    }
+
     const auto cmRDT = ClientMsg::conv<CMRequestDirectTrade>(buf);
 
     if(!uidf::isPlayer(cmRDT.uid) || cmRDT.uid == UID()){
@@ -1738,6 +1829,11 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 
 corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
+    if(stallSelling()){
+        postDirectTradeError(DTRADEERR_STALLSELLING);
+        return {};
+    }
+
     const auto sdDTOR = cerealf::deserialize<SDDirectTradeOfferRequest>(buf, bufSize);
     if(sdDTOR.uid != m_directTradePeerOffer.uid || !m_directTradeStarted){
         return {};
@@ -1830,6 +1926,11 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
 
 corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
+    if(stallSelling()){
+        postDirectTradeError(DTRADEERR_STALLSELLING);
+        return {};
+    }
+
     const auto cmCDT = ClientMsg::conv<CMCommitDirectTrade>(buf);
     if(cmCDT.uid != m_directTradePeerOffer.uid || !m_directTradeStarted){
         return {};

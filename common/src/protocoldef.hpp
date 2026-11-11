@@ -131,6 +131,7 @@ enum NPCErrorType: int
     NPCE_NONE = 0,
     NPCE_TOOFAR,
     NPCE_BADEVENTID,
+    NPCE_STALLSELLING,
 };
 
 enum JobType: int
@@ -234,6 +235,7 @@ enum DirectTradeErrorType: uint8_t
     DTRADEERR_LOCKED,
     DTRADEERR_NOTREADY,
     DTRADEERR_COMMITFAILED,
+    DTRADEERR_STALLSELLING,
 };
 
 enum StallErrorType: uint8_t
@@ -282,6 +284,7 @@ enum BuyErrorType: int
     BUYERR_LOCKED,
     BUYERR_SOLDOUT,
     BUYERR_INSUFFCIENT,
+    BUYERR_STALLSELLING,
     BUYERR_END,
 };
 
@@ -293,6 +296,7 @@ enum EquipWearErrorType: int
     EQWERR_BADITEM,
     EQWERR_BADWLTYPE,
     EQWERR_INSUFF,
+    EQWERR_STALLSELLING,
     EQWERR_END,
 };
 
@@ -302,6 +306,7 @@ enum GrabWearErrorType: int
     GWERR_BEGIN = 1,
     GWERR_NOITEM = 1,
     GWERR_BIND, // some item you can't manually remove it after wear
+    GWERR_STALLSELLING,
     GWERR_END,
 };
 
@@ -313,6 +318,7 @@ enum EquipBeltErrorType: int
     EQBERR_BADITEM,
     EQBERR_BADITEMTYPE,
     EQBERR_BADSLOT,
+    EQBERR_STALLSELLING,
     EQBERR_END,
 };
 
@@ -321,6 +327,7 @@ enum GrabBeltErrorType: int
     GBERR_NONE = 0,
     GBERR_BEGIN = 1,
     GBERR_NOITEM = 1,
+    GBERR_STALLSELLING,
     GBERR_END,
 };
 
@@ -564,6 +571,7 @@ enum AuctionRegisterErrorType: int
     AUCTIONREGERR_BADITEM = 1,
     AUCTIONREGERR_BADPRICE,
     AUCTIONREGERR_BADNOTE,
+    AUCTIONREGERR_STALLSELLING,
     AUCTIONREGERR_END,
 };
 

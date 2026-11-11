@@ -381,9 +381,6 @@ class Player final: public BattleObject
         }
 
     private:
-        static bool stallBlockedCM(uint8_t);
-
-    private:
         void loadStall();
         void reloadStall();
         void closeStall();

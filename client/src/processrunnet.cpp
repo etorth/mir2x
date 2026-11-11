@@ -438,6 +438,11 @@ void ProcessRun::on_SM_BUYERROR(const uint8_t *buf, size_t bufSize)
                 addCBLog(CBLOG_ERR, u8"金币不够");
                 break;
             }
+        case BUYERR_STALLSELLING:
+            {
+                addCBLog(CBLOG_ERR, u8"无法在摆摊时购买");
+                break;
+            }
         default:
             {
                 addCBLog(CBLOG_ERR, u8"购买失败");
@@ -861,6 +866,11 @@ void ProcessRun::on_SM_EQUIPWEARERROR(const uint8_t *buf, size_t)
                 addCBLog(CBLOG_ERR, u8"无法放置：%s", to_cstr(DBCOM_ITEMRECORD(smEWE.itemID).name));
                 return;
             }
+        case EQWERR_STALLSELLING:
+            {
+                addCBLog(CBLOG_ERR, u8"无法在摆摊时更换装备");
+                return;
+            }
         default:
             {
                 return;
@@ -899,6 +909,11 @@ void ProcessRun::on_SM_GRABWEARERROR(const uint8_t *buf, size_t)
                 addCBLog(CBLOG_ERR, u8"无法取下装备");
                 return;
             }
+        case GWERR_STALLSELLING:
+            {
+                addCBLog(CBLOG_ERR, u8"无法在摆摊时取下装备");
+                return;
+            }
         case GWERR_NOITEM:
         default:
             {
@@ -930,6 +945,11 @@ void ProcessRun::on_SM_EQUIPBELTERROR(const uint8_t *buf, size_t)
         case EQBERR_BADITEMTYPE:
             {
                 addCBLog(CBLOG_ERR, u8"无法装备：%s", to_cstr(DBCOM_ITEMRECORD(smEBE.itemID).name));
+                return;
+            }
+        case EQBERR_STALLSELLING:
+            {
+                addCBLog(CBLOG_ERR, u8"无法在摆摊时放入腰带");
                 return;
             }
         default:
@@ -965,6 +985,11 @@ void ProcessRun::on_SM_GRABBELTERROR(const uint8_t *buf, size_t)
 {
     const auto smGBE = ServerMsg::conv<SMGrabBeltError>(buf);
     switch(smGBE.error){
+        case GBERR_STALLSELLING:
+            {
+                addCBLog(CBLOG_ERR, u8"无法在摆摊时取下腰带物品");
+                return;
+            }
         default:
             {
                 break;
@@ -1207,6 +1232,7 @@ void ProcessRun::on_SM_DIRECTTRADEERROR(const uint8_t *buf, size_t)
         case DTRADEERR_LOCKED          : message = u8"交易内容已经锁定"; break;
         case DTRADEERR_NOTREADY        : message = u8"双方尚未完成锁定和确认"; break;
         case DTRADEERR_COMMITFAILED    : message = u8"交易内容已失效，交易取消"; break;
+        case DTRADEERR_STALLSELLING    : message = u8"无法在摆摊时交易"; break;
         default                        : message = u8"交易申请失败"; break;
     }
 
@@ -1226,8 +1252,9 @@ void ProcessRun::on_SM_NPCERROR(const uint8_t *buf, size_t)
 
     switch(error){
         case NPCE_TOOFAR    : message = u8"距离过远，无法继续对话"; break;
-        case NPCE_BADEVENTID: message = u8"该对话选项已失效"; break;
-        default             : message = u8"NPC对话出错"; break;
+        case NPCE_BADEVENTID  : message = u8"该对话选项已失效"; break;
+        case NPCE_STALLSELLING: message = u8"无法在摆摊时与NPC对话"; break;
+        default               : message = u8"NPC对话出错"; break;
     }
     addCBLog(CBLOG_ERR, u8"%s", to_cstr(message));
 }

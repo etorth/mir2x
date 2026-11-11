@@ -339,9 +339,10 @@ void AuctionRegisterBoard::registerItem()
                 {
                     setPending(false);
                     switch(ServerMsg::conv<SMAuctionRegisterError>(buf, bufSize).error){
-                        case AUCTIONREGERR_BADITEM : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
-                        case AUCTIONREGERR_BADPRICE: m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
-                        case AUCTIONREGERR_BADNOTE : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
+                        case AUCTIONREGERR_BADITEM     : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
+                        case AUCTIONREGERR_BADPRICE    : m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
+                        case AUCTIONREGERR_BADNOTE     : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
+                        case AUCTIONREGERR_STALLSELLING: m_runProc->addCBLog(CBLOG_ERR, u8"无法在摆摊时寄售"); return;
                         default: break;
                     }
                     m_runProc->addCBLog(CBLOG_ERR, u8"寄售失败");
