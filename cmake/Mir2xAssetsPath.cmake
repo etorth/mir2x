@@ -1,6 +1,14 @@
 set(MIR2X_ASSETS_REPO_URL "https://github.com/etorth/mir2x_assets.git" CACHE STRING "mir2x assets repository URL")
 set(MIR2X_ASSETS_REPO_PATH "" CACHE PATH "Path to the mir2x assets repository used by install-time resource packing")
 
+set(MIR2X_ASSETS_VERSION "" CACHE STRING "Required mir2x assets version, checked against <assets>/version by install_res.py, empty to skip the check")
+
+if(MIR2X_ASSETS_VERSION)
+    set(MIR2X_ASSETS_VERSION_ARG "--version=${MIR2X_ASSETS_VERSION}")
+else()
+    set(MIR2X_ASSETS_VERSION_ARG "")
+endif()
+
 set(MIR2X_DEFAULT_ASSETS_REPO_PATH "${CMAKE_BINARY_DIR}/assets/mir2x_assets")
 
 # Empty means the user owns MIR2X_ASSETS_REPO_PATH; non-empty means CMake can clone it.

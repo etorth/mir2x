@@ -12,6 +12,10 @@ SOURCE_DIR = Path(__file__).resolve().parent
 DEFAULT_LOCAL_BUILD_DIR = Path.cwd().resolve()
 MIR2X_VCPKG_CHAINLOAD_TOOLCHAIN = SOURCE_DIR / "cmake/Mir2xVcpkgChainload.cmake"
 MIR2X_ASSETS_REPO_URL = "https://github.com/etorth/mir2x_assets.git"
+
+# install_res.py requires <assets>/version to contain this number
+# roll it when mir2x_assets changes in an incompatible way
+MIR2X_ASSETS_VERSION = 1
 MSYSTEM_TRIPLETS = {
     "CLANGARM64": "arm64-mingw-static",
     "MINGWARM64": "arm64-mingw-static",
@@ -313,6 +317,7 @@ def main():
         f"-DVCPKG_INSTALLED_DIR={cmake_build_dir / 'vcpkg_installed'}",
         f"-DCMAKE_INSTALL_PREFIX={install_prefix}",
         f"-DMIR2X_USE_CCACHE={'ON' if args.ccache else 'OFF'}",
+        f"-DMIR2X_ASSETS_VERSION={MIR2X_ASSETS_VERSION}",
     ])
     if vcpkg_host_triplet:
         cmake_configure_args.append(f"-DVCPKG_HOST_TRIPLET={vcpkg_host_triplet}")

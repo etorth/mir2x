@@ -73,7 +73,27 @@ def parse_args():
         action="store_true",
         help="Always run zsdbmaker, even when output .zsdb files are up to date.",
     )
+    parser.add_argument(
+        "--version",
+        type=int,
+        help="Required assets version, <input-dir>/version must contain this integer. No check if omitted.",
+    )
     return parser.parse_args()
+
+
+def check_assets_version(input_dir, version):
+    version_path = input_dir / "version"
+    if not version_path.is_file():
+        raise FileNotFoundError(f"missing assets version file, requires version {version}: {version_path}")
+
+    version_text = version_path.read_text().strip()
+    try:
+        assets_version = int(version_text)
+    except ValueError:
+        raise ValueError(f"invalid assets version {version_text!r}, requires version {version}: {version_path}") from None
+
+    if assets_version != version:
+        raise ValueError(f"assets version {assets_version} doesn't match required version {version}: {version_path}")
 
 
 def resolve_zsdbmaker(zsdbmaker):
@@ -112,6 +132,9 @@ def main():
     input_dir = Path(args.input_dir).resolve()
     output_dir = Path(args.output_dir).resolve()
     resource_packs = SERVER_RESOURCE_PACKS if args.install_server else CLIENT_RESOURCE_PACKS
+
+    if args.version is not None:
+        check_assets_version(input_dir, args.version)
 
     for input_relpath, _ in resource_packs:
         pack_input_dir = input_dir / input_relpath
