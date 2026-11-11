@@ -26,6 +26,9 @@ ValueSelector::ValueSelector(ValueSelector::InitArgs args)
 
           .font   = std::move(args.input.font),
           .cursor = std::move(args.input.cursor),
+
+          .onChange = std::move(args.input.onChange),
+          .validate = std::move(args.input.validate),
       }}
 
     , m_up

@@ -21,7 +21,7 @@ SliderBase::SliderBase(SliderBase::InitArgs args)
     , m_onChange(std::move(args.onChange))
     , m_bar
       {{
-          .dir = std::move(args.bar.dir),
+          .dir = m_barArgs.dir,
 
           .x = [this]{ return -1 * widgetXFromBar(0); },
           .y = [this]{ return -1 * widgetYFromBar(0); },

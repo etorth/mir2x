@@ -140,7 +140,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
               }});
 
               if(i == m_selectedTabIndex){
-                  m_tabButtonList.at(i)->setDown();
+                  tabButtonList.back()->setDown();
               }
           }
           return tabButtonList;
