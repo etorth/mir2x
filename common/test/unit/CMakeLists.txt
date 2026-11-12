@@ -21,3 +21,9 @@ mir2x_add_unit_test(
     SOURCES test_hexstr.cpp
     LIBS common
 )
+
+mir2x_add_unit_test(
+    NAME parserf
+    SOURCES test_parserf.cpp
+    LIBS common
+)

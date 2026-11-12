@@ -86,6 +86,9 @@ constexpr int SYS_INVGRIDPW = 38;
 constexpr int SYS_INVGRIDPH = 38;
 constexpr int SYS_INVGRIDMAXHOLD = 99;
 
+constexpr uint64_t SYS_MAXPRICE = (1ULL << 60) - 1; // any price, unit price or total price
+constexpr size_t SYS_MAXITEMCOUNT = SYS_MAXPRICE; // item count in one transaction, same as SYS_MAXPRICE since price N is N count of gold
+
 constexpr int SYS_MAXTARGET = 8;
 constexpr int SYS_MAXACTOR  = 65521;
 
