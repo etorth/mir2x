@@ -17,6 +17,7 @@
 #include "pathf.hpp"
 #include "raiitimer.hpp"
 #include "sysconst.hpp"
+#include "parserf.hpp"
 #include "log.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
@@ -1273,27 +1274,10 @@ void ProcessRun::RegisterUserCommand()
             case 1 + 2:
                 {
                     if(const auto itemID = DBCOM_ITEMID(parmList[1].c_str())){
-                        const auto count = [&parmList]() -> int
-                        {
-                            if(parmList.size() == 1 + 1){
-                                return 1;
-                            }
-
-                            try{
-                                if(const auto count = std::stoi(parmList[2]); count > 1){
-                                    return count;
-                                }
-                                else{
-                                    return -1;
-                                }
-                            }
-                            catch(...){
-                                return -1;
-                            }
-                        }();
-
-                        if(count > 1){
-                            requestMakeItem(itemID, count);
+                        // CMMakeItem::count is uint16_t
+                        const auto count = (parmList.size() == 1 + 1) ? std::optional<size_t>(1) : parserf::itemcount(parmList[2]);
+                        if(count && count.value() <= UINT16_MAX){
+                            requestMakeItem(itemID, count.value());
                             return 0;
                         }
                         else{
@@ -1356,8 +1340,8 @@ void ProcessRun::RegisterUserCommand()
     m_userCommandList.emplace_back("addLevel", [this](const std::vector<std::string> &parms) -> int
     {
         if(parms.size() >= 2){
-            if(const auto addLevel = std::stoi(parms.at(1)); addLevel > 0){
-                if(const auto newLevel = getMyHero()->getLevel() + to_u32(addLevel); newLevel <= SYS_MAXLEVEL){
+            if(const auto addLevel = parserf::level(parms.at(1))){
+                if(const auto newLevel = getMyHero()->getLevel() + addLevel.value(); newLevel <= SYS_MAXLEVEL){
                     requestAddExp(to_u64(SYS_SUMEXP(newLevel) - getMyHero()->getExp()));
                     return 0;
                 }
@@ -1960,7 +1944,7 @@ void ProcessRun::respondDirectTrade(uint64_t uid, bool accept)
     g_client->send({CM_RESPONDDIRECTTRADE, cmRDT});
 }
 
-bool ProcessRun::updateDirectTradeOffer(uint64_t uid, uint32_t gold, bool locked, const std::vector<SDItem> &itemList)
+bool ProcessRun::updateDirectTradeOffer(uint64_t uid, size_t gold, bool locked, const std::vector<SDItem> &itemList)
 {
     fflassert(uidf::isPlayer(uid));
 
@@ -3067,7 +3051,7 @@ void ProcessRun::requestBuyStallItem(uint32_t sellerDBID, uint32_t itemID, uint3
     cmBSI.sellerDBID = sellerDBID;
     cmBSI.itemID     = itemID;
     cmBSI.seqID      = seqID;
-    cmBSI.count      = to_u32(count);
+    cmBSI.count      = count;
     cmBSI.price      = price;
     g_client->send({CM_BUYSTALLITEM, cmBSI});
 }

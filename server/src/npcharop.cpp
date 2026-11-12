@@ -1,5 +1,6 @@
 #include "mathf.hpp"
 #include "utf8f.hpp"
+#include "parserf.hpp"
 #include "npchar.hpp"
 #include "dbcomid.hpp"
 #include "servermsg.hpp"
@@ -255,8 +256,9 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
         throw fflpanic("invalid itemID = {}", amB.itemID);
     }
 
-    if(!ir.packable() && amB.count > 1){
-        throw fflpanic("buying multiple unpackable items");
+    if(!parserf::valid_itemcount(amB.count) || (!ir.packable() && amB.count > 1)){
+        fnSendBuyError(BUYERR_BADCOUNT);
+        co_return;
     }
 
     auto p = m_sellItemList.find(amB.itemID);
@@ -279,7 +281,19 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     SDBuyCost sdBC;
     sdBC.item = q->second.item;
     sdBC.item.count = amB.count;
-    sdBC.costList = q->second.costList; // TODO: for packable cost = itemCost x count
+    sdBC.costList = q->second.costList;
+
+    // listed cost is for one item
+    // a price N is N count of gold, so total_price applies to any cost item
+    for(auto &costItem: sdBC.costList){
+        if(const auto totalCount = parserf::total_price(costItem.count, amB.count)){
+            costItem.count = to_uz(totalCount.value());
+        }
+        else{
+            fnSendBuyError(BUYERR_BADCOUNT);
+            co_return;
+        }
+    }
 
     if(!ir.packable()){
         q->second.locked = true;

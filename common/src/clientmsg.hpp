@@ -295,7 +295,7 @@ struct CMBuy
     uint64_t npcUID;
     uint32_t itemID;
     uint32_t seqID;
-    uint32_t count;
+    uint64_t count;
 };
 
 struct CMAddFriend
@@ -463,7 +463,7 @@ struct CMBuyStallItem
     uint32_t sellerDBID;
     uint32_t itemID;
     uint32_t seqID;
-    uint32_t count;
+    uint64_t count;
     uint64_t price;
 };
 

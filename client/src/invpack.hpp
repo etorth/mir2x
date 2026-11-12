@@ -76,7 +76,7 @@ class InvPack
         void setGrabbedItem(SDItem);
 
     public:
-        void setGold(int);
+        void setGold(size_t);
 
     public:
         size_t getGold() const

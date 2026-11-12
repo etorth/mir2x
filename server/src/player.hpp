@@ -590,7 +590,7 @@ class Player final: public BattleObject
 
     private:
         void setGold(size_t);
-        void addGold(size_t);
+        bool addGold(size_t); // false and no change if it exceeds SYS_MAXGOLD
 
     protected:
         bool updateHealth_virtualFuncWithDefArgs() override;

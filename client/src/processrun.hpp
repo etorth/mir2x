@@ -510,7 +510,7 @@ class ProcessRun: public Process
         void requestSetFollowTeamLeader(bool);
         void requestDirectTrade(uint64_t);
         void respondDirectTrade(uint64_t, bool);
-        bool updateDirectTradeOffer(uint64_t, uint32_t, bool, const std::vector<SDItem> &);
+        bool updateDirectTradeOffer(uint64_t, size_t, bool, const std::vector<SDItem> &);
         void commitDirectTrade(uint64_t);
         void cancelDirectTrade(uint64_t);
         void requestLatestChatMessage(const std::vector<uint64_t> &, size_t, bool, bool);

@@ -4,6 +4,7 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
+#include "parserf.hpp"
 #include "protocoldef.hpp"
 #include "golddb.hpp"
 #include "stalldb.hpp"
@@ -57,7 +58,7 @@ std::expected<SDStallItem, int> dbAddStallItem(uint32_t dbid, const SDItem &item
         return std::unexpected(STALLERR_BADITEM);
     }
 
-    if(price == 0 || price > to_uz(INT_MAX)){
+    if(!parserf::valid_price(price)){
         return std::unexpected(STALLERR_BADPRICE);
     }
 
@@ -241,11 +242,12 @@ std::expected<DBStallBuyResult, int> dbBuyStallItem(uint32_t buyerDBID, SDInvent
         return std::unexpected(STALLERR_BADCOUNT);
     }
 
-    if(itemPrice > to_uz(INT64_MAX) / count){
+    const auto totalPriceOpt = parserf::total_price(itemPrice, count);
+    if(!totalPriceOpt){
         return std::unexpected(STALLERR_BADCOUNT);
     }
 
-    const auto totalPrice = itemPrice * count;
+    const auto totalPrice = to_uz(totalPriceOpt.value());
     const auto buyerGold = dbRemoveGold(buyerDBID, totalPrice);
 
     if(!buyerGold.has_value()){

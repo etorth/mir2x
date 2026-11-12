@@ -48,7 +48,7 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
         const uint64_t finalGold0 = gold0 - offer0.gold + offer1.gold;
         const uint64_t finalGold1 = gold1 - offer1.gold + offer0.gold;
 
-        if(finalGold0 > to_uz(INT_MAX) || finalGold1 > to_uz(INT_MAX)){
+        if(finalGold0 > SYS_MAXGOLD || finalGold1 > SYS_MAXGOLD){
             return std::unexpected(DTRADEERR_COMMITFAILED);
         }
 

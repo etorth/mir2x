@@ -3,6 +3,7 @@
 #include <limits>
 #include <utility>
 #include "colorf.hpp"
+#include "parserf.hpp"
 #include "invpack.hpp"
 #include "layoutboard.hpp"
 #include "progusedb.hpp"
@@ -199,17 +200,7 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
 
           .validate = [](const std::string &currentInput, const std::string &newInput)
           {
-              if(newInput.find_first_not_of("0123456789") != std::string::npos){
-                  return false;
-              }
-
-              try{
-                  if(const auto val = std::stoll(currentInput + newInput); val >= 0 && val <= INT_MAX){
-                      return true;
-                  }
-              }
-              catch(...){}
-              return false;
+              return parseGold(currentInput + newInput).has_value();
           },
 
           .parent{this},
@@ -425,7 +416,7 @@ void DirectTradeBoard::completeTrade()
     setFocus(false);
 }
 
-uint32_t DirectTradeBoard::localGold() const
+size_t DirectTradeBoard::localGold() const
 {
     return parsedLocalGold().value_or(0);
 }
@@ -473,30 +464,30 @@ void DirectTradeBoard::rejectLocalOffer()
 
 std::optional<size_t> DirectTradeBoard::parsedLocalGold(bool checkGold) const
 {
-    if(const auto input = m_goldInput.getRawString(); input.empty()){
+    const auto gold = parseGold(m_goldInput.getRawString());
+    if(!gold){
+        return std::nullopt;
+    }
+
+    if(checkGold){
+        if(const auto hero = m_runProc->getMyHero(); hero && gold.value() > hero->getGold()){
+            return std::nullopt;
+        }
+    }
+    return gold;
+}
+
+std::optional<size_t> DirectTradeBoard::parseGold(std::string_view s)
+{
+    // offering no gold is fine, empty or all zeros
+    if(s.find_first_not_of('0') == std::string_view::npos){
         return 0;
     }
 
-    else{
-        long long val = 0;
-        for(char c: input){
-            if(c < '0' || c > '9'){
-                return {};
-            }
-
-            val = val * 10 + (c - '0');
-            if(val >= INT_MAX){
-                return {};
-            }
-
-            if(checkGold){
-                if(const auto hero = m_runProc->getMyHero(); hero && val > hero->getGold()){
-                    return {};
-                }
-            }
-        }
-        return to_uz(val);
+    if(const auto gold = parserf::price(s)){
+        return to_uz(gold.value());
     }
+    return std::nullopt;
 }
 
 bool DirectTradeBoard::localOfferMatches(const SDDirectTradeOffer &offer) const

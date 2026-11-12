@@ -285,6 +285,7 @@ enum BuyErrorType: int
     BUYERR_SOLDOUT,
     BUYERR_INSUFFCIENT,
     BUYERR_STALLSELLING,
+    BUYERR_BADCOUNT,
     BUYERR_END,
 };
 
@@ -561,6 +562,7 @@ enum ClaimDeliveryError: int
     CDERR_UNKNOWN_ERROR = 1,
     CDERR_INVALID_CLAIM,
     CDERR_INVALID_RECORD,
+    CDERR_GOLDFULL,
     CDERR_END,
 };
 

@@ -114,7 +114,7 @@ std::optional<SDItemGrant> dbGrantItemList(uint32_t dbid, const std::vector<SDIt
 
     for(const auto &item: itemList){
         if(item.isGold()){
-            if(to_u64(item.count) > to_u64(INT64_MAX) - to_u64(result.gold)){
+            if(to_u64(item.count) > SYS_MAXGOLD - to_u64(result.gold)){
                 return std::nullopt;
             }
             result.gold += item.count;

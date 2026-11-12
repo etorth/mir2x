@@ -317,7 +317,7 @@ struct SMRemoveGroundItem
 
 struct SMGold
 {
-    uint32_t gold;
+    uint64_t gold;
 };
 
 struct SMInvOpCost

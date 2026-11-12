@@ -12,6 +12,7 @@
 #include "server.hpp"
 #include "dbcomid.hpp"
 #include "utf8f.hpp"
+#include "parserf.hpp"
 #include "stalldb.hpp"
 #include "serverargparser.hpp"
 #include "auctiondb.hpp"
@@ -259,7 +260,15 @@ corof::awaitable<> Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, ui
 
                     fflassert(ir);
                     if(item.isGold()){
-                        setGold(m_sdItemStorage.gold + item.count);
+                        // map has removed it, put it back if over SYS_MAXGOLD
+                        if(!addGold(item.count)){
+                            m_actorPod->post(mapUID(), {AM_DROPITEMLIST, cerealf::serialize(SDDropItemList
+                            {
+                                .x = X(),
+                                .y = Y(),
+                                .itemList {std::move(item)},
+                            })});
+                        }
                     }
                     else{
                         addInventoryItem(std::move(item), false);
@@ -382,7 +391,7 @@ corof::awaitable<> Player::net_CM_REGISTERAUCTIONITEM(uint8_t, const uint8_t *bu
         return {};
     }
 
-    if(cmRAI.price == 0 || cmRAI.price > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())){
+    if(!parserf::valid_price(cmRAI.price)){
         postError(AUCTIONREGERR_BADPRICE);
         return {};
     }
@@ -873,15 +882,25 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
         throw fflpanic("invalid uid: {}, type: {}", cmB.npcUID, uidf::getUIDTypeCStr(cmB.npcUID));
     }
 
-    if(stallSelling()){
+    const auto fnPostBuyError = [&cmB, this](int buyError)
+    {
         SMBuyError smBE;
         std::memset(&smBE, 0, sizeof(smBE));
 
         smBE.npcUID = cmB.npcUID;
         smBE.itemID = cmB.itemID;
         smBE. seqID = cmB. seqID;
-        smBE. error = BUYERR_STALLSELLING;
+        smBE. error =   buyError;
         postNetMessage(SM_BUYERROR, smBE);
+    };
+
+    if(stallSelling()){
+        fnPostBuyError(BUYERR_STALLSELLING);
+        co_return;
+    }
+
+    if(!parserf::valid_itemcount(cmB.count)){
+        fnPostBuyError(BUYERR_BADCOUNT);
         co_return;
     }
 
@@ -893,18 +912,6 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
     amB.count  = cmB.count;
 
     const auto mpk = co_await m_actorPod->send(cmB.npcUID, {AM_BUY, amB});
-
-    const auto fnPostBuyError = [&cmB, &mpk, this](int buyError)
-    {
-        SMBuyError smBE;
-        std::memset(&smBE, 0, sizeof(smBE));
-
-        smBE.npcUID = mpk.from();
-        smBE.itemID = cmB.itemID;
-        smBE. seqID = cmB. seqID;
-        smBE. error =   buyError;
-        postNetMessage(SM_BUYERROR, smBE);
-    };
 
     switch(mpk.type()){
         case AM_BUYCOST:
@@ -978,14 +985,7 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
             }
         case AM_BUYERROR:
             {
-                SMBuyError smBE;
-                std::memset(&smBE, 0, sizeof(smBE));
-
-                smBE.npcUID = cmB.npcUID;
-                smBE.itemID = cmB.itemID;
-                smBE. seqID = cmB. seqID;
-                smBE. error = mpk.conv<AMBuyError>().error;
-                postNetMessage(SM_BUYERROR, smBE);
+                fnPostBuyError(mpk.conv<AMBuyError>().error);
                 break;
             }
         default:
@@ -1552,10 +1552,14 @@ corof::awaitable<> Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, 
     }
 
     const auto cmMI = ClientMsg::conv<CMMakeItem>(buf);
-    fflassert(cmMI.count >= 1, cmMI.count);
+    if(!parserf::valid_itemcount(cmMI.count)){
+        return {};
+    }
 
     const auto &ir = DBCOM_ITEMRECORD(cmMI.itemID);
-    fflassert(ir, cmMI.itemID, cmMI.count);
+    if(!ir){
+        return {};
+    }
 
     size_t done = 0;
     while(done < cmMI.count){
@@ -1627,7 +1631,7 @@ corof::awaitable<> Player::net_CM_QUERYRANKING(uint8_t, const uint8_t *buf, size
         {
             .dbid  = check_cast<uint32_t>(query.getColumn("fld_dbid").getInt64()),
             .level = std::get<0>(SYS_LEVEL(check_cast<size_t>(query.getColumn("fld_exp").getInt64()))),
-            .gold  = check_cast<uint32_t>(query.getColumn("fld_gold").getInt64()),
+            .gold  = check_cast<uint64_t>(query.getColumn("fld_gold").getInt64()),
             .name  = query.getColumn("fld_name").getString(),
         });
     }
@@ -1989,7 +1993,7 @@ corof::awaitable<> Player::net_CM_ADDSTALLITEM(uint8_t, const uint8_t *buf, size
             return STALLERR_BUSY;
         }
 
-        if(cmASI.price == 0 || cmASI.price > to_u64(INT_MAX)){
+        if(!parserf::valid_price(cmASI.price)){
             return STALLERR_BADPRICE;
         }
 

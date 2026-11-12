@@ -1,7 +1,7 @@
 #include <array>
 #include <limits>
-#include <charconv>
 #include "luaf.hpp"
+#include "parserf.hpp"
 #include "xmlf.hpp"
 #include "pngtexdb.hpp"
 #include "progusedb.hpp"
@@ -137,7 +137,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
 
           .textFunc = [this] -> std::string
           {
-              return str_ksep([this]() -> int
+              return str_ksep([this]() -> size_t
               {
                   if(auto p = m_processRun->getMyHero()){
                       return p->getGold();
@@ -736,22 +736,16 @@ void InventoryBoard::commitStallItem(const SDItem &item)
         .layoutString = to_u8rawstr("<layout>" + xmlf::toParString(item.count > 1 ? "请输入%s的单价" : "请输入%s的价格", to_cstr(ir.name)) + "</layout>"),
         .onAccept = [itemID = item.itemID, seqID = item.seqID, this](std::u8string input)
         {
-            const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
-            uint64_t price = 0;
-            const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), price, 10);
-            if(value.empty()
-                    || ec != std::errc()
-                    || ptr != value.data() + value.size()
-                    || price == 0
-                    || price > to_u64(std::numeric_limits<int>::max())){
-                m_processRun->addCBLog(CBLOG_ERR, u8"无效的摆摊价格：%s", value.c_str());
-                return;
+            if(const auto price = parserf::price(input)){
+                m_processRun->requestAddStallItem(itemID, seqID, to_uz(price.value()));
             }
-            m_processRun->requestAddStallItem(itemID, seqID, price);
+            else{
+                m_processRun->addCBLog(CBLOG_ERR, u8"无效的摆摊价格：%s", to_cstr(input));
+            }
         },
         .validate = [](const std::string &currentInput, const std::string &newInput)
         {
-            return currentInput.size() + newInput.size() <= 10
+            return currentInput.size() + newInput.size() <= 19
                 && newInput.find_first_not_of("0123456789") == std::string::npos;
         },
     });

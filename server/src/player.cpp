@@ -181,7 +181,9 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
         for(auto item: SDItem::buildItemList(to_u32(itemID), to_uz(itemCount))){
             if(item.isGold()){
-                getPlayer()->setGold(getPlayer()->gold() + item.count);
+                if(!getPlayer()->addGold(item.count)){
+                    throw fflpanic("gold exceeds SYS_MAXGOLD: gold = {}, add = {}", getPlayer()->gold(), item.count);
+                }
             }
             else{
                 getPlayer()->addInventoryItem(std::move(item), false);
@@ -2532,9 +2534,14 @@ void Player::setGold(size_t gold)
     reportGold();
 }
 
-void Player::addGold(size_t extraGold)
+bool Player::addGold(size_t extraGold)
 {
+    if(to_u64(extraGold) > SYS_MAXGOLD - to_u64(gold())){
+        return false;
+    }
+
     setGold(gold() + extraGold);
+    return true;
 }
 
 bool Player::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
@@ -3272,10 +3279,24 @@ std::optional<int> Player::claimDelivery(const std::string &record)
     // the dbClaim and dbUpdateInventoryItem should be in same database transaction
     // here keep it as it is for simplicity
 
+    // rolls back the claim if the gold doesn't fit, delivery stays unclaimed
+    auto transaction = g_dbPod->createTransaction();
     if(const auto claimedItemList = dbClaimDelivery(record); claimedItemList.has_value()){
+        size_t claimedGold = 0;
         for(const auto &item: claimedItemList.value()){
             if(item.isGold()){
-                addGold(item.count);
+                if(to_u64(item.count) > SYS_MAXGOLD - to_u64(gold()) - to_u64(claimedGold)){
+                    return CDERR_GOLDFULL;
+                }
+                claimedGold += item.count;
+            }
+        }
+
+        transaction.commit();
+        for(const auto &item: claimedItemList.value()){
+            if(item.isGold()){
+                const bool added = addGold(item.count);
+                fflassert(added, gold(), item.count); // checked above
             }
             else{
                 addInventoryItem(item, false);

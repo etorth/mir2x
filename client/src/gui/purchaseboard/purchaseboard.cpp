@@ -1,4 +1,5 @@
 #include "totype.hpp"
+#include "parserf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "progusedb.hpp"
@@ -172,17 +173,13 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
                   .layoutString = headerString,
                   .onAccept = [itemID, npcUID = m_npcUID, this](std::u8string inputString)
                   {
-                      const auto &ir = DBCOM_ITEMRECORD(itemID);
-                      int count = 0;
-                      try{
-                          count = std::stoi(to_cstr(inputString));
+                      if(const auto count = parserf::itemcount(inputString)){
+                          if(DBCOM_ITEMRECORD(itemID)){
+                              m_processRun->requestBuy(npcUID, itemID, 0, count.value());
+                          }
                       }
-                      catch(...){
-                          m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
-                      }
-
-                      if(ir && count > 0){
-                          m_processRun->requestBuy(npcUID, itemID, 0, count);
+                      else{
+                          m_processRun->addCBLog(CBLOG_ERR, u8"无效的购买数量：%s", to_cstr(inputString));
                       }
                   },
                   .validate = [](const std::string &currentInput, const std::string &newInput)

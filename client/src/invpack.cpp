@@ -168,10 +168,9 @@ void InvPack::setGrabbedItem(SDItem item)
     }
 }
 
-void InvPack::setGold(int gold)
+void InvPack::setGold(size_t gold)
 {
-    fflassert(gold >= 0, gold);
-    if(std::exchange(m_gold, gold) < to_uz(gold)){
+    if(std::exchange(m_gold, gold) < gold){
         g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 106));
     }
 }

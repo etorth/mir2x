@@ -100,7 +100,7 @@ struct SDInitPlayer
     int mp = 0;
 
     size_t exp = 0;
-    int gold = 0;
+    size_t gold = 0;
     bool gender = true;
     int job = 0;
 
@@ -1604,7 +1604,7 @@ struct SDRankingEntry
 {
     uint32_t  dbid  = 0;
     uint32_t  level = 0;
-    uint32_t  gold  = 0;
+    uint64_t  gold  = 0;
 
     std::string name {};
 

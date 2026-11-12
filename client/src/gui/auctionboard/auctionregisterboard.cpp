@@ -1,7 +1,7 @@
 #include <algorithm>
-#include <charconv>
 #include <limits>
 #include "strf.hpp"
+#include "parserf.hpp"
 #include "utf8f.hpp"
 #include "xmlf.hpp"
 #include "client.hpp"
@@ -229,18 +229,12 @@ void AuctionRegisterBoard::setPrice()
         .layoutString = u8"<layout><par>你想卖多少钱呢?</par></layout>",
         .onAccept = [this](std::u8string input)
         {
-            const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
-            uint64_t price = 0;
-            const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), price, 10);
-            if(value.empty()
-                    || ec != std::errc()
-                    || ptr != value.data() + value.size()
-                    || price == 0
-                    || price > to_u64(std::numeric_limits<int64_t>::max())){
-                m_runProc->addCBLog(CBLOG_ERR, u8"无效的寄售价格：%s", value.c_str());
-                return;
+            if(const auto price = parserf::price(input)){
+                m_price.setPrice(price.value());
             }
-            m_price.setPrice(price);
+            else{
+                m_runProc->addCBLog(CBLOG_ERR, u8"无效的寄售价格：%s", to_cstr(input));
+            }
         },
         .validate = [](const std::string &currentInput, const std::string &newInput)
         {
@@ -261,7 +255,7 @@ void AuctionRegisterBoard::confirmRegister()
         return;
     }
 
-    if(m_price.price() == 0 || m_price.price() > to_u64(std::numeric_limits<int64_t>::max())){
+    if(!parserf::valid_price(m_price.price())){
         m_runProc->addCBLog(CBLOG_ERR, u8"请先设置有效的寄售价格");
         return;
     }
@@ -307,7 +301,7 @@ void AuctionRegisterBoard::registerItem()
         return;
     }
 
-    if(m_price.price() == 0 || m_price.price() > to_u64(std::numeric_limits<int64_t>::max())){
+    if(!parserf::valid_price(m_price.price())){
         m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效");
         return;
     }

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "widget.hpp"
 #include "imageboard.hpp"
@@ -83,7 +84,7 @@ class DirectTradeBoard final: public Widget
         }
 
     public:
-        uint32_t localGold() const;
+        size_t localGold() const;
 
         std::vector<SDItem> localItemList() const
         {
@@ -107,6 +108,7 @@ class DirectTradeBoard final: public Widget
 
     private:
         std::optional<size_t> parsedLocalGold(bool = true) const;
+        static std::optional<size_t> parseGold(std::string_view);
         bool localOfferMatches(const SDDirectTradeOffer &) const;
         bool syncLocalOffer(bool);
 

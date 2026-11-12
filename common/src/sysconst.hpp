@@ -88,6 +88,7 @@ constexpr int SYS_INVGRIDMAXHOLD = 99;
 
 constexpr uint64_t SYS_MAXPRICE = (1ULL << 60) - 1; // any price, unit price or total price
 constexpr size_t SYS_MAXITEMCOUNT = SYS_MAXPRICE; // item count in one transaction, same as SYS_MAXPRICE since price N is N count of gold
+constexpr uint64_t SYS_MAXGOLD = INT64_MAX; // gold one player holds, fld_gold is a signed 64-bit sqlite integer
 
 constexpr int SYS_MAXTARGET = 8;
 constexpr int SYS_MAXACTOR  = 65521;

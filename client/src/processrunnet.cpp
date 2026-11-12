@@ -443,6 +443,11 @@ void ProcessRun::on_SM_BUYERROR(const uint8_t *buf, size_t bufSize)
                 addCBLog(CBLOG_ERR, u8"无法在摆摊时购买");
                 break;
             }
+        case BUYERR_BADCOUNT:
+            {
+                addCBLog(CBLOG_ERR, u8"无效的购买数量");
+                break;
+            }
         default:
             {
                 addCBLog(CBLOG_ERR, u8"购买失败");
@@ -676,12 +681,15 @@ void ProcessRun::on_SM_STARTINVOP(const uint8_t *buf, size_t size)
 void ProcessRun::on_SM_GOLD(const uint8_t *buf, size_t)
 {
     auto myHeroPtr = getMyHero();
-    const int lastGold = to_d(myHeroPtr->getGold());
-    const int newGold = to_d(ServerMsg::conv<SMGold>(buf).gold);
+    const auto lastGold = myHeroPtr->getGold();
+    const auto newGold = to_uz(ServerMsg::conv<SMGold>(buf).gold);
 
     myHeroPtr->setGold(newGold);
-    if(lastGold != newGold){
-        addCBLog(CBLOG_SYS, u8"你%s了%d金币", to_cstr((lastGold < newGold) ? u8"获得" : u8"失去"), std::abs(lastGold - newGold));
+    if(lastGold < newGold){
+        addCBLog(CBLOG_SYS, u8"你获得了%zu金币", newGold - lastGold);
+    }
+    else if(lastGold > newGold){
+        addCBLog(CBLOG_SYS, u8"你失去了%zu金币", lastGold - newGold);
     }
 }
 

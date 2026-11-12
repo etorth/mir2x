@@ -3,6 +3,7 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
+#include "parserf.hpp"
 #include "auctiondb.hpp"
 #include "deliverydb.hpp"
 #include "golddb.hpp"
@@ -83,8 +84,7 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
 
     fflassert(note.size() <= SYS_AUCTIONNOTESIZE, note);
 
-    fflassert(price > 0, price);
-    fflassert(price <= INT_MAX, price);
+    fflassert(parserf::valid_price(price), price);
 
     auto transaction = g_dbPod->createTransaction();
     if(!dbRemoveInventoryItem(sellerDBID, item)){

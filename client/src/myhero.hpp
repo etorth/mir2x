@@ -111,12 +111,12 @@ class MyHero: public Hero
             m_exp = exp;
         }
 
-        uint32_t getGold() const
+        size_t getGold() const
         {
             return m_invPack.getGold();
         }
 
-        void setGold(int gold)
+        void setGold(size_t gold)
         {
             return m_invPack.setGold(gold);
         }

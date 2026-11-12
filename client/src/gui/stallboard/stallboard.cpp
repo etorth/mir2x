@@ -1,8 +1,8 @@
 #include <limits>
 #include <utility>
 #include <algorithm>
-#include <charconv>
 #include "xmlf.hpp"
+#include "parserf.hpp"
 #include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "layoutboard.hpp"
@@ -406,7 +406,7 @@ void StallBoard::buyItem(const SDItem &item, size_t price, size_t maxCount)
 
     const auto fnBuy = [sellerDBID = m_stall.dbid, itemID = item.itemID, seqID = item.seqID, price, this](size_t count)
     {
-        if(price * count > m_runProc->getMyHero()->getGold()){
+        if(const auto totalPrice = parserf::total_price(price, count); !totalPrice || totalPrice.value() > m_runProc->getMyHero()->getGold()){
             m_runProc->addCBLog(CBLOG_ERR, u8"金币不足");
             return;
         }
@@ -429,18 +429,12 @@ void StallBoard::buyItem(const SDItem &item, size_t price, size_t maxCount)
         .layoutString = to_u8rawstr("<layout>" + xmlf::toParString("%s单价%s金币，请输入购买数量（1-%zu）", itemName.c_str(), str_ksep(price).c_str(), maxCount) + "</layout>"),
         .onAccept = [fnBuy, maxCount, this](std::u8string input)
         {
-            const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
-            size_t count = 0;
-            const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), count, 10);
-            if(value.empty()
-                    || ec != std::errc()
-                    || ptr != value.data() + value.size()
-                    || count == 0
-                    || count > maxCount){
-                m_runProc->addCBLog(CBLOG_ERR, u8"无效的购买数量：%s", value.c_str());
-                return;
+            if(const auto count = parserf::itemcount(input); count && count.value() <= maxCount){
+                fnBuy(count.value());
             }
-            fnBuy(count);
+            else{
+                m_runProc->addCBLog(CBLOG_ERR, u8"无效的购买数量：%s", to_cstr(input));
+            }
         },
 
         .validate = [](const std::string &currentInput, const std::string &newInput)

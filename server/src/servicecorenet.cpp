@@ -165,7 +165,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .hp        = queryChar.getColumn("fld_hp"),
         .mp        = queryChar.getColumn("fld_mp"),
         .exp       = to_uz(queryChar.getColumn("fld_exp").getInt64()),
-        .gold      = queryChar.getColumn("fld_gold"),
+        .gold      = to_uz(queryChar.getColumn("fld_gold").getInt64()),
         .gender    = queryChar.getColumn("fld_gender").getUInt() > 0,
         .job       = queryChar.getColumn("fld_job"),
         .hair      = queryChar.getColumn("fld_hair"),

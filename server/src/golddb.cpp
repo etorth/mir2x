@@ -29,7 +29,7 @@ void dbUpdateGold(uint32_t dbid, size_t gold)
 {
     fflassert(dbid > 0);
     fflassert(dbid <= SYS_MAXDBID, dbid);
-    fflassert(to_u64(gold) <= to_u64(INT64_MAX), gold);
+    fflassert(to_u64(gold) <= SYS_MAXGOLD, gold);
 
     g_dbPod->exec(
             "update tbl_char set fld_gold = %llu where fld_dbid = %llu",
@@ -42,7 +42,7 @@ std::optional<size_t> dbRemoveGold(uint32_t dbid, size_t gold)
     fflassert(dbid > 0);
     fflassert(dbid <= SYS_MAXDBID, dbid);
     fflassert(gold > 0);
-    fflassert(to_u64(gold) <= to_u64(INT64_MAX), gold);
+    fflassert(to_u64(gold) <= SYS_MAXGOLD, gold);
 
     auto query = g_dbPod->createQuery(
             u8R"###( update tbl_char                          )###"
