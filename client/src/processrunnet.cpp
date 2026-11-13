@@ -1269,19 +1269,17 @@ void ProcessRun::on_SM_NPCERROR(const uint8_t *buf, size_t)
 
 void ProcessRun::on_SM_STALL(const uint8_t *buf, size_t bufSize)
 {
-    m_myStall = cerealf::deserialize<SDStall>(buf, bufSize);
-    m_myStall.dbid = to_u32(getMyHeroDBID());
+    auto sdS = cerealf::deserialize<SDStall>(buf, bufSize);
+    sdS.dbid = to_u32(getMyHeroDBID());
 
-    if(auto myHeroPtr = getMyHero()){
-        myHeroPtr->setStallSelling(m_myStall.selling);
-        myHeroPtr->setStallName(m_myStall.selling ? m_myStall.name : std::string{});
+    getMyHero()->setStall(std::move(sdS));
+    const auto &myStall = getMyHero()->getStall();
+
+    if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == myStall.dbid){
+        stallBoard->loadStall(myStall);
     }
 
-    if(auto stallBoard = dynamic_cast<StallBoard *>(getWidget("StallBoard")); stallBoard->stallDBID() == m_myStall.dbid){
-        stallBoard->loadStall(m_myStall);
-    }
-
-    if(m_myStall.selling){
+    if(myStall.selling){
         if(auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard")); invBoard->getInvOp() == INVOP_STALL){
             invBoard->clearInvOp();
         }
@@ -1324,13 +1322,13 @@ void ProcessRun::on_SM_STALLERROR(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_PLAYERSTALL(const uint8_t *buf, size_t bufSize)
 {
     const auto smPS = ServerMsg::conv<SMPlayerStall>(buf, bufSize);
-    if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPS.uid, false))){
-        heroPtr->setStallSelling(smPS.selling);
-    }
-
     const auto dbid = uidf::getPlayerDBID(smPS.uid);
     if(dbid == getMyHeroDBID()){
         return; // handled by SM_STALL
+    }
+
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(smPS.uid, false))){
+        heroPtr->setStallSelling(smPS.selling);
     }
 
     if(!smPS.selling){

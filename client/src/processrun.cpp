@@ -3074,11 +3074,11 @@ void ProcessRun::openStallBoard(uint32_t dbid)
     fflassert(stallBoard);
 
     if(dbid == getMyHeroDBID()){
-        auto sdS = m_myStall;
+        auto sdS = getMyHero()->getStall();
         sdS.dbid = dbid;
         stallBoard->loadStall(std::move(sdS));
 
-        if(!m_myStall.selling){
+        if(!getMyHero()->stallSelling()){
             auto invBoard = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
             fflassert(invBoard);
 

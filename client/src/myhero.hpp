@@ -19,6 +19,9 @@ class MyHero: public Hero
         InvPack m_invPack;
 
     private:
+        SDStall m_stall;
+
+    private:
         std::deque<ActionNode> m_actionQueue;
 
     private:
@@ -119,6 +122,19 @@ class MyHero: public Hero
         void setGold(size_t gold)
         {
             return m_invPack.setGold(gold);
+        }
+
+    public:
+        const SDStall &getStall() const
+        {
+            return m_stall;
+        }
+
+        void setStall(SDStall stall)
+        {
+            m_stall = std::move(stall);
+            setStallSelling(m_stall.selling);
+            setStallName(m_stall.selling ? m_stall.name : std::string{});
         }
 
     public:

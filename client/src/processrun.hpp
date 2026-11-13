@@ -124,9 +124,6 @@ class ProcessRun: public Process
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
 
     private:
-        SDStall m_myStall;
-
-    private:
         std::set<uint64_t> m_actionBlocker;
 
     private:
@@ -524,16 +521,6 @@ class ProcessRun: public Process
         void requestBuyStallItem(uint32_t, uint32_t, uint32_t, size_t, size_t);
 
     public:
-        const SDStall &getMyStall() const
-        {
-            return m_myStall;
-        }
-
-        bool myStallSelling() const
-        {
-            return m_myStall.selling;
-        }
-
         std::string getStallSellerName(uint32_t) const;
 
     public:
