@@ -83,8 +83,8 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
     , m_infoLine0
       {{
           .dir = DIR_LEFT,
-          .x = 36,
-          .y = 332,
+          .x = 60,
+          .y = 330,
 
           .textFunc = [this] -> std::string
           {
@@ -112,8 +112,8 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
     , m_infoLine1
       {{
           .dir = DIR_LEFT,
-          .x = 36,
-          .y = 354,
+          .x = 60,
+          .y = 351,
 
           .textFunc = [this] -> std::string
           {
@@ -196,8 +196,8 @@ StallBoard::StallBoard(StallBoard::InitArgs args)
 
     , m_buttonClose
       {{
-          .x = 240,
-          .y = 345,
+          .x = 242,
+          .y = 346,
 
           .texAniOpt = 0X0000001C,
           .onTrigger = [this](Widget *, int){ onClose(); },

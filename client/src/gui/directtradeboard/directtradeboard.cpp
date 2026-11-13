@@ -479,7 +479,6 @@ std::optional<size_t> DirectTradeBoard::parsedLocalGold(bool checkGold) const
 
 std::optional<size_t> DirectTradeBoard::parseGold(std::string_view s)
 {
-    // offering no gold is fine, empty or all zeros
     if(s.find_first_not_of('0') == std::string_view::npos){
         return 0;
     }
