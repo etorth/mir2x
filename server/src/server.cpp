@@ -156,7 +156,7 @@ int Server::createAccount(const char *id, const char *password)
         throw fflpanic("no available database");
     }
 
-    if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id).executeStep()){
+    if(g_dbPod->createQuery(u8R"###(select fld_account from tbl_account where fld_account ='%s')###", id).executeStep()){
         return CRTACCERR_ACCOUNTEXIST;
     }
 
@@ -175,12 +175,14 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
         return false;
     }
 
-    auto queryAccount = g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id);
-    if(!queryAccount.executeStep()){
+    if(!g_dbPod->createQuery(u8R"###(select fld_account from tbl_account where fld_account ='%s')###", id).executeStep()){
         return false;
     }
 
-    const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
+    if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_char where fld_account ='%s')###", id).executeStep()){
+        return false;
+    }
+
     const auto [mapID, mapx, mapy] = [job]() -> std::tuple<uint32_t, int, int>
     {
         if(job & (JOB_WIZARD | JOB_WARRIOR)){
@@ -194,20 +196,31 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
         throw fflpanic("invalid job {}", job);
     }();
 
-    g_dbPod->exec
-    (
-        u8R"###( insert into tbl_char(fld_dbid, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy) )###"
-        u8R"###( values                                                                                     )###"
-        u8R"###(     (%llu, '%s', %d, %d, %d, %d, %d);                                                      )###",
+    const auto dbid = [id, charName, gender, job, mapID, mapx, mapy]() -> uint32_t
+    {
+        auto queryInsert = g_dbPod->createQuery
+        (
+            u8R"###( insert into tbl_char(fld_account, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy) )###"
+            u8R"###( values                                                                                        )###"
+            u8R"###(     ('%s', '%s', %d, %d, %d, %d, %d)                                                          )###"
+            u8R"###( returning fld_dbid                                                                            )###",
 
-        to_llu(dbid),
-        charName,
-        to_d(gender),
-        job,
-        to_d(mapID),
-        mapx,
-        mapy
-    );
+            id,
+            charName,
+            to_d(gender),
+            job,
+            to_d(mapID),
+            mapx,
+            mapy
+        );
+
+        if(!queryInsert.executeStep()){
+            throw fflpanic("insert into tbl_char returns no dbid");
+        }
+        return check_cast<uint32_t, unsigned>(queryInsert.getColumn("fld_dbid"));
+    }();
+
+    fflassert(dbid <= SYS_MAXDBID, dbid);
 
     dbSaveChatMessage(
         SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM),

@@ -11,14 +11,28 @@ setEventHandler(
     end,
 
     ["npc_goto_1"] = function(uid, value)
-        local result = dbQuery('select * from tbl_account')
+        -- dbQuery doesn't support null column
+        -- account without char gets fld_dbid as 0
+        --
+        local result = dbQuery([[
+            select
+                tbl_account.fld_account,
+                coalesce(tbl_char.fld_dbid, 0) as fld_dbid
+            from
+                tbl_account
+            left join
+                tbl_char
+            on
+                tbl_char.fld_account = tbl_account.fld_account
+        ]])
+
         local text =
         {
             '数据库玩家账号有：',
             '',
         }
         for _, row in ipairs(result) do
-            table.insert(text, string.format('fld_id: %d, fld_account: %s', row.fld_dbid, row.fld_account))
+            table.insert(text, string.format('fld_account: %s, fld_dbid: %s', row.fld_account, (row.fld_dbid > 0) and tostring(row.fld_dbid) or '(无角色)'))
         end
 
         local clickCount = argDefault(dbGetGKey('click_count'), 0)

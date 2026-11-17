@@ -266,9 +266,9 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
 corof::awaitable<> ServiceCore::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
 {
     const auto amPB = mpk.conv<AMPlayerBroadcast>();
-    for(const auto &entry: m_dbidList){
-        if(entry.second.second){
-            m_actorPod->post(uidf::getPlayerUID(entry.second.first), {AM_PLAYERBROADCAST, amPB});
+    for(const auto &[channID, session]: m_sessionList){
+        if(session.dbid){
+            m_actorPod->post(uidf::getPlayerUID(session.dbid), {AM_PLAYERBROADCAST, amPB});
         }
     }
     return {};
@@ -287,8 +287,8 @@ corof::awaitable<> ServiceCore::on_AM_PLAYERLOGOUT(const ActorMsgPack &mpk)
     }
 
     // channel may be closed during waiting, then AM_BADCHANNEL already erased the entry
-    if(auto p = m_dbidList.find(amPL.channID); (p != m_dbidList.end()) && (p->second.first == uidf::getPlayerDBID(amPL.uid))){
-        p->second.second = false;
+    if(auto p = m_sessionList.find(amPL.channID); (p != m_sessionList.end()) && (p->second.dbid == uidf::getPlayerDBID(amPL.uid))){
+        p->second.dbid = 0;
         m_actorPod->postNet(amPL.channID, SM_LOGOUTOK, nullptr, 0, 0);
     }
 }
@@ -301,8 +301,8 @@ corof::awaitable<> ServiceCore::on_AM_PLAYERHOSTED(const ActorMsgPack &mpk)
     // player actor stays on map, client goes back to character selection
     // no need to wait, the same client or another one can login and rebind the actor
 
-    if(auto p = m_dbidList.find(amPH.channID); (p != m_dbidList.end()) && (p->second.first == uidf::getPlayerDBID(amPH.uid))){
-        p->second.second = false;
+    if(auto p = m_sessionList.find(amPH.channID); (p != m_sessionList.end()) && (p->second.dbid == uidf::getPlayerDBID(amPH.uid))){
+        p->second.dbid = 0;
         m_actorPod->postNet(amPH.channID, SM_LOGOUTOK, nullptr, 0, 0);
     }
     return {};
@@ -311,6 +311,6 @@ corof::awaitable<> ServiceCore::on_AM_PLAYERHOSTED(const ActorMsgPack &mpk)
 corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
-    m_dbidList.erase(amBC.channID);
+    m_sessionList.erase(amBC.channID);
     return {};
 }

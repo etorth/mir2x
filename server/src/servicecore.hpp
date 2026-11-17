@@ -46,7 +46,13 @@ class ServiceCore final: public PeerCore
         std::unordered_map<uint64_t, std::vector<std::coroutine_handle<>>> m_closeMapPendingOps;
 
     private:
-        std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}
+        struct LoginSession final
+        {
+            std::string account {};
+            uint32_t dbid = 0; // char in game, 0 when not online
+        };
+
+        std::unordered_map<uint32_t, LoginSession> m_sessionList; // channID -> session
 
     private:
         std::unordered_map<uint64_t, SDRegisterQuest> m_questList;
@@ -71,7 +77,7 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> onActivate() override;
 
     private:
-        std::optional<std::pair<uint32_t, bool>> findDBID(uint32_t channID) const;
+        std::optional<LoginSession> findSession(uint32_t channID) const;
 
     private:
         corof::awaitable<> on_AM_REGISTERQUEST         (const ActorMsgPack &);

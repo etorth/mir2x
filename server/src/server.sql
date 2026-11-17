@@ -1,15 +1,17 @@
 create table tbl_account(
-    fld_dbid           integer not null primary key autoincrement,
-    fld_account        text    not null,
+    fld_account        text    not null primary key,
     fld_password       text    not null
 ) strict;
 
-insert into tbl_account(fld_dbid, fld_account, fld_password)
+insert into tbl_account(fld_account, fld_password)
 values
-    (1, 'admin', 'admin');
+    ('admin', 'admin');
 
+-- one char per account
+-- autoincrement never reuses the dbid of a deleted char
 create table tbl_char(
-    fld_dbid           integer not null primary key,
+    fld_dbid           integer not null primary key autoincrement,
+    fld_account        text    not null unique,
     fld_name           text    not null,
     fld_gender         integer not null check(fld_gender in (0, 1)),
     fld_job            integer not null check(jobValid(fld_job)),
@@ -25,7 +27,7 @@ create table tbl_char(
     fld_pkpoint        integer default 0,
     fld_viewr          integer default (SYS_PLY_VIEWR()),
 
-    foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade
+    foreign key (fld_account) references tbl_account(fld_account) on delete cascade
 ) strict;
 
 create table tbl_charvarlist(
@@ -71,7 +73,7 @@ create table tbl_inventory(
     fld_maxduration    integer not null,
     fld_extattrlist    blob    not null,
 
-    foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade,
+    foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade,
     primary key (fld_dbid, fld_itemid, fld_seqid)
 ) strict;
 
@@ -84,7 +86,7 @@ create table tbl_secureditemlist(
     fld_maxduration    integer not null,
     fld_extattrlist    blob    not null,
 
-    foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade,
+    foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade,
     primary key (fld_dbid, fld_itemid, fld_seqid)
 ) strict;
 
@@ -102,7 +104,7 @@ create table tbl_playerconfig(
     fld_magickeylist   blob        null default (x''),
     fld_runtimeconfig  blob        null default (x''),
 
-    foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade,
+    foreign key (fld_dbid) references tbl_char(fld_dbid) on delete cascade,
     primary key (fld_dbid)
 ) strict;
 

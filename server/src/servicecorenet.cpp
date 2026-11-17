@@ -32,27 +32,30 @@ corof::awaitable<> ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const ui
     // don't check id/password by idstrf here
     // this allows some test account to be simple, like (test, 123456)
 
-    auto queryAccount = g_dbPod->createQuery("select fld_dbid from tbl_account where fld_account = '%s' and fld_password = '%s'", cmL.id.as_cstr(), cmL.password.as_cstr());
+    auto queryAccount = g_dbPod->createQuery("select fld_account from tbl_account where fld_account = '%s' and fld_password = '%s'", cmL.id.as_cstr(), cmL.password.as_cstr());
     if(!queryAccount.executeStep()){
         fnLoginError(LOGINERR_NOACCOUNT);
         return {};
     }
 
-    const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
-    fflassert(dbid);
+    const std::string account = queryAccount.getColumn("fld_account");
+    fflassert(!account.empty());
 
-    for(const auto &[existChannID, existDBID]: m_dbidList){
+    for(const auto &[existChannID, session]: m_sessionList){
         if(existChannID == channID){
             throw fflpanic("internal error: channID reused before recycle: {}", channID);
         }
 
-        if(existDBID.first == dbid){
+        if(session.account == account){
             fnLoginError(LOGINERR_MULTILOGIN);
             return {};
         }
     }
 
-    m_dbidList[channID] = std::make_pair(dbid, false);
+    m_sessionList[channID] = LoginSession
+    {
+        .account = account,
+    };
     m_actorPod->postNet(channID, SM_LOGINOK, nullptr, 0, respID);
     return {};
 }
@@ -67,13 +70,13 @@ corof::awaitable<> ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, cons
         m_actorPod->postNet(channID, SM_QUERYCHARERROR, &smQCE, sizeof(smQCE), respID);
     };
 
-    const auto dbidOpt = findDBID(channID);
-    if(!dbidOpt.has_value()){
+    const auto session = findSession(channID);
+    if(!session.has_value()){
         fnQueryCharError(QUERYCHARERR_NOLOGIN);
         return {};
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_account = '%s'", session->account.c_str());
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
         return {};
@@ -100,24 +103,35 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         m_actorPod->postNet(channID, SM_ONLINEERROR, &smOE, sizeof(smOE), respID);
     };
 
-    const auto dbidOpt = findDBID(channID);
-    if(!dbidOpt.has_value()){
+    const auto session = findSession(channID);
+    if(!session.has_value()){
         fnOnlineError(ONLINEERR_NOLOGIN);
         co_return;
     }
 
-    if(dbidOpt.value().second){
+    if(session->dbid){
         fnOnlineError(ONLINEERR_MULTIONLINE);
         co_return;
     }
 
-    const auto dbid = dbidOpt.value().first;
-    const auto playerUID = uidf::getPlayerUID(dbid);
+    const auto dbid = [&session]() -> uint32_t
+    {
+        if(auto queryDBID = g_dbPod->createQuery("select fld_dbid from tbl_char where fld_account = '%s'", session->account.c_str()); queryDBID.executeStep()){
+            return check_cast<uint32_t, unsigned>(queryDBID.getColumn("fld_dbid"));
+        }
+        return 0;
+    }();
 
+    if(!dbid){
+        fnOnlineError(ONLINEERR_NOCHAR);
+        co_return;
+    }
+
+    const auto playerUID = uidf::getPlayerUID(dbid);
     if(g_actorPool->checkUIDExist(playerUID)){
         // player actor is hosted by 离线挂机, rebind it to this channel
         // mark online before co_await, another CM_ONLINE during the co_await gets ONLINEERR_MULTIONLINE
-        m_dbidList[channID].second = true;
+        m_sessionList[channID].dbid = dbid;
 
         AMRebindChannel amRC;
         std::memset(&amRC, 0, sizeof(amRC));
@@ -130,13 +144,13 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         // player is logging out, wait until it's gone, then load it from database again
         // channel can be closed during co_await, then AM_BADCHANNEL already erased the entry
         while(true){
-            auto p = m_dbidList.find(channID);
-            if((p == m_dbidList.end()) || (p->second.first != dbid)){
+            auto p = m_sessionList.find(channID);
+            if((p == m_sessionList.end()) || (p->second.account != session->account)){
                 co_return;
             }
 
             if(!g_actorPool->checkUIDExist(playerUID)){
-                p->second.second = false; // spawn a new actor as normal online
+                p->second.dbid = 0; // spawn a new actor as normal online
                 break;
             }
             co_await asyncWait(10);
@@ -182,10 +196,10 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
 
     if(const auto [loaded, _] = co_await requestLoadMap(amLM); loaded){
         if(m_addCO->addCO(sdICO)){
-            m_dbidList[channID].second = true;
+            m_sessionList[channID].dbid = dbid;
         }
         else{
-            m_dbidList[channID].second = false;
+            m_sessionList[channID].dbid = 0;
             fnOnlineError(ONLINEERR_AMERROR);
         }
     }
@@ -218,7 +232,7 @@ corof::awaitable<> ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, 
         return {};
     }
 
-    if(g_dbPod->createQuery(u8R"###( select fld_dbid from tbl_account where fld_account ='%s' )###", id.c_str()).executeStep()){
+    if(g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account ='%s' )###", id.c_str()).executeStep()){
         fnCreateAccountError(CRTACCERR_ACCOUNTEXIST);
         return {};
     }
@@ -284,154 +298,40 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
     };
 
     const auto cmDC = ClientMsg::conv<CMDeleteChar>(buf);
-    const auto dbidOpt = findDBID(channID);
+    const auto session = findSession(channID);
 
-    if(!dbidOpt.has_value()){
+    if(!session.has_value()){
         fnDeleteCharError(DELCHARERR_NOLOGIN);
         return {};
     }
 
-    auto queryPassword = g_dbPod->createQuery(u8R"###( select * from tbl_account where fld_dbid = %llu and fld_password = '%s' )###", to_llu(dbidOpt.value().first), cmDC.password.as_cstr());
-    if(!queryPassword.executeStep()){
+    if(!g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account = '%s' and fld_password = '%s' )###", session->account.c_str(), cmDC.password.as_cstr()).executeStep()){
         fnDeleteCharError(DELCHARERR_BADPASSWORD);
         return {};
     }
 
-    const auto dbid = dbidOpt.value().first;
+    const auto dbid = [&session]() -> uint32_t
+    {
+        if(auto queryDBID = g_dbPod->createQuery(u8R"###( select fld_dbid from tbl_char where fld_account = '%s' )###", session->account.c_str()); queryDBID.executeStep()){
+            return check_cast<uint32_t, unsigned>(queryDBID.getColumn("fld_dbid"));
+        }
+        return 0;
+    }();
 
-    // a hosted (离线挂机) or logging-out actor still holds this char, a new char would reuse the dbid and rebind to it
+    if(!dbid){
+        fnDeleteCharError(DELCHARERR_NOCHAR);
+        return {};
+    }
+
+    // a hosted (离线挂机) or logging-out actor still holds this char and keeps writing rows of it
     if(g_actorPool->checkUIDExist(uidf::getPlayerUID(dbid))){
         fnDeleteCharError(DELCHARERR_HOSTED);
         return {};
     }
 
+    // all rows of this char go by foreign key cascade
     try{
-        auto dbTrans = g_dbPod->createTransaction();
-        auto maxSeqID = [dbid]() -> uint32_t
-        {
-            auto querySeqID = g_dbPod->createQuery(
-                    u8R"###( select                                                                           )###"
-                    u8R"###(     fld_seqid                                                                    )###"
-                    u8R"###( from                                                                             )###"
-                    u8R"###(     tbl_inventory                                                                )###"
-                    u8R"###( where                                                                            )###"
-                    u8R"###(     fld_dbid = %llu                                                              )###"
-                    u8R"###( and                                                                              )###"
-                    u8R"###(     fld_seqid = (select max(fld_seqid) from tbl_inventory where fld_dbid = %llu) )###",
-
-                    to_llu(dbid),
-                    to_llu(dbid));
-
-            if(querySeqID.executeStep()){
-                return (uint32_t)(querySeqID.getColumn("fld_seqid")) + 1;
-            }
-            else{
-                return 1;
-            }
-        }();
-
-        // delete tbl_belt and move them to tbl_inventory, create a long query string and execute query at one time
-        // don't need to insert many times since tbl_belt items always has empty attributes
-
-        size_t insertedBeltItemCount = 0;
-        std::u8string insertQueryBeltString
-        {
-            u8R"###( insert into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
-            u8R"###( values                                                                                                                )###"
-        };
-
-        {
-            auto queryBelt = g_dbPod->createQuery(u8R"###( delete from tbl_belt where fld_dbid = %llu returning * )###", to_llu(dbid));
-            while(queryBelt.executeStep()){
-                if(insertedBeltItemCount > 0){
-                    insertQueryBeltString += u8",";
-                }
-
-                const SDItem item
-                {
-                    .itemID = check_cast<uint32_t, unsigned>(queryBelt.getColumn("fld_itemid")),
-                    .seqID  = maxSeqID++,
-                    .count  = check_cast<size_t, unsigned>(queryBelt.getColumn("fld_count")),
-
-                    // for rest of attributes take default values
-                    // don't assign default values for these attributes here manually
-                };
-
-                fflassert(item);
-                insertedBeltItemCount++;
-                insertQueryBeltString += str_printf(u8R"###( (%llu, %llu, %llu, %llu, %llu, %llu, ?) )###",
-                        to_llu(dbid),
-                        to_llu(item.itemID),
-                        to_llu(item.seqID),
-                        to_llu(item.count),
-                        to_llu(item.duration[0]),
-                        to_llu(item.duration[1]));
-            }
-        }
-
-        const auto emptyAttrBuf = cerealf::serialize<std::unordered_map<int, std::string>>({});
-        if(insertedBeltItemCount > 0){
-            insertQueryBeltString += u8";";
-            auto insertQuery = g_dbPod->createQuery(insertQueryBeltString.c_str());
-            for(size_t i = 1; i <= insertedBeltItemCount; ++i){
-                insertQuery.bindBlob(i, emptyAttrBuf);
-            }
-            insertQuery.exec();
-        }
-
-        // delete tbl_wear and move them to tbl_inventory
-        // need to insert one by one since items in tbl_wear usually has non-empty extAttrList
-
-        {
-            auto queryWear = g_dbPod->createQuery(u8R"###( delete from tbl_wear where fld_dbid = %llu returning * )###", to_llu(dbid));
-            while(queryWear.executeStep()){
-                const SDItem item
-                {
-                    .itemID = check_cast<uint32_t, unsigned>(queryWear.getColumn("fld_itemid")),
-                    .seqID  = maxSeqID++,
-                    .count  = check_cast<size_t, unsigned>(queryWear.getColumn("fld_count")),
-                    .duration
-                    {
-                        check_cast<size_t, unsigned>(queryWear.getColumn("fld_duration")),
-                        check_cast<size_t, unsigned>(queryWear.getColumn("fld_maxduration")),
-                    },
-
-                    // don't deserialize extAttrList
-                    // since it gets serialized quickly when inserted into tbl_inventory
-                };
-
-                fflassert(item);
-                const std::string extAttrBuf = queryWear.getColumn("fld_extattrlist");
-
-                auto insertQuery = g_dbPod->createQuery(
-                        u8R"###( insert into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
-                        u8R"###( values                                                                                                                )###"
-                        u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                           )###",
-
-                        to_llu(dbid),
-                        to_llu(item.itemID),
-                        to_llu(item.seqID),
-                        to_llu(item.count),
-                        to_llu(item.duration[0]),
-                        to_llu(item.duration[1]));
-
-                insertQuery.bindBlob(1, extAttrBuf.data(), extAttrBuf.length());
-                insertQuery.exec();
-            }
-        }
-
-        {
-            auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbid));
-            if(!query.executeStep()){
-                fnDeleteCharError(DELCHARERR_NOCHAR);
-                return {};
-            }
-
-            const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
-            fflassert(dbidDeleted == dbid);
-        }
-
-        dbTrans.commit();
+        g_dbPod->exec(u8R"###( delete from tbl_char where fld_dbid = %llu )###", to_llu(dbid));
     }
     catch(const std::exception &e){
         g_server->addLog(LOGTYPE_WARNING, "Delete char failed: %s", e.what());
@@ -444,8 +344,6 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
         return {};
     }
 
-    // we don't move items in tbl_secureditemlist to tbl_inventory because tbl_secureditemlist has password
-    // otherwise people can get secured items by just deleting char
     m_actorPod->postNet(channID, SM_DELETECHAROK, nullptr, 0, respID);
     return {};
 }
@@ -461,8 +359,8 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
         m_actorPod->postNet(channID, SM_CREATECHARERROR, &smCCE, sizeof(smCCE), respID);
     };
 
-    const auto dbidOpt = findDBID(channID);
-    if(!dbidOpt.has_value()){
+    const auto session = findSession(channID);
+    if(!session.has_value()){
         fnCreateCharError(CRTCHARERR_NOLOGIN);
         return {};
     }
@@ -483,9 +381,8 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
         return {};
     }
 
-    auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value().first), name.c_str());
-    if(query.executeStep()){
-        if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value().first){
+    if(auto query = g_dbPod->createQuery(u8R"###(select fld_account from tbl_char where fld_account = '%s' or fld_name = '%s')###", session->account.c_str(), name.c_str()); query.executeStep()){
+        if(const std::string existAccount = query.getColumn("fld_account"); existAccount == session->account){
             fnCreateCharError(CRTCHARERR_CHAREXIST);
             return {};
         }
@@ -497,23 +394,40 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
 
     std::string dbError;
     try{
-        g_dbPod->exec
-        (
-            u8R"###( insert into tbl_char(fld_dbid, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy) )###"
-            u8R"###( values                                                                                     )###"
-            u8R"###(     (%llu, '%s', %d, %d, %d, %d, %d);                                                      )###",
+        auto dbTrans = g_dbPod->createTransaction();
+        const auto dbid = [&session, &cmCC]() -> uint64_t
+        {
+            auto queryInsert = g_dbPod->createQuery
+            (
+                u8R"###( insert into tbl_char(fld_account, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy) )###"
+                u8R"###( values                                                                                        )###"
+                u8R"###(     ('%s', '%s', %d, %d, %d, %d, %d)                                                          )###"
+                u8R"###( returning fld_dbid                                                                            )###",
 
-            to_llu(dbidOpt.value().first),
-            cmCC.name.as_rawcstr(),
-            to_d(cmCC.gender),
-            to_d(cmCC.job),
-            to_d(DBCOM_MAPID(u8"道馆_1")),
-            405,
-            120
-        );
+                session->account.c_str(),
+                cmCC.name.as_rawcstr(),
+                to_d(cmCC.gender),
+                to_d(cmCC.job),
+                to_d(DBCOM_MAPID(u8"道馆_1")),
+                405,
+                120
+            );
 
-        m_actorPod->postNet(channID, SM_CREATECHAROK, nullptr, 0, respID);
-        return {};
+            if(!queryInsert.executeStep()){
+                throw fflpanic("insert into tbl_char returns no dbid");
+            }
+            return check_cast<uint64_t>(queryInsert.getColumn("fld_dbid").getInt64());
+        }();
+
+        // dbid above SYS_MAXDBID is reserved for chat peers like system, group and AI
+        // dbTrans rolls back the insert without commit
+
+        if(dbid <= SYS_MAXDBID){
+            dbTrans.commit();
+            m_actorPod->postNet(channID, SM_CREATECHAROK, nullptr, 0, respID);
+            return {};
+        }
+        dbError = str_printf("dbid exceeds SYS_MAXDBID: %llu", to_llu(dbid));
     }
     catch(const std::exception &e){
         dbError = e.what();

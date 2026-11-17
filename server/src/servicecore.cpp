@@ -129,7 +129,7 @@ corof::awaitable<> ServiceCore::operateNet(uint32_t channID, uint8_t cmType, con
                 // after soft logout the channel is unbound from player
                 // in-flight gameplay packets sent before client received SM_LOGOUTOK are forwarded here
 
-                if(findDBID(channID).has_value()){
+                if(findSession(channID).has_value()){
                     return {};
                 }
                 throw fflvalue(ClientMsg(cmType).name());
@@ -316,11 +316,11 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestCloseMap(const AMClo
     }
 }
 
-std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const
+std::optional<ServiceCore::LoginSession> ServiceCore::findSession(uint32_t channID) const
 {
     fflassert(channID);
-    if(auto p = m_dbidList.find(channID); p != m_dbidList.end()){
-        fflassert(p->second.first);
+    if(auto p = m_sessionList.find(channID); p != m_sessionList.end()){
+        fflassert(!p->second.account.empty());
         return p->second;
     }
     return {};

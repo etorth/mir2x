@@ -95,11 +95,20 @@ namespace
             '\0'
         };
         g_dbPod->exec("%s", to_rawcstr(schema));
-        g_dbPod->exec("insert into tbl_account(fld_dbid, fld_account, fld_password) values(2, 'offline', 'test')");
-        for(const int dbid: {1, 2}){
-            g_dbPod->exec(
-                "insert into tbl_char(fld_dbid, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy, fld_gold)"
-                " values(%d, 'test%d', 0, %d, 1, 0, 0, 100)", dbid, dbid, JOB_WARRIOR);
+
+
+        g_dbPod->exec(R"###( insert into tbl_account(fld_account, fld_password) )###"
+                      R"###( values                                             )###"
+                      R"###(     ('offline', 'test')                            )###");
+
+        for(const auto &[dbid, account]: std::initializer_list<std::pair<int, const char *>>
+        {
+            {1, "admin"},
+            {2, "offline"},
+        }){
+            g_dbPod->exec(R"###( insert into tbl_char(fld_dbid, fld_account, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy, fld_gold) )###"
+                          R"###( values                                                                                                            )###"
+                          R"###(     (%d, '%s', 'test%d', 0, %d, 1, 0, 0, 100)                                                                     )###", dbid, account, dbid, JOB_WARRIOR);
         }
     }
 
