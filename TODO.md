@@ -5,6 +5,7 @@
 - Map grid trigger better understanding
 - Monster/Magic configurable and editable interface
 - follow UID magic should vanish when tracking
+- regenerate APNGs since SDL_image has fixed issues I opened
 
 # HonChonDo / HonChonMado — the two legendary blade questlines
 
