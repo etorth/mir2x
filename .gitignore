@@ -3,3 +3,5 @@ vcpkg
 .vcpkg
 __pycache__
 /tools/filepreview/src/dist/
+/clice.toml
+.clice/

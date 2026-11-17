@@ -316,6 +316,7 @@ def main():
         f"-DVCPKG_TARGET_TRIPLET={vcpkg_triplet}",
         f"-DVCPKG_INSTALLED_DIR={cmake_build_dir / 'vcpkg_installed'}",
         f"-DCMAKE_INSTALL_PREFIX={install_prefix}",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         f"-DMIR2X_USE_CCACHE={'ON' if args.ccache else 'OFF'}",
         f"-DMIR2X_ASSETS_VERSION={MIR2X_ASSETS_VERSION}",
     ])
