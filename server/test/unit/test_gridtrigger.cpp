@@ -131,6 +131,31 @@ namespace
             return idList
         end
 
+        -- safe zone bindings: TEST.zones[id] holds the rect list of a live zone, TEST.zoneCalls logs every call
+        TEST.zones, TEST.zoneCalls = {}, {}
+        local lastZoneID = 0
+
+        function _RSVD_NAME_allocateSafeZoneId(rectList)
+            lastZoneID = lastZoneID + 1
+            TEST.zones[lastZoneID] = rectList
+            table.insert(TEST.zoneCalls, 'add' .. lastZoneID)
+            return lastZoneID
+        end
+
+        function _RSVD_NAME_updateSafeZoneId(id, rectList)
+            table.insert(TEST.zoneCalls, 'update' .. id)
+            if not TEST.zones[id] then
+                return false
+            end
+            TEST.zones[id] = rectList
+            return true
+        end
+
+        function _RSVD_NAME_removeSafeZoneId(id)
+            table.insert(TEST.zoneCalls, 'remove' .. id)
+            TEST.zones[id] = nil
+        end
+
         function uidGridMapSwitch(uid, x, y)
             table.insert(TEST.switched, uid)
             return true
@@ -219,6 +244,35 @@ namespace
         require(f.check("getGridTriggerInfo(TEST.map) == nil and getGridTriggerInfo(TEST.uid1) == nil"), "deleted trigger keeps its record");
         require(f.check("TEST.same(getGridTriggerIDList(10, 10), {})"), "deleted trigger stays on its grid");
         require(f.check("getGridTriggerInfo(TEST.uid2) ~= nil and TEST.same(getGridTriggerIDList(11, 10), {TEST.uid2})"), "delete removes another trigger of the same player and quest");
+    }
+
+    void testSafeZone()
+    {
+        MapFixture f;
+        f.run(R"###(
+            addSafeZone('town', {{x = 10, y = 20, w = 30, h = 40}, {x = 50, y = 60}})
+            addSafeZone('gate', 5, 6)
+            updateSafeZone('town', 1, 2, 3, 4)
+        )###");
+
+        require(f.check("TEST.same(TEST.zoneCalls, {'add1', 'add2', 'update1'})"), "update doesn't change its zone in place");
+        require(f.check("#TEST.zones[1] == 1 and TEST.zones[1][1].x == 1 and TEST.zones[1][1].y == 2 and TEST.zones[1][1].w == 3 and TEST.zones[1][1].h == 4"), "update doesn't replace the rects of the zone");
+        require(f.check("TEST.zones[2][1].x == 5 and TEST.zones[2][1].y == 6 and TEST.zones[2][1].w == 1 and TEST.zones[2][1].h == 1"), "a single grid isn't a 1x1 rect");
+
+        f.run("TEST.zoneCalls = {}");
+        require(f.check("not pcall(addSafeZone, 'town', 1, 1)"), "adding an existing name doesn't raise");
+        require(f.check("not pcall(updateSafeZone, 'none', 1, 1)"), "updating an unknown name doesn't raise");
+        require(f.check("not pcall(addSafeZone, 'empty') and not hasSafeZone('empty')"), "adding a zone without rects doesn't raise");
+        require(f.check("TEST.same(TEST.zoneCalls, {})"), "a rejected call reaches the map");
+
+        f.run(R"###(
+            deleteSafeZone('gate')
+            deleteSafeZone('gate')
+            deleteSafeZone('none')
+            addSafeZone('gate', 7, 8)
+        )###");
+
+        require(f.check("TEST.same(TEST.zoneCalls, {'remove2', 'add3'}) and hasSafeZone('gate') and not hasSafeZone('none')"), "delete doesn't drop the name once, or a deleted name can't be added again");
     }
 
     void testDoor()
@@ -516,4 +570,9 @@ TEST_CASE_METHOD(ServerTestEnvironment, "Named", "[unit][gridtrigger]")
 TEST_CASE_METHOD(ServerTestEnvironment, "Retire Notice", "[unit][gridtrigger]")
 {
     testRetireNotice();
+}
+
+TEST_CASE_METHOD(ServerTestEnvironment, "Safe Zone", "[unit][gridtrigger][safezone]")
+{
+    testSafeZone();
 }

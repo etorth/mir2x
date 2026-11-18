@@ -108,6 +108,14 @@ void BattleObject::beforeActivate()
         m_actorPod->post(mpk.fromAddr(), m_sdHealth.dead() ? AM_TRUE : AM_FALSE);
         return {};
     });
+
+    m_actorPod->registerOp(AM_SAFEZONELIST, [this](const ActorMsgPack &mpk) -> corof::awaitable<>
+    {
+        if(auto sdSZL = mpk.deserialize<SDSafeZoneList>(); sdSZL.mapUID == mapUID()){
+            m_safeZoneList = std::move(sdSZL.rectList);
+        }
+        return {};
+    });
 }
 
 corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
@@ -496,6 +504,8 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
 
     m_mapUID = argMapUID;
     m_mapBinPtr = g_mapBinDB->retrieve(uidf::getMapID(argMapUID));
+
+    m_safeZoneList.clear(); // map posts its own list when it takes *this* BO
 
     m_X = amAMS.X;
     m_Y = amAMS.Y;

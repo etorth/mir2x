@@ -35,6 +35,7 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &mpk)
 
     if(amA.action.type == ACTION_SPAWN){
         addGridUID({amA.UID, amA.viewRange}, amA.action.x, amA.action.y, true);
+        postSafeZoneList(amA.UID);
         if(uidf::getUIDType(amA.UID) == UID_PLY){
             postGroundItemIDList  ({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
             postGroundFireWallList({amA.UID, amA.viewRange}, amA.action.x, amA.action.y);
@@ -564,6 +565,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                 // map switch should be triggered by move request
 
                 addGridUID({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y, true);
+                postSafeZoneList(fromUID);
                 if(uidf::isPlayer(fromUID)){
                     postGroundItemIDList  ({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y);
                     postGroundFireWallList({fromUID, amMSOK.viewRange}, amAMS.X, amAMS.Y); // doesn't help if switched map

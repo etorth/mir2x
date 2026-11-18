@@ -1,11 +1,14 @@
 #pragma once
 #include <inplace_vector>
+#include <array>
+#include <algorithm>
 #include <map>
 #include <vector>
 #include <memory>
 #include <optional>
 #include <unordered_map>
 #include "pathf.hpp"
+#include "mathf.hpp"
 #include "stdf.hpp"
 #include "charobject.hpp"
 #include "damagenode.hpp"
@@ -96,6 +99,9 @@ class BattleObject: public CharObject
 
     protected:
         std::vector<Offender> m_offenderList;
+
+    protected:
+        std::vector<std::array<int, 4>> m_safeZoneList; // copy of the safe zone rects of current map
 
     public:
         BattleObject(
@@ -242,15 +248,12 @@ class BattleObject: public CharObject
         void addOffenderDamage(uint64_t, int);
 
     protected:
-        // local answer to "is this grid inside a safe zone", used to gate pvp
-        //
-        // ServerMap owns the zone list, an actor keeps a copy so a hit costs no actor message,
-        // the copy comes from the map broadcast on change plus a pull when entering the map
-        //
-        // TODO the zone list does not exist yet, nothing can configure it, so nothing is safe
-        bool isSafeGrid(int, int) const
+        bool isSafeGrid(int x, int y) const
         {
-            return false;
+            return std::ranges::any_of(m_safeZoneList, [x, y](const auto &rect)
+            {
+                return mathf::pointInRectangle(x, y, rect[0], rect[1], rect[2], rect[3]);
+            });
         }
 
         bool inSafeZone() const

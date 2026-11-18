@@ -63,7 +63,7 @@ local _RSVD_NAME_gridTriggers = {}
 -- uid -> questName -> name -> gridTriggerId, the SYS_EPUID triggers a quest named, see _RSVD_NAME_setUIDGridTrigger()
 local _RSVD_NAME_EPUID_namedGridTriggers = {}
 
--- normalize the rect args shared by the add functions:
+-- normalize the rect args shared by grid triggers and safe zones:
 --
 --     x, y                   a 1x1 rect
 --     x, y, w, h             one rect
@@ -71,7 +71,7 @@ local _RSVD_NAME_EPUID_namedGridTriggers = {}
 --
 -- argList is a table.pack()-ed slice that holds the rect args only, the handler is never
 -- part of it
-local function parseGridTriggerRectList(argList)
+local function parseRectList(argList)
     local rectList = nil
 
     if argList.n == 1 and type(argList[1]) == 'table' then
@@ -81,7 +81,7 @@ local function parseGridTriggerRectList(argList)
         rectList = {{ x = argList[1], y = argList[2], w = argList[3] or 1, h = argList[4] or 1 }}
 
     else
-        fatalPrintf('Invalid rect arguments to grid trigger, expect (x, y), (x, y, w, h) or a rect array')
+        fatalPrintf('Invalid rect arguments, expect (x, y), (x, y, w, h) or a rect array')
     end
 
     local result = {}
@@ -97,7 +97,7 @@ local function parseGridTriggerRectList(argList)
         assertType(h, 'integer')
         result[#result + 1] = { x = x, y = y, w = w, h = h }
     end
-    assert(#result > 0, 'a grid trigger needs at least one rect')
+    assert(#result > 0, 'expect at least one rect')
     return result
 end
 
@@ -110,7 +110,7 @@ local function addGridTriggerRecord(record, ...)
     args[args.n] = nil
     args.n = args.n - 1
 
-    local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseGridTriggerRectList(args))
+    local gridTriggerId = _RSVD_NAME_allocateGridTriggerId(parseRectList(args))
     _RSVD_NAME_gridTriggers[gridTriggerId] = record
     return gridTriggerId
 end
@@ -286,4 +286,55 @@ function _RSVD_NAME_runGridTrigger(uid, x, y)
             end
         end
     end
+end
+
+-- safe zones
+--
+-- inside a safe zone, no player can damage others, or anything a player controls
+-- and nobody standing in one can deal such damage out of it, see Player::canDamageTarget()
+--
+-- a map script, or a quest through uidRemoteCall() to the map, names every zone it installs;
+-- updating a zone replaces its rects, so a zone can move, grow or shrink:
+--
+--     addSafeZone('town', {{x = 300, y = 260, w = 80, h = 60}, {x = 380, y = 280, w = 20, h = 20}})
+--     addSafeZone('gate', 330, 330)                 -- a single grid
+--     updateSafeZone('gate', 320, 320, 20, 20)      -- one rect, replaces the single grid above
+--     deleteSafeZone('gate')
+--
+-- adding an existing name or updating an unknown name is an error, deleting an unknown name is a no-op
+-- a grid is safe if any rect of any zone covers it, isSafeGrid(x, y) answers that
+-- zones only live in memory, the map script adds them again whenever the map loads
+
+-- name -> safeZoneId
+local _RSVD_NAME_safeZones = {}
+
+function addSafeZone(name, ...)
+    assertType(name, 'string')
+    if _RSVD_NAME_safeZones[name] then
+        fatalPrintf('Safe zone already exists: %s', name)
+    end
+    _RSVD_NAME_safeZones[name] = _RSVD_NAME_allocateSafeZoneId(parseRectList(table.pack(...)))
+end
+
+function updateSafeZone(name, ...)
+    assertType(name, 'string')
+    local safeZoneId = _RSVD_NAME_safeZones[name]
+    if not safeZoneId then
+        fatalPrintf('Safe zone does not exist: %s', name)
+    end
+    assert(_RSVD_NAME_updateSafeZoneId(safeZoneId, parseRectList(table.pack(...))), 'safe zone lost in map: ' .. name)
+end
+
+function deleteSafeZone(name)
+    assertType(name, 'string')
+    local safeZoneId = _RSVD_NAME_safeZones[name]
+    if safeZoneId then
+        _RSVD_NAME_safeZones[name] = nil
+        _RSVD_NAME_removeSafeZoneId(safeZoneId)
+    end
+end
+
+function hasSafeZone(name)
+    assertType(name, 'string')
+    return _RSVD_NAME_safeZones[name] ~= nil
 end

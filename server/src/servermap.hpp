@@ -152,6 +152,10 @@ class ServerMap final: public ServerObject
         int m_gridTriggerID = 0;
 
     private:
+        std::unordered_map<int, std::vector<std::array<int, 4>>> m_safeZoneList;
+        int m_safeZoneID = 0;
+
+    private:
         const uint64_t m_mainScriptThreadKey = 1;
         /* */ uint64_t m_threadKey = m_mainScriptThreadKey + 1;
 
@@ -172,6 +176,24 @@ class ServerMap final: public ServerObject
         // {x, y, w, h}; removeGridTriggerId() restores the grid state
         int  allocateGridTriggerId(const std::vector<std::array<int, 4>> &);
         void removeGridTriggerId(int);
+
+    private:
+        // safe zones are created, changed and removed by scripts at runtime, by id like grid triggers
+        // every change is pushed to all actors on this map, see postSafeZoneList()
+        int allocateSafeZoneId(     std::vector<std::array<int, 4>>);
+        bool  updateSafeZoneId(int, std::vector<std::array<int, 4>>);
+        void  removeSafeZoneId(int);
+
+    private:
+        // the actors on this map keep a copy of the flattened rect list
+        // BattleObject::isSafeGrid() answers locally since combat can not afford to ask the map on every single hit
+        //
+        // an actor gets the list when it joins this map, by spawn or map switch, and again every time the list changes
+        // an actor drops its copy when it leaves this map
+        std::string buildSafeZoneListBuf() const;
+
+        void postSafeZoneList(uint64_t);
+        void postSafeZoneList();
 
     public:
         ServerMap(uint64_t);
@@ -198,13 +220,8 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        // safe zone is runtime configurable, it does not belong to the map bin
-        //
-        // ServerMap owns it, but combat decisions are made by the actors themselves, so this
-        // barely-changing info gets broadcasted to every actor on the map when it changes, and
-        // an actor which just entered the map pulls it, see BattleObject::isSafeGrid()
-        //
-        // TODO no way to configure a safe zone yet, so no grid is safe
+        // safe zone is runtime configurable by scripts, it does not belong to the map bin
+        // see setSafeZone() in servermap.lua
         bool isSafeGrid(int, int) const;
 
     protected:

@@ -972,6 +972,17 @@ struct SDGroundFireWallList
     }
 };
 
+struct SDSafeZoneList
+{
+    uint64_t mapUID = 0;
+    std::vector<std::array<int, 4>> rectList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(mapUID, rectList);
+    }
+};
+
 struct SDLearnedMagic
 {
     uint32_t magicID = 0;

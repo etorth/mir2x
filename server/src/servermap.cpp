@@ -28,6 +28,36 @@ extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
+// parse a lua rect array
+// each rect is {x = ..., y = ..., w = ..., h = ...}, w/h default to 1
+static std::vector<std::array<int, 4>> parseRectList(const sol::table &rectList)
+{
+    std::vector<std::array<int, 4>> result;
+    for(size_t i = 1; i <= rectList.size(); ++i){
+        const sol::object entry = rectList[i];
+        fflassert(entry.is<sol::table>(), i);
+
+        const sol::table rect = entry.as<sol::table>();
+        const sol::object xObj = rect["x"];
+        const sol::object yObj = rect["y"];
+
+        fflassert(xObj.valid() && xObj.is<lua_Integer>(), luaf::luaObjTypeString(xObj));
+        fflassert(yObj.valid() && yObj.is<lua_Integer>(), luaf::luaObjTypeString(yObj));
+
+        const int x = check_cast<int>(xObj.as<lua_Integer>());
+        const int y = check_cast<int>(yObj.as<lua_Integer>());
+
+        const int w = rect["w"].get_or<int, int>(1);
+        const int h = rect["h"].get_or<int, int>(1);
+
+        fflassert(w > 0, w);
+        fflassert(h > 0, h);
+
+        result.push_back({x, y, w, h});
+    }
+    return result;
+}
+
 ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
     : ServerObject::LuaThreadRunner(serverMapPtr)
 {
@@ -419,31 +449,32 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     bindFunction("_RSVD_NAME_allocateGridTriggerId", [this](sol::table rectList) -> int
     {
-        std::vector<std::array<int, 4>> rectArray;
-        for(size_t i = 1; i <= rectList.size(); ++i){
-            const sol::object entry = rectList[i];
-            fflassert(entry.is<sol::table>(), i);
-
-            const sol::table rect = entry.as<sol::table>();
-            const sol::object xObj = rect["x"];
-            const sol::object yObj = rect["y"];
-            fflassert(xObj.valid() && xObj.is<lua_Integer>(), "grid trigger rect missing or invalid x");
-            fflassert(yObj.valid() && yObj.is<lua_Integer>(), "grid trigger rect missing or invalid y");
-
-            const int x = check_cast<int>(xObj.as<lua_Integer>());
-            const int y = check_cast<int>(yObj.as<lua_Integer>());
-            const int w = rect["w"].get_or<int, int>(1);
-            const int h = rect["h"].get_or<int, int>(1);
-
-            fflassert(w > 0 && h > 0, w, h);
-            rectArray.push_back({x, y, w, h});
-        }
-        return getServerMap()->allocateGridTriggerId(rectArray);
+        return getServerMap()->allocateGridTriggerId(parseRectList(rectList));
     });
 
     bindFunction("_RSVD_NAME_removeGridTriggerId", [this](int gridTriggerID)
     {
         getServerMap()->removeGridTriggerId(gridTriggerID);
+    });
+
+    bindFunction("_RSVD_NAME_allocateSafeZoneId", [this](sol::table rectList) -> int
+    {
+        return getServerMap()->allocateSafeZoneId(parseRectList(rectList));
+    });
+
+    bindFunction("_RSVD_NAME_updateSafeZoneId", [this](int safeZoneID, sol::table rectList) -> bool
+    {
+        return getServerMap()->updateSafeZoneId(safeZoneID, parseRectList(rectList));
+    });
+
+    bindFunction("_RSVD_NAME_removeSafeZoneId", [this](int safeZoneID)
+    {
+        getServerMap()->removeSafeZoneId(safeZoneID);
+    });
+
+    bindFunction("isSafeGrid", [this](int x, int y) -> bool
+    {
+        return getServerMap()->isSafeGrid(x, y);
     });
 
     bindFunction("_RSVD_NAME_getGridTriggerIDList", [this](int x, int y)
@@ -1259,13 +1290,75 @@ bool ServerMap::isSafeGrid(int x, int y) const
         return false;
     }
 
-    // there is no way to configure a safe zone yet
-    //
-    // when it becomes configurable, keep the zone list here and dispatch it to every actor on
-    // this map on change, the actors keep a copy and answer BattleObject::isSafeGrid() locally,
-    // combat can not afford to ask the map on every single hit
-
+    for(const auto &[safeZoneID, rectList]: m_safeZoneList){
+        for(const auto &[rx, ry, rw, rh]: rectList){
+            if(mathf::pointInRectangle(x, y, rx, ry, rw, rh)){
+                return true;
+            }
+        }
+    }
     return false;
+}
+
+int ServerMap::allocateSafeZoneId(std::vector<std::array<int, 4>> rectList)
+{
+    const int safeZoneID = ++m_safeZoneID;
+    m_safeZoneList[safeZoneID] = std::move(rectList);
+
+    postSafeZoneList();
+    return safeZoneID;
+}
+
+bool ServerMap::updateSafeZoneId(int safeZoneID, std::vector<std::array<int, 4>> rectList)
+{
+    const auto it = m_safeZoneList.find(safeZoneID);
+    if(it == m_safeZoneList.end()){
+        return false;
+    }
+
+    it->second = std::move(rectList);
+    postSafeZoneList();
+    return true;
+}
+
+void ServerMap::removeSafeZoneId(int safeZoneID)
+{
+    if(m_safeZoneList.erase(safeZoneID)){
+        postSafeZoneList();
+    }
+}
+
+std::string ServerMap::buildSafeZoneListBuf() const
+{
+    SDSafeZoneList sdSZL;
+    sdSZL.mapUID = UID();
+
+    for(const auto &[safeZoneID, rectList]: m_safeZoneList){
+        sdSZL.rectList.insert(sdSZL.rectList.end(), rectList.begin(), rectList.end());
+    }
+    return cerealf::serialize(sdSZL);
+}
+
+void ServerMap::postSafeZoneList(uint64_t uid)
+{
+    // only battle objects take part in combat
+    // an actor joining a map starts with no safe zone, so an empty list needs no post
+
+    if(!m_safeZoneList.empty() && (uidf::isPlayer(uid) || uidf::isMonster(uid))){
+        m_actorPod->post(uid, {AM_SAFEZONELIST, buildSafeZoneListBuf()});
+    }
+}
+
+void ServerMap::postSafeZoneList()
+{
+    const auto buf = buildSafeZoneListBuf();
+    for(const auto &grid: m_gridList){
+        for(const auto uid: grid.uidList){
+            if(uidf::isPlayer(uid) || uidf::isMonster(uid)){
+                m_actorPod->post(uid, {AM_SAFEZONELIST, buf});
+            }
+        }
+    }
 }
 
 size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const

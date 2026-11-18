@@ -122,6 +122,7 @@ enum ActorMsgPackType: int
     AM_QUERYOBSERVED,
     AM_VIEWRANGE,
     AM_QUERYGROUNDLIST,
+    AM_SAFEZONELIST,
     AM_CHECKMASTER,
     AM_CHECKMASTEROK,
     AM_QUERYMASTER,
@@ -282,6 +283,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_QUERYOBSERVED)
         _add_mpk_type_case(AM_VIEWRANGE)
         _add_mpk_type_case(AM_QUERYGROUNDLIST)
+        _add_mpk_type_case(AM_SAFEZONELIST)
         _add_mpk_type_case(AM_CHECKMASTER)
         _add_mpk_type_case(AM_CHECKMASTEROK)
         _add_mpk_type_case(AM_QUERYMASTER)
