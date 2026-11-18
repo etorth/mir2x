@@ -292,6 +292,7 @@ end
 --
 -- inside a safe zone, no player can damage others, or anything a player controls
 -- and nobody standing in one can deal such damage out of it, see Player::canDamageTarget()
+-- and BattleObject::safeZoneBlocksAttack()
 --
 -- a map script, or a quest through uidRemoteCall() to the map, names every zone it installs;
 -- updating a zone replaces its rects, so a zone can move, grow or shrink:

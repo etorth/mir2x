@@ -221,7 +221,7 @@ class ServerMap final: public ServerObject
 
     public:
         // safe zone is runtime configurable by scripts, it does not belong to the map bin
-        // see setSafeZone() in servermap.lua
+        // see addSafeZone() in servermap.lua
         bool isSafeGrid(int, int) const;
 
     protected:

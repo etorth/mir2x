@@ -261,6 +261,13 @@ class BattleObject: public CharObject
             return isSafeGrid(X(), Y());
         }
 
+        // receiver side of Player::canDamageTarget()'s safe zone rule
+        // fire wall, fixed location strikes and pets deliver damage without going through it
+        //
+        // args are the attacker UID and AMAttack::X/Y, which is the attacker location for a direct hit,
+        // or the struck grid for damage delivered by the map
+        corof::awaitable<bool> safeZoneBlocksAttack(uint64_t, int, int);
+
     protected:
         void removeBuff(uint64_t, bool);
         void removeFromBuff(uint64_t, uint64_t, bool);

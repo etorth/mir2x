@@ -1095,6 +1095,14 @@ corof::awaitable<uint64_t> BattleObject::queryPlayerController(uint64_t uid)
     }
 }
 
+corof::awaitable<bool> BattleObject::safeZoneBlocksAttack(uint64_t attackerUID, int attackX, int attackY)
+{
+    if(inSafeZone() || isSafeGrid(attackX, attackY)){
+        co_return co_await queryPlayerController(attackerUID) != 0; // wild monster still can attack
+    }
+    co_return false;
+}
+
 void BattleObject::dispatchBuffIDList()
 {
     const auto sdBuf = cerealf::serialize(SDBuffIDList

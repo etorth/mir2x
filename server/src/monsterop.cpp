@@ -197,6 +197,9 @@ corof::awaitable<> Monster::on_AM_OBSERVE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
+    if(const auto amA = mpk.conv<AMAttack>(); co_await safeZoneBlocksAttack(amA.UID, amA.X, amA.Y)){
+        co_return;
+    }
     co_await onAMAttack(mpk);
 }
 

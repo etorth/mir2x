@@ -2069,6 +2069,13 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
             {
                 addDelay(550, [this, cmA, node](bool)
                 {
+                    // the map delivers fire wall damage
+                    // only the caster knows it casts out of a safe zone
+
+                    if(inSafeZone()){
+                        return;
+                    }
+
                     AMCastFireWall amCFW;
                     std::memset(&amCFW, 0, sizeof(amCFW));
 
@@ -2164,7 +2171,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                         amSFLD.damage = getAttackDamage(magicID, 0);
                         addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this](bool)
                         {
-                            if(castMapID == mapID()){
+                            if(castMapID == mapID() && !inSafeZone()){
                                 m_actorPod->post(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
                                 if(g_serverArgParser->sharedConfig().showStrikeGrid){
                                     SMStrikeGrid smSG;

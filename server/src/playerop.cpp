@@ -303,6 +303,10 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         co_return;
     }
 
+    if(co_await safeZoneBlocksAttack(amA.UID, amA.X, amA.Y)){
+        co_return;
+    }
+
     if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
         switch(uidf::getUIDType(amA.UID)){
             case UID_MON:
