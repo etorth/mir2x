@@ -17,10 +17,29 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
     }
 
     if(auto [texPtr, offX, offY] = g_magicDB->retrieve(gfxSeqID(), frame()); texPtr){
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+
+        const auto scale = (m_gfxEntryRef && (m_gfxEntryRef->scale >= 0)) ? m_gfxEntryRef->scale : 1.0f;
         const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor;
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));
-        SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, m_x * SYS_MAPGRIDXP - viewX + offX, m_y * SYS_MAPGRIDYP - viewY + offY);
+
+        const auto scaleOffX = scale * offX + (1 - scale) * SYS_MAPGRIDXP / 2.0;
+        const auto scaleOffY = scale * offY + (1 - scale) * SYS_MAPGRIDYP / 2.0;
+
+        const SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));
+        const SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+        g_sdlDevice->drawTexture(texPtr,
+
+                m_x * SYS_MAPGRIDXP - viewX + to_dround(scaleOffX),
+                m_y * SYS_MAPGRIDYP - viewY + to_dround(scaleOffY),
+
+                to_dround(scale * texW),
+                to_dround(scale * texH),
+
+                0,
+                0,
+
+                texW,
+                texH);
     }
 }
 

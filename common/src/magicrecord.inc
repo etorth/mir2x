@@ -189,6 +189,20 @@
     },
 },
 
+{   .name = u8"魔法特效_困魔咒",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0000280,
+
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},
+
 {   .name = u8"祖玛教主_魔法特效_施法",
     .gfxList
     {
@@ -198,6 +212,20 @@
             .gfxID = 0X03002D0,
             .frameCount = 8,
             .gfxDirType = 8,
+        },
+    },
+},
+
+{   .name = u8"魔法特效_安全区边界",
+    .gfxList
+    {
+        {
+            .ref
+            {
+                .name = u8"魔法特效_困魔咒",
+                .stage = u8"运行",
+                .scale = .4f,
+            },
         },
     },
 },
@@ -732,10 +760,11 @@
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"固定",
-            .gfxID = 0X0000280,
-            .frameCount = 10,
+            .ref
+            {
+                .name  = u8"魔法特效_困魔咒",
+                .stage = u8"运行",
+            },
         },
     },
 },
@@ -3016,19 +3045,6 @@
                 .name = u8"魔法特效_火球术",
                 .stage = u8"裂解",
             },
-        },
-    },
-},
-
-{   .name = u8"魔法特效_安全区边界", // pillars on the safe zone edge, gfx of 困魔咒
-    .gfxList
-    {
-        {
-            .stage = u8"运行",
-            .type  = u8"固定",
-            .gfxID = 0X0000280,
-            .onGround = 1,
-            .loop = 1,
         },
     },
 },

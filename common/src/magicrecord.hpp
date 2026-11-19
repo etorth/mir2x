@@ -113,6 +113,8 @@ struct MagicGfxEntryRef
 {
     const char8_t *name = nullptr;
     const char8_t *stage = nullptr;
+
+    const float scale = 1.0f;
     const uint32_t modColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF);
 
     constexpr operator bool () const
