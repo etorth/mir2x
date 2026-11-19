@@ -3019,3 +3019,16 @@
         },
     },
 },
+
+{   .name = u8"魔法特效_安全区边界", // pillars on the safe zone edge, gfx of 困魔咒
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0000280,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},

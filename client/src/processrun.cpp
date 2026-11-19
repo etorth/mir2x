@@ -938,6 +938,24 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
     }
 }
 
+void ProcessRun::resetSafeZoneEdge()
+{
+    std::erase_if(m_fixedLocMagicList, [](const auto &magicPtr)
+    {
+        return dynamic_cast<SafeZoneEdge_RUN *>(magicPtr.get()) != nullptr;
+    });
+
+    if(m_safeZoneList.mapUID != mapUID() || m_safeZoneList.zone.empty()){
+        return;
+    }
+
+    for(const auto &[x, y]: m_safeZoneList.zone.edgeGridList(to_d(m_mir2xMapData.w()), to_d(m_mir2xMapData.h()))){
+        if(groundValid(x, y)){
+            m_fixedLocMagicList.push_back(std::make_unique<SafeZoneEdge_RUN>(x, y));
+        }
+    }
+}
+
 void ProcessRun::relocateMyHero(uint64_t newMapUID, int x, int y, int direction)
 {
     // directly assign a stand motion to myhero and skip all location validation
@@ -954,6 +972,8 @@ void ProcessRun::relocateMyHero(uint64_t newMapUID, int x, int y, int direction)
         m_fixedLocMagicList.clear();
         m_followUIDMagicList.clear();
         m_ascendStrList.clear();
+
+        resetSafeZoneEdge();
     }
 
     dynamic_cast<Hero *>(m_coList.at(m_myHeroUID).get())->jumpLoc(x, y, direction); // don't use getMyHero(), dead myhero may be invisible

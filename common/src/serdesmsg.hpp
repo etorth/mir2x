@@ -1002,6 +1002,8 @@ struct SDSafeZone
         });
     }
 
+    std::vector<std::array<int, 2>> edgeGridList(int, int) const;
+
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(rectList, circleList);

@@ -1,3 +1,5 @@
+#include <cmath>
+#include <vector>
 #include <string_view>
 #include "mathf.hpp"
 #include "dbcomid.hpp"
@@ -237,6 +239,120 @@ void SDInventory::merge(uint32_t itemID, uint32_t fromSeqID, uint32_t toSeqID)
     if(m_list.at(fromIndex) <= 0){
         m_list.erase(m_list.begin() + fromIndex);
     }
+}
+
+std::vector<std::array<int, 2>> SDSafeZone::edgeGridList(int mapW, int mapH) const
+{
+    fflassert(mapW > 0, mapW);
+    fflassert(mapH > 0, mapH);
+
+    // scan line: covered spans of each row, half-open [x0, x1)
+    // a circle row covers |x - cx| <= k with the largest k that k * k <= r * r - dy * dy, same grids as contains()
+    std::vector<std::vector<std::pair<int, int>>> rowSpanList(mapH);
+    const auto fnAddSpan = [mapW, mapH, &rowSpanList](int64_t y, int64_t x0, int64_t x1)
+    {
+        x0 = std::max<int64_t>(x0, 0);
+        x1 = std::min<int64_t>(x1, mapW);
+
+        if(y >= 0 && y < mapH && x0 < x1){
+            rowSpanList[y].emplace_back(int(x0), int(x1));
+        }
+    };
+
+    for(const auto &[x, y, w, h]: rectList){
+        for(int64_t ry = std::max<int64_t>(y, 0); ry < std::min<int64_t>(int64_t(y) + h, mapH); ++ry){
+            fnAddSpan(ry, x, int64_t(x) + w);
+        }
+    }
+
+    for(const auto &[cx, cy, r]: circleList){
+        for(int64_t ry = std::max<int64_t>(int64_t(cy) - r, 0); ry <= std::min<int64_t>(int64_t(cy) + r, mapH - 1); ++ry){
+            const int64_t remain = int64_t(r) * r - (ry - cy) * (ry - cy);
+            auto k = int64_t(std::sqrt(double(remain)));
+
+            while(k * k > remain){
+                --k;
+            }
+
+            while((k + 1) * (k + 1) <= remain){
+                ++k;
+            }
+            fnAddSpan(ry, cx - k, cx + k + 1);
+        }
+    }
+
+    for(auto &spanList: rowSpanList){
+        std::ranges::sort(spanList);
+        std::vector<std::pair<int, int>> mergedList;
+
+        for(const auto &span: spanList){
+            if(!mergedList.empty() && span.first <= mergedList.back().second){ // merge touching spans too, so a span end is next to an uncovered grid
+                mergedList.back().second = std::max<int>(mergedList.back().second, span.second);
+            }
+            else{
+                mergedList.push_back(span);
+            }
+        }
+        spanList = std::move(mergedList);
+    }
+
+    const std::vector<std::pair<int, int>> fullRow {{0, mapW}}; // rows out of map count as in the zone
+
+    std::vector<int> edgeXList;
+    std::vector<std::array<int, 2>> result;
+
+    for(int y = 0; y < mapH; ++y){
+        const auto &spanList = rowSpanList[y];
+        edgeXList.clear();
+
+        const auto fnAddUncovered = [&spanList, &edgeXList](const std::vector<std::pair<int, int>> &nbrSpanList)
+        {
+            auto nbr = nbrSpanList.begin();
+            for(const auto &[x0, x1]: spanList){
+                for(int x = x0; x < x1;){
+                    while(nbr != nbrSpanList.end() && nbr->second <= x){
+                        ++nbr;
+                    }
+
+                    if(nbr == nbrSpanList.end() || nbr->first >= x1){
+                        for(; x < x1; ++x){
+                            edgeXList.push_back(x);
+                        }
+                    }
+                    else if(nbr->first > x){
+                        for(; x < nbr->first; ++x){
+                            edgeXList.push_back(x);
+                        }
+                    }
+                    else{
+                        x = nbr->second;
+                    }
+                }
+            }
+        };
+
+        for(const auto &[x0, x1]: spanList){
+            if(x0 > 0){
+                edgeXList.push_back(x0);
+            }
+
+            if(x1 < mapW){
+                edgeXList.push_back(x1 - 1);
+            }
+        }
+
+        fnAddUncovered((y > 0       ) ? rowSpanList[y - 1] : fullRow);
+        fnAddUncovered((y + 1 < mapH) ? rowSpanList[y + 1] : fullRow);
+
+        std::ranges::sort(edgeXList);
+        const auto [uniqueBegin, uniqueEnd] = std::ranges::unique(edgeXList);
+        edgeXList.erase(uniqueBegin, uniqueEnd);
+
+        for(const auto x: edgeXList){
+            result.push_back({x, y});
+        }
+    }
+    return result;
 }
 
 bool SDMagicKeyList::setMagicKey(uint32_t magicID, char key)

@@ -172,6 +172,9 @@ class ProcessRun: public Process
         void loadMap(uint64_t, int, int);
         void relocateMyHero(uint64_t, int, int, int);
 
+    private:
+        void resetSafeZoneEdge();
+
     public:
         int id() const override
         {

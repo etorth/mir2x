@@ -171,6 +171,14 @@ class FireWall_RUN: public FixedLocMagic
         }
 };
 
+class SafeZoneEdge_RUN: public FixedLocMagic
+{
+    public:
+        SafeZoneEdge_RUN(int x, int y)
+            : FixedLocMagic(u8"魔法特效_安全区边界", u8"运行", x, y)
+        {}
+};
+
 class HellFire_RUN: public FixedLocMagic
 {
     private:
