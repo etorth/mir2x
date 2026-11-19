@@ -113,6 +113,9 @@ void BattleObject::beforeActivate()
     {
         if(auto sdSZL = mpk.deserialize<SDSafeZoneList>(); sdSZL.mapUID == mapUID()){
             m_safeZone = std::move(sdSZL.zone);
+            if(isPlayer()){
+                dynamic_cast<Player *>(this)->postNetMessage(SM_SAFEZONELIST, static_cast<const void *>(mpk.data()), mpk.size());
+            }
         }
         return {};
     });

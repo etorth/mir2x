@@ -241,6 +241,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_GRABWEARERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_GROUNDFIREWALLLIST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_GROUNDITEMIDLIST)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_SAFEZONELIST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_HEALTH)
         _INSTALL_SM_HANDLER(ProcessRun, SM_INVENTORY)
         _INSTALL_SM_HANDLER(ProcessRun, SM_INVOPCOST)

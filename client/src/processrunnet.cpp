@@ -484,6 +484,11 @@ void ProcessRun::on_SM_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
     }
 }
 
+void ProcessRun::on_SM_SAFEZONELIST(const uint8_t *buf, size_t bufSize)
+{
+    m_safeZoneList = cerealf::deserialize<SDSafeZoneList>(buf, bufSize);
+}
+
 void ProcessRun::on_SM_GROUNDFIREWALLLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdGFWL = cerealf::deserialize<SDGroundFireWallList>(buf, bufSize);

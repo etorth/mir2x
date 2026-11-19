@@ -1013,6 +1013,12 @@ struct SDSafeZoneList
     uint64_t mapUID = 0;
     SDSafeZone zone {}; // all zones of the map merged
 
+    void clear()
+    {
+        mapUID = 0;
+        zone.clear();
+    }
+
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(mapUID, zone);

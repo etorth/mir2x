@@ -72,6 +72,7 @@ enum SMType: uint8_t
     SM_BUYERROR,
     SM_GROUNDITEMIDLIST,
     SM_GROUNDFIREWALLLIST,
+    SM_SAFEZONELIST,
     SM_EQUIPWEAR,
     SM_EQUIPWEARERROR,
     SM_GRABWEAR,
@@ -572,6 +573,7 @@ namespace
         _RSVD_register_servermsg(SM_BUYERROR,               1, sizeof(SMBuyError)              );
         _RSVD_register_servermsg(SM_GROUNDITEMIDLIST,       3                                  );
         _RSVD_register_servermsg(SM_GROUNDFIREWALLLIST,     3                                  );
+        _RSVD_register_servermsg(SM_SAFEZONELIST,           3                                  );
         _RSVD_register_servermsg(SM_EQUIPWEAR,              3                                  );
         _RSVD_register_servermsg(SM_EQUIPWEARERROR,         1, sizeof(SMEquipWearError)        );
         _RSVD_register_servermsg(SM_GRABWEAR,               3                                  );

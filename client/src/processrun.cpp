@@ -879,6 +879,9 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
         }
 
         m_groundItemIDList.clear();
+        if(m_safeZoneList.mapUID != newMapUID){
+            m_safeZoneList.clear();
+        }
         fnUpdateLoadRatio(40);
 
         const int winW = 1200;

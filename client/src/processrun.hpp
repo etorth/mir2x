@@ -12,6 +12,7 @@
 #include "sysconst.hpp"
 #include "process.hpp"
 #include "message.hpp"
+#include "serdesmsg.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "guimanager.hpp"
@@ -72,6 +73,9 @@ class ProcessRun: public Process
         LocHashTable<std::vector<uint32_t>> m_groundItemIDList;
 
     private:
+        SDSafeZoneList m_safeZoneList;
+
+    private:
         DelayCommandQueue m_delayCmdQ;
 
     private:
@@ -92,6 +96,11 @@ class ProcessRun: public Process
         bool groundValid(int nX, int nY) const
         {
             return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).land.canThrough();
+        }
+
+        bool isSafeGrid(int nX, int nY) const
+        {
+            return m_safeZoneList.mapUID == mapUID() && m_safeZoneList.zone.contains(nX, nY);
         }
 
     private:
@@ -264,6 +273,7 @@ class ProcessRun: public Process
         _support_sm(SM_BUYSUCCEED);
         _support_sm(SM_GROUNDITEMIDLIST);
         _support_sm(SM_GROUNDFIREWALLLIST);
+        _support_sm(SM_SAFEZONELIST);
         _support_sm(SM_EQUIPWEAR);
         _support_sm(SM_EQUIPWEARERROR);
         _support_sm(SM_GRABWEAR);
