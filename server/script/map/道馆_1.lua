@@ -1,3 +1,5 @@
+addSafeZone(SYS_SAFEZONE, {{x = 423, y = 102, r = 30}, {x = 405, y = 124, r = 30}}) -- town points in StartPoint.txt
+
 addGuard('大刀卫士', 371, 160, DIR_DOWNLEFT)
 addGuard('大刀卫士', 375, 164, DIR_DOWNLEFT)
 addGuard('大刀卫士', 368, 112, DIR_UPLEFT)

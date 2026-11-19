@@ -1,3 +1,5 @@
+addSafeZone(SYS_SAFEZONE) -- SAFE in Mapinfo.txt
+
 local addmon = require('map.addmonster')
 local addMonCo = addmon.monGener( -- 神圣战甲术空间_D400_001
 {

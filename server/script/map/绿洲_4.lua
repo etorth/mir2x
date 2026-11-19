@@ -1,3 +1,5 @@
+addSafeZone(SYS_SAFEZONE, 457, 77, 30) -- town point in StartPoint.txt
+
 addGuard('沙漠战士', 451, 54, DIR_DOWNLEFT)
 addGuard('沙漠战士', 457, 60, DIR_DOWNLEFT)
 addGuard('沙漠战士', 462, 48, DIR_UPRIGHT)

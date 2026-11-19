@@ -188,6 +188,8 @@ constexpr char SYS_ALLOWREDNAME[] = "_RSVD_NAME_ALLOW_REDNAME_761479946";
 // individual functions supported
 constexpr char SYS_SPACEMOVE[] = "_RSVD_NAME_SPACE_MOVE_683761479946";
 
+constexpr char SYS_SAFEZONE[] = "_RSVD_NAME_SAFE_ZONE_5182730946"; // name of the fixed safe zone a map script installs
+
 constexpr char SYS_EPDEF[] = "_RSVD_NAME_EVENT_PATH_DEF_2965316381";
 constexpr char SYS_EPUID[] = "_RSVD_NAME_EVENT_PATH_UID_3623042653";
 constexpr char SYS_EPQST[] = "_RSVD_NAME_EVENT_PATH_QST_6329204623";

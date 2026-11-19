@@ -1,3 +1,5 @@
+addSafeZone(SYS_SAFEZONE, 167, 94, 30) -- town point in StartPoint.txt
+
 local addmon = require('map.addmonster')
 local addMonCo = addmon.monGener( -- 诺玛村庄_41
 {

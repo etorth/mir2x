@@ -229,6 +229,7 @@ LuaModule::LuaModule()
     execString("SYS_ALLOWREDNAME = \'%s\'", SYS_ALLOWREDNAME);
 
     execString("SYS_SPACEMOVE = %s", str_quoted(SYS_SPACEMOVE).c_str());
+    execString("SYS_SAFEZONE = %s", str_quoted(SYS_SAFEZONE).c_str());
 
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 

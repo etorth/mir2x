@@ -1,3 +1,5 @@
+addSafeZone(SYS_SAFEZONE, {{x = 10, y = 60, r = 30}, {x = 24, y = 74, r = 10}}) -- SetAreaAttr in QuestDiary/System/SafeZone.txt
+
 local addmon = require('map.addmonster')
 local addMonCo = addmon.monGener( -- 神舰地下三层_D901
 {
