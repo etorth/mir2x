@@ -13,6 +13,7 @@
 #include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
+#include "mathf.hpp"
 #include "sysconst.hpp"
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
@@ -972,14 +973,49 @@ struct SDGroundFireWallList
     }
 };
 
-struct SDSafeZoneList
+struct SDSafeZone
 {
-    uint64_t mapUID = 0;
-    std::vector<std::array<int, 4>> rectList {};
+    std::vector<std::array<int, 4>>   rectList {}; // x, y, w, h
+    std::vector<std::array<int, 3>> circleList {}; // x, y, r
+
+    bool empty() const
+    {
+        return rectList.empty() && circleList.empty();
+    }
+
+    void clear()
+    {
+        rectList.clear();
+        circleList.clear();
+    }
+
+    bool contains(int x, int y) const
+    {
+        return std::ranges::any_of(rectList, [x, y](const auto &rect)
+        {
+            return mathf::pointInRectangle(x, y, rect[0], rect[1], rect[2], rect[3]);
+        })
+
+        || std::ranges::any_of(circleList, [x, y](const auto &circle)
+        {
+            return mathf::pointInCircle<int64_t>(x, y, circle[0], circle[1], circle[2]); // no overflow when squaring
+        });
+    }
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mapUID, rectList);
+        ar(rectList, circleList);
+    }
+};
+
+struct SDSafeZoneList
+{
+    uint64_t mapUID = 0;
+    SDSafeZone zone {}; // all zones of the map merged
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(mapUID, zone);
     }
 };
 

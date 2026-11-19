@@ -28,8 +28,6 @@ extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-// parse a lua rect array
-// each rect is {x = ..., y = ..., w = ..., h = ...}, w/h default to 1
 static std::vector<std::array<int, 4>> parseRectList(const sol::table &rectList)
 {
     std::vector<std::array<int, 4>> result;
@@ -54,6 +52,32 @@ static std::vector<std::array<int, 4>> parseRectList(const sol::table &rectList)
         fflassert(h > 0, h);
 
         result.push_back({x, y, w, h});
+    }
+    return result;
+}
+
+static std::vector<std::array<int, 3>> parseCircleList(const sol::table &circleList)
+{
+    std::vector<std::array<int, 3>> result;
+    for(size_t i = 1; i <= circleList.size(); ++i){
+        const sol::object entry = circleList[i];
+        fflassert(entry.is<sol::table>(), i);
+
+        const sol::table circle = entry.as<sol::table>();
+        const sol::object xObj = circle["x"];
+        const sol::object yObj = circle["y"];
+        const sol::object rObj = circle["r"];
+
+        fflassert(xObj.valid() && xObj.is<lua_Integer>(), luaf::luaObjTypeString(xObj));
+        fflassert(yObj.valid() && yObj.is<lua_Integer>(), luaf::luaObjTypeString(yObj));
+        fflassert(rObj.valid() && rObj.is<lua_Integer>(), luaf::luaObjTypeString(rObj));
+
+        const int x = check_cast<int>(xObj.as<lua_Integer>());
+        const int y = check_cast<int>(yObj.as<lua_Integer>());
+        const int r = check_cast<int>(rObj.as<lua_Integer>());
+
+        fflassert(r > 0, r);
+        result.push_back({x, y, r});
     }
     return result;
 }
@@ -457,14 +481,22 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         getServerMap()->removeGridTriggerId(gridTriggerID);
     });
 
-    bindFunction("_RSVD_NAME_allocateSafeZoneId", [this](sol::table rectList) -> int
+    bindFunction("_RSVD_NAME_allocateSafeZoneId", [this](sol::table rectList, sol::table circleList) -> int
     {
-        return getServerMap()->allocateSafeZoneId(parseRectList(rectList));
+        return getServerMap()->allocateSafeZoneId(SDSafeZone
+        {
+            .rectList = parseRectList(rectList),
+            .circleList = parseCircleList(circleList),
+        });
     });
 
-    bindFunction("_RSVD_NAME_updateSafeZoneId", [this](int safeZoneID, sol::table rectList) -> bool
+    bindFunction("_RSVD_NAME_updateSafeZoneId", [this](int safeZoneID, sol::table rectList, sol::table circleList) -> bool
     {
-        return getServerMap()->updateSafeZoneId(safeZoneID, parseRectList(rectList));
+        return getServerMap()->updateSafeZoneId(safeZoneID, SDSafeZone
+        {
+            .rectList = parseRectList(rectList),
+            .circleList = parseCircleList(circleList),
+        });
     });
 
     bindFunction("_RSVD_NAME_removeSafeZoneId", [this](int safeZoneID)
@@ -1290,33 +1322,33 @@ bool ServerMap::isSafeGrid(int x, int y) const
         return false;
     }
 
-    for(const auto &[safeZoneID, rectList]: m_safeZoneList){
-        for(const auto &[rx, ry, rw, rh]: rectList){
-            if(mathf::pointInRectangle(x, y, rx, ry, rw, rh)){
-                return true;
-            }
-        }
-    }
-    return false;
+    return std::ranges::any_of(m_safeZoneList, [x, y](const auto &entry)
+    {
+        return entry.second.contains(x, y);
+    });
 }
 
-int ServerMap::allocateSafeZoneId(std::vector<std::array<int, 4>> rectList)
+int ServerMap::allocateSafeZoneId(SDSafeZone zone)
 {
+    fflassert(!zone.empty());
+
     const int safeZoneID = ++m_safeZoneID;
-    m_safeZoneList[safeZoneID] = std::move(rectList);
+    m_safeZoneList[safeZoneID] = std::move(zone);
 
     postSafeZoneList();
     return safeZoneID;
 }
 
-bool ServerMap::updateSafeZoneId(int safeZoneID, std::vector<std::array<int, 4>> rectList)
+bool ServerMap::updateSafeZoneId(int safeZoneID, SDSafeZone zone)
 {
+    fflassert(!zone.empty());
+
     const auto it = m_safeZoneList.find(safeZoneID);
     if(it == m_safeZoneList.end()){
         return false;
     }
 
-    it->second = std::move(rectList);
+    it->second = std::move(zone);
     postSafeZoneList();
     return true;
 }
@@ -1333,8 +1365,9 @@ std::string ServerMap::buildSafeZoneListBuf() const
     SDSafeZoneList sdSZL;
     sdSZL.mapUID = UID();
 
-    for(const auto &[safeZoneID, rectList]: m_safeZoneList){
-        sdSZL.rectList.insert(sdSZL.rectList.end(), rectList.begin(), rectList.end());
+    for(const auto &[safeZoneID, zone]: m_safeZoneList){
+        sdSZL.zone.rectList  .insert(sdSZL.zone.rectList  .end(), zone.rectList  .begin(), zone.rectList  .end());
+        sdSZL.zone.circleList.insert(sdSZL.zone.circleList.end(), zone.circleList.begin(), zone.circleList.end());
     }
     return cerealf::serialize(sdSZL);
 }

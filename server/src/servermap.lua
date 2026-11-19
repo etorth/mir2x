@@ -63,7 +63,7 @@ local _RSVD_NAME_gridTriggers = {}
 -- uid -> questName -> name -> gridTriggerId, the SYS_EPUID triggers a quest named, see _RSVD_NAME_setUIDGridTrigger()
 local _RSVD_NAME_EPUID_namedGridTriggers = {}
 
--- normalize the rect args shared by grid triggers and safe zones:
+-- normalize the rect args shared by the grid trigger add functions:
 --
 --     x, y                   a 1x1 rect
 --     x, y, w, h             one rect
@@ -294,17 +294,115 @@ end
 -- and nobody standing in one can deal such damage out of it, see Player::canDamageTarget()
 -- and BattleObject::safeZoneBlocksAttack()
 --
--- a map script, or a quest through uidRemoteCall() to the map, names every zone it installs;
--- updating a zone replaces its rects, so a zone can move, grow or shrink:
+-- a map script, or a quest through uidRemoteCall() to the map, names every zone it installs
+-- a zone is any number of rects and circles, args after the name are:
 --
---     addSafeZone('town', {{x = 300, y = 260, w = 80, h = 60}, {x = 380, y = 280, w = 20, h = 20}})
---     addSafeZone('gate', 330, 330)                 -- a single grid
---     updateSafeZone('gate', 320, 320, 20, 20)      -- one rect, replaces the single grid above
+--     (none)                 the whole map
+--     x, y                   one grid
+--     x, y, r                a circle, r > 0
+--     x, y, w, h             a rect
+--     shape                  one shape table
+--     shapeList              array of shape tables, rects and circles can mix
+--
+-- a shape table takes exactly one of these key sets, anything else is an error:
+--
+--     {x = ..., y = ...}                     one grid
+--     {x = ..., y = ..., r = ...}            a circle
+--     {x = ..., y = ..., w = ...}            a rect, h = 1
+--     {x = ..., y = ..., h = ...}            a rect, w = 1
+--     {x = ..., y = ..., w = ..., h = ...}   a rect
+--
+-- updating a zone replaces all its shapes with the same kind of args, so a zone can move, grow, shrink or change shape:
+--
+--     addSafeZone('dungeon')                                                 -- the whole map
+--     addSafeZone('town', {{x = 300, y = 260, w = 80, h = 60}, {x = 400, y = 290, r = 20}})
+--     addSafeZone('gate', 330, 330)                                          -- one grid
+--     updateSafeZone('gate', 330, 330, 5)                                    -- a circle, replaces the grid above
 --     deleteSafeZone('gate')
 --
 -- adding an existing name or updating an unknown name is an error, deleting an unknown name is a no-op
--- a grid is safe if any rect of any zone covers it, isSafeGrid(x, y) answers that
+-- a grid is safe if any shape of any zone covers it, isSafeGrid(x, y) answers that
 -- zones only live in memory, the map script adds them again whenever the map loads
+
+local function parseSafeZoneShape(shape)
+    assertType(shape, 'table')
+    for k, _ in pairs(shape) do
+        if not (k == 'x' or k == 'y' or k == 'r' or k == 'w' or k == 'h') then
+            fatalPrintf('Invalid safe zone shape key: %s', tostring(k))
+        end
+    end
+
+    assertType(shape.x, 'integer')
+    assertType(shape.y, 'integer')
+
+    if shape.r ~= nil then
+        if shape.w ~= nil or shape.h ~= nil then
+            fatalPrintf('Invalid safe zone shape: r can not go with w or h')
+        end
+
+        assertType(shape.r, 'integer')
+        assert(shape.r > 0, 'safe zone circle radius must be positive')
+        return {x = shape.x, y = shape.y, r = shape.r}, true
+    end
+
+    local w = shape.w or 1
+    local h = shape.h or 1
+
+    assertType(w, 'integer')
+    assertType(h, 'integer')
+    assert(w > 0 and h > 0, 'safe zone rect size must be positive')
+    return {x = shape.x, y = shape.y, w = w, h = h}, false
+end
+
+-- argList is a table.pack()-ed slice of the args after the zone name
+-- returns the rect list and the circle list
+local function parseSafeZoneArgs(argList)
+    local shapeList = nil
+
+    if argList.n == 0 then
+        local mapW, mapH = getMapSize()
+        shapeList = {{x = 0, y = 0, w = mapW, h = mapH}}
+
+    elseif argList.n == 1 then
+        assertType(argList[1], 'table')
+        if argList[1].x ~= nil then
+            shapeList = {argList[1]}
+        else
+            shapeList = argList[1]
+            local count = 0
+            for k, _ in pairs(shapeList) do
+                if math.type(k) ~= 'integer' or k < 1 or k > #shapeList then
+                    fatalPrintf('Invalid safe zone shape list key: %s', tostring(k))
+                end
+                count = count + 1
+            end
+            assert(count > 0 and count == #shapeList, 'expect a non-empty safe zone shape array')
+        end
+
+    elseif argList.n >= 2 and argList.n <= 4 then
+        for i = 1, argList.n do
+            assertType(argList[i], 'integer')
+        end
+
+        if argList.n == 2 then
+            shapeList = {{x = argList[1], y = argList[2]}}
+        elseif argList.n == 3 then
+            shapeList = {{x = argList[1], y = argList[2], r = argList[3]}}
+        else
+            shapeList = {{x = argList[1], y = argList[2], w = argList[3], h = argList[4]}}
+        end
+
+    else
+        fatalPrintf('Invalid safe zone arguments, expect (), (x, y), (x, y, r), (x, y, w, h), a shape or a shape array')
+    end
+
+    local rectList, circleList = {}, {}
+    for _, shape in ipairs(shapeList) do
+        local parsed, isCircle = parseSafeZoneShape(shape)
+        table.insert(isCircle and circleList or rectList, parsed)
+    end
+    return rectList, circleList
+end
 
 -- name -> safeZoneId
 local _RSVD_NAME_safeZones = {}
@@ -314,7 +412,7 @@ function addSafeZone(name, ...)
     if _RSVD_NAME_safeZones[name] then
         fatalPrintf('Safe zone already exists: %s', name)
     end
-    _RSVD_NAME_safeZones[name] = _RSVD_NAME_allocateSafeZoneId(parseRectList(table.pack(...)))
+    _RSVD_NAME_safeZones[name] = _RSVD_NAME_allocateSafeZoneId(parseSafeZoneArgs(table.pack(...)))
 end
 
 function updateSafeZone(name, ...)
@@ -323,7 +421,7 @@ function updateSafeZone(name, ...)
     if not safeZoneId then
         fatalPrintf('Safe zone does not exist: %s', name)
     end
-    assert(_RSVD_NAME_updateSafeZoneId(safeZoneId, parseRectList(table.pack(...))), 'safe zone lost in map: ' .. name)
+    assert(_RSVD_NAME_updateSafeZoneId(safeZoneId, parseSafeZoneArgs(table.pack(...))), 'safe zone lost in map: ' .. name)
 end
 
 function deleteSafeZone(name)

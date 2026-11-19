@@ -152,7 +152,7 @@ class ServerMap final: public ServerObject
         int m_gridTriggerID = 0;
 
     private:
-        std::unordered_map<int, std::vector<std::array<int, 4>>> m_safeZoneList;
+        std::unordered_map<int, SDSafeZone> m_safeZoneList;
         int m_safeZoneID = 0;
 
     private:
@@ -180,12 +180,13 @@ class ServerMap final: public ServerObject
     private:
         // safe zones are created, changed and removed by scripts at runtime, by id like grid triggers
         // every change is pushed to all actors on this map, see postSafeZoneList()
-        int allocateSafeZoneId(     std::vector<std::array<int, 4>>);
-        bool  updateSafeZoneId(int, std::vector<std::array<int, 4>>);
+        // a zone is any number of rects and circles, an update replaces all of them
+        int allocateSafeZoneId(     SDSafeZone);
+        bool  updateSafeZoneId(int, SDSafeZone);
         void  removeSafeZoneId(int);
 
     private:
-        // the actors on this map keep a copy of the flattened rect list
+        // the actors on this map keep a copy of all zones merged
         // BattleObject::isSafeGrid() answers locally since combat can not afford to ask the map on every single hit
         //
         // an actor gets the list when it joins this map, by spawn or map switch, and again every time the list changes

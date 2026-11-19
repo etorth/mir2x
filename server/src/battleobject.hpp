@@ -1,15 +1,13 @@
 #pragma once
 #include <inplace_vector>
-#include <array>
-#include <algorithm>
 #include <map>
 #include <vector>
 #include <memory>
 #include <optional>
 #include <unordered_map>
 #include "pathf.hpp"
-#include "mathf.hpp"
 #include "stdf.hpp"
+#include "serdesmsg.hpp"
 #include "charobject.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
@@ -101,7 +99,7 @@ class BattleObject: public CharObject
         std::vector<Offender> m_offenderList;
 
     protected:
-        std::vector<std::array<int, 4>> m_safeZoneList; // copy of the safe zone rects of current map
+        SDSafeZone m_safeZone; // copy of all safe zones of current map merged
 
     public:
         BattleObject(
@@ -250,10 +248,7 @@ class BattleObject: public CharObject
     protected:
         bool isSafeGrid(int x, int y) const
         {
-            return std::ranges::any_of(m_safeZoneList, [x, y](const auto &rect)
-            {
-                return mathf::pointInRectangle(x, y, rect[0], rect[1], rect[2], rect[3]);
-            });
+            return m_safeZone.contains(x, y);
         }
 
         bool inSafeZone() const

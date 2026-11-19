@@ -131,23 +131,50 @@ namespace
             return idList
         end
 
-        -- safe zone bindings: TEST.zones[id] holds the rect list of a live zone, TEST.zoneCalls logs every call
+        -- safe zone bindings: TEST.zones[id] holds {rects = ..., circles = ...} of a live zone, TEST.zoneCalls logs every call
         TEST.zones, TEST.zoneCalls = {}, {}
         local lastZoneID = 0
 
-        function _RSVD_NAME_allocateSafeZoneId(rectList)
+        function _RSVD_NAME_allocateSafeZoneId(rectList, circleList)
             lastZoneID = lastZoneID + 1
-            TEST.zones[lastZoneID] = rectList
+            TEST.zones[lastZoneID] = {rects = rectList, circles = circleList}
             table.insert(TEST.zoneCalls, 'add' .. lastZoneID)
             return lastZoneID
         end
 
-        function _RSVD_NAME_updateSafeZoneId(id, rectList)
+        function _RSVD_NAME_updateSafeZoneId(id, rectList, circleList)
             table.insert(TEST.zoneCalls, 'update' .. id)
             if not TEST.zones[id] then
                 return false
             end
-            TEST.zones[id] = rectList
+            TEST.zones[id] = {rects = rectList, circles = circleList}
+            return true
+        end
+
+        function getMapSize()
+            return 400, 300
+        end
+
+        -- whether a zone has exactly these shapes, each shape given as {x, y, w, h} or {x, y, r}
+        function TEST.zoneIs(id, rects, circles)
+            local zone = TEST.zones[id]
+            if not zone or #zone.rects ~= #rects or #zone.circles ~= #circles then
+                return false
+            end
+
+            for i, rect in ipairs(rects) do
+                local z = zone.rects[i]
+                if z.x ~= rect[1] or z.y ~= rect[2] or z.w ~= rect[3] or z.h ~= rect[4] then
+                    return false
+                end
+            end
+
+            for i, circle in ipairs(circles) do
+                local z = zone.circles[i]
+                if z.x ~= circle[1] or z.y ~= circle[2] or z.r ~= circle[3] then
+                    return false
+                end
+            end
             return true
         end
 
@@ -250,29 +277,72 @@ namespace
     {
         MapFixture f;
         f.run(R"###(
-            addSafeZone('town', {{x = 10, y = 20, w = 30, h = 40}, {x = 50, y = 60}})
-            addSafeZone('gate', 5, 6)
-            updateSafeZone('town', 1, 2, 3, 4)
+            addSafeZone('map')
+            addSafeZone('grid', 5, 6)
+            addSafeZone('circle', 7, 8, 9)
+            addSafeZone('rect', 1, 2, 3, 4)
+            addSafeZone('shapeGrid', {x = 5, y = 6})
+            addSafeZone('shapeCircle', {x = 7, y = 8, r = 1})
+            addSafeZone('shapeW', {x = 1, y = 2, w = 3})
+            addSafeZone('shapeH', {x = 1, y = 2, h = 4})
+            addSafeZone('shapeWH', {x = 1, y = 2, w = 3, h = 4})
+            addSafeZone('mixed', {{x = 10, y = 20, w = 30, h = 40}, {x = 50, y = 60, r = 5}, {x = 70, y = 80}})
         )###");
 
-        require(f.check("TEST.same(TEST.zoneCalls, {'add1', 'add2', 'update1'})"), "update doesn't change its zone in place");
-        require(f.check("#TEST.zones[1] == 1 and TEST.zones[1][1].x == 1 and TEST.zones[1][1].y == 2 and TEST.zones[1][1].w == 3 and TEST.zones[1][1].h == 4"), "update doesn't replace the rects of the zone");
-        require(f.check("TEST.zones[2][1].x == 5 and TEST.zones[2][1].y == 6 and TEST.zones[2][1].w == 1 and TEST.zones[2][1].h == 1"), "a single grid isn't a 1x1 rect");
-
-        f.run("TEST.zoneCalls = {}");
-        require(f.check("not pcall(addSafeZone, 'town', 1, 1)"), "adding an existing name doesn't raise");
-        require(f.check("not pcall(updateSafeZone, 'none', 1, 1)"), "updating an unknown name doesn't raise");
-        require(f.check("not pcall(addSafeZone, 'empty') and not hasSafeZone('empty')"), "adding a zone without rects doesn't raise");
-        require(f.check("TEST.same(TEST.zoneCalls, {})"), "a rejected call reaches the map");
+        require(f.check("TEST.zoneIs(1, {{0, 0, 400, 300}}, {})"), "a zone without shapes doesn't cover the whole map");
+        require(f.check("TEST.zoneIs(2, {{5, 6, 1, 1}}, {})"), "(x, y) isn't a 1x1 rect");
+        require(f.check("TEST.zoneIs(3, {}, {{7, 8, 9}})"), "(x, y, r) isn't a circle");
+        require(f.check("TEST.zoneIs(4, {{1, 2, 3, 4}}, {})"), "(x, y, w, h) isn't a rect");
+        require(f.check("TEST.zoneIs(5, {{5, 6, 1, 1}}, {})"), "{x, y} isn't a 1x1 rect");
+        require(f.check("TEST.zoneIs(6, {}, {{7, 8, 1}})"), "{x, y, r} isn't a circle");
+        require(f.check("TEST.zoneIs(7, {{1, 2, 3, 1}}, {})"), "{x, y, w} doesn't take h = 1");
+        require(f.check("TEST.zoneIs(8, {{1, 2, 1, 4}}, {})"), "{x, y, h} doesn't take w = 1");
+        require(f.check("TEST.zoneIs(9, {{1, 2, 3, 4}}, {})"), "{x, y, w, h} isn't a rect");
+        require(f.check("TEST.zoneIs(10, {{10, 20, 30, 40}, {70, 80, 1, 1}}, {{50, 60, 5}})"), "a shape list doesn't split into rects and circles");
 
         f.run(R"###(
-            deleteSafeZone('gate')
-            deleteSafeZone('gate')
-            deleteSafeZone('none')
-            addSafeZone('gate', 7, 8)
+            TEST.zoneCalls = {}
+            updateSafeZone('rect', 3, 4, 5)
         )###");
 
-        require(f.check("TEST.same(TEST.zoneCalls, {'remove2', 'add3'}) and hasSafeZone('gate') and not hasSafeZone('none')"), "delete doesn't drop the name once, or a deleted name can't be added again");
+        require(f.check("TEST.same(TEST.zoneCalls, {'update4'}) and TEST.zoneIs(4, {}, {{3, 4, 5}})"), "update doesn't replace the shapes of its zone in place");
+
+        f.run("TEST.zoneCalls = {}");
+        for(const char *call:
+        {
+            "addSafeZone, 'grid', 1, 1",                                  // existing name
+            "updateSafeZone, 'none', 1, 1",                               // unknown name
+            "addSafeZone, 'bad', 1",                                      // one positional arg
+            "addSafeZone, 'bad', 1, 2, 3, 4, 5",                          // five positional args
+            "addSafeZone, 'bad', 1, nil",                                 // nil positional arg
+            "addSafeZone, 'bad', 1, 2, 1.5",                              // non-integer positional arg
+            "addSafeZone, 'bad', 1, 2, -1",                               // negative radius
+            "addSafeZone, 'bad', 1, 2, 0",                                // zero radius
+            "addSafeZone, 'bad', {x = 1, y = 2, r = 0}",                  // zero radius in a shape
+            "addSafeZone, 'bad', 1, 2, 0, 3",                             // empty rect
+            "addSafeZone, 'bad', {}",                                     // empty shape list
+            "addSafeZone, 'bad', {x = 1}",                                // missing y
+            "addSafeZone, 'bad', {x = 1, y = 2, r = 3, w = 4}",           // r with w
+            "addSafeZone, 'bad', {x = 1, y = 2, r = 3, h = 4}",           // r with h
+            "addSafeZone, 'bad', {x = 1, y = 2, radius = 3}",             // unknown key
+            "addSafeZone, 'bad', {1, 2, 3, 4}",                           // positional fields in a shape
+            "addSafeZone, 'bad', {x = 1, y = 2, {x = 3, y = 4}}",         // shape and list mixed
+            "addSafeZone, 'bad', {{x = 1, y = 2}, name = 'x'}",           // non-index key in a list
+            "addSafeZone, 'bad', {{x = 1, y = 2}, {x = 3, y = 4, r = 5, w = 6}}", // one bad shape in a list
+        }){
+            require(f.check(std::string("not pcall(") + call + ")"), call);
+        }
+
+        require(f.check("not hasSafeZone('bad') and TEST.same(TEST.zoneCalls, {})"), "a rejected call reaches the map");
+
+        f.run(R"###(
+            deleteSafeZone('grid')
+            deleteSafeZone('grid')
+            deleteSafeZone('none')
+            addSafeZone('grid', 7, 8)
+        )###");
+
+        require(f.check("TEST.same(TEST.zoneCalls, {'remove2', 'add11'}) and hasSafeZone('grid') and not hasSafeZone('none')"), "delete doesn't drop the name once, or a deleted name can't be added again");
     }
 
     void testDoor()
