@@ -224,7 +224,9 @@
             {
                 .name = u8"魔法特效_困魔咒",
                 .stage = u8"运行",
-                .scale = .4f,
+
+                .scale = 0.4f,
+                .modColor = colorf::YELLOW_A255,
             },
         },
     },
