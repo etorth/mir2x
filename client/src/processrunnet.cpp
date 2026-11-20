@@ -1360,3 +1360,49 @@ void ProcessRun::on_SM_QUERYSTALLOK(const uint8_t *buf, size_t bufSize)
         stallBoard->loadStall(std::move(sdS));
     }
 }
+
+void ProcessRun::on_SM_PLAYERGUILD(const uint8_t *buf, size_t bufSize)
+{
+    auto sdPG = cerealf::deserialize<SDPlayerGuild>(buf, bufSize);
+    if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(sdPG.dbid), false))){
+        heroPtr->setGuild(std::move(sdPG.guildName), std::move(sdPG.title));
+    }
+}
+
+void ProcessRun::on_SM_GUILDINVITE(const uint8_t *buf, size_t bufSize)
+{
+    // TODO accept prompt comes with the guild board, CM_RESPONDGUILDINVITE answers it
+    const auto smGI = ServerMsg::conv<SMGuildInvite>(buf, bufSize);
+    addCBLog(CBLOG_SYS, u8"%s邀请你加入行会%s", smGI.name.as_rawcstr(), smGI.guildName.as_rawcstr());
+}
+
+void ProcessRun::on_SM_GUILDERROR(const uint8_t *buf, size_t bufSize)
+{
+    const auto smGE = ServerMsg::conv<SMGuildError>(buf, bufSize);
+    const char8_t *errStr = [&smGE]() -> const char8_t *
+    {
+        switch(smGE.error){
+            case GUILDERR_INGUILD      : return u8"你已经加入了行会";
+            case GUILDERR_NOGUILD      : return u8"你没有加入行会";
+            case GUILDERR_NOTLEADER    : return u8"只有掌门人才可以这样做";
+            case GUILDERR_BADNAME      : return u8"无效的行会名字";
+            case GUILDERR_NAMETAKEN    : return u8"行会名字已经被使用";
+            case GUILDERR_NOGOLD       : return u8"金币不足";
+            case GUILDERR_NOITEM       : return u8"缺少成立行会所需的物品";
+            case GUILDERR_BADTARGET    : return u8"无效的目标";
+            case GUILDERR_TARGETINGUILD: return u8"对方已经加入了行会";
+            case GUILDERR_NOTMEMBER    : return u8"对方不是本行会成员";
+            case GUILDERR_LEADERLEAVE  : return u8"掌门人不能退出行会，请先转让掌门人或解散行会";
+            case GUILDERR_NOINVITE     : return u8"行会邀请已经失效";
+            case GUILDERR_REJECTED     : return u8"对方拒绝了你的行会邀请";
+            default                    : return nullptr;
+        }
+    }();
+
+    if(errStr){
+        addCBLog(CBLOG_ERR, u8"%s", to_cstr(errStr));
+    }
+    else{
+        addCBLog(CBLOG_ERR, u8"行会错误：%d", to_d(smGE.error));
+    }
+}

@@ -2199,3 +2199,144 @@ corof::awaitable<> Player::net_CM_BUYSTALLITEM(uint8_t, const uint8_t *buf, size
     cmQS.dbid = cmBSI.sellerDBID;
     co_await net_CM_QUERYSTALL(CM_QUERYSTALL, reinterpret_cast<const uint8_t *>(&cmQS), sizeof(cmQS), 0);
 }
+
+corof::awaitable<> Player::net_CM_QUERYPLAYERGUILD(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmQPG = ClientMsg::conv<CMQueryPlayerGuild>(buf);
+    if(cmQPG.dbid == 0 || cmQPG.dbid > SYS_MAXDBID){
+        return {};
+    }
+
+    postNetMessage(SM_PLAYERGUILD, cerealf::serialize(buildPlayerGuild(cmQPG.dbid, (cmQPG.dbid == dbid()) ? m_guild : dbLoadGuildMembership(cmQPG.dbid))));
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_INVITEGUILDMEMBER(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmIGM = ClientMsg::conv<CMInviteGuildMember>(buf);
+    const auto error = [&cmIGM, this]() -> int
+    {
+        if(!uidf::isPlayer(cmIGM.uid) || cmIGM.uid == UID()){
+            return GUILDERR_BADTARGET;
+        }
+
+        if(!m_guild){
+            return GUILDERR_NOGUILD;
+        }
+
+        if(m_guild->rank != GUILDRANK_LEADER){
+            return GUILDERR_NOTLEADER;
+        }
+
+        if(dbLoadGuildID(uidf::getPlayerDBID(cmIGM.uid))){
+            return GUILDERR_TARGETINGUILD;
+        }
+        return GUILDERR_NONE;
+    }();
+
+    if(error != GUILDERR_NONE){
+        postGuildError(error);
+        return {};
+    }
+
+    m_guildInviteSet.insert(uidf::getPlayerDBID(cmIGM.uid));
+
+    SMGuildInvite smGI;
+    std::memset(&smGI, 0, sizeof(smGI));
+
+    smGI.uid = UID();
+    smGI.name.assign(name());
+    smGI.guildName.assign(m_guild->guildName);
+    forwardNetPackage(cmIGM.uid, SM_GUILDINVITE, smGI);
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_RESPONDGUILDINVITE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmRGI = ClientMsg::conv<CMRespondGuildInvite>(buf);
+    if(!uidf::isPlayer(cmRGI.uid) || cmRGI.uid == UID()){
+        co_return;
+    }
+
+    if(!to_bool(cmRGI.accept)){
+        m_actorPod->post(cmRGI.uid, AM_REJECTGUILDINVITE);
+        co_return;
+    }
+
+    if(m_guild){
+        postGuildError(GUILDERR_INGUILD);
+        co_return;
+    }
+
+    // inviter adds me in database, so a stale or forged answer can't join a guild
+    switch(const auto rmpk = co_await m_actorPod->send(cmRGI.uid, AM_ACCEPTGUILDINVITE); rmpk.type()){
+        case AM_OK:
+            {
+                reloadGuild();
+                break;
+            }
+        case AM_GUILDERROR:
+            {
+                postGuildError(rmpk.conv<AMGuildError>().error);
+                break;
+            }
+        default:
+            {
+                postGuildError(GUILDERR_NOINVITE);
+                break;
+            }
+    }
+}
+
+corof::awaitable<> Player::net_CM_LEAVEGUILD(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    if(const auto error = dbLeaveGuild(dbid()); error != GUILDERR_NONE){
+        postGuildError(error);
+    }
+
+    reloadGuild();
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_KICKGUILDMEMBER(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmKGM = ClientMsg::conv<CMKickGuildMember>(buf);
+    if(const auto error = dbKickGuildMember(dbid(), cmKGM.dbid); error != GUILDERR_NONE){
+        postGuildError(error);
+    }
+    else{
+        m_actorPod->post(uidf::getPlayerUID(cmKGM.dbid), AM_GUILDUPDATE);
+    }
+
+    reloadGuild();
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_TRANSFERGUILDLEADER(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmTGL = ClientMsg::conv<CMTransferGuildLeader>(buf);
+    if(const auto error = dbTransferGuildLeader(dbid(), cmTGL.dbid); error != GUILDERR_NONE){
+        postGuildError(error);
+    }
+    else{
+        m_actorPod->post(uidf::getPlayerUID(cmTGL.dbid), AM_GUILDUPDATE);
+    }
+
+    reloadGuild();
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_DISBANDGUILD(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    if(const auto result = dbDisbandGuild(dbid()); result.has_value()){
+        for(const auto memberDBID: result.value()){
+            m_actorPod->post(uidf::getPlayerUID(memberDBID), AM_GUILDUPDATE);
+        }
+    }
+    else{
+        postGuildError(result.error());
+    }
+
+    reloadGuild();
+    return {};
+}

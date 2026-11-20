@@ -225,3 +225,30 @@ create table tbl_stallitem(
     foreign key (fld_dbid) references tbl_stall(fld_dbid) on delete cascade,
     primary key (fld_dbid, fld_itemid, fld_seqid)
 ) strict;
+
+create table tbl_guild(
+    fld_id             integer not null primary key autoincrement,
+    fld_name           text    not null unique,
+    fld_createtime     integer not null
+) strict;
+
+-- one guild per char, fld_rank is GUILDRANK_LEADER (1) or GUILDRANK_MEMBER (2)
+create table tbl_guildmember(
+    fld_dbid           integer not null primary key,
+    fld_guild          integer not null,
+    fld_rank           integer not null check(fld_rank in (1, 2)),
+    fld_title          text    not null,
+    fld_jointime       integer not null,
+
+    foreign key (fld_dbid ) references tbl_char (fld_dbid) on delete cascade,
+    foreign key (fld_guild) references tbl_guild(fld_id  ) on delete cascade
+) strict;
+
+create index tbl_guildmember_guild_index on tbl_guildmember(fld_guild);
+create unique index tbl_guildmember_leader_index on tbl_guildmember(fld_guild) where fld_rank = 1;
+
+-- a guild never goes without its leader, deleting the leader's char takes the guild down
+create trigger tbl_guildmember_leader_delete after delete on tbl_guildmember when old.fld_rank = 1
+begin
+    delete from tbl_guild where fld_id = old.fld_guild;
+end;

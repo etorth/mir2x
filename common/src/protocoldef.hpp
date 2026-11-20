@@ -258,6 +258,33 @@ enum StallErrorType: uint8_t
     STALLERR_DBFAILED,
 };
 
+enum GuildRankType: int
+{
+    GUILDRANK_NONE   = 0,
+    GUILDRANK_BEGIN  = 1,
+    GUILDRANK_LEADER = 1,
+    GUILDRANK_MEMBER,
+    GUILDRANK_END,
+};
+
+enum GuildErrorType: uint8_t
+{
+    GUILDERR_NONE = 0,
+    GUILDERR_INGUILD,
+    GUILDERR_NOGUILD,
+    GUILDERR_NOTLEADER,
+    GUILDERR_BADNAME,
+    GUILDERR_NAMETAKEN,
+    GUILDERR_NOGOLD,
+    GUILDERR_NOITEM,
+    GUILDERR_BADTARGET,
+    GUILDERR_TARGETINGUILD,
+    GUILDERR_NOTMEMBER,
+    GUILDERR_LEADERLEAVE, // leader transfers the guild or disbands it, never just leaves
+    GUILDERR_NOINVITE,
+    GUILDERR_REJECTED,
+};
+
 enum AttributeType: int
 {
     ATR_NONE  = 0,

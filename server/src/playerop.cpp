@@ -1034,3 +1034,40 @@ corof::awaitable<> Player::on_AM_STALLSOLD(const ActorMsgPack &mpk)
     }
     return {};
 }
+
+corof::awaitable<> Player::on_AM_ACCEPTGUILDINVITE(const ActorMsgPack &mpk)
+{
+    const auto error = [&mpk, this]() -> int
+    {
+        if(!uidf::isPlayer(mpk.from()) || !m_guildInviteSet.erase(uidf::getPlayerDBID(mpk.from()))){
+            return GUILDERR_NOINVITE;
+        }
+        return dbAddGuildMember(dbid(), uidf::getPlayerDBID(mpk.from()));
+    }();
+
+    if(error == GUILDERR_NONE){
+        m_actorPod->post(mpk.fromAddr(), AM_OK);
+    }
+    else{
+        AMGuildError amGE;
+        std::memset(&amGE, 0, sizeof(amGE));
+
+        amGE.error = to_u8(error);
+        m_actorPod->post(mpk.fromAddr(), {AM_GUILDERROR, amGE});
+    }
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_REJECTGUILDINVITE(const ActorMsgPack &mpk)
+{
+    if(uidf::isPlayer(mpk.from()) && m_guildInviteSet.erase(uidf::getPlayerDBID(mpk.from()))){
+        postGuildError(GUILDERR_REJECTED);
+    }
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_GUILDUPDATE(const ActorMsgPack &)
+{
+    reloadGuild();
+    return {};
+}

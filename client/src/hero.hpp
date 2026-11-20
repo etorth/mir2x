@@ -7,6 +7,7 @@
 #include "serdesmsg.hpp"
 #include "jobf.hpp"
 #include "creaturemovable.hpp"
+#include "gui/underbodyboard/underbodyboard.hpp"
 
 struct HeroFrameGfxSeq final
 {
@@ -47,7 +48,15 @@ class Hero: public CreatureMovable
         std::string  m_stallName;
 
     protected:
+        mutable bool m_guildQueried = false;
+        std::string  m_guildName;
+        std::string  m_guildTitle;
+
+    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
+
+    protected:
+        UnderBodyBoard m_underBodyBoard;
 
     public:
         Hero(uint64_t, bool, int, ProcessRun *, const ActionNode &);
@@ -172,9 +181,6 @@ class Hero: public CreatureMovable
             while(!m_name.empty() && std::isdigit(static_cast<unsigned char>(m_name.back()))){
                 m_name.pop_back();
             }
-
-            m_nameBoard.setText(u8"%s", m_name.c_str());
-            m_nameBoard.setFontColor(m_nameColor);
         }
 
         const auto &getWLDesp() const
@@ -280,6 +286,29 @@ class Hero: public CreatureMovable
 
     private:
         void queryStall() const;
+
+    public:
+        void setGuild(std::string guildName, std::string guildTitle)
+        {
+            m_guildQueried = true;
+            m_guildName  = std::move(guildName);
+            m_guildTitle = std::move(guildTitle);
+        }
+
+        const std::string &getGuildName() const
+        {
+            checkQueryGuild();
+            return m_guildName;
+        }
+
+        const std::string &getGuildTitle() const
+        {
+            checkQueryGuild();
+            return m_guildTitle;
+        }
+
+    private:
+        void checkQueryGuild() const;
 
     public:
         bool isMyHero() const;

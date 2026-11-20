@@ -725,6 +725,18 @@ struct SDNPCName
     }
 };
 
+struct SDPlayerGuild
+{
+    uint32_t dbid = 0;
+    std::string guildName {}; // empty if not in a guild
+    std::string title {};
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(dbid, guildName, title);
+    }
+};
+
 struct SDWLDesp
 {
     SDWear wear;

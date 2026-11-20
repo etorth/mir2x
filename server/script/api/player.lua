@@ -32,6 +32,26 @@ function player.getGender(uid) return uidRemoteCall(uid, [[ return getGender() ]
 function player.getMapName(uid) return uidRemoteCall(uid, [[ return getMapName(getMap()) ]]) end
 function player.getName (uid) return uidRemoteCall(uid, [[ return getName () ]]) end
 
+-- nil if not in a guild
+function player.getGuildName(uid) return uidRemoteCall(uid, [[ return getGuildName() ]]) end
+
+-- gold and one item are taken only when the guild gets created, returns GUILDERR_NONE or why it failed
+function player.createGuild(uid, guildName, gold, item)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(guildName, 'string')
+    assertType(gold, 'integer')
+    assert(gold >= 0)
+
+    -- an unknown name gives itemID 0, which would quietly drop the item from the cost
+    assertType(item, 'string')
+    local itemID = getItemID(item)
+    assert(itemID > 0, item)
+
+    return uidRemoteCall(uid, guildName, gold, itemID, [[ return createGuild(...) ]])
+end
+
 function player.getTeamLeader    (uid) return uidRemoteCall(uid, [[ return getTeamLeader    () ]]) end
 function player.getTeamMemberList(uid) return uidRemoteCall(uid, [[ return getTeamMemberList() ]]) end
 

@@ -313,6 +313,9 @@ class ProcessRun: public Process
         _support_sm(SM_STALLERROR);
         _support_sm(SM_PLAYERSTALL);
         _support_sm(SM_QUERYSTALLOK);
+        _support_sm(SM_PLAYERGUILD);
+        _support_sm(SM_GUILDINVITE);
+        _support_sm(SM_GUILDERROR);
 #undef _support_sm
 
     public:

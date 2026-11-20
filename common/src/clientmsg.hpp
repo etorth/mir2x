@@ -91,6 +91,13 @@ enum CMType: uint8_t
     CM_CLOSESTALL,
     CM_QUERYSTALL,
     CM_BUYSTALLITEM,
+    CM_QUERYPLAYERGUILD,
+    CM_INVITEGUILDMEMBER,
+    CM_RESPONDGUILDINVITE,
+    CM_LEAVEGUILD,
+    CM_KICKGUILDMEMBER,
+    CM_TRANSFERGUILDLEADER,
+    CM_DISBANDGUILD,
     CM_END,
 };
 
@@ -467,6 +474,32 @@ struct CMBuyStallItem
     uint64_t price;
 };
 
+struct CMQueryPlayerGuild
+{
+    uint32_t dbid;
+};
+
+struct CMInviteGuildMember
+{
+    uint64_t uid;
+};
+
+struct CMRespondGuildInvite
+{
+    uint64_t uid; // the inviter
+    uint8_t accept;
+};
+
+struct CMKickGuildMember
+{
+    uint32_t dbid;
+};
+
+struct CMTransferGuildLeader
+{
+    uint32_t dbid;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -560,6 +593,13 @@ namespace
         _RSVD_register_clientmsg(CM_CLOSESTALL,                 0                                      );
         _RSVD_register_clientmsg(CM_QUERYSTALL,                 1, sizeof(CMQueryStall)                );
         _RSVD_register_clientmsg(CM_BUYSTALLITEM,               1, sizeof(CMBuyStallItem)              );
+        _RSVD_register_clientmsg(CM_QUERYPLAYERGUILD,           1, sizeof(CMQueryPlayerGuild)          );
+        _RSVD_register_clientmsg(CM_INVITEGUILDMEMBER,          1, sizeof(CMInviteGuildMember)         );
+        _RSVD_register_clientmsg(CM_RESPONDGUILDINVITE,         1, sizeof(CMRespondGuildInvite)        );
+        _RSVD_register_clientmsg(CM_LEAVEGUILD,                 0                                      );
+        _RSVD_register_clientmsg(CM_KICKGUILDMEMBER,            1, sizeof(CMKickGuildMember)           );
+        _RSVD_register_clientmsg(CM_TRANSFERGUILDLEADER,        1, sizeof(CMTransferGuildLeader)       );
+        _RSVD_register_clientmsg(CM_DISBANDGUILD,               0                                      );
 
 #undef _RSVD_register_clientmsg
         return result;

@@ -120,6 +120,13 @@ LuaModule::LuaModule()
     execString("INVOP_SECURE = %d", INVOP_SECURE);
     execString("INVOP_REPAIR = %d", INVOP_REPAIR);
 
+    execString("GUILDERR_NONE      = %d", GUILDERR_NONE     );
+    execString("GUILDERR_INGUILD   = %d", GUILDERR_INGUILD  );
+    execString("GUILDERR_BADNAME   = %d", GUILDERR_BADNAME  );
+    execString("GUILDERR_NAMETAKEN = %d", GUILDERR_NAMETAKEN);
+    execString("GUILDERR_NOGOLD    = %d", GUILDERR_NOGOLD   );
+    execString("GUILDERR_NOITEM    = %d", GUILDERR_NOITEM   );
+
     execString("DIR_UP        = %d", DIR_UP       );
     execString("DIR_UPRIGHT   = %d", DIR_UPRIGHT  );
     execString("DIR_RIGHT     = %d", DIR_RIGHT    );

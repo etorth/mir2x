@@ -170,6 +170,10 @@ enum ActorMsgPackType: int
     AM_DIRECTTRADEERROR,
     AM_CANCELDIRECTTRADE,
     AM_STALLSOLD,
+    AM_ACCEPTGUILDINVITE,
+    AM_REJECTGUILDINVITE,
+    AM_GUILDERROR,
+    AM_GUILDUPDATE,
     AM_END,
 };
 
@@ -331,6 +335,10 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_DIRECTTRADEERROR)
         _add_mpk_type_case(AM_CANCELDIRECTTRADE)
         _add_mpk_type_case(AM_STALLSOLD)
+        _add_mpk_type_case(AM_ACCEPTGUILDINVITE)
+        _add_mpk_type_case(AM_REJECTGUILDINVITE)
+        _add_mpk_type_case(AM_GUILDERROR)
+        _add_mpk_type_case(AM_GUILDUPDATE)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case
@@ -371,6 +379,11 @@ struct AMDirectTradeError
 };
 
 struct AMTeamError
+{
+    uint8_t error;
+};
+
+struct AMGuildError
 {
     uint8_t error;
 };

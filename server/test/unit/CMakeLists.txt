@@ -10,6 +10,12 @@ mir2x_add_unit_test(
     LIBS server_objs
 )
 
+mir2x_add_unit_test(
+    NAME guilddb
+    SOURCES test_guilddb.cpp
+    LIBS server_objs
+)
+
 # runs in the installed server directory, the lua runner loads script/api from there, needs `cmake --install` once
 mir2x_add_unit_test(
     NAME luarunner

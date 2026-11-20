@@ -32,6 +32,7 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_onHorse(false)
     , m_gender(argGender)
     , m_job(argJob)
+    , m_underBodyBoard{{.hero = this}}
 {
     m_currMotion.reset(new MotionNode
     {
@@ -204,9 +205,12 @@ void Hero::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 
     if(showName(focusMask)){
-        if(!getName().empty()){
-            drawName(startX + SYS_MAPGRIDXP / 2, startY + SYS_MAPGRIDYP / 2 + 8);
-        }
+        m_underBodyBoard.draw(
+        {
+            .dir = DIR_UP,
+            .x = startX + SYS_MAPGRIDXP / 2,
+            .y = startY + SYS_MAPGRIDYP / 2 + 8,
+        });
     }
 }
 
@@ -1692,6 +1696,19 @@ void Hero::queryName() const
 void Hero::queryStall() const
 {
     m_processRun->requestQueryStall(dbid());
+}
+
+void Hero::checkQueryGuild() const
+{
+    if(!m_guildQueried){
+        m_guildQueried = true;
+
+        CMQueryPlayerGuild cmQPG;
+        std::memset(&cmQPG, 0, sizeof(cmQPG));
+
+        cmQPG.dbid = dbid();
+        g_client->send({CM_QUERYPLAYERGUILD, cmQPG});
+    }
 }
 
 bool Hero::isMyHero() const

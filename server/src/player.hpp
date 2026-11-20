@@ -12,6 +12,7 @@
 #include "sysconst.hpp"
 #include "battleobject.hpp"
 #include "combatnode.hpp"
+#include "guilddb.hpp"
 
 class Player final: public BattleObject
 {
@@ -113,6 +114,11 @@ class Player final: public BattleObject
         // m_sdStall.dbid is always dbid()
         // cache of tbl_stall, reloaded after every change since a buyer can change it in database directly
         SDStall m_sdStall;
+
+    private:
+        // cache of tbl_guildmember, reloaded after every change since other players can change it in database directly
+        std::optional<DBGuildMembership> m_guild;
+        std::set<uint32_t> m_guildInviteSet; // dbids I invited and haven't answered
 
     private:
         bool m_pickUpLock = false;
@@ -264,6 +270,9 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_DIRECTTRADEERROR   (const ActorMsgPack &);
         corof::awaitable<> on_AM_CANCELDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_STALLSOLD          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACCEPTGUILDINVITE  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REJECTGUILDINVITE  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_GUILDUPDATE        (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -334,6 +343,13 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_CLOSESTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYSTALL                (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_BUYSTALLITEM              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYPLAYERGUILD          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_INVITEGUILDMEMBER         (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_RESPONDGUILDINVITE        (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_LEAVEGUILD                (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_KICKGUILDMEMBER           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_TRANSFERGUILDLEADER       (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_DISBANDGUILD              (uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         void reportGold();
@@ -387,6 +403,14 @@ class Player final: public BattleObject
         void postStall();
         void postStallError(int, uint64_t = 0);
         void dispatchStallState();
+
+    private:
+        int createGuild(const std::string &, size_t, uint32_t);
+        void reloadGuild();
+        void postGuildError(int);
+
+    private:
+        static SDPlayerGuild buildPlayerGuild(uint32_t, const std::optional<DBGuildMembership> &);
 
     protected:
         bool struckDamage(uint64_t, const DamageNode &) override;

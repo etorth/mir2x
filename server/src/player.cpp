@@ -73,6 +73,23 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->gender();
     });
 
+    bindFunction("getGuildName", [this](sol::this_state s) -> sol::object
+    {
+        if(const auto &guild = getPlayer()->m_guild){
+            return sol::make_object(sol::state_view(s), guild->guildName);
+        }
+        return sol::make_object(sol::state_view(s), sol::lua_nil);
+    });
+
+    // gold and one item are the cost, taken only after the guild is created, itemID 0 for no item
+    // returns GUILDERR_NONE or the reason it failed
+    bindFunction("createGuild", [this](std::string guildName, int gold, int itemID) -> int
+    {
+        fflassert(gold >= 0, gold);
+        fflassert(itemID >= 0, itemID);
+        return getPlayer()->createGuild(guildName, to_uz(gold), to_u32(itemID));
+    });
+
     // 战士 / 道士 / 法师, a list because a character can hold more than one
     bindFunction("getJobList", [this]()
     {
@@ -737,6 +754,7 @@ Player::Player(const SDInitPlayer &initParam)
     dbLoadFriendList();
     dbLoadLearnedMagic();
     dbLoadPlayerConfig();
+    m_guild = dbLoadGuildMembership(dbid());
 }
 
 corof::awaitable<> Player::onActivate()
@@ -945,6 +963,18 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_STALLSOLD(mpk);
             }
+        case AM_ACCEPTGUILDINVITE:
+            {
+                return on_AM_ACCEPTGUILDINVITE(mpk);
+            }
+        case AM_REJECTGUILDINVITE:
+            {
+                return on_AM_REJECTGUILDINVITE(mpk);
+            }
+        case AM_GUILDUPDATE:
+            {
+                return on_AM_GUILDUPDATE(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str(UID()));
@@ -1023,6 +1053,13 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_CLOSESTALL                );
         _support_cm(CM_QUERYSTALL                );
         _support_cm(CM_BUYSTALLITEM              );
+        _support_cm(CM_QUERYPLAYERGUILD          );
+        _support_cm(CM_INVITEGUILDMEMBER         );
+        _support_cm(CM_RESPONDGUILDINVITE        );
+        _support_cm(CM_LEAVEGUILD                );
+        _support_cm(CM_KICKGUILDMEMBER           );
+        _support_cm(CM_TRANSFERGUILDLEADER       );
+        _support_cm(CM_DISBANDGUILD              );
         default:
             {
                 throw fflvalue(ClientMsg(nType).name());
@@ -2711,11 +2748,17 @@ corof::awaitable<bool> Player::canDamageTarget(uint64_t targetUID)
                 co_return true;
             }
         case ATKMODE_GROUP:
+            {
+                co_return std::find(m_teamMemberList.begin(), m_teamMemberList.end(), playerUID) == m_teamMemberList.end();
+            }
         case ATKMODE_GUILD:
             {
-                // there is no guild yet, so 行会 behaves as 编队 until one exists
-                // both spare the team, ATKMODE_GUILD will additionally spare guild members
-                co_return std::find(m_teamMemberList.begin(), m_teamMemberList.end(), playerUID) == m_teamMemberList.end();
+                // spares the team as 编队 does, and guild members on top of it
+                // the target's guild is read from database, asking its actor costs a round trip per hit
+                if(std::find(m_teamMemberList.begin(), m_teamMemberList.end(), playerUID) != m_teamMemberList.end()){
+                    co_return false;
+                }
+                co_return !(m_guild && dbLoadGuildID(uidf::getPlayerDBID(playerUID)) == m_guild->guildID);
             }
         default:
             {
@@ -3381,4 +3424,61 @@ void Player::dispatchStallState()
     smPS.uid = UID();
     smPS.selling = stallSelling();
     dispatchNetPackage(true, SM_PLAYERSTALL, smPS);
+}
+
+int Player::createGuild(const std::string &guildName, size_t cost, uint32_t itemID)
+{
+    if(m_guild){
+        return GUILDERR_INGUILD;
+    }
+
+    if(gold() < cost){
+        return GUILDERR_NOGOLD;
+    }
+
+    if(itemID && !hasInventoryItem(itemID, 0, 1)){
+        return GUILDERR_NOITEM;
+    }
+
+    if(const auto result = dbCreateGuild(dbid(), guildName); !result.has_value()){
+        return result.error();
+    }
+
+    if(cost){
+        setGold(gold() - cost);
+    }
+
+    if(itemID){
+        removeInventoryItem(itemID, 0, 1);
+    }
+
+    reloadGuild();
+    return GUILDERR_NONE;
+}
+
+void Player::reloadGuild()
+{
+    if(auto guild = dbLoadGuildMembership(dbid()); guild != m_guild){
+        m_guild = std::move(guild);
+        dispatchNetPackage(true, SM_PLAYERGUILD, cerealf::serialize(buildPlayerGuild(dbid(), m_guild)));
+    }
+}
+
+void Player::postGuildError(int error)
+{
+    SMGuildError smGE;
+    std::memset(&smGE, 0, sizeof(smGE));
+
+    smGE.error = to_u8(error);
+    postNetMessage(SM_GUILDERROR, smGE);
+}
+
+SDPlayerGuild Player::buildPlayerGuild(uint32_t argDBID, const std::optional<DBGuildMembership> &guild)
+{
+    return SDPlayerGuild
+    {
+        .dbid = argDBID,
+        .guildName = guild ? guild->guildName : std::string{},
+        .title = guild ? guild->title : std::string{},
+    };
 }
