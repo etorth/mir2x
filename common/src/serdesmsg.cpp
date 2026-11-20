@@ -246,8 +246,6 @@ std::vector<std::array<int, 2>> SDSafeZone::edgeGridList(int mapW, int mapH) con
     fflassert(mapW > 0, mapW);
     fflassert(mapH > 0, mapH);
 
-    // scan line: covered spans of each row, half-open [x0, x1)
-    // a circle row covers |x - cx| <= k with the largest k that k * k <= r * r - dy * dy, same grids as contains()
     std::vector<std::vector<std::pair<int, int>>> rowSpanList(mapH);
     const auto fnAddSpan = [mapW, mapH, &rowSpanList](int64_t y, int64_t x0, int64_t x1)
     {
@@ -255,20 +253,20 @@ std::vector<std::array<int, 2>> SDSafeZone::edgeGridList(int mapW, int mapH) con
         x1 = std::min<int64_t>(x1, mapW);
 
         if(y >= 0 && y < mapH && x0 < x1){
-            rowSpanList[y].emplace_back(int(x0), int(x1));
+            rowSpanList[y].emplace_back(to_d(x0), to_d(x1));
         }
     };
 
     for(const auto &[x, y, w, h]: rectList){
-        for(int64_t ry = std::max<int64_t>(y, 0); ry < std::min<int64_t>(int64_t(y) + h, mapH); ++ry){
-            fnAddSpan(ry, x, int64_t(x) + w);
+        for(int64_t ry = std::max<int64_t>(y, 0); ry < std::min<int64_t>(to_i64(y) + h, mapH); ++ry){
+            fnAddSpan(ry, x, to_i64(x) + w);
         }
     }
 
     for(const auto &[cx, cy, r]: circleList){
-        for(int64_t ry = std::max<int64_t>(int64_t(cy) - r, 0); ry <= std::min<int64_t>(int64_t(cy) + r, mapH - 1); ++ry){
-            const int64_t remain = int64_t(r) * r - (ry - cy) * (ry - cy);
-            auto k = int64_t(std::sqrt(double(remain)));
+        for(int64_t ry = std::max<int64_t>(to_i64(cy) - r, 0); ry <= std::min<int64_t>(to_i64(cy) + r, mapH - 1); ++ry){
+            const int64_t remain = to_i64(r) * r - (ry - cy) * (ry - cy);
+            auto k = to_i64(std::sqrt(to_df(remain)));
 
             while(k * k > remain){
                 --k;
