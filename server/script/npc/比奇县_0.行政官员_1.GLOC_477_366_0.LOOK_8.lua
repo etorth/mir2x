@@ -5,7 +5,8 @@
 -- the admin menu (@admin_menu, @Bichon_Day, @Bichon_Dark) is not converted
 --
 -- legacy names the cost 沃玛号角, which is 沃玛号角_0 in the item list, 沃玛号角_1 is another item
--- legacy @buildguildexp calls it 沃玛教主号角 and puts 沃玛教主 in 禹魔神殿, kept as is
+-- legacy @buildguildexp calls it 沃玛教主号角, kept as is
+-- legacy @buildguildexp also says 禹魔神殿, the other transliteration of 우마, written as 沃玛神殿 here
 
 local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
@@ -80,7 +81,7 @@ setEventHandler(
         dialog.post(uid,
         {
             '要想创建行会，首先要证明你是否具备那种资格。',
-            '资格证明需要生活在沃玛丛林里禹魔神殿深处的<t color="red">沃玛教主号角</t>和<t color="red">100万金币</t>的行会设立基金。',
+            '资格证明需要生活在沃玛丛林里沃玛神殿深处的<t color="red">沃玛教主号角</t>和<t color="red">100万金币</t>的行会设立基金。',
         },
         dialog.link(SYS_ENTER, '前一步'))
     end,
