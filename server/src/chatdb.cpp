@@ -184,8 +184,9 @@ SDChatPeerList dbQueryChatPeerList(const std::string &query, bool includePlayer,
     const bool onlyDigits = (query.find_first_not_of("0123456789") == std::string_view::npos);
 
     if(includePlayer){
-        auto queryChar = onlyDigits ? g_dbPod->createQuery("select * from tbl_char where fld_dbid = %s or instr(fld_name, '%s') > 0", query.c_str(), query.c_str())
-                                    : g_dbPod->createQuery("select * from tbl_char where                  instr(fld_name, '%s') > 0", query.c_str());
+        auto queryChar = onlyDigits ? g_dbPod->createQuery("select * from tbl_char where fld_dbid = %s or instr(fld_name, ?) > 0", query.c_str())
+                                    : g_dbPod->createQuery("select * from tbl_char where                  instr(fld_name, ?) > 0");
+        queryChar.bind(1, query);
 
         while(queryChar.executeStep()){
             sdPCL.push_back(SDChatPeer
@@ -204,8 +205,9 @@ SDChatPeerList dbQueryChatPeerList(const std::string &query, bool includePlayer,
     }
 
     if(includeGroup){
-        auto queryGroup = onlyDigits ? g_dbPod->createQuery("select * from tbl_chatgroup where fld_id = %s or instr(fld_name, '%s') > 0", query.c_str(), query.c_str())
-                                     : g_dbPod->createQuery("select * from tbl_chatgroup where                instr(fld_name, '%s') > 0", query.c_str());
+        auto queryGroup = onlyDigits ? g_dbPod->createQuery("select * from tbl_chatgroup where fld_id = %s or instr(fld_name, ?) > 0", query.c_str())
+                                     : g_dbPod->createQuery("select * from tbl_chatgroup where                instr(fld_name, ?) > 0");
+        queryGroup.bind(1, query);
 
         while(queryGroup.executeStep()){
             sdPCL.push_back(SDChatPeer
@@ -302,14 +304,14 @@ SDChatPeer dbCreateChatGroup(uint32_t creatorDBID, const char *name, const std::
     auto query = g_dbPod->createQuery(
             u8R"###( insert into tbl_chatgroup(fld_creator, fld_createtime, fld_name) )###"
             u8R"###( values                                                           )###"
-            u8R"###(     (%llu, %llu, '%s')                                           )###"
+            u8R"###(     (%llu, %llu, ?)                                              )###"
             u8R"###( returning                                                        )###"
             u8R"###(     fld_id;                                                      )###",
 
             to_llu(creatorDBID),
-            to_llu(tstamp),
-            name);
+            to_llu(tstamp));
 
+    query.bind(1, name);
     if(!query.executeStep()){
         throw fflpanic("failed to create a group");
     }

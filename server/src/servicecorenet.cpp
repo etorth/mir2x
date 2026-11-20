@@ -32,7 +32,10 @@ corof::awaitable<> ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const ui
     // don't check id/password by idstrf here
     // this allows some test account to be simple, like (test, 123456)
 
-    auto queryAccount = g_dbPod->createQuery("select fld_account from tbl_account where fld_account = '%s' and fld_password = '%s'", cmL.id.as_cstr(), cmL.password.as_cstr());
+    auto queryAccount = g_dbPod->createQuery("select fld_account from tbl_account where fld_account = ? and fld_password = ?");
+    queryAccount.bind(1, cmL.id.as_cstr());
+    queryAccount.bind(2, cmL.password.as_cstr());
+
     if(!queryAccount.executeStep()){
         fnLoginError(LOGINERR_NOACCOUNT);
         return {};
@@ -76,7 +79,9 @@ corof::awaitable<> ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, cons
         return {};
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_account = '%s'", session->account.c_str());
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_account = ?");
+    queryChar.bind(1, session->account);
+
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
         return {};
@@ -116,7 +121,10 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
 
     const auto dbid = [&session]() -> uint32_t
     {
-        if(auto queryDBID = g_dbPod->createQuery("select fld_dbid from tbl_char where fld_account = '%s'", session->account.c_str()); queryDBID.executeStep()){
+        auto queryDBID = g_dbPod->createQuery("select fld_dbid from tbl_char where fld_account = ?");
+        queryDBID.bind(1, session->account);
+
+        if(queryDBID.executeStep()){
             return check_cast<uint32_t, unsigned>(queryDBID.getColumn("fld_dbid"));
         }
         return 0;
@@ -232,12 +240,19 @@ corof::awaitable<> ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, 
         return {};
     }
 
-    if(g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account ='%s' )###", id.c_str()).executeStep()){
+    auto queryAccount = g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account = ? )###");
+    queryAccount.bind(1, id);
+
+    if(queryAccount.executeStep()){
         fnCreateAccountError(CRTACCERR_ACCOUNTEXIST);
         return {};
     }
 
-    g_dbPod->exec(u8R"###( insert into tbl_account(fld_account, fld_password) values ('%s', '%s') )###", id.c_str(), password.c_str());
+    auto queryInsert = g_dbPod->createQuery(u8R"###( insert into tbl_account(fld_account, fld_password) values (?, ?) )###");
+    queryInsert.bind(1, id);
+    queryInsert.bind(2, password);
+    queryInsert.exec();
+
     m_actorPod->postNet(channID, SM_CREATEACCOUNTOK, nullptr, 0, respID);
     return {};
 }
@@ -272,12 +287,10 @@ corof::awaitable<> ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t,
         return {};
     }
 
-    auto query = g_dbPod->createQuery(
-            u8R"###( update tbl_account set fld_password = '%s' where fld_account = '%s' and fld_password = '%s' returning * )###",
-
-            passwordNew.c_str(),
-            id.c_str(),
-            password.c_str());
+    auto query = g_dbPod->createQuery(u8R"###( update tbl_account set fld_password = ? where fld_account = ? and fld_password = ? returning * )###");
+    query.bind(1, passwordNew);
+    query.bind(2, id);
+    query.bind(3, password);
 
     if(!query.executeStep()){
         fnChangePasswordError(CHGPWDERR_BADACCOUNTPASSWORD);
@@ -305,14 +318,21 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
         return {};
     }
 
-    if(!g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account = '%s' and fld_password = '%s' )###", session->account.c_str(), cmDC.password.as_cstr()).executeStep()){
+    auto queryAccount = g_dbPod->createQuery(u8R"###( select fld_account from tbl_account where fld_account = ? and fld_password = ? )###");
+    queryAccount.bind(1, session->account);
+    queryAccount.bind(2, cmDC.password.as_cstr());
+
+    if(!queryAccount.executeStep()){
         fnDeleteCharError(DELCHARERR_BADPASSWORD);
         return {};
     }
 
     const auto dbid = [&session]() -> uint32_t
     {
-        if(auto queryDBID = g_dbPod->createQuery(u8R"###( select fld_dbid from tbl_char where fld_account = '%s' )###", session->account.c_str()); queryDBID.executeStep()){
+        auto queryDBID = g_dbPod->createQuery(u8R"###( select fld_dbid from tbl_char where fld_account = ? )###");
+        queryDBID.bind(1, session->account);
+
+        if(queryDBID.executeStep()){
             return check_cast<uint32_t, unsigned>(queryDBID.getColumn("fld_dbid"));
         }
         return 0;
@@ -381,8 +401,12 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
         return {};
     }
 
-    if(auto query = g_dbPod->createQuery(u8R"###(select fld_account from tbl_char where fld_account = '%s' or fld_name = '%s')###", session->account.c_str(), name.c_str()); query.executeStep()){
-        if(const std::string existAccount = query.getColumn("fld_account"); existAccount == session->account){
+    auto queryExist = g_dbPod->createQuery(u8R"###(select fld_account from tbl_char where fld_account = ? or fld_name = ?)###");
+    queryExist.bind(1, session->account);
+    queryExist.bind(2, name);
+
+    if(queryExist.executeStep()){
+        if(const std::string existAccount = queryExist.getColumn("fld_account"); existAccount == session->account){
             fnCreateCharError(CRTCHARERR_CHAREXIST);
             return {};
         }
@@ -395,23 +419,24 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
     std::string dbError;
     try{
         auto dbTrans = g_dbPod->createTransaction();
-        const auto dbid = [&session, &cmCC]() -> uint64_t
+        const auto dbid = [&session, &cmCC, &name]() -> uint64_t
         {
             auto queryInsert = g_dbPod->createQuery
             (
                 u8R"###( insert into tbl_char(fld_account, fld_name, fld_gender, fld_job, fld_map, fld_mapx, fld_mapy) )###"
                 u8R"###( values                                                                                        )###"
-                u8R"###(     ('%s', '%s', %d, %d, %d, %d, %d)                                                          )###"
+                u8R"###(     (?, ?, %d, %d, %d, %d, %d)                                                                )###"
                 u8R"###( returning fld_dbid                                                                            )###",
 
-                session->account.c_str(),
-                cmCC.name.as_rawcstr(),
                 to_d(cmCC.gender),
                 to_d(cmCC.job),
                 to_d(DBCOM_MAPID(u8"道馆_1")),
                 405,
                 120
             );
+
+            queryInsert.bind(1, session->account);
+            queryInsert.bind(2, name);
 
             if(!queryInsert.executeStep()){
                 throw fflpanic("insert into tbl_char returns no dbid");
