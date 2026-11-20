@@ -43,7 +43,11 @@ setEventHandler(
             dialog.link(SYS_ENTER, '前一步'))
 
         elseif server.player.hasItem(uid, buildItem, 1) then
-            dialog.post(uid, dialog.link('npc_goto_build_guild', '真的要成立行会吗？'))
+            dialog.post(uid, string.format('你确定要成立行会吗？点击确定后你将会失去<t color="red">%d万金币</t>和<t color="red">沃玛号角</t>。', buildGold // 10000),
+            {
+                dialog.link('npc_goto_build_guild', '确定'),
+                dialog.link(SYS_EXIT, '取消'),
+            })
 
         else
             postNoItem(uid)
@@ -53,7 +57,7 @@ setEventHandler(
     ['npc_goto_build_guild'] = function(uid, value)
         dialog.post(uid, '请输入行会的名字。',
         dialog.link(SYS_ENTER, '前一步'))
-        invop.postStartInput(uid, '<layout><par>请输入行会的名字</par></layout>', 'npc_goto_build_guild_commit', true)
+        invop.postStartInput(uid, '<layout><par>请输入行会的名字</par></layout>', 'npc_goto_build_guild_commit', false)
     end,
 
     -- legacy refunds the cost when BuildGuild fails (@MakeGuildOK~), createGuild never takes it in that case

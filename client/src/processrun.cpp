@@ -1898,6 +1898,86 @@ void ProcessRun::requestLeaveTeam(uint64_t uid)
     g_client->send({CM_REQUESTLEAVETEAM, cmRLT});
 }
 
+void ProcessRun::requestQueryGuildInfo()
+{
+    g_client->send({CM_QUERYGUILDINFO});
+}
+
+void ProcessRun::requestInviteGuildMember(const std::string &charName)
+{
+    CMInviteGuildMember cmIGM;
+    std::memset(&cmIGM, 0, sizeof(cmIGM));
+
+    cmIGM.name.assign(charName);
+    g_client->send({CM_INVITEGUILDMEMBER, cmIGM});
+}
+
+void ProcessRun::respondGuildInvite(uint32_t guildID, bool accept)
+{
+    CMRespondGuildInvite cmRGI;
+    std::memset(&cmRGI, 0, sizeof(cmRGI));
+
+    cmRGI.guildID = guildID;
+    cmRGI.accept = to_u8(accept);
+    g_client->send({CM_RESPONDGUILDINVITE, cmRGI});
+}
+
+void ProcessRun::requestLeaveGuild()
+{
+    g_client->send({CM_LEAVEGUILD});
+}
+
+void ProcessRun::requestKickGuildMember(uint32_t dbid)
+{
+    CMKickGuildMember cmKGM;
+    std::memset(&cmKGM, 0, sizeof(cmKGM));
+
+    cmKGM.dbid = dbid;
+    g_client->send({CM_KICKGUILDMEMBER, cmKGM});
+}
+
+void ProcessRun::requestTransferGuildLeader(uint32_t dbid)
+{
+    CMTransferGuildLeader cmTGL;
+    std::memset(&cmTGL, 0, sizeof(cmTGL));
+
+    cmTGL.dbid = dbid;
+    g_client->send({CM_TRANSFERGUILDLEADER, cmTGL});
+}
+
+void ProcessRun::requestDisbandGuild()
+{
+    g_client->send({CM_DISBANDGUILD});
+}
+
+void ProcessRun::requestSetGuildNotice(const std::string &notice)
+{
+    CMSetGuildNotice cmSGN;
+    std::memset(&cmSGN, 0, sizeof(cmSGN));
+
+    cmSGN.notice.assign(notice);
+    g_client->send({CM_SETGUILDNOTICE, cmSGN});
+}
+
+void ProcessRun::requestSetGuildMemberTitle(uint32_t dbid, const std::string &title)
+{
+    CMSetGuildMemberTitle cmSGMT;
+    std::memset(&cmSGMT, 0, sizeof(cmSGMT));
+
+    cmSGMT.dbid = dbid;
+    cmSGMT.title.assign(title);
+    g_client->send({CM_SETGUILDMEMBERTITLE, cmSGMT});
+}
+
+void ProcessRun::requestGuildChat(const std::string &content)
+{
+    CMGuildChat cmGC;
+    std::memset(&cmGC, 0, sizeof(cmGC));
+
+    std::memcpy(cmGC.content, content.data(), std::min<size_t>(content.size(), sizeof(cmGC.content) - 1));
+    g_client->send({CM_GUILDCHAT, cmGC});
+}
+
 void ProcessRun::requestCreateTeam(const SDTeamReq &sdTR)
 {
     g_client->send({CM_CREATETEAM, cerealf::serialize(sdTR)});

@@ -170,10 +170,8 @@ enum ActorMsgPackType: int
     AM_DIRECTTRADEERROR,
     AM_CANCELDIRECTTRADE,
     AM_STALLSOLD,
-    AM_ACCEPTGUILDINVITE,
-    AM_REJECTGUILDINVITE,
-    AM_GUILDERROR,
     AM_GUILDUPDATE,
+    AM_GUILDCHAT,
     AM_END,
 };
 
@@ -335,10 +333,8 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_DIRECTTRADEERROR)
         _add_mpk_type_case(AM_CANCELDIRECTTRADE)
         _add_mpk_type_case(AM_STALLSOLD)
-        _add_mpk_type_case(AM_ACCEPTGUILDINVITE)
-        _add_mpk_type_case(AM_REJECTGUILDINVITE)
-        _add_mpk_type_case(AM_GUILDERROR)
         _add_mpk_type_case(AM_GUILDUPDATE)
+        _add_mpk_type_case(AM_GUILDCHAT)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case
@@ -383,9 +379,12 @@ struct AMTeamError
     uint8_t error;
 };
 
-struct AMGuildError
+struct AMGuildChat
 {
-    uint8_t error;
+    uint32_t guildID;
+    uint64_t uid;
+    StaticBuffer<SYS_NAMESIZE> name;
+    char content[128];
 };
 
 struct AMBadActorPod

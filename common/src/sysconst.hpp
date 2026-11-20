@@ -103,6 +103,8 @@ constexpr size_t SYS_AUCTIONTAXRATE = 2;
 constexpr size_t SYS_STALLMAXITEM = 36;
 constexpr size_t SYS_STALLNAMESIZE = 48; // bytes of utf-8 stall name, including the null terminator
 constexpr size_t SYS_GUILDNAMESIZE = 32; // bytes of utf-8 guild name, including the null terminator
+constexpr size_t SYS_GUILDTITLESIZE = 32; // bytes of utf-8 rank title of a guild member, including the null terminator
+constexpr size_t SYS_GUILDNOTICESIZE = 1024; // bytes of utf-8 guild notice, including the null terminator
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)
@@ -202,6 +204,7 @@ constexpr char SYS_QSTFSM[] = "_RSVD_NAME_QST_FSM_4194347313";
 constexpr char SYS_FLAGVAL[] = "_RSVD_NAME_FLAG_VAL_8192362390";
 
 constexpr char SYS_AFRESP[] = "_RSVD_NAME_AFRESP_8368138412597";
+constexpr char SYS_GIRESP[] = "_RSVD_NAME_GIRESP_2961748350172";
 constexpr char SYS_DELIVERY[] = "_RSVD_NAME_DELIVERY_5639021748316";
 
 constexpr uint32_t SYS_MAXLEVEL = 1024;

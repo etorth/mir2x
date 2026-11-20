@@ -94,6 +94,14 @@ namespace
         REQUIRE(!result.has_value());
         return result.error();
     }
+
+    int addMember(uint32_t leaderDBID, uint32_t dbid)
+    {
+        if(const auto error = dbInviteGuildMember(leaderDBID, dbid); error != GUILDERR_NONE){
+            return error;
+        }
+        return dbAcceptGuildInvite(dbid, dbLoadGuildID(leaderDBID));
+    }
 }
 
 TEST_CASE("Guild Name", "[unit][guilddb]")
@@ -137,27 +145,27 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Add Member", "[unit][guilddb]")
 {
     const auto guildID = createGuild(1, u8"沙巴克");
 
-    CHECK(dbAddGuildMember(1, 1) == GUILDERR_BADTARGET);
-    CHECK(dbAddGuildMember(1, 0) == GUILDERR_BADTARGET);
-    CHECK(dbAddGuildMember(3, 2) == GUILDERR_NOGUILD);
+    CHECK(addMember(1, 1) == GUILDERR_BADTARGET);
+    CHECK(addMember(1, 0) == GUILDERR_BADTARGET);
+    CHECK(addMember(3, 2) == GUILDERR_NOGUILD);
 
-    CHECK(dbAddGuildMember(1, 2) == GUILDERR_NONE);
+    CHECK(addMember(1, 2) == GUILDERR_NONE);
     CHECK(dbLoadGuildID(2) == guildID);
     CHECK(dbLoadGuildMembership(2)->rank == GUILDRANK_MEMBER);
     CHECK(dbLoadGuildMembership(2)->title == to_cstr(u8"成员"));
 
-    CHECK(dbAddGuildMember(2, 3) == GUILDERR_NOTLEADER);
-    CHECK(dbAddGuildMember(1, 2) == GUILDERR_TARGETINGUILD);
+    CHECK(addMember(2, 3) == GUILDERR_NOTLEADER);
+    CHECK(addMember(1, 2) == GUILDERR_TARGETINGUILD);
 
     createGuild(3, u8"另一个");
-    CHECK(dbAddGuildMember(1, 3) == GUILDERR_TARGETINGUILD);
+    CHECK(addMember(1, 3) == GUILDERR_TARGETINGUILD);
 }
 
 TEST_CASE_METHOD(DatabaseTestEnvironment, "Leave And Kick", "[unit][guilddb]")
 {
     createGuild(1, u8"沙巴克");
-    REQUIRE(dbAddGuildMember(1, 2) == GUILDERR_NONE);
-    REQUIRE(dbAddGuildMember(1, 3) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 3) == GUILDERR_NONE);
 
     CHECK(dbLeaveGuild(1) == GUILDERR_LEADERLEAVE);
     CHECK(dbLeaveGuild(4) == GUILDERR_NOGUILD);
@@ -180,7 +188,7 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Leave And Kick", "[unit][guilddb]")
 TEST_CASE_METHOD(DatabaseTestEnvironment, "Transfer Leader", "[unit][guilddb]")
 {
     const auto guildID = createGuild(1, u8"沙巴克");
-    REQUIRE(dbAddGuildMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
 
     CHECK(dbTransferGuildLeader(1, 1) == GUILDERR_BADTARGET);
     CHECK(dbTransferGuildLeader(1, 3) == GUILDERR_NOTMEMBER);
@@ -194,19 +202,19 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Transfer Leader", "[unit][guilddb]")
     CHECK(dbLoadGuildID(1) == guildID);
 
     // the old leader is a plain member now
-    CHECK(dbAddGuildMember(1, 3) == GUILDERR_NOTLEADER);
+    CHECK(addMember(1, 3) == GUILDERR_NOTLEADER);
     CHECK(dbLeaveGuild(1) == GUILDERR_NONE);
 
     // a second leader is refused by the database itself
-    REQUIRE(dbAddGuildMember(2, 3) == GUILDERR_NONE);
+    REQUIRE(addMember(2, 3) == GUILDERR_NONE);
     CHECK_THROWS(g_dbPod->exec("update tbl_guildmember set fld_rank = %d where fld_dbid = 3", to_d(GUILDRANK_LEADER)));
 }
 
 TEST_CASE_METHOD(DatabaseTestEnvironment, "Disband", "[unit][guilddb]")
 {
     createGuild(1, u8"沙巴克");
-    REQUIRE(dbAddGuildMember(1, 2) == GUILDERR_NONE);
-    REQUIRE(dbAddGuildMember(1, 3) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 3) == GUILDERR_NONE);
     createGuild(4, u8"另一个");
 
     CHECK(errorOf(dbDisbandGuild(2)) == GUILDERR_NOTLEADER);
@@ -230,7 +238,7 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Disband", "[unit][guilddb]")
 TEST_CASE_METHOD(DatabaseTestEnvironment, "Delete Leader Char", "[unit][guilddb]")
 {
     createGuild(1, u8"沙巴克");
-    REQUIRE(dbAddGuildMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
     createGuild(3, u8"另一个");
 
     g_dbPod->exec("delete from tbl_char where fld_dbid = 1");
@@ -239,8 +247,76 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Delete Leader Char", "[unit][guilddb]
     CHECK(countRows("tbl_guild") == 1);
 
     // deleting a member's char keeps the guild
-    REQUIRE(dbAddGuildMember(3, 4) == GUILDERR_NONE);
+    REQUIRE(addMember(3, 4) == GUILDERR_NONE);
     g_dbPod->exec("delete from tbl_char where fld_dbid = 4");
     CHECK(dbLoadGuildID(3) != 0);
     CHECK(countRows("tbl_guildmember") == 1);
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Invite", "[unit][guilddb]")
+{
+    const auto guildID = createGuild(1, u8"沙巴克");
+    const auto otherID = createGuild(4, u8"另一个");
+
+    CHECK(dbAcceptGuildInvite(2, guildID) == GUILDERR_NOINVITE);
+
+    // reject tells who invited, and only once
+    REQUIRE(dbInviteGuildMember(1, 2) == GUILDERR_NONE);
+    CHECK(dbRejectGuildInvite(2, guildID) == std::optional<uint32_t>(1));
+    CHECK(dbRejectGuildInvite(2, guildID) == std::nullopt);
+    CHECK(dbAcceptGuildInvite(2, guildID) == GUILDERR_NOINVITE);
+
+    // joining one guild drops the invites from the others
+    REQUIRE(dbInviteGuildMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(dbInviteGuildMember(4, 2) == GUILDERR_NONE);
+    CHECK(dbAcceptGuildInvite(2, otherID) == GUILDERR_NONE);
+    CHECK(dbAcceptGuildInvite(2, guildID) == GUILDERR_NOINVITE);
+    CHECK(dbLoadGuildID(2) == otherID);
+    CHECK(countRows("tbl_guildinvite") == 0);
+
+    // an invite dies with its guild
+    REQUIRE(dbInviteGuildMember(1, 3) == GUILDERR_NONE);
+    REQUIRE(dbDisbandGuild(1).has_value());
+    CHECK(dbAcceptGuildInvite(3, guildID) == GUILDERR_NOINVITE);
+    CHECK(countRows("tbl_guildinvite") == 0);
+
+    // creating a guild drops the invites too
+    REQUIRE(dbInviteGuildMember(4, 3) == GUILDERR_NONE);
+    createGuild(3, u8"第三个");
+    CHECK(countRows("tbl_guildinvite") == 0);
+}
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Notice And Title", "[unit][guilddb]")
+{
+    const auto guildID = createGuild(1, u8"沙巴克");
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(addMember(1, 3) == GUILDERR_NONE);
+
+    CHECK(dbSetGuildNotice(1, to_cstr(u8"今晚攻城\n全员到齐")) == GUILDERR_NONE);
+    CHECK(dbSetGuildNotice(2, "x") == GUILDERR_NOTLEADER);
+    CHECK(dbSetGuildNotice(1, "a\tb") == GUILDERR_BADNOTICE);
+    CHECK(dbSetGuildNotice(1, std::string(SYS_GUILDNOTICESIZE, 'a')) == GUILDERR_BADNOTICE);
+
+    CHECK(dbSetGuildMemberTitle(1, 2, to_cstr(u8"护法")) == GUILDERR_NONE);
+    CHECK(dbSetGuildMemberTitle(1, 1, to_cstr(u8"帮主")) == GUILDERR_NONE);
+    CHECK(dbSetGuildMemberTitle(2, 3, "x") == GUILDERR_NOTLEADER);
+    CHECK(dbSetGuildMemberTitle(1, 4, "x") == GUILDERR_NOTMEMBER);
+    CHECK(dbSetGuildMemberTitle(1, 3, "a b") == GUILDERR_BADTITLE);
+    CHECK(dbLoadGuildMembership(2)->title == to_cstr(u8"护法"));
+
+    const auto info = dbLoadGuildInfo(guildID);
+    CHECK(info.guildID == guildID);
+    CHECK(info.name == to_cstr(u8"沙巴克"));
+    CHECK(info.notice == to_cstr(u8"今晚攻城\n全员到齐"));
+
+    REQUIRE(info.memberList.size() == 3);
+    CHECK(info.memberList[0].dbid == 1);
+    CHECK(info.memberList[0].name == "char_1");
+    CHECK(info.memberList[0].rank == GUILDRANK_LEADER);
+    CHECK(info.memberList[0].title == to_cstr(u8"帮主"));
+    CHECK(info.memberList[1].rank == GUILDRANK_MEMBER);
+
+    CHECK(dbLoadGuildInfo(guildID + 100).guildID == 0);
+    CHECK(dbFindCharDBID("char_3") == 3);
+    CHECK(dbFindCharDBID("nobody") == 0);
 }

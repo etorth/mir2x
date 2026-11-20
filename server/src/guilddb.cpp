@@ -24,6 +24,20 @@ static const char *defaultGuildTitle(int rank)
     }
 }
 
+// guild names and titles go into xml layouts of NPC dialogs and system messages as is
+static bool guildLabelValid(const std::string &label, size_t sizeLimit)
+{
+    if(label.empty() || label.size() >= sizeLimit || !utf8f::valid(label)){
+        return false;
+    }
+
+    return std::ranges::none_of(label, [](char ch)
+    {
+        const auto byte = static_cast<unsigned char>(ch);
+        return byte <= 0X20 || byte == 0X7F || std::string_view("<>&\"'").contains(ch);
+    });
+}
+
 static void dbInsertGuildMember(uint32_t guildID, uint32_t dbid, int rank)
 {
     auto query = g_dbPod->createQuery(
@@ -65,15 +79,24 @@ static std::expected<uint32_t, int> dbLoadLedGuildID(uint32_t dbid)
 
 bool guildNameValid(const std::string &name)
 {
-    if(name.empty() || name.size() >= SYS_GUILDNAMESIZE || !utf8f::valid(name)){
+    return guildLabelValid(name, SYS_GUILDNAMESIZE);
+}
+
+bool guildTitleValid(const std::string &title)
+{
+    return guildLabelValid(title, SYS_GUILDTITLESIZE);
+}
+
+bool guildNoticeValid(const std::string &notice)
+{
+    if(notice.size() >= SYS_GUILDNOTICESIZE || !utf8f::valid(notice)){
         return false;
     }
 
-    // name goes into xml layouts of NPC dialogs as is
-    return std::ranges::none_of(name, [](char ch)
+    return std::ranges::none_of(notice, [](char ch)
     {
         const auto byte = static_cast<unsigned char>(ch);
-        return byte <= 0X20 || byte == 0X7F || std::string_view("<>&\"'").contains(ch);
+        return (byte < 0X20 && ch != '\n') || byte == 0X7F;
     });
 }
 
@@ -116,6 +139,68 @@ uint32_t dbLoadGuildID(uint32_t dbid)
     return 0;
 }
 
+SDGuildInfo dbLoadGuildInfo(uint32_t guildID)
+{
+    SDGuildInfo info {};
+    {
+        auto query = g_dbPod->createQuery("select fld_name, fld_notice from tbl_guild where fld_id = %llu", to_llu(guildID));
+        if(!query.executeStep()){
+            return info;
+        }
+
+        info.guildID = guildID;
+        info.name    = query.getColumn("fld_name"  ).getString();
+        info.notice  = query.getColumn("fld_notice").getString();
+    }
+
+    auto query = g_dbPod->createQuery(
+        u8R"###( select                                                                          )###"
+        u8R"###(     tbl_guildmember.fld_dbid, tbl_guildmember.fld_rank, tbl_guildmember.fld_title, )###"
+        u8R"###(     tbl_char.fld_name                                                           )###"
+        u8R"###( from                                                                            )###"
+        u8R"###(     tbl_guildmember join tbl_char                                               )###"
+        u8R"###(     on                                                                          )###"
+        u8R"###(         tbl_char.fld_dbid = tbl_guildmember.fld_dbid                            )###"
+        u8R"###( where                                                                           )###"
+        u8R"###(     tbl_guildmember.fld_guild = %llu                                            )###"
+        u8R"###( order by                                                                        )###"
+        u8R"###(     tbl_guildmember.fld_rank, tbl_guildmember.fld_jointime, tbl_guildmember.fld_dbid )###", to_llu(guildID));
+
+    while(query.executeStep()){
+        info.memberList.push_back(SDGuildMember
+        {
+            .dbid = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")),
+            .name = query.getColumn("fld_name").getString(),
+
+            .rank = query.getColumn("fld_rank").getInt(),
+            .title = query.getColumn("fld_title").getString(),
+        });
+    }
+    return info;
+}
+
+std::vector<uint32_t> dbLoadGuildMemberList(uint32_t guildID)
+{
+    std::vector<uint32_t> memberList;
+    auto query = g_dbPod->createQuery("select fld_dbid from tbl_guildmember where fld_guild = %llu", to_llu(guildID));
+
+    while(query.executeStep()){
+        memberList.push_back(check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")));
+    }
+    return memberList;
+}
+
+uint32_t dbFindCharDBID(const std::string &charName)
+{
+    auto query = g_dbPod->createQuery("select fld_dbid from tbl_char where fld_name = ?");
+    query.bind(1, charName);
+
+    if(query.executeStep()){
+        return check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
+    }
+    return 0;
+}
+
 std::expected<uint32_t, int> dbCreateGuild(uint32_t dbid, const std::string &guildName)
 {
     fflassert(validDBID(dbid), dbid);
@@ -145,11 +230,13 @@ std::expected<uint32_t, int> dbCreateGuild(uint32_t dbid, const std::string &gui
     fflassert(!insertQuery.executeStep());
 
     dbInsertGuildMember(guildID, dbid, GUILDRANK_LEADER);
+    g_dbPod->exec("delete from tbl_guildinvite where fld_dbid = %llu", to_llu(dbid));
+
     transaction.commit();
     return guildID;
 }
 
-int dbAddGuildMember(uint32_t leaderDBID, uint32_t dbid)
+int dbInviteGuildMember(uint32_t leaderDBID, uint32_t dbid)
 {
     if(!validDBID(dbid) || dbid == leaderDBID){
         return GUILDERR_BADTARGET;
@@ -166,9 +253,53 @@ int dbAddGuildMember(uint32_t leaderDBID, uint32_t dbid)
         return GUILDERR_TARGETINGUILD;
     }
 
-    dbInsertGuildMember(guildID.value(), dbid, GUILDRANK_MEMBER);
+    g_dbPod->exec(
+        u8R"###( insert or replace into tbl_guildinvite(fld_dbid, fld_guild, fld_inviter, fld_invitetime) )###"
+        u8R"###( values                                                                                    )###"
+        u8R"###(     (%llu, %llu, %llu, %llu)                                                              )###",
+
+        to_llu(dbid),
+        to_llu(guildID.value()),
+        to_llu(leaderDBID),
+        to_llu(hres_tstamp::epoch()));
+
     transaction.commit();
     return GUILDERR_NONE;
+}
+
+int dbAcceptGuildInvite(uint32_t dbid, uint32_t guildID)
+{
+    fflassert(validDBID(dbid), dbid);
+    auto transaction = g_dbPod->createTransaction();
+
+    // a disbanded guild takes its invites down with it
+    if(!g_dbPod->createQuery("select 1 from tbl_guildinvite where fld_dbid = %llu and fld_guild = %llu", to_llu(dbid), to_llu(guildID)).executeStep()){
+        return GUILDERR_NOINVITE;
+    }
+
+    if(dbLoadGuildID(dbid)){
+        return GUILDERR_INGUILD;
+    }
+
+    dbInsertGuildMember(guildID, dbid, GUILDRANK_MEMBER);
+    g_dbPod->exec("delete from tbl_guildinvite where fld_dbid = %llu", to_llu(dbid));
+
+    transaction.commit();
+    return GUILDERR_NONE;
+}
+
+std::optional<uint32_t> dbRejectGuildInvite(uint32_t dbid, uint32_t guildID)
+{
+    fflassert(validDBID(dbid), dbid);
+    auto query = g_dbPod->createQuery("delete from tbl_guildinvite where fld_dbid = %llu and fld_guild = %llu returning fld_inviter", to_llu(dbid), to_llu(guildID));
+
+    if(!query.executeStep()){
+        return std::nullopt;
+    }
+
+    const auto inviter = check_cast<uint32_t, unsigned>(query.getColumn("fld_inviter"));
+    fflassert(!query.executeStep());
+    return inviter;
 }
 
 int dbLeaveGuild(uint32_t dbid)
@@ -236,6 +367,55 @@ int dbTransferGuildLeader(uint32_t leaderDBID, uint32_t dbid)
     return GUILDERR_NONE;
 }
 
+int dbSetGuildNotice(uint32_t leaderDBID, const std::string &notice)
+{
+    if(!guildNoticeValid(notice)){
+        return GUILDERR_BADNOTICE;
+    }
+
+    auto transaction = g_dbPod->createTransaction();
+    const auto guildID = dbLoadLedGuildID(leaderDBID);
+
+    if(!guildID.has_value()){
+        return guildID.error();
+    }
+
+    auto query = g_dbPod->createQuery("update tbl_guild set fld_notice = ? where fld_id = %llu", to_llu(guildID.value()));
+    query.bind(1, notice);
+    query.exec();
+
+    transaction.commit();
+    return GUILDERR_NONE;
+}
+
+int dbSetGuildMemberTitle(uint32_t leaderDBID, uint32_t dbid, const std::string &title)
+{
+    if(!validDBID(dbid)){
+        return GUILDERR_BADTARGET;
+    }
+
+    if(!guildTitleValid(title)){
+        return GUILDERR_BADTITLE;
+    }
+
+    auto transaction = g_dbPod->createTransaction();
+    const auto guildID = dbLoadLedGuildID(leaderDBID);
+
+    if(!guildID.has_value()){
+        return guildID.error();
+    }
+
+    auto query = g_dbPod->createQuery("update tbl_guildmember set fld_title = ? where fld_dbid = %llu and fld_guild = %llu", to_llu(dbid), to_llu(guildID.value()));
+    query.bind(1, title);
+
+    if(query.exec() == 0){
+        return GUILDERR_NOTMEMBER;
+    }
+
+    transaction.commit();
+    return GUILDERR_NONE;
+}
+
 std::expected<std::vector<uint32_t>, int> dbDisbandGuild(uint32_t leaderDBID)
 {
     auto transaction = g_dbPod->createTransaction();
@@ -245,13 +425,8 @@ std::expected<std::vector<uint32_t>, int> dbDisbandGuild(uint32_t leaderDBID)
         return std::unexpected(guildID.error());
     }
 
-    std::vector<uint32_t> memberList;
-    {
-        auto query = g_dbPod->createQuery("select fld_dbid from tbl_guildmember where fld_guild = %llu and fld_dbid != %llu", to_llu(guildID.value()), to_llu(leaderDBID));
-        while(query.executeStep()){
-            memberList.push_back(check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")));
-        }
-    }
+    auto memberList = dbLoadGuildMemberList(guildID.value());
+    std::erase(memberList, leaderDBID);
 
     g_dbPod->exec("delete from tbl_guild where fld_id = %llu", to_llu(guildID.value()));
     transaction.commit();

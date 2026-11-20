@@ -2211,15 +2211,19 @@ corof::awaitable<> Player::net_CM_QUERYPLAYERGUILD(uint8_t, const uint8_t *buf, 
     return {};
 }
 
+corof::awaitable<> Player::net_CM_QUERYGUILDINFO(uint8_t, const uint8_t *, size_t, uint64_t)
+{
+    postGuildInfo();
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_INVITEGUILDMEMBER(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmIGM = ClientMsg::conv<CMInviteGuildMember>(buf);
-    const auto error = [&cmIGM, this]() -> int
-    {
-        if(!uidf::isPlayer(cmIGM.uid) || cmIGM.uid == UID()){
-            return GUILDERR_BADTARGET;
-        }
+    const auto memberDBID = dbFindCharDBID(cmIGM.name.to_str());
 
+    const auto error = [memberDBID, this]() -> int
+    {
         if(!m_guild){
             return GUILDERR_NOGUILD;
         }
@@ -2228,10 +2232,14 @@ corof::awaitable<> Player::net_CM_INVITEGUILDMEMBER(uint8_t, const uint8_t *buf,
             return GUILDERR_NOTLEADER;
         }
 
-        if(dbLoadGuildID(uidf::getPlayerDBID(cmIGM.uid))){
-            return GUILDERR_TARGETINGUILD;
+        if(!memberDBID){
+            return GUILDERR_NOPLAYER;
         }
-        return GUILDERR_NONE;
+
+        if(!SDRuntimeConfig_getConfig<RTCFG_允许加入行会>(dbGetRuntimeConfig(memberDBID))){
+            return GUILDERR_TARGETNOTALLOWED;
+        }
+        return dbInviteGuildMember(dbid(), memberDBID);
     }();
 
     if(error != GUILDERR_NONE){
@@ -2239,62 +2247,52 @@ corof::awaitable<> Player::net_CM_INVITEGUILDMEMBER(uint8_t, const uint8_t *buf,
         return {};
     }
 
-    m_guildInviteSet.insert(uidf::getPlayerDBID(cmIGM.uid));
+    postSystemMessage(memberDBID, str_printf(R"###(
+    <layout>
+        <par>你被<t color="red">%s</t>邀请加入<t color="red">%s</t>行会，你可以选择</par>
+        <par><event id="%s" accept="" guild="%llu">同意</event></par>
+        <par><event id="%s" reject="" guild="%llu">拒绝</event></par>
+    </layout>
+    )###",
 
-    SMGuildInvite smGI;
-    std::memset(&smGI, 0, sizeof(smGI));
-
-    smGI.uid = UID();
-    smGI.name.assign(name());
-    smGI.guildName.assign(m_guild->guildName);
-    forwardNetPackage(cmIGM.uid, SM_GUILDINVITE, smGI);
+    to_cstr(m_name),
+    m_guild->guildName.c_str(),
+    SYS_GIRESP, to_llu(m_guild->guildID),
+    SYS_GIRESP, to_llu(m_guild->guildID)));
     return {};
 }
 
 corof::awaitable<> Player::net_CM_RESPONDGUILDINVITE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRGI = ClientMsg::conv<CMRespondGuildInvite>(buf);
-    if(!uidf::isPlayer(cmRGI.uid) || cmRGI.uid == UID()){
-        co_return;
-    }
-
     if(!to_bool(cmRGI.accept)){
-        m_actorPod->post(cmRGI.uid, AM_REJECTGUILDINVITE);
-        co_return;
+        if(const auto inviter = dbRejectGuildInvite(dbid(), cmRGI.guildID); inviter.has_value()){
+            postSystemMessage(inviter.value(), str_printf(R"###(<layout><par><t color="red">%s</t>拒绝了你的行会邀请。</par></layout>)###", to_cstr(m_name)));
+        }
+        else{
+            postGuildError(GUILDERR_NOINVITE);
+        }
+        return {};
     }
 
-    if(m_guild){
-        postGuildError(GUILDERR_INGUILD);
-        co_return;
+    if(const auto error = dbAcceptGuildInvite(dbid(), cmRGI.guildID); error != GUILDERR_NONE){
+        postGuildError(error);
+        return {};
     }
 
-    // inviter adds me in database, so a stale or forged answer can't join a guild
-    switch(const auto rmpk = co_await m_actorPod->send(cmRGI.uid, AM_ACCEPTGUILDINVITE); rmpk.type()){
-        case AM_OK:
-            {
-                reloadGuild();
-                break;
-            }
-        case AM_GUILDERROR:
-            {
-                postGuildError(rmpk.conv<AMGuildError>().error);
-                break;
-            }
-        default:
-            {
-                postGuildError(GUILDERR_NOINVITE);
-                break;
-            }
-    }
+    updateGuild(dbLoadGuildMemberList(cmRGI.guildID));
+    return {};
 }
 
 corof::awaitable<> Player::net_CM_LEAVEGUILD(uint8_t, const uint8_t *, size_t, uint64_t)
 {
+    const auto guildID = m_guild ? m_guild->guildID : 0;
     if(const auto error = dbLeaveGuild(dbid()); error != GUILDERR_NONE){
         postGuildError(error);
+        return {};
     }
 
-    reloadGuild();
+    updateGuild(dbLoadGuildMemberList(guildID));
     return {};
 }
 
@@ -2303,12 +2301,13 @@ corof::awaitable<> Player::net_CM_KICKGUILDMEMBER(uint8_t, const uint8_t *buf, s
     const auto cmKGM = ClientMsg::conv<CMKickGuildMember>(buf);
     if(const auto error = dbKickGuildMember(dbid(), cmKGM.dbid); error != GUILDERR_NONE){
         postGuildError(error);
-    }
-    else{
-        m_actorPod->post(uidf::getPlayerUID(cmKGM.dbid), AM_GUILDUPDATE);
+        return {};
     }
 
-    reloadGuild();
+    auto dbidList = dbLoadGuildMemberList(dbLoadGuildID(dbid()));
+    dbidList.push_back(cmKGM.dbid);
+
+    updateGuild(dbidList);
     return {};
 }
 
@@ -2317,26 +2316,84 @@ corof::awaitable<> Player::net_CM_TRANSFERGUILDLEADER(uint8_t, const uint8_t *bu
     const auto cmTGL = ClientMsg::conv<CMTransferGuildLeader>(buf);
     if(const auto error = dbTransferGuildLeader(dbid(), cmTGL.dbid); error != GUILDERR_NONE){
         postGuildError(error);
-    }
-    else{
-        m_actorPod->post(uidf::getPlayerUID(cmTGL.dbid), AM_GUILDUPDATE);
+        return {};
     }
 
-    reloadGuild();
+    updateGuild(dbLoadGuildMemberList(dbLoadGuildID(dbid())));
     return {};
 }
 
 corof::awaitable<> Player::net_CM_DISBANDGUILD(uint8_t, const uint8_t *, size_t, uint64_t)
 {
     if(const auto result = dbDisbandGuild(dbid()); result.has_value()){
-        for(const auto memberDBID: result.value()){
-            m_actorPod->post(uidf::getPlayerUID(memberDBID), AM_GUILDUPDATE);
-        }
+        updateGuild(result.value());
     }
     else{
         postGuildError(result.error());
     }
+    return {};
+}
 
-    reloadGuild();
+corof::awaitable<> Player::net_CM_SETGUILDNOTICE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmSGN = ClientMsg::conv<CMSetGuildNotice>(buf);
+
+    auto notice = cmSGN.notice.to_str();
+    std::erase(notice, '\r');
+
+    if(const auto error = dbSetGuildNotice(dbid(), notice); error != GUILDERR_NONE){
+        postGuildError(error);
+        return {};
+    }
+
+    updateGuild(dbLoadGuildMemberList(dbLoadGuildID(dbid())));
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_SETGUILDMEMBERTITLE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmSGMT = ClientMsg::conv<CMSetGuildMemberTitle>(buf);
+    if(const auto error = dbSetGuildMemberTitle(dbid(), cmSGMT.dbid, cmSGMT.title.to_str()); error != GUILDERR_NONE){
+        postGuildError(error);
+        return {};
+    }
+
+    updateGuild(dbLoadGuildMemberList(dbLoadGuildID(dbid())));
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_GUILDCHAT(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    const auto cmGC = ClientMsg::conv<CMGuildChat>(buf, bufSize);
+    if(!str_haschar(cmGC.content)){
+        return {};
+    }
+
+    if(!m_guild){
+        postGuildError(GUILDERR_NOGUILD);
+        return {};
+    }
+
+    AMGuildChat amGC;
+    std::memset(&amGC, 0, sizeof(amGC));
+
+    amGC.guildID = m_guild->guildID;
+    amGC.uid = UID();
+    amGC.name.assign(name());
+    std::memcpy(amGC.content, cmGC.content, sizeof(amGC.content) - 1);
+
+    for(const auto memberDBID: dbLoadGuildMemberList(m_guild->guildID)){
+        if(memberDBID != dbid()){
+            m_actorPod->post(uidf::getPlayerUID(memberDBID), {AM_GUILDCHAT, amGC});
+        }
+    }
+
+    SMGuildChat smGC;
+    std::memset(&smGC, 0, sizeof(smGC));
+
+    smGC.uid = amGC.uid;
+    smGC.name = amGC.name;
+    std::memcpy(smGC.content, amGC.content, sizeof(smGC.content));
+    postNetMessage(SM_GUILDCHAT, smGC);
     return {};
 }

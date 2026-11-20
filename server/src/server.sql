@@ -229,6 +229,7 @@ create table tbl_stallitem(
 create table tbl_guild(
     fld_id             integer not null primary key autoincrement,
     fld_name           text    not null unique,
+    fld_notice         text    not null default '',
     fld_createtime     integer not null
 ) strict;
 
@@ -246,6 +247,19 @@ create table tbl_guildmember(
 
 create index tbl_guildmember_guild_index on tbl_guildmember(fld_guild);
 create unique index tbl_guildmember_leader_index on tbl_guildmember(fld_guild) where fld_rank = 1;
+
+-- the invited player answers through a system chat message, so either side can be offline
+create table tbl_guildinvite(
+    fld_dbid           integer not null,
+    fld_guild          integer not null,
+    fld_inviter        integer not null,
+    fld_invitetime     integer not null,
+
+    foreign key (fld_dbid   ) references tbl_char (fld_dbid) on delete cascade,
+    foreign key (fld_guild  ) references tbl_guild(fld_id  ) on delete cascade,
+    foreign key (fld_inviter) references tbl_char (fld_dbid) on delete cascade,
+    primary key (fld_dbid, fld_guild)
+) strict;
 
 -- a guild never goes without its leader, deleting the leader's char takes the guild down
 create trigger tbl_guildmember_leader_delete after delete on tbl_guildmember when old.fld_rank = 1

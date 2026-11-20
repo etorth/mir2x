@@ -1035,39 +1035,30 @@ corof::awaitable<> Player::on_AM_STALLSOLD(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::awaitable<> Player::on_AM_ACCEPTGUILDINVITE(const ActorMsgPack &mpk)
-{
-    const auto error = [&mpk, this]() -> int
-    {
-        if(!uidf::isPlayer(mpk.from()) || !m_guildInviteSet.erase(uidf::getPlayerDBID(mpk.from()))){
-            return GUILDERR_NOINVITE;
-        }
-        return dbAddGuildMember(dbid(), uidf::getPlayerDBID(mpk.from()));
-    }();
-
-    if(error == GUILDERR_NONE){
-        m_actorPod->post(mpk.fromAddr(), AM_OK);
-    }
-    else{
-        AMGuildError amGE;
-        std::memset(&amGE, 0, sizeof(amGE));
-
-        amGE.error = to_u8(error);
-        m_actorPod->post(mpk.fromAddr(), {AM_GUILDERROR, amGE});
-    }
-    return {};
-}
-
-corof::awaitable<> Player::on_AM_REJECTGUILDINVITE(const ActorMsgPack &mpk)
-{
-    if(uidf::isPlayer(mpk.from()) && m_guildInviteSet.erase(uidf::getPlayerDBID(mpk.from()))){
-        postGuildError(GUILDERR_REJECTED);
-    }
-    return {};
-}
-
 corof::awaitable<> Player::on_AM_GUILDUPDATE(const ActorMsgPack &)
 {
     reloadGuild();
+    postGuildInfo();
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_GUILDCHAT(const ActorMsgPack &mpk)
+{
+    const auto amGC = mpk.conv<AMGuildChat>();
+    if(!m_guild || m_guild->guildID != amGC.guildID){
+        return {};
+    }
+
+    if(!SDRuntimeConfig_getConfig<RTCFG_允许行会聊天>(m_sdPlayerConfig.runtimeConfig)){
+        return {};
+    }
+
+    SMGuildChat smGC;
+    std::memset(&smGC, 0, sizeof(smGC));
+
+    smGC.uid = amGC.uid;
+    smGC.name = amGC.name;
+    std::memcpy(smGC.content, amGC.content, sizeof(smGC.content));
+    postNetMessage(SM_GUILDCHAT, smGC);
     return {};
 }

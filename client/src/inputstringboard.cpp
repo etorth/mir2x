@@ -88,6 +88,8 @@ InputStringBoard::InputStringBoard(
           .h = [this]{ return m_inputBg.h(); },
 
           .align = DIR_NONE,
+          .enableIME = [this]{ return m_ime; },
+
           .font
           {
               .id = 1,
@@ -245,6 +247,7 @@ void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
     m_onAccept = std::move(args.onAccept);
     m_onReject = std::move(args.onReject);
     m_modal = args.modal;
+    m_ime = args.security ? IME_DISABLE : args.ime;
 
     m_input.setShow(true);
     m_input.setActive(true);

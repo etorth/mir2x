@@ -29,6 +29,7 @@
 #include "gui/stallboard/stallboard.hpp"
 #include "inventoryboard.hpp"
 #include "inputstringboard.hpp"
+#include "guildboard.hpp"
 #include "servermsg.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
@@ -1025,7 +1026,8 @@ void ProcessRun::on_SM_STARTINPUT(const uint8_t *buf, size_t bufSize)
     inputBoardPtr->waitInput(
     {
         .layoutString = to_u8rawstr(sdSI.title),
-        .security = true,
+        .security = sdSI.security,
+        .ime = getRuntimeConfig<RTCFG_IME>(),
         .onAccept = [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
         {
             sendNPCEvent(uid, {}, commitTag, to_cstr(input));
@@ -1369,11 +1371,18 @@ void ProcessRun::on_SM_PLAYERGUILD(const uint8_t *buf, size_t bufSize)
     }
 }
 
-void ProcessRun::on_SM_GUILDINVITE(const uint8_t *buf, size_t bufSize)
+void ProcessRun::on_SM_GUILDINFO(const uint8_t *buf, size_t bufSize)
 {
-    // TODO accept prompt comes with the guild board, CM_RESPONDGUILDINVITE answers it
-    const auto smGI = ServerMsg::conv<SMGuildInvite>(buf, bufSize);
-    addCBLog(CBLOG_SYS, u8"%s邀请你加入行会%s", smGI.name.as_rawcstr(), smGI.guildName.as_rawcstr());
+    dynamic_cast<GuildBoard *>(getWidget("GuildBoard"))->setGuildInfo(cerealf::deserialize<SDGuildInfo>(buf, bufSize));
+}
+
+void ProcessRun::on_SM_GUILDCHAT(const uint8_t *buf, size_t bufSize)
+{
+    const auto smGC = ServerMsg::conv<SMGuildChat>(buf, bufSize);
+    const std::string content(smGC.content, strnlen(smGC.content, sizeof(smGC.content)));
+
+    addCBLog(CBLOG_SYS, u8"[行会] %s: %s", smGC.name.as_rawcstr(), content.c_str());
+    dynamic_cast<GuildBoard *>(getWidget("GuildBoard"))->addChatMessage(smGC.name.to_str(), content);
 }
 
 void ProcessRun::on_SM_GUILDERROR(const uint8_t *buf, size_t bufSize)
@@ -1382,20 +1391,24 @@ void ProcessRun::on_SM_GUILDERROR(const uint8_t *buf, size_t bufSize)
     const char8_t *errStr = [&smGE]() -> const char8_t *
     {
         switch(smGE.error){
-            case GUILDERR_INGUILD      : return u8"你已经加入了行会";
-            case GUILDERR_NOGUILD      : return u8"你没有加入行会";
-            case GUILDERR_NOTLEADER    : return u8"只有掌门人才可以这样做";
-            case GUILDERR_BADNAME      : return u8"无效的行会名字";
-            case GUILDERR_NAMETAKEN    : return u8"行会名字已经被使用";
-            case GUILDERR_NOGOLD       : return u8"金币不足";
-            case GUILDERR_NOITEM       : return u8"缺少成立行会所需的物品";
-            case GUILDERR_BADTARGET    : return u8"无效的目标";
-            case GUILDERR_TARGETINGUILD: return u8"对方已经加入了行会";
-            case GUILDERR_NOTMEMBER    : return u8"对方不是本行会成员";
-            case GUILDERR_LEADERLEAVE  : return u8"掌门人不能退出行会，请先转让掌门人或解散行会";
-            case GUILDERR_NOINVITE     : return u8"行会邀请已经失效";
-            case GUILDERR_REJECTED     : return u8"对方拒绝了你的行会邀请";
-            default                    : return nullptr;
+            case GUILDERR_INGUILD         : return u8"你已经加入了行会";
+            case GUILDERR_NOGUILD         : return u8"你没有加入行会";
+            case GUILDERR_NOTLEADER       : return u8"只有掌门人才可以这样做";
+            case GUILDERR_BADNAME         : return u8"无效的行会名字";
+            case GUILDERR_NAMETAKEN       : return u8"行会名字已经被使用";
+            case GUILDERR_NOGOLD          : return u8"金币不足";
+            case GUILDERR_NOITEM          : return u8"缺少成立行会所需的物品";
+            case GUILDERR_BADTARGET       : return u8"无效的目标";
+            case GUILDERR_TARGETINGUILD   : return u8"对方已经加入了行会";
+            case GUILDERR_NOTMEMBER       : return u8"对方不是本行会成员";
+            case GUILDERR_LEADERLEAVE     : return u8"掌门人不能退出行会，请先转让掌门人或解散行会";
+            case GUILDERR_NOINVITE        : return u8"行会邀请已经失效";
+            case GUILDERR_REJECTED        : return u8"对方拒绝了你的行会邀请";
+            case GUILDERR_NOPLAYER        : return u8"没有这个角色";
+            case GUILDERR_TARGETNOTALLOWED: return u8"对方不允许加入行会";
+            case GUILDERR_BADTITLE        : return u8"无效的职位名称";
+            case GUILDERR_BADNOTICE       : return u8"无效的行会公告";
+            default                       : return nullptr;
         }
     }();
 

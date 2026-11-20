@@ -119,8 +119,9 @@ enum SMType: uint8_t
     SM_PLAYERSTALL,
     SM_QUERYSTALLOK,
     SM_PLAYERGUILD,
-    SM_GUILDINVITE,
     SM_GUILDERROR,
+    SM_GUILDINFO,
+    SM_GUILDCHAT,
     SM_END,
 };
 
@@ -494,16 +495,16 @@ struct SMAuctionUnregisterError
     uint8_t error;
 };
 
-struct SMGuildInvite
-{
-    uint64_t uid; // the inviter
-    StaticBuffer<SYS_NAMESIZE> name;
-    StaticBuffer<SYS_GUILDNAMESIZE> guildName;
-};
-
 struct SMGuildError
 {
     uint8_t error;
+};
+
+struct SMGuildChat
+{
+    uint64_t uid;
+    StaticBuffer<SYS_NAMESIZE> name;
+    char content[128];
 };
 
 #pragma pack(pop)
@@ -630,8 +631,9 @@ namespace
         _RSVD_register_servermsg(SM_PLAYERSTALL,            1, sizeof(SMPlayerStall)           );
         _RSVD_register_servermsg(SM_QUERYSTALLOK,           3                                  );
         _RSVD_register_servermsg(SM_PLAYERGUILD,            3                                  );
-        _RSVD_register_servermsg(SM_GUILDINVITE,            1, sizeof(SMGuildInvite)           );
         _RSVD_register_servermsg(SM_GUILDERROR,             1, sizeof(SMGuildError)            );
+        _RSVD_register_servermsg(SM_GUILDINFO,              3                                  );
+        _RSVD_register_servermsg(SM_GUILDCHAT,              1, sizeof(SMGuildChat)             );
 
 #undef _RSVD_register_servermsg
         return result;

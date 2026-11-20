@@ -210,6 +210,9 @@ CBRight::CBRight(
           {
               if(auto p = m_processRun->getWidget("GuildBoard")){
                   p->flipShow();
+                  if(p->show()){
+                      m_processRun->requestQueryGuildInfo();
+                  }
               }
           },
 

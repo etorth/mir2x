@@ -331,6 +331,7 @@ void StallBoard::onStartStall()
     inputBoard->waitInput(
     {
         .layoutString = u8"<layout><par>请输入摊位名称</par></layout>",
+        .ime = m_runProc->getRuntimeConfig<RTCFG_IME>(),
         .onAccept = [this](std::u8string input)
         {
             const std::string name(reinterpret_cast<const char *>(input.data()), input.size());

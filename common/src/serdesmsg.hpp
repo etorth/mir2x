@@ -365,11 +365,11 @@ struct SDStartInput
     uint64_t uid = 0;
     std::string title {};
     std::string commitTag {};
-    bool show = false;
+    bool security = false; // masks what the player types
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, title, commitTag, show);
+        ar(uid, title, commitTag, security);
     }
 };
 
@@ -734,6 +734,35 @@ struct SDPlayerGuild
     template<typename Archive> void serialize(Archive &ar)
     {
         ar(dbid, guildName, title);
+    }
+};
+
+struct SDGuildMember
+{
+    uint32_t dbid = 0;
+    std::string name {};
+
+    int rank = 0;
+    std::string title {};
+
+    bool online = false;
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(dbid, name, rank, title, online);
+    }
+};
+
+struct SDGuildInfo
+{
+    uint32_t guildID = 0; // 0 if not in a guild
+    std::string name {};
+    std::string notice {};
+    std::vector<SDGuildMember> memberList {}; // leader first
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(guildID, name, notice, memberList);
     }
 };
 

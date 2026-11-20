@@ -331,11 +331,11 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->postInvOpCost(uid, invOp, itemID, seqID, cost);
     });
 
-    bindFunction("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
+    bindFunction("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool security)
     {
         fflassert(!title.empty());
         fflassert(!commitTag.empty());
-        getNPChar()->postStartInput(uid, title, commitTag, show);
+        getNPChar()->postStartInput(uid, title, commitTag, security);
     });
 
     bindFunction("uidPostXMLString", [this](uint64_t uid, std::string path, std::string xmlString)
@@ -470,7 +470,7 @@ void NPChar::postStartInvOp(uint64_t uid, int invOp, std::string queryTag, std::
     }));
 }
 
-void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitTag, bool show)
+void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitTag, bool security)
 {
     fflassert(getXMLSeqID(uid).has_value(), uidf::getUIDString(uid));
     forwardNetPackage(uid, SM_STARTINPUT, cerealf::serialize(SDStartInput
@@ -478,7 +478,7 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
         .uid = UID(),
         .title = title,
         .commitTag = AESHelper(this, uid).encode(commitTag.c_str()),
-        .show = show,
+        .security = security,
     }));
 }
 

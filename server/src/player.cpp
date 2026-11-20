@@ -1,6 +1,7 @@
 #include <cstring>
 #include <cinttypes>
 #include "dbpod.hpp"
+#include "actorpool.hpp"
 #include "player.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
@@ -25,6 +26,7 @@
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
+extern ActorPool *g_actorPool;
 extern ServerArgParser *g_serverArgParser;
 
 Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
@@ -963,17 +965,13 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_STALLSOLD(mpk);
             }
-        case AM_ACCEPTGUILDINVITE:
-            {
-                return on_AM_ACCEPTGUILDINVITE(mpk);
-            }
-        case AM_REJECTGUILDINVITE:
-            {
-                return on_AM_REJECTGUILDINVITE(mpk);
-            }
         case AM_GUILDUPDATE:
             {
                 return on_AM_GUILDUPDATE(mpk);
+            }
+        case AM_GUILDCHAT:
+            {
+                return on_AM_GUILDCHAT(mpk);
             }
         default:
             {
@@ -1060,6 +1058,10 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_KICKGUILDMEMBER           );
         _support_cm(CM_TRANSFERGUILDLEADER       );
         _support_cm(CM_DISBANDGUILD              );
+        _support_cm(CM_QUERYGUILDINFO            );
+        _support_cm(CM_SETGUILDNOTICE            );
+        _support_cm(CM_SETGUILDMEMBERTITLE       );
+        _support_cm(CM_GUILDCHAT                 );
         default:
             {
                 throw fflvalue(ClientMsg(nType).name());
@@ -3452,7 +3454,7 @@ int Player::createGuild(const std::string &guildName, size_t cost, uint32_t item
         removeInventoryItem(itemID, 0, 1);
     }
 
-    reloadGuild();
+    updateGuild({});
     return GUILDERR_NONE;
 }
 
@@ -3462,6 +3464,55 @@ void Player::reloadGuild()
         m_guild = std::move(guild);
         dispatchNetPackage(true, SM_PLAYERGUILD, cerealf::serialize(buildPlayerGuild(dbid(), m_guild)));
     }
+}
+
+void Player::postGuildInfo()
+{
+    auto info = m_guild ? dbLoadGuildInfo(m_guild->guildID) : SDGuildInfo{};
+    for(auto &member: info.memberList){
+        member.online = g_actorPool->checkUIDExist(uidf::getPlayerUID(member.dbid));
+    }
+    postNetMessage(SM_GUILDINFO, cerealf::serialize(info));
+}
+
+// after a guild change, reloads me and the listed players, include those who just left the guild
+void Player::updateGuild(const std::vector<uint32_t> &dbidList)
+{
+    reloadGuild();
+    postGuildInfo();
+
+    for(const auto memberDBID: dbidList){
+        if(memberDBID != dbid()){
+            m_actorPod->post(uidf::getPlayerUID(memberDBID), AM_GUILDUPDATE);
+        }
+    }
+}
+
+// saved as a chat message from 系统助手, so an offline player gets it at next login
+void Player::postSystemMessage(uint32_t toDBID, const std::string &xmlChatMsg)
+{
+    const SDChatPeerID toCPID(CPR_PLAYER, toDBID);
+    const auto msgBuf = cerealf::serialize(xmlChatMsg);
+    const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM), toCPID, msgBuf, std::nullopt);
+
+    forwardNetPackage(uidf::getPlayerUID(toDBID), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        SDChatMessage
+        {
+            .seq = SDChatMessageDBSeq
+            {
+                .id = msgId,
+                .timestamp = tstamp,
+            },
+
+            .refer = std::nullopt,
+
+            .from {CPR_SPECIAL, SYS_CHATDBID_SYSTEM},
+            .to   {CPR_PLAYER, toDBID},
+
+            .message = msgBuf,
+        },
+    }));
 }
 
 void Player::postGuildError(int error)

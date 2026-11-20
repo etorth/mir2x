@@ -302,6 +302,13 @@ void ControlBoard::onInputDone()
         return;
     }
 
+    if(fullStr.starts_with("!~")){
+        if(const std::string content = str_trim(fullStr.substr(2), true, false); !content.empty() && m_processRun){
+            m_processRun->requestGuildChat(content);
+        }
+        return;
+    }
+
     switch(fullStr[0]){
         case '!': // broadcast
             {

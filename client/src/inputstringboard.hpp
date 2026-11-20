@@ -17,6 +17,7 @@ class InputStringBoard: public Widget
             std::u8string layoutString {};
             bool security = false;
             bool modal    = false;
+            int  ime      = IME_DISABLE; // ignored when security is set
 
             std::function<void(std::u8string)>            onAccept = nullptr;
             std::function<void()>                         onReject = nullptr;
@@ -29,6 +30,7 @@ class InputStringBoard: public Widget
 
     private:
         bool m_modal = false;
+        int  m_ime   = IME_DISABLE;
 
     private:
         ImageBoard m_bg;

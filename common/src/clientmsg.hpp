@@ -98,6 +98,10 @@ enum CMType: uint8_t
     CM_KICKGUILDMEMBER,
     CM_TRANSFERGUILDLEADER,
     CM_DISBANDGUILD,
+    CM_QUERYGUILDINFO,
+    CM_SETGUILDNOTICE,
+    CM_SETGUILDMEMBERTITLE,
+    CM_GUILDCHAT,
     CM_END,
 };
 
@@ -481,12 +485,12 @@ struct CMQueryPlayerGuild
 
 struct CMInviteGuildMember
 {
-    uint64_t uid;
+    StaticBuffer<SYS_NAMESIZE> name;
 };
 
 struct CMRespondGuildInvite
 {
-    uint64_t uid; // the inviter
+    uint32_t guildID;
     uint8_t accept;
 };
 
@@ -498,6 +502,22 @@ struct CMKickGuildMember
 struct CMTransferGuildLeader
 {
     uint32_t dbid;
+};
+
+struct CMSetGuildNotice
+{
+    StaticBuffer<SYS_GUILDNOTICESIZE> notice;
+};
+
+struct CMSetGuildMemberTitle
+{
+    uint32_t dbid;
+    StaticBuffer<SYS_GUILDTITLESIZE> title;
+};
+
+struct CMGuildChat
+{
+    char content[128];
 };
 
 #pragma pack(pop)
@@ -600,6 +620,10 @@ namespace
         _RSVD_register_clientmsg(CM_KICKGUILDMEMBER,            1, sizeof(CMKickGuildMember)           );
         _RSVD_register_clientmsg(CM_TRANSFERGUILDLEADER,        1, sizeof(CMTransferGuildLeader)       );
         _RSVD_register_clientmsg(CM_DISBANDGUILD,               0                                      );
+        _RSVD_register_clientmsg(CM_QUERYGUILDINFO,             0                                      );
+        _RSVD_register_clientmsg(CM_SETGUILDNOTICE,             1, sizeof(CMSetGuildNotice)            );
+        _RSVD_register_clientmsg(CM_SETGUILDMEMBERTITLE,        1, sizeof(CMSetGuildMemberTitle)       );
+        _RSVD_register_clientmsg(CM_GUILDCHAT,                  1, sizeof(CMGuildChat)                 );
 
 #undef _RSVD_register_clientmsg
         return result;

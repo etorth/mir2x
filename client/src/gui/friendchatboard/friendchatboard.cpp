@@ -601,6 +601,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                                   inputBoardPtr->waitInput(
                                   {
                                       .layoutString = u8"<layout><par>请输入你要建立的群名称</par></layout>",
+                                      .ime = m_processRun->getRuntimeConfig<RTCFG_IME>(),
                                       .onAccept = [dbidList, this](std::u8string inputString)
                                       {
                                           if(inputString.empty()){

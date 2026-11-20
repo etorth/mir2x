@@ -314,8 +314,9 @@ class ProcessRun: public Process
         _support_sm(SM_PLAYERSTALL);
         _support_sm(SM_QUERYSTALLOK);
         _support_sm(SM_PLAYERGUILD);
-        _support_sm(SM_GUILDINVITE);
         _support_sm(SM_GUILDERROR);
+        _support_sm(SM_GUILDINFO);
+        _support_sm(SM_GUILDCHAT);
 #undef _support_sm
 
     public:
@@ -535,6 +536,18 @@ class ProcessRun: public Process
         void requestCloseStall();
         void requestQueryStall(uint32_t) const;
         void requestBuyStallItem(uint32_t, uint32_t, uint32_t, size_t, size_t);
+
+    public:
+        void requestQueryGuildInfo();
+        void requestInviteGuildMember(const std::string &);
+        void respondGuildInvite(uint32_t, bool);
+        void requestLeaveGuild();
+        void requestKickGuildMember(uint32_t);
+        void requestTransferGuildLeader(uint32_t);
+        void requestDisbandGuild();
+        void requestSetGuildNotice(const std::string &);
+        void requestSetGuildMemberTitle(uint32_t, const std::string &);
+        void requestGuildChat(const std::string &);
 
     public:
         std::string getStallSellerName(uint32_t) const;

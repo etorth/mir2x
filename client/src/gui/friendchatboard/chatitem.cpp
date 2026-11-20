@@ -107,6 +107,12 @@ ChatItem::ChatItem(ChatItem::InitArgs args)
                       }
                   });
               }
+              else if(id == SYS_GIRESP){
+                  const auto guildstr = LayoutBoard::findAttrValue(attrList, "guild");
+                  fflassert(guildstr);
+
+                  FriendChatBoard::getParentBoard(this)->m_processRun->respondGuildInvite(static_cast<uint32_t>(std::stoul(guildstr)), LayoutBoard::findAttrValue(attrList, "accept") != nullptr);
+              }
           },
       }}
 

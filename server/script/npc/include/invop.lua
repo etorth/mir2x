@@ -25,8 +25,10 @@ function invop.postRepairCost(uid, itemID, seqID, cost)
     uidPostInvOpCost(uid, INVOP_REPAIR, itemID, seqID, cost)
 end
 
-function invop.postStartInput(uid, title, commitTag, show)
-    uidPostStartInput(uid, title, commitTag, show)
+-- security masks what the player types, for passwords
+function invop.postStartInput(uid, title, commitTag, security)
+    assertType(security, 'boolean')
+    uidPostStartInput(uid, title, commitTag, security)
 end
 
 function invop.parseItemString(itemString)

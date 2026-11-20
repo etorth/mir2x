@@ -283,6 +283,10 @@ enum GuildErrorType: uint8_t
     GUILDERR_LEADERLEAVE, // leader transfers the guild or disbands it, never just leaves
     GUILDERR_NOINVITE,
     GUILDERR_REJECTED,
+    GUILDERR_NOPLAYER,
+    GUILDERR_TARGETNOTALLOWED,
+    GUILDERR_BADTITLE,
+    GUILDERR_BADNOTICE,
 };
 
 enum AttributeType: int

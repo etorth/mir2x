@@ -118,7 +118,6 @@ class Player final: public BattleObject
     private:
         // cache of tbl_guildmember, reloaded after every change since other players can change it in database directly
         std::optional<DBGuildMembership> m_guild;
-        std::set<uint32_t> m_guildInviteSet; // dbids I invited and haven't answered
 
     private:
         bool m_pickUpLock = false;
@@ -270,9 +269,8 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_DIRECTTRADEERROR   (const ActorMsgPack &);
         corof::awaitable<> on_AM_CANCELDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_STALLSOLD          (const ActorMsgPack &);
-        corof::awaitable<> on_AM_ACCEPTGUILDINVITE  (const ActorMsgPack &);
-        corof::awaitable<> on_AM_REJECTGUILDINVITE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_GUILDUPDATE        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_GUILDCHAT          (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -350,6 +348,10 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_KICKGUILDMEMBER           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_TRANSFERGUILDLEADER       (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_DISBANDGUILD              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYGUILDINFO            (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_SETGUILDNOTICE            (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_SETGUILDMEMBERTITLE       (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_GUILDCHAT                 (uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         void reportGold();
@@ -407,7 +409,10 @@ class Player final: public BattleObject
     private:
         int createGuild(const std::string &, size_t, uint32_t);
         void reloadGuild();
+        void postGuildInfo();
         void postGuildError(int);
+        void updateGuild(const std::vector<uint32_t> &);
+        void postSystemMessage(uint32_t, const std::string &);
 
     private:
         static SDPlayerGuild buildPlayerGuild(uint32_t, const std::optional<DBGuildMembership> &);
