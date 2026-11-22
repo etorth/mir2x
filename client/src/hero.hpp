@@ -49,6 +49,7 @@ class Hero: public CreatureMovable
 
     protected:
         mutable bool m_guildQueried = false;
+        uint32_t     m_guildID = 0;
         std::string  m_guildName;
         std::string  m_guildTitle;
 
@@ -198,14 +199,7 @@ class Hero: public CreatureMovable
             return m_name;
         }
 
-        uint32_t getNameColor() const
-        {
-            if(m_name.empty() && !m_nameQueried){
-                queryName();
-                m_nameQueried = true;
-            }
-            return m_nameColor;
-        }
+        uint32_t getNameColor() const;
 
     private:
         void queryName() const;
@@ -288,11 +282,18 @@ class Hero: public CreatureMovable
         void queryStall() const;
 
     public:
-        void setGuild(std::string guildName, std::string guildTitle)
+        void setGuild(uint32_t guildID, std::string guildName, std::string guildTitle)
         {
             m_guildQueried = true;
+            m_guildID    = guildID;
             m_guildName  = std::move(guildName);
             m_guildTitle = std::move(guildTitle);
+        }
+
+        uint32_t getGuildID() const
+        {
+            checkQueryGuild();
+            return m_guildID;
         }
 
         const std::string &getGuildName() const

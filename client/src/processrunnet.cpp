@@ -1367,8 +1367,13 @@ void ProcessRun::on_SM_PLAYERGUILD(const uint8_t *buf, size_t bufSize)
 {
     auto sdPG = cerealf::deserialize<SDPlayerGuild>(buf, bufSize);
     if(auto heroPtr = dynamic_cast<Hero *>(findUID(uidf::getPlayerUID(sdPG.dbid), false))){
-        heroPtr->setGuild(std::move(sdPG.guildName), std::move(sdPG.title));
+        heroPtr->setGuild(sdPG.guildID, std::move(sdPG.guildName), std::move(sdPG.title));
     }
+}
+
+void ProcessRun::on_SM_GUILDWARLIST(const uint8_t *buf, size_t bufSize)
+{
+    m_guildWarList = cerealf::deserialize<SDGuildWarList>(buf, bufSize);
 }
 
 void ProcessRun::on_SM_GUILDINFO(const uint8_t *buf, size_t bufSize)

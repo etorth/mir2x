@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <expected>
 #include <optional>
+#include "raiitimer.hpp"
 #include "serdesmsg.hpp"
 
 // database is the source of truth, a player actor only caches its own membership
@@ -48,3 +49,9 @@ int dbSetGuildNotice     (uint32_t, const std::string &);
 int dbSetGuildMemberTitle(uint32_t, uint32_t, const std::string &);
 
 std::expected<std::vector<uint32_t>, int> dbDisbandGuild(uint32_t); // dbids of the other members
+
+// declaring again restarts the war, takes the leader's dbid and the enemy guild name, returns the enemy guild id
+std::expected<uint32_t, int> dbDeclareGuildWar(uint32_t, const std::string &, uint64_t = hres_tstamp::epoch());
+
+bool dbAtGuildWar(uint32_t, uint32_t, uint64_t = hres_tstamp::epoch()); // two guild ids
+std::vector<SDGuildWar> dbLoadGuildWarList(uint32_t, uint64_t = hres_tstamp::epoch()); // ordered by end time

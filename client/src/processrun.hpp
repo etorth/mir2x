@@ -76,6 +76,9 @@ class ProcessRun: public Process
         SDSafeZoneList m_safeZoneList;
 
     private:
+        SDGuildWarList m_guildWarList;
+
+    private:
         DelayCommandQueue m_delayCmdQ;
 
     private:
@@ -102,6 +105,9 @@ class ProcessRun: public Process
         {
             return m_safeZoneList.mapUID == mapUID() && m_safeZoneList.zone.contains(nX, nY);
         }
+
+        // name color of a player in this guild, nullopt if no guild war is involved
+        std::optional<uint32_t> getGuildWarNameColor(uint32_t) const;
 
     private:
         std::array<uint64_t, FOCUS_END> m_focusUIDTable {};
@@ -317,6 +323,7 @@ class ProcessRun: public Process
         _support_sm(SM_GUILDERROR);
         _support_sm(SM_GUILDINFO);
         _support_sm(SM_GUILDCHAT);
+        _support_sm(SM_GUILDWARLIST);
 #undef _support_sm
 
     public:

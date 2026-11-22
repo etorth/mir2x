@@ -287,6 +287,7 @@ enum GuildErrorType: uint8_t
     GUILDERR_TARGETNOTALLOWED,
     GUILDERR_BADTITLE,
     GUILDERR_BADNOTICE,
+    GUILDERR_SELFWAR,
 };
 
 enum AttributeType: int

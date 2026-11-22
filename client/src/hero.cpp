@@ -1684,6 +1684,22 @@ void Hero::toggleSwingMagic(uint32_t magicID, std::optional<bool> enable)
     }
 }
 
+uint32_t Hero::getNameColor() const
+{
+    if(m_name.empty() && !m_nameQueried){
+        queryName();
+        m_nameQueried = true;
+    }
+
+    // a red name stays red during guild war
+    if(colorf::maskRGB(m_nameColor) != colorf::RED){
+        if(const auto color = m_processRun->getGuildWarNameColor(getGuildID())){
+            return color.value() + colorf::A_SHF(0XFF);
+        }
+    }
+    return m_nameColor;
+}
+
 void Hero::queryName() const
 {
     CMQueryPlayerName cmQPN;

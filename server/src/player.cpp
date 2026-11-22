@@ -92,6 +92,19 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->createGuild(guildName, to_uz(gold), to_u32(itemID));
     });
 
+    bindFunction("isGuildLeader", [this]() -> bool
+    {
+        const auto &guild = getPlayer()->m_guild;
+        return guild && guild->rank == GUILDRANK_LEADER;
+    });
+
+    // gold is taken only when the war gets declared, returns GUILDERR_NONE or the reason it failed
+    bindFunction("declareGuildWar", [this](std::string enemyName, int gold) -> int
+    {
+        fflassert(gold >= 0, gold);
+        return getPlayer()->declareGuildWar(enemyName, to_uz(gold));
+    });
+
     // 战士 / 道士 / 法师, a list because a character can hold more than one
     bindFunction("getJobList", [this]()
     {
@@ -2428,6 +2441,8 @@ void Player::postOnlineOK()
     if(!friendIDList.empty()){
         postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(dbid(), friendIDList, 1, true, true)));
     }
+
+    refreshGuildWarList(true);
 }
 
 void Player::postRebindOK()
@@ -3480,6 +3495,7 @@ void Player::updateGuild(const std::vector<uint32_t> &dbidList)
 {
     reloadGuild();
     postGuildInfo();
+    refreshGuildWarList(false);
 
     for(const auto memberDBID: dbidList){
         if(memberDBID != dbid()){
@@ -3524,11 +3540,90 @@ void Player::postGuildError(int error)
     postNetMessage(SM_GUILDERROR, smGE);
 }
 
+// gold is taken only when the war gets declared, the leader is checked in database
+int Player::declareGuildWar(const std::string &enemyName, size_t cost)
+{
+    if(gold() < cost){
+        return GUILDERR_NOGOLD;
+    }
+
+    const auto enemyID = dbDeclareGuildWar(dbid(), enemyName);
+    if(!enemyID.has_value()){
+        return enemyID.error();
+    }
+
+    if(cost){
+        setGold(gold() - cost);
+    }
+
+    auto dbidList = dbLoadGuildMemberList(dbLoadGuildID(dbid()));
+    std::ranges::copy(dbLoadGuildMemberList(enemyID.value()), std::back_inserter(dbidList));
+
+    updateGuild(dbidList);
+    return GUILDERR_NONE;
+}
+
+// postAll tells every war again, for a client which just logged in
+void Player::refreshGuildWarList(bool postAll)
+{
+    const auto now = hres_tstamp::epoch();
+    auto warList = m_guild ? dbLoadGuildWarList(m_guild->guildID, now) : std::vector<SDGuildWar>{};
+
+    for(const auto &war: warList){
+        // a war declared again has a new end time, it counts as a new war
+        const bool newWar = std::ranges::find(m_guildWarList, war) == m_guildWarList.end();
+        if(newWar){
+            scheduleGuildWarEnd(war);
+        }
+
+        if(newWar || postAll){
+            postNetMessage(SM_TEXT, str_printf(u8"你的行会正在和%s行会进行行会战争，还剩%llu分钟", war.guildName.c_str(), to_llu((war.endTime - now + 59) / 60)));
+        }
+    }
+
+    m_guildWarList = std::move(warList);
+    postNetMessage(SM_GUILDWARLIST, cerealf::serialize(SDGuildWarList
+    {
+        .guildID = m_guild ? m_guild->guildID : 0,
+        .warList = m_guildWarList,
+    }));
+}
+
+void Player::scheduleGuildWarEnd(const SDGuildWar &war)
+{
+    const auto now = hres_tstamp::epoch();
+    addDelay((war.endTime > now ? war.endTime - now : 0) * 1000 + 500, [war, this](bool timeout)
+    {
+        if(!timeout){
+            return;
+        }
+
+        // gone with a guild change, or declared again which has its own timer
+        if(std::ranges::find(m_guildWarList, war) == m_guildWarList.end()){
+            return;
+        }
+
+        if(hres_tstamp::epoch() < war.endTime){
+            scheduleGuildWarEnd(war);
+            return;
+        }
+
+        postNetMessage(SM_TEXT, str_printf(u8"你的行会和%s行会的行会战争结束了", war.guildName.c_str()));
+        refreshGuildWarList(false);
+    });
+}
+
+bool Player::atGuildWar(uint64_t playerUID) const
+{
+    return m_guild && dbAtGuildWar(m_guild->guildID, dbLoadGuildID(uidf::getPlayerDBID(playerUID)));
+}
+
 SDPlayerGuild Player::buildPlayerGuild(uint32_t argDBID, const std::optional<DBGuildMembership> &guild)
 {
     return SDPlayerGuild
     {
         .dbid = argDBID,
+        .guildID = guild ? guild->guildID : 0,
         .guildName = guild ? guild->guildName : std::string{},
         .title = guild ? guild->title : std::string{},
     };

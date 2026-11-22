@@ -432,3 +432,89 @@ std::expected<std::vector<uint32_t>, int> dbDisbandGuild(uint32_t leaderDBID)
     transaction.commit();
     return memberList;
 }
+
+std::expected<uint32_t, int> dbDeclareGuildWar(uint32_t leaderDBID, const std::string &enemyName, uint64_t now)
+{
+    auto transaction = g_dbPod->createTransaction();
+    const auto guildID = dbLoadLedGuildID(leaderDBID);
+
+    if(!guildID.has_value()){
+        return std::unexpected(guildID.error());
+    }
+
+    const auto enemyID = [&enemyName]() -> uint32_t
+    {
+        auto query = g_dbPod->createQuery("select fld_id from tbl_guild where fld_name = ?");
+        query.bind(1, enemyName);
+
+        if(query.executeStep()){
+            return check_cast<uint32_t, unsigned>(query.getColumn("fld_id"));
+        }
+        return 0;
+    }();
+
+    if(!enemyID){
+        return std::unexpected(GUILDERR_BADTARGET);
+    }
+
+    if(enemyID == guildID.value()){
+        return std::unexpected(GUILDERR_SELFWAR);
+    }
+
+    g_dbPod->exec(
+        u8R"###( insert or replace into tbl_guildwar(fld_guild1, fld_guild2, fld_endtime) )###"
+        u8R"###( values                                                                 )###"
+        u8R"###(     (%llu, %llu, %llu)                                                 )###",
+
+        to_llu(std::min(guildID.value(), enemyID)),
+        to_llu(std::max(guildID.value(), enemyID)),
+        to_llu(now + SYS_GUILDWARTIME));
+
+    transaction.commit();
+    return enemyID;
+}
+
+bool dbAtGuildWar(uint32_t guildID, uint32_t otherGuildID, uint64_t now)
+{
+    if(!guildID || !otherGuildID || guildID == otherGuildID){
+        return false;
+    }
+
+    return g_dbPod->createQuery(
+        u8R"###( select 1 from tbl_guildwar where fld_guild1 = %llu and fld_guild2 = %llu and fld_endtime > %llu )###",
+
+        to_llu(std::min(guildID, otherGuildID)),
+        to_llu(std::max(guildID, otherGuildID)),
+        to_llu(now)).executeStep();
+}
+
+std::vector<SDGuildWar> dbLoadGuildWarList(uint32_t guildID, uint64_t now)
+{
+    std::vector<SDGuildWar> warList;
+    auto query = g_dbPod->createQuery(
+        u8R"###( select                                                                                                   )###"
+        u8R"###(     tbl_guild.fld_id, tbl_guild.fld_name, tbl_guildwar.fld_endtime                                      )###"
+        u8R"###( from                                                                                                     )###"
+        u8R"###(     tbl_guildwar join tbl_guild                                                                          )###"
+        u8R"###(     on                                                                                                   )###"
+        u8R"###(         tbl_guild.fld_id = case tbl_guildwar.fld_guild1 when %llu then tbl_guildwar.fld_guild2 else tbl_guildwar.fld_guild1 end )###"
+        u8R"###( where                                                                                                    )###"
+        u8R"###(     (tbl_guildwar.fld_guild1 = %llu or tbl_guildwar.fld_guild2 = %llu) and tbl_guildwar.fld_endtime > %llu )###"
+        u8R"###( order by                                                                                                 )###"
+        u8R"###(     tbl_guildwar.fld_endtime, tbl_guild.fld_id                                                           )###",
+
+        to_llu(guildID),
+        to_llu(guildID),
+        to_llu(guildID),
+        to_llu(now));
+
+    while(query.executeStep()){
+        warList.push_back(SDGuildWar
+        {
+            .guildID = check_cast<uint32_t, unsigned>(query.getColumn("fld_id")),
+            .guildName = query.getColumn("fld_name").getString(),
+            .endTime = check_cast<uint64_t>(query.getColumn("fld_endtime").getInt64()),
+        });
+    }
+    return warList;
+}

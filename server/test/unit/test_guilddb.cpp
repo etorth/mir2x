@@ -320,3 +320,63 @@ TEST_CASE_METHOD(DatabaseTestEnvironment, "Notice And Title", "[unit][guilddb]")
     CHECK(dbFindCharDBID("char_3") == 3);
     CHECK(dbFindCharDBID("nobody") == 0);
 }
+
+TEST_CASE_METHOD(DatabaseTestEnvironment, "Guild War", "[unit][guilddb]")
+{
+    const auto otherID = createGuild(3, u8"另一个");
+    const auto guildID = createGuild(1, u8"沙巴克");
+    REQUIRE(addMember(1, 2) == GUILDERR_NONE);
+    REQUIRE(guildID > otherID); // the pair gets stored in reversed order
+
+    constexpr uint64_t now = 1000;
+    CHECK(errorOf(dbDeclareGuildWar(2, to_cstr(u8"另一个"), now)) == GUILDERR_NOTLEADER);
+    CHECK(errorOf(dbDeclareGuildWar(4, to_cstr(u8"另一个"), now)) == GUILDERR_NOGUILD);
+    CHECK(errorOf(dbDeclareGuildWar(1, "nosuchguild", now)) == GUILDERR_BADTARGET);
+    CHECK(errorOf(dbDeclareGuildWar(1, to_cstr(u8"沙巴克"), now)) == GUILDERR_SELFWAR);
+    CHECK(!dbAtGuildWar(guildID, otherID, now));
+
+    const auto enemyID = dbDeclareGuildWar(1, to_cstr(u8"另一个"), now);
+    REQUIRE(enemyID.has_value());
+    CHECK(enemyID.value() == otherID);
+
+    CHECK(dbAtGuildWar(guildID, otherID, now));
+    CHECK(dbAtGuildWar(otherID, guildID, now));
+    CHECK(!dbAtGuildWar(guildID, guildID, now));
+    CHECK(!dbAtGuildWar(guildID, 0, now));
+
+    // both sides see it
+    const auto warList = dbLoadGuildWarList(guildID, now);
+    REQUIRE(warList.size() == 1);
+    CHECK(warList[0].guildID == otherID);
+    CHECK(warList[0].guildName == to_cstr(u8"另一个"));
+    CHECK(warList[0].endTime == now + SYS_GUILDWARTIME);
+
+    const auto otherWarList = dbLoadGuildWarList(otherID, now);
+    REQUIRE(otherWarList.size() == 1);
+    CHECK(otherWarList[0].guildID == guildID);
+    CHECK(otherWarList[0].guildName == to_cstr(u8"沙巴克"));
+
+    // it ends by itself
+    const auto endTime = now + SYS_GUILDWARTIME;
+    CHECK( dbAtGuildWar(guildID, otherID, endTime - 1));
+    CHECK(!dbAtGuildWar(guildID, otherID, endTime));
+    CHECK(dbLoadGuildWarList(guildID, endTime).empty());
+
+    // declaring again restarts it, from either side
+    REQUIRE(dbDeclareGuildWar(3, to_cstr(u8"沙巴克"), endTime + 10).has_value());
+    CHECK(dbAtGuildWar(guildID, otherID, endTime + 10));
+    CHECK(dbLoadGuildWarList(guildID, endTime + 10).at(0).endTime == endTime + 10 + SYS_GUILDWARTIME);
+    CHECK(countRows("tbl_guildwar") == 1);
+
+    // a third guild has its own wars
+    const auto thirdID = createGuild(4, u8"第三个");
+    REQUIRE(dbDeclareGuildWar(4, to_cstr(u8"沙巴克"), endTime + 20).has_value());
+    CHECK(dbLoadGuildWarList(guildID, endTime + 20).size() == 2);
+    CHECK(dbLoadGuildWarList(otherID, endTime + 20).size() == 1);
+    CHECK(!dbAtGuildWar(otherID, thirdID, endTime + 20));
+
+    // and a war dies with its guild
+    REQUIRE(dbDisbandGuild(1).has_value());
+    CHECK(countRows("tbl_guildwar") == 0);
+    CHECK(dbLoadGuildWarList(otherID, endTime + 20).empty());
+}

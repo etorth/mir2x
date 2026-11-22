@@ -122,10 +122,14 @@ LuaModule::LuaModule()
 
     execString("GUILDERR_NONE      = %d", GUILDERR_NONE     );
     execString("GUILDERR_INGUILD   = %d", GUILDERR_INGUILD  );
+    execString("GUILDERR_NOGUILD   = %d", GUILDERR_NOGUILD  );
+    execString("GUILDERR_NOTLEADER = %d", GUILDERR_NOTLEADER);
     execString("GUILDERR_BADNAME   = %d", GUILDERR_BADNAME  );
     execString("GUILDERR_NAMETAKEN = %d", GUILDERR_NAMETAKEN);
     execString("GUILDERR_NOGOLD    = %d", GUILDERR_NOGOLD   );
     execString("GUILDERR_NOITEM    = %d", GUILDERR_NOITEM   );
+    execString("GUILDERR_BADTARGET = %d", GUILDERR_BADTARGET);
+    execString("GUILDERR_SELFWAR   = %d", GUILDERR_SELFWAR  );
 
     execString("DIR_UP        = %d", DIR_UP       );
     execString("DIR_UPRIGHT   = %d", DIR_UPRIGHT  );

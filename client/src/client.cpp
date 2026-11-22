@@ -297,6 +297,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_GUILDERROR)
         _INSTALL_SM_HANDLER(ProcessRun, SM_GUILDINFO)
         _INSTALL_SM_HANDLER(ProcessRun, SM_GUILDCHAT)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_GUILDWARLIST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_REQUESTDIRECTTRADE)
         _INSTALL_SM_HANDLER(ProcessRun, SM_STARTDIRECTTRADE)
         _INSTALL_SM_HANDLER(ProcessRun, SM_UPDATEDIRECTTRADE)

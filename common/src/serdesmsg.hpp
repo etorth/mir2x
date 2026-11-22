@@ -728,12 +728,38 @@ struct SDNPCName
 struct SDPlayerGuild
 {
     uint32_t dbid = 0;
-    std::string guildName {}; // empty if not in a guild
+    uint32_t guildID = 0; // 0 if not in a guild
+    std::string guildName {};
     std::string title {};
 
     template<typename Archive> void serialize(Archive &ar)
     {
-        ar(dbid, guildName, title);
+        ar(dbid, guildID, guildName, title);
+    }
+};
+
+struct SDGuildWar
+{
+    uint32_t guildID = 0; // the enemy
+    std::string guildName {};
+    uint64_t endTime = 0; // epoch seconds
+
+    bool operator == (const SDGuildWar &) const = default;
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(guildID, guildName, endTime);
+    }
+};
+
+struct SDGuildWarList
+{
+    uint32_t guildID = 0; // my guild, 0 if not in a guild
+    std::vector<SDGuildWar> warList {};
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(guildID, warList);
     }
 };
 

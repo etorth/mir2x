@@ -665,8 +665,10 @@ corof::awaitable<> Player::on_AM_NOTIFYDEAD(const ActorMsgPack &mpk)
     // don't ask the offender list here: the dead one lands on it the moment it defends itself,
     // which would turn every murder into self defense. the aggression mark was taken when I
     // opened fire, before the victim could hit back, so it is the only honest answer
+    //
+    // killing a member of a guild my guild is at war with is no murder
 
-    if(amND.UID && uidf::isPlayer(amND.UID) && hasAggression(amND.UID)){
+    if(amND.UID && uidf::isPlayer(amND.UID) && hasAggression(amND.UID) && !atGuildWar(amND.UID)){
         addPKPoint(SYS_PKPOINTPERKILL);
     }
 
@@ -1039,6 +1041,7 @@ corof::awaitable<> Player::on_AM_GUILDUPDATE(const ActorMsgPack &)
 {
     reloadGuild();
     postGuildInfo();
+    refreshGuildWarList(false);
     return {};
 }
 

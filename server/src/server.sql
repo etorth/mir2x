@@ -261,6 +261,20 @@ create table tbl_guildinvite(
     primary key (fld_dbid, fld_guild)
 ) strict;
 
+-- one row per pair, smaller guild id first, a row past fld_endtime is no war and stays until declared again
+create table tbl_guildwar(
+    fld_guild1         integer not null,
+    fld_guild2         integer not null,
+    fld_endtime        integer not null,
+
+    foreign key (fld_guild1) references tbl_guild(fld_id) on delete cascade,
+    foreign key (fld_guild2) references tbl_guild(fld_id) on delete cascade,
+    primary key (fld_guild1, fld_guild2),
+    check(fld_guild1 < fld_guild2)
+) strict;
+
+create index tbl_guildwar_guild2_index on tbl_guildwar(fld_guild2);
+
 -- a guild never goes without its leader, deleting the leader's char takes the guild down
 create trigger tbl_guildmember_leader_delete after delete on tbl_guildmember when old.fld_rank = 1
 begin

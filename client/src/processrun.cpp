@@ -3246,3 +3246,19 @@ bool ProcessRun::processStallBarEvent(const SDL_Event &event)
     }
     return tookEvent;
 }
+
+std::optional<uint32_t> ProcessRun::getGuildWarNameColor(uint32_t guildID) const
+{
+    if(!guildID || m_guildWarList.warList.empty()){
+        return std::nullopt;
+    }
+
+    if(std::ranges::any_of(m_guildWarList.warList, [guildID](const auto &war){ return war.guildID == guildID; })){
+        return colorf::RGB(0XFF, 0X4D, 0X00); // 朱红
+    }
+
+    if(guildID == m_guildWarList.guildID){
+        return colorf::RGB(0X50, 0X8C, 0XFF); // pure blue is hard to read on dark ground
+    }
+    return std::nullopt;
+}

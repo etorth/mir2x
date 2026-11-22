@@ -52,6 +52,20 @@ function player.createGuild(uid, guildName, gold, item)
     return uidRemoteCall(uid, guildName, gold, itemID, [[ return createGuild(...) ]])
 end
 
+function player.isGuildLeader(uid) return uidRemoteCall(uid, [[ return isGuildLeader() ]]) end
+
+-- gold is taken only when the war gets declared, returns GUILDERR_NONE or why it failed
+function player.declareGuildWar(uid, enemyGuildName, gold)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(enemyGuildName, 'string')
+    assertType(gold, 'integer')
+    assert(gold >= 0)
+
+    return uidRemoteCall(uid, enemyGuildName, gold, [[ return declareGuildWar(...) ]])
+end
+
 function player.getTeamLeader    (uid) return uidRemoteCall(uid, [[ return getTeamLeader    () ]]) end
 function player.getTeamMemberList(uid) return uidRemoteCall(uid, [[ return getTeamMemberList() ]]) end
 

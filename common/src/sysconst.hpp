@@ -105,6 +105,7 @@ constexpr size_t SYS_STALLNAMESIZE = 48; // bytes of utf-8 stall name, including
 constexpr size_t SYS_GUILDNAMESIZE = 32; // bytes of utf-8 guild name, including the null terminator
 constexpr size_t SYS_GUILDTITLESIZE = 32; // bytes of utf-8 rank title of a guild member, including the null terminator
 constexpr size_t SYS_GUILDNOTICESIZE = 1024; // bytes of utf-8 guild notice, including the null terminator
+constexpr size_t SYS_GUILDWARTIME = 60 * 60; // seconds, declaring again restarts it
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)

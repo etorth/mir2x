@@ -119,6 +119,9 @@ class Player final: public BattleObject
         // cache of tbl_guildmember, reloaded after every change since other players can change it in database directly
         std::optional<DBGuildMembership> m_guild;
 
+        // what the client has been told, the database decides whether a kill is a war kill
+        std::vector<SDGuildWar> m_guildWarList;
+
     private:
         bool m_pickUpLock = false;
 
@@ -413,6 +416,12 @@ class Player final: public BattleObject
         void postGuildError(int);
         void updateGuild(const std::vector<uint32_t> &);
         void postSystemMessage(uint32_t, const std::string &);
+
+    private:
+        int declareGuildWar(const std::string &, size_t);
+        void refreshGuildWarList(bool);
+        void scheduleGuildWarEnd(const SDGuildWar &);
+        bool atGuildWar(uint64_t) const;
 
     private:
         static SDPlayerGuild buildPlayerGuild(uint32_t, const std::optional<DBGuildMembership> &);

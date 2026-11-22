@@ -122,6 +122,7 @@ enum SMType: uint8_t
     SM_GUILDERROR,
     SM_GUILDINFO,
     SM_GUILDCHAT,
+    SM_GUILDWARLIST,
     SM_END,
 };
 
@@ -634,6 +635,7 @@ namespace
         _RSVD_register_servermsg(SM_GUILDERROR,             1, sizeof(SMGuildError)            );
         _RSVD_register_servermsg(SM_GUILDINFO,              3                                  );
         _RSVD_register_servermsg(SM_GUILDCHAT,              1, sizeof(SMGuildChat)             );
+        _RSVD_register_servermsg(SM_GUILDWARLIST,           3                                  );
 
 #undef _RSVD_register_servermsg
         return result;
