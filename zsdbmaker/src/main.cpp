@@ -216,10 +216,21 @@ static void cmd_create_db(const argh::parser &cmd)
             throw fflpanic("comp-ratio-threshold requires an argument");
         }
 
+        // std::stod, not std::from_chars: macOS libc++ has floating-point from_chars only since macOS 26
         const auto thresholdStr = cmd("comp-ratio-threshold").str();
-        double threshold = 0.0;
+        size_t usedLen = 0;
 
-        if(const auto [ptr, ec] = std::from_chars(thresholdStr.data(), thresholdStr.data() + thresholdStr.size(), threshold); ec != std::errc{} || ptr != thresholdStr.data() + thresholdStr.size()){
+        const auto threshold = [&thresholdStr, &usedLen]() -> double
+        {
+            try{
+                return std::stod(thresholdStr, &usedLen);
+            }
+            catch(const std::exception &){
+                throw fflpanic("invalid comp-ratio-threshold: {}", thresholdStr);
+            }
+        }();
+
+        if(usedLen != thresholdStr.size()){
             throw fflpanic("invalid comp-ratio-threshold: {}", thresholdStr);
         }
 
