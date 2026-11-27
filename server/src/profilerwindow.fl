@@ -46,7 +46,7 @@ class ProfilerWindow {} {
   } {
     code {{
     std::string logBuf;
-    const auto f = [&logBuf, this](const std::string &s)
+    const auto f = [&logBuf](const std::string &s)
     {
     	logBuf += s;
     };

@@ -970,7 +970,7 @@ g_aboutWindow->showAll();}
     std::vector<uint32_t> origDstBuf(dstW * dstH, 0);
     auto dstPtr = origDstBuf.data();
 
-    const auto fnBufDrawImage = [this, dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
+    const auto fnBufDrawImage = [dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
     {
         extern ImageMapDB *g_imageMapDB;
         extern EditorMap g_editorMap;

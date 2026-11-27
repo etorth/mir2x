@@ -48,7 +48,7 @@ class MainWindow {} {
         extern ServerPasswordWindow *g_serverPasswordWindow;
         g_serverPasswordWindow->setTitle("Please set server password:");
 
-	auto fnLaunchCallback = [this](ServerPasswordWindow *)
+	auto fnLaunchCallback = [](ServerPasswordWindow *)
         {
             extern Server *g_server;
             delete g_server;
