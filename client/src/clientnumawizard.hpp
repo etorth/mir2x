@@ -26,7 +26,7 @@ class ClientNumaWizard: public ClientMonster
         }
 
     protected:
-        bool onActionAttack(const ActionNode &action)
+        bool onActionAttack(const ActionNode &action) override
         {
             if(isMonster(u8"诺玛法老")){
                 return onActionAttack_fireBall(action);

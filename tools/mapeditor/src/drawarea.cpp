@@ -460,7 +460,7 @@ int DrawArea::handle(int event)
                 }
             case FL_KEYDOWN:
                 {
-                    const auto [dx, dy] = [this]() -> std::tuple<int, int>
+                    const auto [dx, dy] = []() -> std::tuple<int, int>
                     {
                         switch(Fl::event_key()){
                             case FL_Up   : return { 0, -1};
@@ -712,7 +712,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
     // based on different image type
 
     const int  objFileIndex = to_d(imageIndex >> 16);
-    const int objImageIndex = to_d(imageIndex && 0X0000FFFF);
+    const int objImageIndex = to_d(imageIndex & 0X0000FFFF);
 
     const auto [textBoxW, textBoxH] = [objFileIndex, floatObj]() -> std::tuple<int, int>
     {

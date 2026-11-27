@@ -564,7 +564,7 @@ void Widget::update(double fUpdateTime)
 
 void Widget::updateDefault(double fUpdateTime)
 {
-    foreachChild(false, [fUpdateTime, this](Widget *widget, bool)
+    foreachChild(false, [fUpdateTime](Widget *widget, bool)
     {
         widget->update(fUpdateTime);
     });

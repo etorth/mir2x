@@ -390,7 +390,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   return g_sdlDevice->getWindowFullscreen();
                               },
 
-                              .setter=[this](bool value)
+                              .setter=[](bool value)
                               {
                                   g_sdlDevice->flipWindowFullscreen(value);
                               },

@@ -47,7 +47,7 @@ ChatPreviewItem::ChatPreviewItem(
           .w = ChatPreviewItem::AVATAR_WIDTH,
           .h = ChatPreviewItem::HEIGHT - ChatPreviewItem::ITEM_MARGIN * 2,
 
-          .texLoadFunc = [this](const Widget *) -> SDL_Texture *
+          .texLoadFunc = [](const Widget *) -> SDL_Texture *
           {
               return g_progUseDB->retrieve(0X010007CF);
           },

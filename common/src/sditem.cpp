@@ -61,7 +61,7 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
         xmlStr += str_printf(u8R"###( <par></par> )###""\n");
     }
 
-    const auto fnAddAttrValuePair = [&xmlStr, this](int val0, int val1, const char8_t *valName, std::optional<int> extAttr)
+    const auto fnAddAttrValuePair = [&xmlStr](int val0, int val1, const char8_t *valName, std::optional<int> extAttr)
     {
         if(val0 > 0 || val1 > 0 || (extAttr.has_value() && extAttr.value() != 0)){
             const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));
@@ -69,7 +69,7 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
         }
     };
 
-    const auto fnAddAttrValue = [&xmlStr, this](int val, const char8_t *valName, std::optional<int> extAttr)
+    const auto fnAddAttrValue = [&xmlStr](int val, const char8_t *valName, std::optional<int> extAttr)
     {
         if(val || (extAttr.has_value() && extAttr.value() != 0)){
             const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));

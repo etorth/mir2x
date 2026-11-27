@@ -1289,7 +1289,7 @@ bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
             return std::max<int>(0, node.damage - combatNode.randPickAC());
         }
 
-        const double elemRatio = std::max<double>(0.0, 1.0 + 0.1 * [&node, &combatNode, this]() -> int
+        const double elemRatio = std::max<double>(0.0, 1.0 + 0.1 * [&node, &combatNode]() -> int
         {
             const auto &mr = DBCOM_MAGICRECORD(node.magicID);
             fflassert(mr);

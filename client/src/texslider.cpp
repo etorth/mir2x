@@ -14,11 +14,11 @@ TexSlider::TexSlider(TexSlider::InitArgs args)
           .bar = std::move(args.bar),
           .slider
           {
-              .cx = [index = args.index, this]{ return TexSlider::getSliderTexInfo(index)->ox; },
-              .cy = [index = args.index, this]{ return TexSlider::getSliderTexInfo(index)->oy; },
+              .cx = [index = args.index]{ return TexSlider::getSliderTexInfo(index)->ox; },
+              .cy = [index = args.index]{ return TexSlider::getSliderTexInfo(index)->oy; },
 
-              .w = [index = args.index, this]{ return SDLDeviceHelper::getTextureWidth (g_progUseDB->retrieve(TexSlider::getSliderTexInfo(index)->texID)); },
-              .h = [index = args.index, this]{ return SDLDeviceHelper::getTextureHeight(g_progUseDB->retrieve(TexSlider::getSliderTexInfo(index)->texID)); },
+              .w = [index = args.index]{ return SDLDeviceHelper::getTextureWidth (g_progUseDB->retrieve(TexSlider::getSliderTexInfo(index)->texID)); },
+              .h = [index = args.index]{ return SDLDeviceHelper::getTextureHeight(g_progUseDB->retrieve(TexSlider::getSliderTexInfo(index)->texID)); },
           },
 
           .value = args.value,
@@ -36,7 +36,7 @@ TexSlider::TexSlider(TexSlider::InitArgs args)
                   {
                       {new ImageBoard
                       {{
-                          .texLoadFunc = [index = args.index, this] -> SDL_Texture *
+                          .texLoadFunc = [index = args.index] -> SDL_Texture *
                           {
                               return g_progUseDB->retrieve(TexSlider::getSliderTexInfo(index)->texID);
                           },
@@ -92,8 +92,8 @@ TexSlider::TexSlider(TexSlider::InitArgs args)
 
                       DIR_NONE,
 
-                      [index = args.index, this]{ return TexSlider::getSliderTexInfo(index)->ox; },
-                      [index = args.index, this]{ return TexSlider::getSliderTexInfo(index)->oy; },
+                      [index = args.index]{ return TexSlider::getSliderTexInfo(index)->ox; },
+                      [index = args.index]{ return TexSlider::getSliderTexInfo(index)->oy; },
 
                       true},
                   }

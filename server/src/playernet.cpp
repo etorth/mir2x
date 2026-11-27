@@ -1146,7 +1146,7 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
 {
     const auto cmRGW = ClientMsg::conv<CMRequestGrabWear>(buf);
     const auto wltype = to_d(cmRGW.wltype);
-    const auto fnPostGrabError = [&cmRGW, this](int grabError)
+    const auto fnPostGrabError = [this](int grabError)
     {
         SMGrabWearError smGWE;
         std::memset(&smGWE, 0, sizeof(smGWE));
@@ -1194,7 +1194,7 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
 corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRGB = ClientMsg::conv<CMRequestGrabBelt>(buf);
-    const auto fnPostGrabError = [&cmRGB, this](int grabError)
+    const auto fnPostGrabError = [this](int grabError)
     {
         SMGrabBeltError smGBE;
         std::memset(&smGBE, 0, sizeof(smGBE));

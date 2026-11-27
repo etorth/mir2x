@@ -12,7 +12,7 @@ class ClientSandCactus: public ClientMonster
         bool onActionAttack(const ActionNode &) override;
 
     protected:
-        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int) const
+        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int) const override
         {
             switch(motion){
                 case MOTION_MON_STAND  : return {.count =  1};

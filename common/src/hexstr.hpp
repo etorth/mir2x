@@ -21,8 +21,11 @@ namespace hexstr
         };
 
         constexpr size_t fillByteN = (ByteN) ? (std::min<size_t>)(ByteN, sizeof(T)) : sizeof(T);
-        for(size_t i = 0; i < fillByteN; ++i, (key >>= 8)){
+        for(size_t i = 0; i < fillByteN; ++i){
             std::memcpy(strBuf + 2 * (fillByteN - i - 1), &(hexStrChunk[(key & 0XFF)]), sizeof(uint16_t));
+            if constexpr(sizeof(T) > 1){
+                key >>= 8; // clang: shifting an 8-bit T by 8 overflows its width
+            }
         }
 
         if(appendZero){

@@ -68,7 +68,7 @@ int LayerViewArea::handle(int event)
                 }
             case FL_KEYDOWN:
                 {
-                    const auto [dx, dy] = [this]() -> std::tuple<int, int>
+                    const auto [dx, dy] = []() -> std::tuple<int, int>
                     {
                         switch(Fl::event_key()){
                             case FL_Up   : return { 0, -1};

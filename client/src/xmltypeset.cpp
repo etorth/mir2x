@@ -255,7 +255,7 @@ void XMLTypeset::LinePadding(int argLine)
     // final round
     // for lines have only emoji/image, all previous padding cannot help
 
-    if(fnLeafPadding([this](int, int) -> bool
+    if(fnLeafPadding([](int, int) -> bool
     {
         return true;
     }) == targetWidth){

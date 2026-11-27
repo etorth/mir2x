@@ -1731,17 +1731,15 @@ void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 void ProcessRun::centerMyHero()
 {
     const auto nMotion     = getMyHero()->currMotion()->type;
-    const auto nDirection  = getMyHero()->currMotion()->direction;
     const auto nX          = getMyHero()->currMotion()->x;
     const auto nY          = getMyHero()->currMotion()->y;
-    const auto currFrame   = getMyHero()->currMotion()->frame;
     const auto frameCount  = getMyHero()->getFrameCount(getMyHero()->currMotion());
 
     if(frameCount <= 0){
         throw fflpanic("invalid frame count: {}", frameCount);
     }
 
-    const auto fnSetOff = [this, nX, nY, nDirection, currFrame, frameCount](int stepLen)
+    const auto fnSetOff = [this, nX, nY](int stepLen)
     {
         const auto [winLogicalWidth, winLogicalHeight] = g_sdlDevice->getWindowLogicalSize();
 

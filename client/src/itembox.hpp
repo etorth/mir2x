@@ -58,7 +58,7 @@ class ItemBox: public Widget
 
 void ItemBox::clearItem(std::invocable<const Widget *, bool> auto func)
 {
-    m_canvas->foreachChild([func, this](auto container, bool)
+    m_canvas->foreachChild([func](auto container, bool)
     {
         if(auto mc = dynamic_cast<MarginContainer *>(container)){
             if(const auto [item, autoDelete] = mc->containedPair(); func(item, autoDelete)){

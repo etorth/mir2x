@@ -20,6 +20,10 @@ class EnableAddCO
     public:
         explicit EnableAddCO(ActorPod *);
 
+    public:
+        // ServerMap keeps an EnableServerMapAddCO in std::unique_ptr<EnableAddCO>
+        virtual ~EnableAddCO() = default;
+
     protected:
         virtual corof::awaitable<> onMsgAddCO(const ActorMsgPack &);
 

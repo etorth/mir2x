@@ -53,7 +53,7 @@ QuickAccessBoard::QuickAccessBoard(
     , m_processRun(argProc)
     , m_bg
       {{
-          .texLoadFunc = [this]{ return g_progUseDB->retrieve(m_texID); },
+          .texLoadFunc = []{ return g_progUseDB->retrieve(m_texID); },
           .parent{this},
       }}
 

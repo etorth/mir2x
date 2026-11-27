@@ -266,7 +266,7 @@ void ItemListBoard::drawDefault(Widget::ROIMap m) const
             }
 
             const bool gridSelected = m_selectedPageGrid.has_value() && (m_selectedPageGrid.value() == i);
-            const bool cursorOn = [rightBoxX, rightBoxY, remapXDiff, remapYDiff, this]() -> bool
+            const bool cursorOn = [rightBoxX, rightBoxY, remapXDiff, remapYDiff]() -> bool
             {
                 const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                 return mathf::pointInRectangle<int>(mousePX, mousePY, remapXDiff + rightBoxX, remapYDiff + rightBoxY, m_boxW, m_boxH);

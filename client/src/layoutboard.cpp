@@ -765,7 +765,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                             }
 
                             else if((ime == IME_EMBEDED) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
-                                g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString, this](std::string s)
+                                g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString](std::string s)
                                 {
                                     fnInsertString(std::move(s));
                                 });

@@ -572,7 +572,7 @@ void PurchaseBoard::drawExt1(Widget::ROIMap m) const
 
             const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
             const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
-            const bool cursorOn = [rightBoxX, rightBoxY, mousePX, mousePY, remapX, remapY, this]() -> bool
+            const bool cursorOn = [rightBoxX, rightBoxY, mousePX, mousePY, remapX, remapY]() -> bool
             {
                 return mathf::pointInRectangle<int>(mousePX, mousePY, remapX + rightBoxX, remapY + rightBoxY, m_boxW, m_boxH);
             }();

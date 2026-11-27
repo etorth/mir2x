@@ -15,11 +15,11 @@ class LayerViewArea: public BaseArea
         {}
 
     public:
-        void draw();
-        int  handle(int);
+        void draw() override;
+        int  handle(int) override;
 
     public:
-        std::tuple<int, int> offset() const;
+        std::tuple<int, int> offset() const override;
 
     private:
         void drawGrid();

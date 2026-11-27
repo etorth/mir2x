@@ -55,7 +55,7 @@ CBTitle::CBTitle(
           25,
 
           argProc,
-          [this](Widget *self, int) // double-click
+          [](Widget *self, int) // double-click
           {
               auto &hide = self->hasParent<ControlBoard>()->m_minimize; hide = !hide;
           },

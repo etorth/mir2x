@@ -80,7 +80,7 @@ HorseBoard::HorseBoard(
 
           .texAniOpt = 0X00000710,
 
-          .onTrigger = [this](Widget *, int)
+          .onTrigger = [](Widget *, int)
           {
           },
 
@@ -94,7 +94,7 @@ HorseBoard::HorseBoard(
 
           .texAniOpt = 0X00000720,
 
-          .onTrigger = [this](Widget *, int)
+          .onTrigger = [](Widget *, int)
           {
           },
 
@@ -108,7 +108,7 @@ HorseBoard::HorseBoard(
 
           .texAniOpt = 0X00000730,
 
-          .onTrigger = [this](Widget *, int)
+          .onTrigger = [](Widget *, int)
           {
           },
 
@@ -122,7 +122,7 @@ HorseBoard::HorseBoard(
 
           .texAniOpt = 0X00000740,
 
-          .onTrigger = [this](Widget *, int)
+          .onTrigger = [](Widget *, int)
           {
           },
 

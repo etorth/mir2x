@@ -138,7 +138,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return sol::as_returns(loc);
     });
 
-    bindFunction("countGLoc", [fullCount = -1, this](sol::variadic_args args) mutable
+    bindFunction("countGLoc", [this](sol::variadic_args args)
     {
         const std::vector<sol::object> argList(args.begin(), args.end());
         const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, this]() -> std::tuple<bool, int, int, int, int>
@@ -194,9 +194,6 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
         }
 
-        if(useFullMap){
-            fullCount = count; // cache
-        }
         return count;
     });
 

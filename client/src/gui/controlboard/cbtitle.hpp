@@ -22,7 +22,7 @@ class CBTitle: public Widget
         constexpr static int UP_HEIGHT_EXTRA = 3;
 
     private:
-        ProcessRun *m_processRun;
+        [[maybe_unused]] ProcessRun *m_processRun;
 
     private:
         ImageBoard m_bg;

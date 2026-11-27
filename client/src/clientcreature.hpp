@@ -114,7 +114,7 @@ class ClientCreature
         }
 
     public:
-        const auto currMotion() const
+        auto currMotion() const
         {
             if(m_currMotion){
                 return m_currMotion.get();

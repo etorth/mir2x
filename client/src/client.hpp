@@ -46,7 +46,7 @@ class Client final
         hres_timer m_clientTimer;
 
     private:
-        double m_serverDelay;
+        [[maybe_unused]] double m_serverDelay;
         double m_netPackTick;
 
     private:

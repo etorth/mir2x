@@ -219,7 +219,7 @@ class Player final: public BattleObject
 
     protected:
         void onInViewCODisappear(uint64_t) override;
-        corof::awaitable<> onActorMsg(const ActorMsgPack &);
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     private:
         corof::awaitable<> on_AM_EXP                (const ActorMsgPack &);
@@ -374,7 +374,7 @@ class Player final: public BattleObject
         void reportSecuredItemList();
 
     protected:
-        virtual void reportAction(uint64_t, uint64_t, const ActionNode &);
+        void reportAction(uint64_t, uint64_t, const ActionNode &);
 
     protected:
         corof::awaitable<bool> followTeamLeader();
@@ -437,7 +437,7 @@ class Player final: public BattleObject
         DamageNode getAttackDamage(int, int) const override;
 
     protected:
-        bool dcValid(int, bool);
+        bool dcValid(int, bool) override;
 
     protected:
         bool ActionValid(const ActionNode &);

@@ -100,7 +100,7 @@ ServerLuaModule::ServerLuaModule()
         }
     });
 
-    bindFunction("validMapGLoc", [this](sol::object mapVar, int x, int y) -> bool
+    bindFunction("validMapGLoc", [](sol::object mapVar, int x, int y) -> bool
     {
         return ServerObject::validMapGLoc(mapIDFromLuaObj(mapVar), x, y);
     });

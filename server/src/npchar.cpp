@@ -157,7 +157,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         }
     });
 
-    bindFunction("getSubukGuildName", [this]() -> std::string
+    bindFunction("getSubukGuildName", []() -> std::string
     {
         return "占领沙巴克行会的名字";
     });

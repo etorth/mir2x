@@ -197,7 +197,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                           {{
                               .texAniOpt = 0X00000023,
 
-                              .onTrigger = [this](Widget *, int)
+                              .onTrigger = [](Widget *, int)
                               {
                               },
                           }},
@@ -210,7 +210,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                           {{
                               .texAniOpt = 0X000008B0,
 
-                              .onTrigger = [this](Widget *, int)
+                              .onTrigger = [](Widget *, int)
                               {
                               },
                           }},
@@ -223,7 +223,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                           {{
                               .texAniOpt = 0X00000590,
 
-                              .onTrigger = [this](Widget *, int)
+                              .onTrigger = [](Widget *, int)
                               {
                               },
                           }},
@@ -1026,7 +1026,7 @@ void FriendChatBoard::queryChatPeer(const SDChatPeerID &sdCPID, std::function<vo
         std::memset(&cmQCPL, 0, sizeof(cmQCPL));
 
         cmQCPL.input.assign(std::to_string(sdCPID.id()));
-        g_client->send({CM_QUERYCHATPEERLIST, cmQCPL}, [sdCPID, argOp = std::move(argOp), this](uint8_t headCode, const uint8_t *data, size_t size)
+        g_client->send({CM_QUERYCHATPEERLIST, cmQCPL}, [sdCPID, argOp = std::move(argOp)](uint8_t headCode, const uint8_t *data, size_t size)
         {
             switch(headCode){
                 case SM_QUERYCHATPEERLISTOK:
@@ -1081,7 +1081,7 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
         }
     }();
 
-    auto peerIter = std::find_if(m_friendMessageList.begin(), m_friendMessageList.end(), [peerCPID, &sdCM](const auto &item)
+    auto peerIter = std::find_if(m_friendMessageList.begin(), m_friendMessageList.end(), [peerCPID](const auto &item)
     {
         return item.cpid == peerCPID;
     });

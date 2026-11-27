@@ -43,7 +43,7 @@ class PodMonitorTable: public Fl_TableImpl
         {}
 
     private:
-        bool rowSelected(int row) const
+        bool rowSelected(int row) const override
         {
             checkRowEx(row);
             return m_podDrawHelper.amProcMonitorList.at(row).amType == m_selectedAMType;
@@ -56,13 +56,13 @@ class PodMonitorTable: public Fl_TableImpl
         void drawHeader(const char *, int, int, int, int);
 
     protected:
-        std::string getGridData(int, int) const;
+        std::string getGridData(int, int) const override;
 
     private:
         static PodMonitorDrawHelper getPodMonitorDrawHelper(const ActorPodMonitor &);
 
     private:
-        void sortTable();
+        void sortTable() override;
         void setupColWidth();
 
     private:

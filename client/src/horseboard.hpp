@@ -10,7 +10,7 @@ class ProcessRun;
 class HorseBoard: public Widget
 {
     private:
-        ProcessRun *m_processRun;
+        [[maybe_unused]] ProcessRun *m_processRun;
 
     private:
         GfxShapeBoard m_greyBg;

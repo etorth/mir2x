@@ -24,8 +24,8 @@ class DrawArea: public BaseArea
         ~DrawArea() = default;
 
     public:
-        void draw();
-        int  handle(int);
+        void draw() override;
+        int  handle(int) override;
 
     public:
         std::tuple<int, int> offset() const override;

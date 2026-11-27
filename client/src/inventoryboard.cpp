@@ -238,7 +238,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin
                             .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
                         },
                     }};
-                    itemCount.draw({.dir=DIR_UPRIGHT, .x{startX + (binGridX + binGridW) * SYS_INVGRIDPW}, .y{startY + binGridY * SYS_INVGRIDPH - 2 /* pixel adjust */}});
+                    itemCount.draw({.dir=DIR_UPRIGHT, .x = startX + (binGridX + binGridW) * SYS_INVGRIDPW, .y = startY + binGridY * SYS_INVGRIDPH - 2 /* pixel adjust */});
                 }
             }
         }

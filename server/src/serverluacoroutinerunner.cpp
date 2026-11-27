@@ -781,7 +781,7 @@ template<typename... Args> corof::awaitable<std::vector<luaf::luaVar>> ServerLua
         }
     },
 
-    [&fnOnThreadDone, closed, this]()
+    [&fnOnThreadDone, closed]()
     {
         if(*closed){
             fnOnThreadDone({}, {luaf::luaVar(SYS_EXECCLOSE)});

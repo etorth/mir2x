@@ -16,7 +16,7 @@
 // MotionEffect::update() should guarentee that it won't swap motion
 // this helps to guarentee MotionEffect::m_motion keeps valid
 
-class MotionNode;
+struct MotionNode;
 class MotionEffect
 {
     protected:

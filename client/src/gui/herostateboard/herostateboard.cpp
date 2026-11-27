@@ -30,7 +30,7 @@ HeroStateBoard::HeroStateBoard(HeroStateBoard::InitArgs args)
           .y = []{ return g_sdlDevice->getWindowLogicalHeight() / 2; },
           .parent = std::move(args.parent),
       }}
-    , m_gridList([this]()
+    , m_gridList([]()
       {
           std::remove_cvref_t<decltype(this->m_gridList)> gridList;
           gridList.fill({});

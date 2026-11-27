@@ -65,7 +65,7 @@ class MapBinDB final: public innDB<uint32_t, MapBinElement, true> // threadSafe
             return {};
         }
 
-        virtual void freeResource(MapBinElement &element)
+        void freeResource(MapBinElement &element) override
         {
             element.data.reset(); // this only decreases ref count by 1
         }

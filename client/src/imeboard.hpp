@@ -32,7 +32,7 @@ class IMEBoard: public Widget
 
     private:
         IME m_ime;
-        bool m_active = true; // needs this because IME is used not only in ProcessRun
+        [[maybe_unused]] bool m_active = true; // needs this because IME is used not only in ProcessRun
 
     private:
         const Widget::FontConfig m_font;

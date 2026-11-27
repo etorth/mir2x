@@ -30,7 +30,7 @@ MyHeroStateBoard::MyHeroStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
           }
       }}
 
-    , m_gridList([this]()
+    , m_gridList([]()
       {
           std::remove_cvref_t<decltype(this->m_gridList)> gridList;
           gridList.fill({});
@@ -121,9 +121,9 @@ void MyHeroStateBoard::drawDefault(Widget::ROIMap m) const
         g_sdlDevice->drawTexture(texPtr, m.x, m.y);
     }
 
-    const auto fnDrawLabel = [m, this](int labelX, int labelY, const std::u8string &s, uint32_t color = colorf::WHITE)
+    const auto fnDrawLabel = [m](int labelX, int labelY, const std::u8string &s, uint32_t color = colorf::WHITE)
     {
-        LabelBoard{{.label = s.c_str(), .font{.color = colorf::maskRGB(color) + colorf::A_SHF(255)}}}.draw({.dir=DIR_NONE, .x{m.x + labelX}, .y{m.y + labelY}});
+        LabelBoard{{.label = s.c_str(), .font{.color = colorf::maskRGB(color) + colorf::A_SHF(255)}}}.draw({.dir=DIR_NONE, .x = m.x + labelX, .y = m.y + labelY});
     };
 
     const auto myHeroPtr = m_processRun->getMyHero();
@@ -179,15 +179,15 @@ void MyHeroStateBoard::drawDefault(Widget::ROIMap m) const
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.dcHit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
-    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x +  21}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 130}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x +  21}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 130}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 233}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), .font{9, 15}}}.draw({.x = m.x +  21, .y = m.y + 317});
+    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), .font{9, 15}}}.draw({.x = m.x + 130, .y = m.y + 317});
+    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str(), .font{9, 15}}}.draw({.x = m.x +  21, .y = m.y + 345});
+    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), .font{9, 15}}}.draw({.x = m.x + 130, .y = m.y + 345});
+    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str(), .font{9, 15}}}.draw({.x = m.x + 233, .y = m.y + 345});
 
-    LabelBoard{{.label = u8"攻击元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 376}});
-    LabelBoard{{.label = u8"防御元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 406}});
-    LabelBoard{{.label = u8"弱点元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 436}});
+    LabelBoard{{.label = u8"攻击元素", .font{9, 15}}}.draw({.x = m.x + 10, .y = m.y + 376});
+    LabelBoard{{.label = u8"防御元素", .font{9, 15}}}.draw({.x = m.x + 10, .y = m.y + 406});
+    LabelBoard{{.label = u8"弱点元素", .font{9, 15}}}.draw({.x = m.x + 10, .y = m.y + 436});
 
     for(int i = MET_BEGIN; i < MET_END; ++i){
         const auto [dcElem, acElem] = [i, &combatNode]() -> std::array<int, 2>

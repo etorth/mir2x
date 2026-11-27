@@ -107,7 +107,7 @@ class NPChar final: public CharObject
         corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
-        virtual std::set<uint32_t> getDefaultSellItemIDList() const;
+        std::set<uint32_t> getDefaultSellItemIDList() const;
 
     private:
         std::vector<SDCostItem> getCostItemList(const SDItem &) const;

@@ -449,7 +449,7 @@ LuaModule::LuaModule()
         return hexStr;
     });
 
-    bindFunction("randString", [this](sol::variadic_args args) -> std::string
+    bindFunction("randString", [](sol::variadic_args args) -> std::string
     {
         // generate random string
         // for debug purpose of utf8 layout board
@@ -508,32 +508,32 @@ LuaModule::LuaModule()
         return result;
     });
 
-    bindFunction("validXML", [this](const std::string &s)
+    bindFunction("validXML", [](const std::string &s)
     {
         return xmlf::validXML(s.c_str());
     });
 
-    bindFunction("validPar", [this](const std::string &s)
+    bindFunction("validPar", [](const std::string &s)
     {
         return xmlf::validPar(s.c_str());
     });
 
-    bindFunction("strAny", [this](sol::object obj) -> std::string
+    bindFunction("strAny", [](sol::object obj) -> std::string
     {
         return str_any(luaf::buildLuaVar(obj));
     });
 
-    bindFunction("strUpper", [this](std::string s) -> std::string
+    bindFunction("strUpper", [](std::string s) -> std::string
     {
         return str_toupper(s);
     });
 
-    bindFunction("strLower", [this](std::string s) -> std::string
+    bindFunction("strLower", [](std::string s) -> std::string
     {
         return str_tolower(s);
     });
 
-    bindFunction("base64Encode", [this](sol::object obj) -> std::string
+    bindFunction("base64Encode", [](sol::object obj) -> std::string
     {
         return cerealf::base64_serialize(luaf::buildLuaVar(obj));
     });

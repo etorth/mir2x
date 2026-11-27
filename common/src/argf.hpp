@@ -22,7 +22,7 @@ namespace argf
         constexpr static int masterPeerPort = 8000; // open to slave servers
     };
 
-    class parser: public argh::parser
+    class parser final: public argh::parser
     {
         public:
             parser(char *argv[])
@@ -86,7 +86,7 @@ namespace argf
             }
 
         protected:
-            virtual void print_message(const std::string &) const
+            void print_message(const std::string &) const
             {
             }
     };

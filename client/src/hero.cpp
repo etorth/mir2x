@@ -794,7 +794,7 @@ bool Hero::parseAction(const ActionNode &action)
                             }
                         case DBCOM_MAGICID(u8"风震天"):
                             {
-                                m_motionQueue.back()->addTrigger(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
+                                m_motionQueue.back()->addTrigger(true, [standDir, this](MotionNode *motionPtr) -> bool
                                 {
                                     if(motionPtr->frame < 4){
                                         return false;
@@ -1155,7 +1155,7 @@ bool Hero::parseAction(const ActionNode &action)
                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = MOTION_EXT_COMBINED,
-                    .direction = [&action, this]()
+                    .direction = [this]()
                     {
                         if(m_motionQueue.empty()){
                             return m_currMotion->direction;

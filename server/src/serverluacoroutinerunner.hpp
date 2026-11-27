@@ -77,7 +77,7 @@ class LuaCoopState final
 class LuaCoopVargs final
 {
     private:
-        sol::variadic_args m_vargs;
+        [[maybe_unused]] sol::variadic_args m_vargs;
 
     public:
         LuaCoopVargs(sol::variadic_args args)

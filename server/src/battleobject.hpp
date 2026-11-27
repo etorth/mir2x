@@ -116,7 +116,7 @@ class BattleObject: public CharObject
         void beforeActivate() override;
 
     protected:
-        virtual void reportCO(uint64_t) = 0;
+        void reportCO(uint64_t) override = 0;
 
     protected:
         virtual bool goDie();

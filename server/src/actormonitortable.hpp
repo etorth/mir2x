@@ -43,18 +43,18 @@ class ActorMonitorTable: public Fl_TableImpl
         static ActorMonitorDrawHelper getActorMonitorDrawHelper(const std::vector<ActorMonitor> &);
 
     private:
-        void sortTable();
+        void sortTable() override;
         void setupColWidth();
 
     private:
-        bool rowSelected(int row) const
+        bool rowSelected(int row) const override
         {
             checkRowEx(row);
             return m_actorMonitorList.at(row).uid == m_selectedUID;
         }
 
     public:
-        void updateTable();
+        void updateTable() override;
 
     private:
         int selectUIDRow(uint64_t);

@@ -115,7 +115,7 @@ class Monster: public BattleObject
         virtual corof::awaitable<bool> trackAttackUID(uint64_t             );
 
     protected:
-        bool dcValid(int, bool);
+        bool dcValid(int, bool) override;
 
     protected:
         bool struckDamage(uint64_t, const DamageNode &) override;

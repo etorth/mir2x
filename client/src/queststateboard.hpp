@@ -15,14 +15,14 @@ class QuestStateBoard: public Widget
         };
 
     private:
-        bool m_left = true;
+        [[maybe_unused]] bool m_left = true;
         bool m_loadRequested = false;
 
     private:
         const int m_despX =  40;
         const int m_despY = 100;
         const int m_despW = 270;
-        const int m_despH = 300;
+        [[maybe_unused]] const int m_despH = 300;
 
     private:
         ProcessRun *m_processRun;

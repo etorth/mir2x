@@ -113,7 +113,7 @@ NPCChatBoard::NPCChatBoard(
           {
               if(event == BEVENT_RELEASE){
                   if(const auto id = LayoutBoard::findAttrValue(attrList, "id", nullptr)){
-                      const auto autoClose = [id, closeAttr = LayoutBoard::findAttrValue(attrList, "close", nullptr)]() -> bool
+                      const auto autoClose = [closeAttr = LayoutBoard::findAttrValue(attrList, "close", nullptr)]() -> bool
                       {
                           return closeAttr ? to_parsedbool(closeAttr) : false;
                       }();

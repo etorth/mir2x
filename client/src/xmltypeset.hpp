@@ -347,17 +347,17 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        const auto leafEvent(int leafID) const
+        auto leafEvent(int leafID) const
         {
             return m_paragraph->leaf(leafID).hasEvent();
         }
 
-        const auto leafSingleClick(int leafID) const
+        auto leafSingleClick(int leafID) const
         {
             return m_paragraph->leaf(leafID).singleClick();
         }
 
-        const auto leafEventCount(int leafID, int event) const
+        auto leafEventCount(int leafID, int event) const
         {
             return m_paragraph->leaf(leafID).eventCount(event);
         }

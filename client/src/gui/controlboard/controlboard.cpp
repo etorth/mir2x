@@ -14,8 +14,8 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .dir = DIR_DOWNLEFT,
 
-          .y = [this]{ return g_sdlDevice->getWindowLogicalHeight() - 1; },
-          .w = [this]{ return g_sdlDevice->getWindowLogicalWidth ()    ; },
+          .y = []{ return g_sdlDevice->getWindowLogicalHeight() - 1; },
+          .w = []{ return g_sdlDevice->getWindowLogicalWidth ()    ; },
           .h = [this]
           {
               if(m_minimize){

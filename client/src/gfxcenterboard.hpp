@@ -40,6 +40,6 @@ class GfxCenterBoard: public Widget
         }
 
     public:
-        int w() const override { int maxW = 0; foreachChild(false, [&maxW, this](const Widget *widget, bool){ maxW = std::max<int>(maxW, widget->w()); }); return maxW; }
-        int h() const override { int maxH = 0; foreachChild(false, [&maxH, this](const Widget *widget, bool){ maxH = std::max<int>(maxH, widget->h()); }); return maxH; }
+        int w() const override { int maxW = 0; foreachChild(false, [&maxW](const Widget *widget, bool){ maxW = std::max<int>(maxW, widget->w()); }); return maxW; }
+        int h() const override { int maxH = 0; foreachChild(false, [&maxH](const Widget *widget, bool){ maxH = std::max<int>(maxH, widget->h()); }); return maxH; }
 };

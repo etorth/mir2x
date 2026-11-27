@@ -87,7 +87,8 @@ else()
         -Wextra
         -Wunused
         -Werror
-        -Wno-missing-field-initializers)
+        -Wno-missing-field-initializers
+        $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c23-extensions>) # clang takes the C++26 #embed as an extension
 endif()
 
 if(MINGW)

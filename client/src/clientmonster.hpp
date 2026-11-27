@@ -117,7 +117,7 @@ class ClientMonster: public CreatureMovable
         virtual MonsterFrameGfxSeq getFrameGfxSeq(int, int) const;
 
     protected:
-        std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const;
+        std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const override;
 
     public:
         int  maxStep() const override;
