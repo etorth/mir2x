@@ -23,7 +23,9 @@ mir2x is an experimental project that verifies actor-model based parallelism for
 
 ### Prebuilt binaries
 
-Each push to the repository publishes a rolling `latest` GitHub release containing Linux and Windows MinGW UCRT64 install trees, the full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
+Each push to the repository publishes a rolling `latest` GitHub release containing Linux, Windows MinGW UCRT64 and macOS (Apple Silicon) install trees, the full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
+
+The macOS binaries require macOS 15 or newer.
 
 ### Notes
 - This repo uses C++ coroutine to implement actor model, requires compiler to support c++23.
@@ -51,7 +53,7 @@ An IME for SDL fullscreen mode:
 
 ### Building from source
 
-mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux and 64-bit MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
+mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux, 64-bit MSYS2 UCRT64/MinGW, and Apple Silicon macOS. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
 
 #### Linux (Ubuntu 26.04)
@@ -102,6 +104,36 @@ git clone https://github.com/etorth/mir2x.git
 make b_mir2x && cd b_mir2x
 python3 /path/to/mir2x/build.py --build-dir=/path/to/b_mir2x --parallel=10
 ```
+
+#### macOS 15+ (Apple Silicon)
+
+Install Xcode Command Line Tools and [Homebrew](https://brew.sh/), then install the build tools:
+
+```sh
+xcode-select --install
+brew install \
+    autoconf autoconf-archive automake cmake gawk \
+    gettext libtool ninja pkgconf python
+```
+
+On macOS, mir2x and all vcpkg dependencies use Apple `clang`/`clang++` from the active Xcode toolchain and the standard `arm64-osx` triplet. This keeps the C++ standard library consistent across the project and its dependencies; Homebrew GCC is not required.
+
+```sh
+git clone https://github.com/etorth/mir2x.git
+mkdir b_mir2x && cd b_mir2x
+export PATH="$(brew --prefix gettext)/bin:$PATH"
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+export MACOSX_DEPLOYMENT_TARGET=15.0
+export CMAKE_GENERATOR=Ninja
+python3 /path/to/mir2x/build.py \
+    --triplet=arm64-osx \
+    --host-triplet=arm64-osx \
+    --c-compiler="$(xcrun --sdk macosx --find clang)" \
+    --cxx-compiler="$(xcrun --sdk macosx --find clang++)" \
+    --parallel=3
+```
+
+Use a new build directory or `--fresh` when switching an existing macOS build from GCC to Apple Clang.
 
 #### Helper script options
 
