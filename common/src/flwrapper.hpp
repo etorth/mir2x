@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <type_traits>
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Menu_Item.H>
