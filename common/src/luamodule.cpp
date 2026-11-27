@@ -1,6 +1,7 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
+#include <unistd.h> // getpid()
 #include "log.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"

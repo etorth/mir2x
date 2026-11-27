@@ -3,6 +3,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <unistd.h> // getpid(), libstdc++ pulls it in indirectly but libc++ doesn't
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
