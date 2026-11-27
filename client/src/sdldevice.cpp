@@ -1,11 +1,11 @@
 #include <cmath>
 #include <ranges>
 #include <numeric>
-#include <inplace_vector>
 #include <cinttypes>
 #include <system_error>
 #include <unordered_map>
 #include <SDL3/SDL.h>
+#define SDL_MAIN_NOIMPL // only for SDL_SetMainReady(), the SDL_main entry is in main.cpp
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
 
@@ -17,6 +17,7 @@
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
+#include "inplacevector.hpp"
 #include "clientargparser.hpp"
 #include "soundeffecthandle.hpp"
 
@@ -1589,7 +1590,7 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
     }
 
     MIX_Track *pickedTrack = nullptr;
-    std::inplace_vector<MIX_Track *, 128> idleTrackList;
+    stdf::inplace_vector<MIX_Track *, 128> idleTrackList;
     {
         // clean pending track entries
         //

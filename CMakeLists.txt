@@ -36,6 +36,34 @@ endif()
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Linux and Windows build everything, Android builds the client only
+if(ANDROID)
+    set(MIR2X_DESKTOP_BUILD OFF)
+else()
+    set(MIR2X_DESKTOP_BUILD ON)
+endif()
+
+option(MIR2X_BUILD_SERVER      "Build the server"                       ${MIR2X_DESKTOP_BUILD})
+option(MIR2X_BUILD_TOOLS       "Build the tools"                        ${MIR2X_DESKTOP_BUILD})
+option(MIR2X_BUILD_TESTS       "Build the tests"                        ${MIR2X_DESKTOP_BUILD})
+option(MIR2X_ENABLE_PINYIN_IME "Build the client's embedded pinyin IME" ${MIR2X_DESKTOP_BUILD})
+
+if(ANDROID AND (MIR2X_BUILD_SERVER OR MIR2X_BUILD_TOOLS OR MIR2X_BUILD_TESTS OR MIR2X_ENABLE_PINYIN_IME))
+    message(FATAL_ERROR "Android builds the client only, without the embedded pinyin IME")
+endif()
+
+# FLTK is used by the server GUI and some tools, never by the client
+if(MIR2X_BUILD_SERVER OR MIR2X_BUILD_TOOLS)
+    set(MIR2X_NEED_FLTK ON)
+else()
+    set(MIR2X_NEED_FLTK OFF)
+endif()
+
+if(ANDROID)
+    # client is linked as libmain.so, all static code linked into it must be PIC
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 option(MIR2X_USE_CCACHE "Use ccache to speed up rebuilds if available" OFF)
 if(MIR2X_USE_CCACHE)
     find_program(CCACHE_FOUND ccache)
@@ -197,7 +225,9 @@ if(NOT MIR2X_PYTHON_EXECUTABLE)
 endif()
 message(STATUS "Using python3: ${MIR2X_PYTHON_EXECUTABLE}")
 
-include("${CMAKE_SOURCE_DIR}/cmake/Mir2xTest.cmake")
+if(MIR2X_BUILD_TESTS)
+    include("${CMAKE_SOURCE_DIR}/cmake/Mir2xTest.cmake")
+endif()
 
 set(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty" CACHE PATH "Directory for downloaded third-party files")
 include("${CMAKE_SOURCE_DIR}/cmake/download/debugger.cmake")
@@ -206,14 +236,56 @@ include("${CMAKE_SOURCE_DIR}/cmake/download/inspect.cmake")
 set(CMAKE_SKIP_RPATH TRUE)
 
 add_subdirectory(common)
-add_subdirectory(tools )
-add_subdirectory(server)
+
+# zsdbmaker packs the client and server resources, so it must run on the build host
+# Android builds it for the host as a standalone project, imported here as the same target name
+if(ANDROID)
+    set(MIR2X_HOST_CXX_COMPILER "" CACHE FILEPATH "Host C++26 compiler used to build zsdbmaker for the build host")
+    if(NOT MIR2X_HOST_CXX_COMPILER)
+        message(FATAL_ERROR "Android build needs -DMIR2X_HOST_CXX_COMPILER=<host C++26 compiler> to build zsdbmaker for the build host")
+    endif()
+
+    if(CMAKE_HOST_WIN32)
+        set(MIR2X_HOST_ZSDBMAKER ${CMAKE_BINARY_DIR}/zsdbmaker_host/zsdbmaker.exe)
+    else()
+        set(MIR2X_HOST_ZSDBMAKER ${CMAKE_BINARY_DIR}/zsdbmaker_host/zsdbmaker)
+    endif()
+
+    include(ExternalProject)
+    ExternalProject_Add(zsdbmaker_host
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/zsdbmaker
+        BINARY_DIR ${CMAKE_BINARY_DIR}/zsdbmaker_host
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_CXX_COMPILER=${MIR2X_HOST_CXX_COMPILER}
+            -DCMAKE_PREFIX_PATH=${VCPKG_INSTALLED_DIR}/${VCPKG_HOST_TRIPLET}
+        BUILD_ALWAYS ON
+        BUILD_BYPRODUCTS ${MIR2X_HOST_ZSDBMAKER}
+        INSTALL_COMMAND "")
+
+    add_executable(zsdbmaker IMPORTED GLOBAL)
+    set_target_properties(zsdbmaker PROPERTIES IMPORTED_LOCATION ${MIR2X_HOST_ZSDBMAKER})
+    add_dependencies(zsdbmaker zsdbmaker_host)
+else()
+    add_subdirectory(zsdbmaker)
+endif()
+
+if(MIR2X_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()
+
+if(MIR2X_BUILD_SERVER)
+    add_subdirectory(server)
+endif()
+
 add_subdirectory(client)
 
 # The top-level test/ directory holds cross-module integration tests, such as server and client scenarios.
 # It must be added after all modules so mir2x_finalize_tests() sees every registered test.
-add_subdirectory(test)
-mir2x_finalize_tests()
+if(MIR2X_BUILD_TESTS)
+    add_subdirectory(test)
+    mir2x_finalize_tests()
+endif()
 
 set(COMMAND_GIT_TAG "git describe --tag")
 execute_process(

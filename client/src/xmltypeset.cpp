@@ -95,12 +95,23 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
     int tokenIndex = 0;
     int rawWidth = 0;
 
-    for(const auto &token: std::views::concat(m_lineList[argLine].content, tokenLine)){
+    const auto fnAddTokenWidth = [this, tokenCount, &tokenIndex, &rawWidth](const auto &token)
+    {
         const auto [w1, w2] = getTokenNaturalPadding(token);
         rawWidth += token.box.info.w;
         rawWidth += (tokenIndex     == 0         ) ? 0 : w1;
         rawWidth += (tokenIndex + 1 == tokenCount) ? 0 : w2;
         tokenIndex++;
+    };
+
+    // two loops instead of std::views::concat(m_lineList[argLine].content, tokenLine)
+    // std::views::concat needs libc++ 23, the Android NDK libc++ doesn't have it
+    for(const auto &token: m_lineList[argLine].content){
+        fnAddTokenWidth(token);
+    }
+
+    for(const auto &token: tokenLine){
+        fnAddTokenWidth(token);
     }
 
     if(rawWidth > m_initArgs.lineWidth){

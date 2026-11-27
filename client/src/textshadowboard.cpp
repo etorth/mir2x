@@ -1,7 +1,9 @@
 #include "textshadowboard.hpp"
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#if !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized" // GCC-only name, clang fails on it with -Werror
+#endif
 TextShadowBoard::TextShadowBoard(TextShadowBoard::InitArgs args)
     : Widget
       {{

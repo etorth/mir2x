@@ -1,7 +1,19 @@
+#include <utility>
 #include "totype.hpp"
 #include "sditem.hpp"
 #include "serdesmsg.hpp"
 #include "mathf.hpp"
+
+// clang 23 can't expand template-for over a constexpr range like std::views::iota(EA_BEGIN, EA_END) yet
+// it does expand over a tuple, so iterate a tuple of std::integral_constant<int, EA_xxx> instead
+// calls f.template operator()<I>() for each I in [EA_BEGIN, EA_END), in order
+template<typename F> static void forEachEA(F &&f)
+{
+    [&f]<int... I>(std::integer_sequence<int, I...>)
+    {
+        (f.template operator()<SDItem::EA_BEGIN + I>(), ...);
+    }(std::make_integer_sequence<int, SDItem::EA_END - SDItem::EA_BEGIN>{});
+}
 
 std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params, SDItem::SDItemXMLLayoutType layoutType) const
 {
@@ -289,11 +301,12 @@ luaf::luaVar SDItem::asLuaVar() const
     };
 
     std::unordered_map<std::string, luaf::luaVar> extAttrs;
-    template for(constexpr int I: std::views::iota(EA_BEGIN, EA_END)){
+    forEachEA([this, &extAttrs]<int I>()
+    {
         if(const auto attrOpt = getExtAttr<EA_t<I>>(); attrOpt.has_value()){
             extAttrs.emplace(EA_t<I>::name, luaf::buildLuaVar(attrOpt.value()));
         }
-    }
+    });
 
     if(!extAttrs.empty()){
         table.emplace("extAttrs", luaf::buildLuaVar(std::move(extAttrs)));
@@ -341,13 +354,14 @@ SDItem SDItem::fromLuaVar(const luaf::luaVar &var)
                         const auto &attrValue = attrValueWrapper.get();
 
                         bool matched = false;
-                        template for(constexpr int I: std::views::iota(EA_BEGIN, EA_END)){
+                        forEachEA([&item, &attrName, &attrValue, &matched]<int I>()
+                        {
                             if(attrName == EA_t<I>::name){
                                 using ValType = typename EA_t<I>::type;
                                 item.extAttrList[I] = cerealf::serialize<ValType>(luaf::luaVarAs<ValType>(attrValue), -1);
                                 matched = true;
                             }
-                        }
+                        });
 
                         if(!matched){
                             throw fflerror("SDItem::fromLuaVar: unknown extended attribute: %s", attrName.c_str());

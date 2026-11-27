@@ -1,3 +1,6 @@
+#include "ime.hpp"
+
+#if defined(MIR2X_ENABLE_PINYIN_IME)
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -8,7 +11,6 @@
 #include <condition_variable>
 
 #include "pinyin.h"
-#include "ime.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 
@@ -299,3 +301,77 @@ std::vector<std::string> IME::candidates() const
     const std::lock_guard<std::mutex> lock(imePtr->mtx);
     return imePtr->candidates;
 }
+
+#else
+// built without libpinyin (Android uses the system IME)
+// the embedded IME gives no candidates, it only keeps and commits the typed letters
+
+static std::string * asInputPtr(void *ptr)
+{
+    return static_cast<std::string *>(ptr);
+}
+
+IME::IME()
+    : m_instance(new std::string())
+{}
+
+IME::~IME()
+{
+    delete asInputPtr(m_instance);
+}
+
+void IME::clear()
+{
+    asInputPtr(m_instance)->clear();
+}
+
+void IME::feed(char ch)
+{
+    asInputPtr(m_instance)->push_back(ch);
+}
+
+void IME::backspace()
+{
+    if(auto input = asInputPtr(m_instance); !input->empty()){
+        input->pop_back();
+    }
+}
+
+void IME::assign(std::string, std::string argInput)
+{
+    *asInputPtr(m_instance) = std::move(argInput);
+}
+
+void IME::select(size_t)
+{}
+
+bool IME::done() const
+{
+    return false;
+}
+
+bool IME::empty() const
+{
+    return asInputPtr(m_instance)->empty();
+}
+
+std::string IME::input() const
+{
+    return *asInputPtr(m_instance);
+}
+
+std::string IME::result() const
+{
+    return *asInputPtr(m_instance);
+}
+
+std::string IME::sentence() const
+{
+    return {};
+}
+
+std::vector<std::string> IME::candidates() const
+{
+    return {};
+}
+#endif

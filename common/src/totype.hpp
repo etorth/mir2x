@@ -9,8 +9,12 @@
 #include <vector>
 #include <stdexcept>
 #include <string_view>
-#include <sol/sol.hpp> // for lua_Integer
 #include "stdf.hpp"
+
+// zsdbmaker is built standalone without sol2/lua, see zsdbmaker/CMakeLists.txt
+#if !defined(MIR2X_TOTYPE_DISABLE_SOL2)
+#include <sol/sol.hpp> // for lua_Integer
+#endif
 
 inline auto to_d     (auto x){ return static_cast<               int>(x); }
 inline auto to_u     (auto x){ return static_cast<      unsigned int>(x); }
@@ -30,7 +34,10 @@ inline auto to_u8    (auto x){ return static_cast<           uint8_t>(x); }
 inline auto to_u16   (auto x){ return static_cast<          uint16_t>(x); }
 inline auto to_u32   (auto x){ return static_cast<          uint32_t>(x); }
 inline auto to_u64   (auto x){ return static_cast<          uint64_t>(x); }
+
+#if !defined(MIR2X_TOTYPE_DISABLE_SOL2)
 inline auto to_luaInt(auto x){ return static_cast<       lua_Integer>(x); }
+#endif
 
 template<typename P> [[nodiscard]] auto to_cvptr(const P &p)
 {

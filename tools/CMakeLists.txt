@@ -15,7 +15,6 @@ add_subdirectory(helmetwil2png)
 add_subdirectory(monsterwil2png)
 
 add_subdirectory(npcgen)
-add_subdirectory(zsdbmaker)
 add_subdirectory(rawbufmaker)
 add_subdirectory(followuidmagiceditor)
 

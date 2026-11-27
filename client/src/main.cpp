@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <SDL3/SDL_main.h> // on Android, without SDL_MAIN_HANDLED, renames main() below to SDL_main for SDLActivity
 #include "log.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"

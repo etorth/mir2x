@@ -4,11 +4,8 @@
   "dependencies": [
     "argh",
     "asio",
-    "catch2",
     "cereal",
-    "fltk",
     "g3log",
-    "libpinyin",
     "libpng",
     "libpopcnt",
     "lua",
@@ -30,11 +27,32 @@
     },
     "sdl3-ttf",
     "sol2",
-    "sqlitecpp",
     "tiny-aes-c",
     "tinyxml2",
     "utfcpp",
     "zlib",
-    "zstd"
-  ]
+    "zstd",
+    {
+      "name": "argh",
+      "host": true
+    },
+    {
+      "name": "zstd",
+      "host": true
+    }
+  ],
+  "default-features": [
+    "desktop"
+  ],
+  "features": {
+    "desktop": {
+      "description": "Server, tools, tests and the client's embedded pinyin IME, the Android client-only build turns it off with VCPKG_MANIFEST_NO_DEFAULT_FEATURES",
+      "dependencies": [
+        "catch2",
+        "fltk",
+        "libpinyin",
+        "sqlitecpp"
+      ]
+    }
+  }
 }

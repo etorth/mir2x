@@ -9,11 +9,17 @@
 #include <cstdio>
 #include <fstream>
 #include <cinttypes>
+#include "argh.h"
 #include "strf.hpp"
 #include "zsdb.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "argf.hpp"
+
+// argh directly, argf.hpp pulls in the game database headers
+static bool hasOption(const argh::parser &cmd, const std::string &opt)
+{
+    return cmd[opt] || cmd(opt);
+}
 
 static void cmd_help()
 {
@@ -31,11 +37,11 @@ static void cmd_help()
     std::printf("--dict-size=<bytes>, default 112640, dictionary size for --train-dict\n");
 }
 
-static void cmd_train_dict(const argf::parser &cmd)
+static void cmd_train_dict(const argh::parser &cmd)
 {
     const auto getOptStr = [&cmd](const char *opt, const char *defVal) -> std::string
     {
-        if(!cmd.has_option(opt)){
+        if(!hasOption(cmd, opt)){
             if(defVal){
                 return defVal;
             }
@@ -115,7 +121,7 @@ static void cmd_train_dict(const argf::parser &cmd)
     std::printf("trained dict %s: %zu bytes from %zu samples, %zu bytes\n", dictFileName.c_str(), dictBuf.size(), sampleSizeList.size(), sampleBuf.size());
 }
 
-static void cmd_create_db(const argf::parser &cmd)
+static void cmd_create_db(const argh::parser &cmd)
 {
     const auto outputFileName = [&cmd]() -> std::string
     {
@@ -134,7 +140,7 @@ static void cmd_create_db(const argf::parser &cmd)
 
     const auto inputFileNameRegex = [&cmd]() -> std::string
     {
-        if(!cmd.has_option("input-file-name-regex")){
+        if(!hasOption(cmd, "input-file-name-regex")){
             return "";
         }
 
@@ -146,7 +152,7 @@ static void cmd_create_db(const argf::parser &cmd)
 
     const auto inputDirName = [&cmd]() -> std::string
     {
-        if(!cmd.has_option("input-dir")){
+        if(!hasOption(cmd, "input-dir")){
             return ".";
         }
 
@@ -158,7 +164,7 @@ static void cmd_create_db(const argf::parser &cmd)
 
     const auto inputDictName = [&cmd]() -> std::string
     {
-        if(!cmd.has_option("input-dict")){
+        if(!hasOption(cmd, "input-dict")){
             return "";
         }
 
@@ -170,7 +176,7 @@ static void cmd_create_db(const argf::parser &cmd)
 
     const auto compLevel = [&cmd]() -> int
     {
-        if(!cmd.has_option("comp-level")){
+        if(!hasOption(cmd, "comp-level")){
             return 0;
         }
 
@@ -202,7 +208,7 @@ static void cmd_create_db(const argf::parser &cmd)
 
     const auto compRatioThreshold = [&cmd]() -> double
     {
-        if(!cmd.has_option("comp-ratio-threshold")){
+        if(!hasOption(cmd, "comp-ratio-threshold")){
             return 0.90;
         }
 
@@ -226,7 +232,7 @@ static void cmd_create_db(const argf::parser &cmd)
     ZSDB::buildDB(outputFileName.c_str(), inputFileNameRegex.c_str(), inputDirName.c_str(), inputDictName.c_str(), compLevel, compRatioThreshold);
 }
 
-static void cmd_list(const argf::parser &cmd)
+static void cmd_list(const argh::parser &cmd)
 {
     auto dbFileName = [&cmd]() -> std::string
     {
@@ -242,7 +248,7 @@ static void cmd_list(const argf::parser &cmd)
 
     auto regexStr = [&cmd]() -> std::string
     {
-        if(!cmd.has_option("data-name-regex")){
+        if(!hasOption(cmd, "data-name-regex")){
             return "";
         }
 
@@ -263,7 +269,7 @@ static void cmd_list(const argf::parser &cmd)
     }
 }
 
-static void cmd_uncomp_db(const argf::parser &cmd)
+static void cmd_uncomp_db(const argh::parser &cmd)
 {
     const auto dbFileName = [&cmd]() -> std::string
     {
@@ -275,7 +281,7 @@ static void cmd_uncomp_db(const argf::parser &cmd)
 
     ZSDB db(dbFileName.c_str());
     const auto entryList = db.getEntryList();
-    const bool prefixIndexEnabled = cmd.has_option("prefix-index");
+    const bool prefixIndexEnabled = hasOption(cmd, "prefix-index");
 
     uint64_t prefixIndex = 0;
     std::string prefixIndexFileName;
@@ -304,20 +310,20 @@ static void cmd_uncomp_db(const argf::parser &cmd)
 
 int main(int argc, char *argv[])
 {
-    argf::parser cmd(argc, argv);
-    if(cmd.has_option("help")){
+    argh::parser cmd(argc, argv);
+    if(hasOption(cmd, "help")){
         cmd_help();
     }
-    else if(cmd.has_option("create-db")){
+    else if(hasOption(cmd, "create-db")){
         cmd_create_db(cmd);
     }
-    else if(cmd.has_option("train-dict")){
+    else if(hasOption(cmd, "train-dict")){
         cmd_train_dict(cmd);
     }
-    else if(cmd.has_option("list")){
+    else if(hasOption(cmd, "list")){
         cmd_list(cmd);
     }
-    else if(cmd.has_option("decomp-db")){
+    else if(hasOption(cmd, "decomp-db")){
         cmd_uncomp_db(cmd);
     }
     else{

@@ -90,7 +90,11 @@
 #include <algorithm>
 #include <numeric>
 #include <filesystem>
+
+// zsdbmaker is built standalone without sol2/lua, see zsdbmaker/CMakeLists.txt
+#if !defined(MIR2X_STRF_DISABLE_SOL2)
 #include <sol/sol.hpp> // for str_any(const sol::object &)
+#endif
 
 #if defined(__GNUC__)
     #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -102,11 +106,13 @@
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
 
+#if !defined(MIR2X_STRF_DISABLE_SOL2)
 // for str_any(const sol::object &)
 std::ostream & operator << (std::ostream &, const sol::object &);
 std::ostream & operator << (std::ostream &, const sol::stack_proxy &);
 std::ostream & operator << (std::ostream &, const sol::variadic_args &);
 std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
+#endif
 
 std::string str_now(const char * = nullptr);
 std::string str_localtime();
