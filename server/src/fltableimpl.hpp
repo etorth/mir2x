@@ -76,7 +76,7 @@ class Fl_TableImpl: public Fl_Table_Row
             const int s = to_d(msec /    1000ULL); msec -= (s *    1000ULL);
 
             char timeBuf[128];
-            std::sprintf(timeBuf, "%dh:%02dm:%02ds:%03dms", h, m, s, to_d(msec));
+            std::snprintf(timeBuf, sizeof(timeBuf), "%dh:%02dm:%02ds:%03dms", h, m, s, to_d(msec));
             return timeBuf;
         }
 

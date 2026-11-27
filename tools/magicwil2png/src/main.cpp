@@ -30,7 +30,7 @@
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
 
-const char *createOffsetFileName(char *fileNameBuf, const char *outDir, int fileIndex, int imgIndex,  int dx, int dy, int prefixIndex, int prefixWidth)
+const char *createOffsetFileName(char *fileNameBuf, size_t fileNameBufSize, const char *outDir, int fileIndex, int imgIndex,  int dx, int dy, int prefixIndex, int prefixWidth)
 {
     if(!fileNameBuf){
         throw fflpanic("invalid arguments");
@@ -38,13 +38,13 @@ const char *createOffsetFileName(char *fileNameBuf, const char *outDir, int file
 
     char prefixBuf[64];
     if(prefixWidth > 0){
-        std::sprintf(prefixBuf, "%0*d_", std::min<int>(32, prefixWidth), prefixIndex);
+        std::snprintf(prefixBuf, sizeof(prefixBuf), "%0*d_", std::min<int>(32, prefixWidth), prefixIndex);
     }
     else{
         prefixBuf[0] = '\0';
     }
 
-    std::sprintf(fileNameBuf, "%s/%s%02llX%06llX%s%s%04X%04X.PNG",
+    std::snprintf(fileNameBuf, fileNameBufSize, "%s/%s%02llX%06llX%s%s%04X%04X.PNG",
             outDir,
             prefixBuf,
             to_llu(fileIndex),
@@ -78,7 +78,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
                 const auto layer = imgPackage.decode(true, false, true);
 
                 char saveFileName[256];
-                createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
+                createOffsetFileName(saveFileName, sizeof(saveFileName), outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
 
                 if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), imgInfo->width, imgInfo->height, saveFileName)){
                     throw fflpanic("save PNG failed: {}", saveFileName);

@@ -49,7 +49,7 @@ void printUsage()
     std::printf("%s", szUsage);
 }
 
-const char *createOffsetFileName(char *szFileName,
+const char *createOffsetFileName(char *szFileName, size_t nFileNameSize,
         const char *szOutDir,
         bool layerIndex,
         bool bShadow,
@@ -79,7 +79,7 @@ const char *createOffsetFileName(char *szFileName,
             | (nEncodeDirection <<  5)
             | (nEncodeFrame     <<  0);
 
-        std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+        std::snprintf(szFileName, nFileNameSize, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                 szOutDir,
                 nEncode,
                 ((nDX > 0) ? "1" : "0"),
@@ -113,7 +113,7 @@ bool heroWil2PNG(bool bGender,
                         for(const int layerIndex: {0, 1}){
                             if(layer[layerIndex]){
                                 char szSaveFileName[128];
-                                createOffsetFileName(szSaveFileName,
+                                createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                         szOutDir,
                                         layerIndex,
                                         false,
@@ -150,7 +150,7 @@ bool heroWil2PNG(bool bGender,
                                 && nShadowW > 0
                                 && nShadowH > 0){
                             char szSaveFileName[128];
-                            createOffsetFileName(szSaveFileName,
+                            createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                     szOutDir,
                                     0,
                                     true,

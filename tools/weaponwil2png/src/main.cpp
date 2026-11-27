@@ -71,7 +71,7 @@ void printUsage()
             "   otherwise get error\n");
 }
 
-const char *createOffsetFileName(char *szFileName,
+const char *createOffsetFileName(char *szFileName, size_t nFileNameSize,
         const char *szOutDir,
         bool bShadow,
         bool bGender,
@@ -98,7 +98,7 @@ const char *createOffsetFileName(char *szFileName,
             | (nEncodeDirection <<  5)
             | (nEncodeFrame     <<  0);
 
-        std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+        std::snprintf(szFileName, nFileNameSize, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                 szOutDir,
                 nEncode,
                 ((nDX > 0) ? "1" : "0"),
@@ -152,7 +152,7 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                         const auto [weaponShadowLayer, nShadowW, nShadowH] = alphaf::createShadow(stWeaponPNGBufShadow, bProject, weaponLayer[0], weaponImgInfo->width, weaponImgInfo->height, colorf::A_SHF(0XFF));
 
                         char szSaveFileName[128];
-                        createOffsetFileName(szSaveFileName,
+                        createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                 szOutDir,
                                 false,
                                 bGender,
@@ -196,7 +196,7 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                         if(true
                                 && nShadowW > 0
                                 && nShadowH > 0){
-                            createOffsetFileName(szSaveFileName,
+                            createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                     szOutDir,
                                     true,
                                     bGender,

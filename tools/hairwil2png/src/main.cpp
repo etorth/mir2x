@@ -36,7 +36,7 @@ void printUsage()
     std::printf("Please check repo mir2x/tools/hairwil2png/src/main.cpp for usage.\n");
 }
 
-const char *createOffsetFileName(char *szFileName,
+const char *createOffsetFileName(char *szFileName, size_t nFileNameSize,
         const char *szOutDir,
         bool bGender,
         int  nHair,
@@ -60,7 +60,7 @@ const char *createOffsetFileName(char *szFileName,
             | (nEncodeDirection <<  5)
             | (nEncodeFrame     <<  0);
 
-        std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+        std::snprintf(szFileName, nFileNameSize, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                 szOutDir,
                 nEncode,
                 ((nDX > 0) ? "1" : "0"),
@@ -90,7 +90,7 @@ void hairWil2PNG(bool bGender,
                         const auto layer = stHairWilPackage.decode(true, false, false);
 
                         char szSaveFileName[128];
-                        createOffsetFileName(szSaveFileName,
+                        createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                 szOutDir,
                                 bGender,
                                 nHair,

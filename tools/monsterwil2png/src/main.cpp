@@ -67,7 +67,7 @@ void printUsage()
     std::printf("%s", szUsage);
 }
 
-const char *createOffsetFileName(char *szFileName,
+const char *createOffsetFileName(char *szFileName, size_t nFileNameSize,
         const char *szOutDir,
         bool bShadow,
         int  nLookID,
@@ -95,13 +95,13 @@ const char *createOffsetFileName(char *szFileName,
 
         char prefixBuf[64];
         if(nPrefixWidth > 0){
-            std::sprintf(prefixBuf, "%0*d_", nPrefixWidth, nImgCount);
+            std::snprintf(prefixBuf, sizeof(prefixBuf), "%0*d_", nPrefixWidth, nImgCount);
         }
         else{
             prefixBuf[0] = '\0';
         }
 
-        std::sprintf(szFileName, "%s/%s%08llX%s%s%04X%04X.PNG",
+        std::snprintf(szFileName, nFileNameSize, "%s/%s%08llX%s%s%04X%04X.PNG",
                 szOutDir,
                 prefixBuf,
                 to_llu(nEncode),
@@ -202,7 +202,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 
                         // export for MonsterDBN
                         char szSaveFileName[128];
-                        createOffsetFileName(szSaveFileName,
+                        createOffsetFileName(szSaveFileName, sizeof(szSaveFileName),
                                 szOutDir,
                                 false,
                                 nGlobalMonID,
@@ -231,7 +231,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 
                             // export for MonsterDBN
                             char szSaveShadowFileName[128];
-                            createOffsetFileName(szSaveShadowFileName,
+                            createOffsetFileName(szSaveShadowFileName, sizeof(szSaveShadowFileName),
                                     szOutDir,
                                     true,
                                     nGlobalMonID,
@@ -293,7 +293,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                     && nShadowH > 0){
 
                                 char szSaveShadowFileName[128];
-                                createOffsetFileName(szSaveShadowFileName,
+                                createOffsetFileName(szSaveShadowFileName, sizeof(szSaveShadowFileName),
                                         szOutDir,
                                         true,
                                         nGlobalMonID,

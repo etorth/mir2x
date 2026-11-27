@@ -63,7 +63,7 @@ m_window->copy_label(str_printf("PodMonitorWindow (UID: %016llx UIDName: %s)", t
   } {
     code {dynamic_cast<PodMonitorTable *>(m_podMonitorTable)->updateTable();
 char buf[64];
-std::sprintf(buf, "MSG_TYPE: %d", m_podMonitorTable->getRowCount());
+std::snprintf(buf, sizeof(buf), "MSG_TYPE: %d", m_podMonitorTable->getRowCount());
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void

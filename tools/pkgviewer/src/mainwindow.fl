@@ -134,7 +134,7 @@ class MainWindow {} {
                     fnUpdateProgressBar(nImgIndex);
                     if(g_wilPackage->setIndex(nImgIndex)){
                         char tmpBuf[128];
-                        std::sprintf(tmpBuf, formatStr.c_str(),
+                        std::snprintf(tmpBuf, sizeof(tmpBuf), formatStr.c_str(),
                                 nImgIndex,
                                 g_wilPackage->currImageInfo()->width,
                                 g_wilPackage->currImageInfo()->height,
@@ -535,7 +535,7 @@ if(g_wilPackage){
 
         char tmpIndex[128];
         if(saveOffsetEnabled()){
-            std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
+            std::snprintf(tmpIndex, sizeof(tmpIndex), "TMP%s_%s%s%04X%04X",
                     getImageIndexString(imageIndex).c_str(),
                     ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
                     ((nDY > 0) ? "1" : "0"),              // sign
@@ -543,7 +543,7 @@ if(g_wilPackage){
                     (unsigned int)(std::labs(nDY)));
         }
         else{
-            std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imageIndex).c_str());
+            std::snprintf(tmpIndex, sizeof(tmpIndex), "TMP%s", getImageIndexString(imageIndex).c_str());
         }
 
         if(const auto [layer0, layer1, layer2] = g_wilPackage->decode(true, removeShadowMosaicEnabled(), autoAlphaEnabled()); layer0){
