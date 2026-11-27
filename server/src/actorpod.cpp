@@ -73,14 +73,14 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
         if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
             std::visit(stdf::VarDispatcher
             {
-                [&mpk, this](std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> &handle)
+                [&mpk, this](RespondSlot *slot)
                 {
-                    if(handle){
+                    if(slot && slot->handle){
                         m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
                         {
                             raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                            handle.promise().return_value(mpk);
-                            handle.resume();
+                            slot->mpkOpt = mpk;
+                            slot->handle.resume();
                         }
                     }
                     else{

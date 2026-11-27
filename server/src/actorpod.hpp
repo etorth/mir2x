@@ -2,7 +2,9 @@
 #include <array>
 #include <string>
 #include <cfloat>
+#include <memory>
 #include <variant>
+#include <optional>
 #include <coroutine>
 #include <functional>
 #include <unordered_map>
@@ -19,29 +21,43 @@ class ActorPod final
         friend class ActorPool;
 
     private:
-        template<bool AllowOverwrite> struct RegisterContinuationAwaiter
+        // innHandler() puts the response in the slot and resumes the handle
+        // the slot is inside the awaiter, which stays in the suspended coroutine frame until await_resume()
+        struct RespondSlot
+        {
+            std::coroutine_handle<> handle = nullptr;
+            std::optional<ActorMsgPack> mpkOpt = std::nullopt;
+        };
+
+        template<bool AllowOverwrite> struct RespondAwaiter
         {
             ActorPod * const actor;
             uint64_t   const seqID;
+
+            RespondSlot slot {};
 
             constexpr bool await_ready() const noexcept
             {
                 return false;
             }
 
-            void await_suspend(std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> handle)
+            void await_suspend(std::coroutine_handle<> handle)
             {
+                slot.handle = handle;
                 if constexpr(AllowOverwrite){
-                    actor->m_respondCBList.insert_or_assign(seqID, handle);
+                    actor->m_respondCBList.insert_or_assign(seqID, std::addressof(slot));
                 }
                 else{
-                    if(!actor->m_respondCBList.try_emplace(seqID, handle).second){
+                    if(!actor->m_respondCBList.try_emplace(seqID, std::addressof(slot)).second){
                         throw fflpanic("{}: seqID {} already has a continuation", to_cstr(uidf::getUIDString(actor->UID())), seqID);
                     }
                 }
             }
 
-            void await_resume() const noexcept {}
+            ActorMsgPack await_resume()
+            {
+                return std::move(slot.mpkOpt.value());
+            }
         };
 
     private:
@@ -59,7 +75,7 @@ class ActorPod final
         uint64_t m_nextSeqID = 1;
 
     private:
-        std::unordered_map<uint64_t, std::variant<std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type>, std::function<void(const ActorMsgPack &)>>> m_respondCBList;
+        std::unordered_map<uint64_t, std::variant<RespondSlot *, std::function<void(const ActorMsgPack &)>>> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
@@ -142,14 +158,11 @@ class ActorPod final
         corof::awaitable<ActorMsgPack> send(std::pair<uint64_t, uint64_t> addr, ActorMsgBuf mbuf)
         {
             if(const auto seqIDOpt = doPost(addr, std::move(mbuf), true); seqIDOpt.has_value()){
-                co_await RegisterContinuationAwaiter<false>
+                co_return co_await RespondAwaiter<false>
                 {
                     .actor = this,
                     .seqID = seqIDOpt.value(),
                 };
-
-                // no return statement here
-                // return_value() called explicitly by innHandler()
             }
             else{
                 co_return ActorMsgPack{AM_BADACTORPOD};
@@ -187,7 +200,7 @@ class ActorPod final
                 *tokenPtr = token;
             }
 
-            co_await RegisterContinuationAwaiter<true>
+            co_return co_await RespondAwaiter<true>
             {
                 .actor = this,
                 .seqID = token.second,
