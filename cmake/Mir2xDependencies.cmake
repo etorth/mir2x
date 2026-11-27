@@ -26,15 +26,26 @@ if(MIR2X_NEED_FLTK)
     find_package(OpenGL REQUIRED)
     find_package(FLTK CONFIG REQUIRED)
 
-    if(NOT FLTK_FLUID_EXECUTABLE)
-        find_program(FLTK_FLUID_EXECUTABLE
+    # FLTKConfig.cmake sets FLTK_FLUID_EXECUTABLE to the target name "fluid", it only works if FLTK exports that target
+    # on macOS fluid is an app bundle that isn't exported, vcpkg puts it at tools/fltk/fluid.app, so look for the program
+    if(NOT (TARGET "${FLTK_FLUID_EXECUTABLE}" OR EXISTS "${FLTK_FLUID_EXECUTABLE}"))
+        set(MIR2X_SAVED_FIND_APPBUNDLE "${CMAKE_FIND_APPBUNDLE}")
+        set(CMAKE_FIND_APPBUNDLE NEVER) # want the program inside fluid.app, not the bundle directory
+
+        find_program(MIR2X_FLUID_EXECUTABLE
             NAMES fluid
-            PATHS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/fltk"
+            PATHS
+                "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/fltk"
+                "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/fltk/fluid.app/Contents/MacOS"
             NO_DEFAULT_PATH)
+
+        set(CMAKE_FIND_APPBUNDLE "${MIR2X_SAVED_FIND_APPBUNDLE}")
+        if(NOT MIR2X_FLUID_EXECUTABLE)
+            message(FATAL_ERROR "Failed to find FLTK fluid executable")
+        endif()
+        set(FLTK_FLUID_EXECUTABLE "${MIR2X_FLUID_EXECUTABLE}")
     endif()
-    if(NOT FLTK_FLUID_EXECUTABLE)
-        message(FATAL_ERROR "Failed to find FLTK fluid executable")
-    endif()
+    message(STATUS "Using FLTK fluid: ${FLTK_FLUID_EXECUTABLE}")
 endif()
 
 if(MIR2X_BUILD_SERVER)
