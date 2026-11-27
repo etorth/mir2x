@@ -1,5 +1,5 @@
-#include <inplace_vector>
 #include <vector>
+#include "inplacevector.hpp"
 #include "buffactattackmodifier.hpp"
 #include "bufflist.hpp"
 #include "battleobject.hpp"
@@ -20,7 +20,7 @@ bool BuffList::removeBuff(uint64_t buffSeq)
 
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
-    std::inplace_vector<BaseBuffActAttackModifier *, 16> amodList;
+    stdf::inplace_vector<BaseBuffActAttackModifier *, 16> amodList;
     for(auto &p: m_activeBuffList){
         if(p.second){
             for(auto &actPtr: p.second->m_activeActList){

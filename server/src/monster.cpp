@@ -1,8 +1,8 @@
 #include <tuple>
 #include <ranges>
-#include <inplace_vector>
 #include <cinttypes>
 #include "player.hpp"
+#include "inplacevector.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
 #include "mathf.hpp"
@@ -867,14 +867,14 @@ corof::awaitable<bool> Monster::moveOneStepGreedy(int argX, int argY)
         co_return false;
     }
 
-    std::inplace_vector<int, 2> distList;
+    stdf::inplace_vector<int, 2> distList;
     distList.push_back(1);
 
     if((maxStep() > 1) && (mathf::CDistance(X(), Y(), argX, argY) >= maxStep())){
         distList.push_back(maxStep());
     }
 
-    std::inplace_vector<pathf::PathNode, 3> pathNodeList;
+    stdf::inplace_vector<pathf::PathNode, 3> pathNodeList;
     for(const auto stepSize: distList){
 
         pathNodeList.clear();

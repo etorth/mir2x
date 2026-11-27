@@ -17,7 +17,7 @@ namespace stdf
 #include <utility>
 #include "fflerror.hpp"
 
-// libc++ (Android NDK) has no std::inplace_vector yet
+// libc++ (Android NDK, macOS) has no std::inplace_vector yet
 // minimal replacement, only covers what mir2x uses
 namespace stdf
 {

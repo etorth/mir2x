@@ -1,7 +1,7 @@
 #include <cinttypes>
-#include <inplace_vector>
 #include <vector>
 #include "uidf.hpp"
+#include "inplacevector.hpp"
 #include "totype.hpp"
 #include "mathf.hpp"
 #include "uidsf.hpp"
@@ -154,7 +154,7 @@ bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
 
 void CharObject::trimInViewCO()
 {
-    std::inplace_vector<uint64_t, 128> sbuf;
+    stdf::inplace_vector<uint64_t, 128> sbuf;
     std::vector<uint64_t> dbuf;
 
     for(auto p = m_inViewCOList.begin(); p != m_inViewCOList.end();){
@@ -186,7 +186,7 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // updateInViewCO() may get called in fnOnLoc
     // it may change m_inViewCOList
 
-    std::inplace_vector<COLocation, 128> sbuf;
+    stdf::inplace_vector<COLocation, 128> sbuf;
     std::vector<COLocation> dbuf;
 
     for(const auto &[_, coLoc]: m_inViewCOList){

@@ -853,7 +853,7 @@ std::vector<pathf::PathNode> BattleObject::getValidChaseGrid(int nX, int nY, int
     return result;
 }
 
-void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, std::inplace_vector<pathf::PathNode, 3> &buf) const
+void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, stdf::inplace_vector<pathf::PathNode, 3> &buf) const
 {
     buf.clear();
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
